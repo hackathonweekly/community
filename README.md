@@ -277,7 +277,7 @@ Vercel 是最简单的 Next.js 部署方式：
 ### 💼 商业使用
 
 如需商业使用本项目，请联系：
-- **邮箱**：business@hackathonweekly.com
+- **邮箱**：contact@hackathonweekly.com
 - **标题**：[商业使用许可申请] HackathonWeekly Community
 
 ### 📚 相关文档

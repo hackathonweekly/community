@@ -300,7 +300,7 @@ Closes #issue_number
 ### 💼 商业使用
 
 如需商业使用本项目，请联系：
-- **邮箱**：business@hackathonweekly.com
+- **邮箱**：contact@hackathonweekly.com
 - **标题**：[商业使用许可申请] HackathonWeekly Community
 
 ---
