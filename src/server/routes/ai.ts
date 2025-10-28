@@ -8,7 +8,7 @@ import {
 	getAiChatsByUserId,
 	updateAiChat,
 } from "@/lib/database";
-import { logger } from "@/lib/logger";
+import { logger } from "@/lib/logs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";

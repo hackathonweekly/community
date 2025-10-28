@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { getBaseUrl } from "@/lib/utils";
 import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
-import { logger } from "hono/logger";
 import { openAPISpecs } from "hono-openapi";
 import { mergeOpenApiSchemas } from "./lib/openapi-schema";
 import { corsMiddleware } from "./middleware/cors";

@@ -1,6 +1,16 @@
-import { logger, type LogContext } from "@/lib/logger";
+import { logger } from "@/lib/logs";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
+
+interface LogContext {
+	requestId?: string;
+	path?: string;
+	method?: string;
+	userId?: string;
+	error?: string;
+	stack?: string;
+	[key: string]: any;
+}
 
 interface ErrorResponse {
 	error: {

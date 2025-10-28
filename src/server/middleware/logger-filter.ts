@@ -1,5 +1,4 @@
 import { createMiddleware } from "hono/factory";
-import { logger } from "hono/logger";
 
 export const filteredLogger = createMiddleware(async (c, next) => {
 	// 检查是否完全禁用HTTP日志
