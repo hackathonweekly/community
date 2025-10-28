@@ -101,9 +101,10 @@ type TemplateEditPageParams =
 	| Promise<{ templateId: string }>
 	| { templateId: string };
 
-export default function TemplateEditPage({
-	params,
-}: { params: TemplateEditPageParams }) {
+export default function TemplateEditPage(props: {
+	params: Promise<TemplateEditPageParams>;
+}) {
+	const params = use(props.params);
 	const router = useRouter();
 	const { user } = useSession();
 	const paramsPromise = useMemo(() => {

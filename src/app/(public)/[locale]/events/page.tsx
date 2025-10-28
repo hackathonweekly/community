@@ -25,13 +25,11 @@ export async function generateMetadata({
 	};
 }
 
-export default async function EventsPage({
-	params,
-	searchParams,
-}: {
+export default async function EventsPage(props: {
 	params: Promise<{ locale: string }>;
 	searchParams: Promise<EventsPageSearchParams>;
 }) {
+	const searchParams = await props.searchParams;
 	const { locale } = await params;
 	const resolvedSearchParams = await searchParams;
 	const session = await getSession();
