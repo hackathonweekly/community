@@ -1,0 +1,58 @@
+"use client";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import BoringAvatar from "boring-avatars";
+import { forwardRef, useMemo } from "react";
+import { useIsClient } from "usehooks-ts";
+
+export const OrganizationLogo = forwardRef<
+	HTMLSpanElement,
+	{
+		name: string;
+		logoUrl?: string | null;
+		className?: string;
+	}
+>(({ name, logoUrl, className }, ref) => {
+	const isClient = useIsClient();
+	const avatarColors = useMemo(() => {
+		if (typeof window === "undefined") {
+			return [];
+		}
+
+		const styles = getComputedStyle(window.document.documentElement);
+		return [
+			styles.getPropertyValue("--color-primary"),
+			styles.getPropertyValue("--color-accent"),
+			styles.getPropertyValue("--color-highlight"),
+		];
+	}, []);
+
+	const logoSrc = useMemo(
+		() =>
+			typeof logoUrl === "string" && logoUrl.trim().length > 0
+				? logoUrl
+				: undefined,
+		[logoUrl],
+	);
+
+	if (!isClient) {
+		return null;
+	}
+
+	return (
+		<Avatar ref={ref} className={className}>
+			<AvatarImage src={logoSrc} />
+			<AvatarFallback>
+				<BoringAvatar
+					size={96}
+					name={name}
+					variant="sunset"
+					colors={avatarColors}
+					square
+				/>
+			</AvatarFallback>
+		</Avatar>
+	);
+});
+
+OrganizationLogo.displayName = "OrganizationLogo";

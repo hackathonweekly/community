@@ -1,0 +1,129 @@
+# CNB 流水线配置 - Docker 镜像构建并上传到 CNB 制品库
+
+# 公共配置
+common_config: &common_config
+  services:
+    - docker
+  runner:
+    tags: cnb:arch:amd64
+    cpus: 8
+  docker:
+    image: node:22
+
+# 公共构建阶段
+common_stages: &common_stages
+  - name: load build environment
+    script: |
+      BUILD_ENV_FILE="./.env.build"
+      if [ -f "${BUILD_ENV_FILE}" ]; then
+        echo "Loading build environment variables from ${BUILD_ENV_FILE}"
+        set -a
+        . "${BUILD_ENV_FILE}"
+        set +a
+        echo "✅ Environment variables loaded"
+        echo "NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-not set}"
+        echo "NEXT_PUBLIC_BUCKET_NAME: ${NEXT_PUBLIC_BUCKET_NAME:-not set}"
+      else
+        echo "Warning: .env.build file not found"
+      fi
+
+  - name: docker login
+    script: |
+      if [ -n "${CNB_TRIGGER_USER}" ] && [ -n "${CNB_TRIGGER_TOKEN}" ]; then
+        echo "${CNB_TRIGGER_TOKEN}" | docker login ${CNB_DOCKER_REGISTRY:-"cnb.cool"} --username "${CNB_TRIGGER_USER}" --password-stdin
+      else
+        echo "No CNB credentials provided, skipping login"
+      fi
+
+# 公共 Docker 构建参数模板
+docker_build_template: &docker_build_template
+  script: |
+    if [ -z "${IMAGE_TAG}" ]; then
+      echo "ERROR: IMAGE_TAG is empty, cannot proceed with docker build"
+      exit 1
+    fi
+
+    echo "Building Docker image: ${IMAGE_TAG}"
+
+    BUILD_ARGS="--build-arg NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://hackathonweekly.com} --build-arg NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME:-hackweek-public-1303088253} --build-arg NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT:-https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com}"
+
+    if command -v docker buildx >/dev/null 2>&1; then
+      docker buildx build \
+        --load \
+        ${BUILD_ARGS} \
+        -t "${IMAGE_TAG}" \
+        .
+    else
+      docker build \
+        ${BUILD_ARGS} \
+        -t "${IMAGE_TAG}" \
+        .
+    fi
+
+# 公共推送模板
+docker_push_template: &docker_push_template
+  script: |
+    echo "Pushing image: ${IMAGE_TAG}"
+    docker push ${IMAGE_TAG}
+    echo "✅ Image pushed successfully"
+
+main:
+  push:
+    - <<: *common_config
+      stages:
+
+        - name: set docker tag
+          script: |
+            REGISTRY=${CNB_DOCKER_REGISTRY:-"cnb.cool"}
+            REPO_NAME=${CNB_REPO_SLUG_LOWERCASE:-"hackathonweekly/community"}
+
+            if [ "${CNB_BRANCH}" = "main" ]; then
+              IMAGE_TAG="${REGISTRY}/${REPO_NAME}:latest"
+            else
+              IMAGE_TAG="${REGISTRY}/${REPO_NAME}:${CNB_BRANCH}"
+            fi
+
+            echo -n "${IMAGE_TAG}"
+          exports:
+            info: IMAGE_TAG
+
+        - <<: *common_stages
+        - <<: *docker_build_template
+        - <<: *docker_push_template
+
+# 标签推送配置
+v*:
+  tag_push:
+    - <<: *common_config
+      stages:
+        - name: set docker tag for release
+          script: |
+            REGISTRY=${CNB_DOCKER_REGISTRY:-"cnb.cool"}
+            REPO_NAME=${CNB_REPO_SLUG_LOWERCASE:-"hackathonweekly/community"}
+            TAG_NAME="${CNB_BRANCH}"
+            IMAGE_TAG="${REGISTRY}/${REPO_NAME}:${TAG_NAME}"
+            echo -n "${IMAGE_TAG}"
+          exports:
+            info: IMAGE_TAG
+
+        - <<: *common_stages
+        - <<: *docker_build_template
+        - <<: *docker_push_template
+
+# 其他分支配置
+$:
+  push:
+    - <<: *common_config
+      stages:
+        - name: set docker tag for branch
+          script: |
+            REGISTRY=${CNB_DOCKER_REGISTRY:-"cnb.cool"}
+            REPO_NAME=${CNB_REPO_SLUG_LOWERCASE:-"hackathonweekly/community"}
+            IMAGE_TAG="${REGISTRY}/${REPO_NAME}:${CNB_BRANCH}"
+            echo -n "${IMAGE_TAG}"
+          exports:
+            info: IMAGE_TAG
+
+        - <<: *common_stages
+        - <<: *docker_build_template
+        - <<: *docker_push_template

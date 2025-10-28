@@ -1,0 +1,87 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+community-building-guide/
+sop/
+start-up-guide/
+sealos-guide/
+draft/
+devdocs/
+
+.history/
+temp/
+tmp/
+temp.md
+.kiro/
+
+# deploy related
+.env.deploy
+.env.deploy.prd
+.env.prd
+deploys/
+deploy/
+deploy-*.tar.gz
+.deploy/
+*.tar.gz
+database_backup*
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# test
+coverage
+
+# next.js
+.next/
+out/
+build
+.swc/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.local
+.env.deploy.prd
+.env.prd
+
+# turbo
+.turbo
+
+# ui
+dist/
+
+# typescript
+*.tsbuildinfo
+
+# prisma generated files
+src/lib/database/prisma/zod/
+
+# i18n reports and analysis
+reports/
+*-report.json
+*-report.txt
+*-report.md
+*-keys.json
+*-keys.txt
+i18n-*.json
+missing-*.txt
+unused-*.txt
+duplicate-*.txt
+analysis-results.json
+
+# other
+.react-email/
+.content-collections/
+.vercel
+
+# platform verification files
+public/*.txt
+!public/robots.txt

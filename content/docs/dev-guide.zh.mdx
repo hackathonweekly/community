@@ -1,0 +1,236 @@
+---
+title: "社区网站开发指南"
+description: "Hackathon Weekly 社区网站的完整开发指南，为社区成员提供快速入门指引"
+---
+
+<Callout title="重要提醒" type="warn">
+社区源码暂未公开，敬请期待！如有合作需求可联系: makerjackie，注明来意
+</Callout>
+
+# 🏠 社区网站开发指南
+
+欢迎来到 **Hackathon Weekly 社区网站**！这是为社区成员提供的快速入门指南，帮助你了解项目并开始贡献。
+
+## 🚀 5分钟快速上手
+
+### 前置要求
+- **Node.js 20+**: [下载地址](https://nodejs.org/)
+- **bun 9.3.0+**: `npm install -g bun`
+- **PostgreSQL 数据库**: 推荐 [Neon](https://neon.tech/)
+
+### 快速启动
+```bash
+# 1. 克隆项目（源码暂未开源，敬请期待）
+git clone https://github.com/hackathonweekly.git
+cd community
+
+# 2. 安装依赖
+bun install
+
+# 3. 配置环境变量
+cp .env.local.example .env.local
+# 编辑 .env.local 文件，设置数据库连接等
+
+# 4. 初始化数据库
+bun db:push
+
+# 5. 启动开发服务器
+bun dev
+```
+
+访问 [http://localhost:3000](http://localhost:3000) 查看网站！
+
+### 必需环境配置
+```bash
+# 数据库连接（必填）
+DATABASE_URL="postgresql://username:password@host:port/database"
+
+# Better Auth 密钥（必填）
+BETTER_AUTH_SECRET="your-random-secret-key"  # 运行: openssl rand -base64 32
+
+# 应用地址
+BETTER_AUTH_URL="http://localhost:3000"
+```
+
+## 🛠️ 技术栈概览
+
+### 核心技术
+```bash
+前端: Next.js 15 + React + TypeScript + Tailwind CSS + Shadcn/ui
+后端: Honojs + Prisma + PostgreSQL
+认证: Better Auth (支持多种登录方式，目前支持了微信号和手机端登录)
+支付: 暂未支持
+部署: Docker
+文档: Fumadocs
+```
+
+### 为什么选择这些技术
+- **Next.js**: 前后端一体化，学一个框架搞定全栈
+- **TypeScript**: AI 助手理解代码更准确，减少错误
+- **PostgreSQL**: 功能强大免费，云服务选择多
+- **Shadcn/ui**: 组件库，复制粘贴即用
+- **Honojs**: 轻量级框架，适合 API 开发
+
+## 📋 项目概览
+
+### 🎯 项目愿景
+构建一个现代化的技术社区平台，连接全球的 Hackathon 爱好者，促进技术交流与合作。
+
+### 🌟 核心功能
+- **用户系统**: 注册登录、个人资料、CP值系统
+- **活动系统**: 活动发布、报名、分部筛选
+- **文档系统**: 开发文档、API文档
+- **贡献系统**: 贡献申报、审核、积分奖励
+- **社区功能**: 成员目录、项目展示
+
+### 🏗️ 项目结构
+```
+src/
+├── app/                    # 页面路由（Next.js App Router）
+├── components/ui           # 基础 UI 组件（shadcn/ui）
+├── modules/                # 模块化组件系统
+│   ├── marketing/          # 营销页面组件
+│   ├── dashboard/          # 应用功能组件
+│   └── shared/             # 通用组件
+├── lib/                    # 核心功能库
+│   ├── auth/               # Better Auth 认证系统
+│   ├── database/           # Prisma 数据库
+│   └── utils.ts            # 工具函数
+└── server/                 # Hono 服务端
+```
+
+## 🚀 开发进度
+
+### 当前状态
+- **项目启动**: ✅ 2025年7月
+- **当前阶段**: Phase 1 - 核心功能开发
+- **整体进度**: 约 25% (基础设施和认证系统基本完成)
+
+### ✅ 已完成功能
+- **基础设施**: Next.js 项目搭建、TypeScript、Tailwind CSS
+- **认证系统**: 邮箱密码登录、GitHub/Google OAuth
+- **社区组织系统**: 组织创建、成员邀请、角色权限
+- **用户中心**: 基础用户模型、用户列表管理
+- **活动系统**: 活动发布、报名功能
+- **社区文档**: 基于 Fumadocs 的文档站点
+- **贡献系统**: 贡献申报基础功能
+- **成员名录**: 成员基础信息展示
+- **项目展示**: 项目基础信息管理
+- **超级管理员界面**: 数据统计、用户管理、活动分析
+
+### 🚧 开发中功能
+- **Landing Page**: 完善的展示页面
+- **用户引导流程**: 新用户入门指引
+- **企业微信接入**: 社区沟通集成
+
+### 📋 计划中功能 (Phase 2)
+- **通知系统**: 站内通知、邮件通知
+- **搜索功能**: 全站搜索、用户搜索
+- **社区角色标签 + 荣誉系统**: 创作者经验等级、会员等级
+- **黑客松周报系统**: 周报发布、订阅管理
+
+## 🔧 常用开发命令
+
+```bash
+# 开发
+bun dev              # 启动开发服务器
+bun type-check       # TypeScript 类型检查
+
+# 数据库
+bun db:push          # 同步数据库结构（开发环境）
+bun db:studio        # 打开 Prisma Studio 数据库管理界面
+bun db:generate      # 重新生成 Prisma 客户端
+
+# 代码质量
+bun lint             # 代码检查和格式化检查
+bun format           # 自动格式化代码
+
+# 测试
+bun e2e              # 运行 Playwright E2E 测试
+```
+
+## 👥 如何参与贡献
+
+### 想加入社区网站开发？
+我们欢迎大家参与到社区网站的开发中来！也欢迎有相同理念的小伙伴/各地的黑客松社区在我们的基础上进行二次开发。
+
+我们将向公益组织/非盈利性活动提供技术支持 && 开放代码授权。商业授权需要沟通协商。
+
+**联系邮箱**: contact@HackathonWeekly.com
+
+**邮件示例**:
+- 您/您组织的自我介绍，期望的合作模式
+- 您擅长的技术栈
+- 您为什么想要加入社区网站开发 / 获取授权
+- 您的微信或其他联系方式
+
+### 🎯 贡献方式建议
+
+**对于新人**:
+- [ ] 维护社区文档！文档中还有很多潜在的问题
+- [ ] 测试、寻找并修复网站中的 bug！
+- [ ] 翻译社区文档！为文档添加多语种翻译！
+- [ ] 提建议！网站开发还在很早期的阶段
+
+**对于有经验的开发者**:
+- [ ] 根据社区 roadmap 进行开发！
+- [ ] 添加你觉得有用的功能！
+- [ ] 改进网站的用户界面和后端功能！
+
+### 🛠️ 开发工具
+- **开发服务器**: http://localhost:3000
+- **API 文档**: http://localhost:3000/api/openapi
+- **数据库管理**: http://localhost:5555 (Prisma Studio)
+
+## ⚠️ 重要提示
+
+- 📧 **邮箱验证已临时禁用** (位置: `src/lib/auth/auth.ts:122`)
+- 🔑 **测试账号**: 可直接注册新账号进行测试
+- 📱 **移动端优先**: 所有功能都需要适配移动端
+- 🔄 **质量保证**: 每个功能开发完成后立即测试，保持代码风格一致性
+
+## 🆘 常见问题解决
+
+### 问题 1: `bun: command not found`
+```bash
+npm install -g bun
+```
+
+### 问题 2: 数据库连接失败
+检查数据库 URL 格式、服务运行状态、用户名密码正确性
+
+### 问题 3: 端口 3000 被占用
+```bash
+# 使用其他端口
+bun dev -- -p 3001
+```
+
+### 问题 4: TypeScript 类型错误
+```bash
+bun type-check
+bun db:generate
+rm -rf .next
+```
+
+## 📚 更多资源
+
+### 核心功能模块详解
+- **用户认证系统**: `src/lib/auth/` - Better Auth 配置
+- **数据库管理**: `src/lib/database/prisma/` - Prisma ORM
+- **组织管理**: `src/modules/dashboard/organizations/`
+- **AI 功能**: `src/modules/dashboard/ai/` 和 `src/lib/ai/`
+- **国际化**: `src/modules/i18n/` - next-intl 配置
+
+### 学习路径
+1. **认证系统** - 配置 Better Auth，设置社交登录
+2. **UI 定制** - 定制主题和组件样式
+3. **国际化配置** - 添加新语言和本地化内容
+
+---
+
+**🎉 开始构建社区平台吧！** 这个仓库为你提供了所有必需的基础功能，让你专注于业务逻辑和用户价值。
+
+## FAQ
+
+### 社区网站是否开源？
+目前社区网站还在非常早期的阶段，正在快速迭代之中，我们希望未来在合适的时机开源。

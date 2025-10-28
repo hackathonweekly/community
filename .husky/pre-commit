@@ -1,0 +1,6 @@
+# Format staged files and re-stage only the formatted ones
+files=$(git diff --cached --name-only --diff-filter=ACM)
+if [ ! -z "$files" ]; then
+  biome format . --write --no-errors-on-unmatched
+  echo "$files" | xargs git add
+fi

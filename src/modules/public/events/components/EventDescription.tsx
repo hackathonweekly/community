@@ -1,0 +1,34 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { sanitizeRichContent } from "@/lib/utils/sanitize-html";
+import { useTranslations } from "next-intl";
+
+interface EventDescriptionProps {
+	richContent: string;
+}
+
+export function EventDescription({ richContent }: EventDescriptionProps) {
+	const t = useTranslations("events");
+
+	// 清理 HTML 内容以防止 XSS 攻击
+	const sanitizedDescription = sanitizeRichContent(richContent);
+
+	return (
+		<Card className="gap-3">
+			<CardHeader>
+				<CardTitle>{t("aboutThisEvent")}</CardTitle>
+			</CardHeader>
+			<CardContent>
+				<div className="prose prose-sm max-w-none">
+					<div
+						className="tiptap-content"
+						dangerouslySetInnerHTML={{
+							__html: sanitizedDescription,
+						}}
+					/>
+				</div>
+			</CardContent>
+		</Card>
+	);
+}

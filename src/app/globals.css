@@ -1,0 +1,94 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "../styles/theme.css";
+@import "../styles/tailwind-animate.css";
+
+@source "../node_modules/fumadocs-ui/dist/**/*.js";
+
+@variant dark (&:where(.dark, .dark *));
+
+/*
+  Disable page pinch‑zoom on browsers that support Pointer Events (e.g. Chrome/Edge/Firefox on Android).
+  We already set meta viewport to user-scalable=no in src/app/layout.tsx for Safari/iOS,
+  but some Android browsers may still allow pinch unless touch-action excludes pinch-zoom.
+  Components needing gestures (e.g. cropper) can override with `touch-action: none` locally.
+*/
+html, body {
+  touch-action: pan-x pan-y;
+}
+
+pre.shiki {
+	@apply mb-4 rounded-lg p-6;
+}
+
+#nd-sidebar {
+	@apply bg-card! top-[4.5rem] md:h-[calc(100dvh-4.5rem)]!;
+
+	button[data-search-full] {
+		@apply bg-transparent;
+	}
+}
+
+/* 移动端 sidebar 高度，避免跟 navbar / tabbar 重叠 */
+#nd-sidebar-mobile {
+	@apply pt-16 pb-20!;
+}
+
+/* 隐藏滚动条 */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* 文本截断类 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#nd-page .prose {
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		a {
+			@apply no-underline!;
+		}
+	}
+}
+
+div[role="tablist"].bg-secondary {
+	@apply bg-muted!;
+}
+
+input[cmdk-input] {
+	@apply border-none focus-visible:ring-0;
+}
+
+/* 安全区域内边距，用于移动端底部固定栏 */
+.safe-area-padding-bottom {
+	padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* 活动详情页面移动端底部内边距 */
+.pb-safe-bottom-mobile {
+	padding-bottom: 5rem;
+}
+
+@media (min-width: 768px) {
+	.pb-safe-bottom-mobile {
+		padding-bottom: 3rem;
+	}
+}
+
+.pb-safe-bottom {
+	padding-bottom: max(3rem, env(safe-area-inset-bottom));
+}
