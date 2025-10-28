@@ -1,22 +1,22 @@
 # HackathonWeekly Community
 
-A modern Next.js Website for HackathonWeekly Community.
+现代化的 Next.js 网站为 HackathonWeekly 社区打造。
 
-## 🚀 Features
+## 🚀 功能特性
 
-- **Next.js 15** with App Router and TypeScript
-- **Authentication** with Better Auth (social login, magic links, etc.)
-- **Payments** with multiple providers (Stripe, LemonSqueezy, Polar, etc.)
-- **Database** with Prisma and PostgreSQL
-- **Internationalization** with next-intl
-- **UI** with Shadcn/ui, Radix UI, and Tailwind CSS
-- **Content Management** with content-collections (MDX)
-- **Email** with multiple providers and React Email
-- **Storage** with S3-compatible providers
-- **Logging** with Winston
-- **Analytics** with multiple providers (Umami, Google Analytics, Baidu Analytics)
+- **Next.js 15** 搭配 App Router 和 TypeScript
+- **身份认证** 使用 Better Auth（社交登录、魔法链接等）
+- **支付系统** 支持多个提供商（Stripe、WeChat Pay 等）
+- **数据库** 使用 Prisma 和 PostgreSQL
+- **国际化** 基于 next-intl
+- **用户界面** 采用 Shadcn/ui、Radix UI 和 Tailwind CSS
+- **内容管理** 使用 content-collections（MDX）
+- **邮件服务** 支持多个提供商和 React Email
+- **文件存储** 兼容 S3 的存储提供商
+- **日志系统** 使用 Winston
+- **数据分析** 支持多个分析平台（Umami、Google Analytics、百度统计）
 
-## 📊 Analytics
+## 📊 数据分析
 
 我们使用 [Umami](https://umami.is/) 进行网站访问统计，数据公开透明。
 
@@ -29,124 +29,124 @@ A modern Next.js Website for HackathonWeekly Community.
 - 地理位置分布
 - 设备和浏览器统计
 
-## 📁 Project Structure
+## 📁 项目结构
 
-This project has been transformed from a monorepo structure to a traditional Next.js format with the following organization:
+本项目已从 monorepo 结构转换为传统 Next.js 格式，组织结构如下：
 
 ```
 src/
-├── app/                    # Next.js App Router pages and layouts
-│   ├── (public)/           # Public pages (home, blog, docs)
-│   ├── (app)/              # Application pages
-│   ├── api/                # API routes
-│   └── globals.css         # Global styles
-├── components/             # React components organized by feature
-│   ├── marketing/          # Marketing-specific components
-│   ├── dashboard/          # Dashboard application components
-│   ├── shared/            # Shared components
-│   ├── ui/                # UI components (Shadcn/ui)
-│   └── i18n/              # Internationalization components
-├── lib/                   # Core libraries and utilities
-│   ├── ai/                # AI/LLM integrations
-│   ├── api/               # API utilities and middleware
-│   ├── auth/              # Authentication configuration
-│   ├── database/          # Database (Prisma) utilities
-│   ├── i18n/              # Internationalization utilities
-│   ├── logs/              # Logging configuration
-│   ├── mail/              # Email utilities and templates
-│   ├── payments/          # Payment provider integrations
-│   ├── storage/           # File storage utilities
-│   └── utils/             # General utilities
-├── config/                # Application configuration
-├── styles/                # Additional CSS files
-├── types/                 # TypeScript type definitions
-└── hooks/                 # Custom React hooks
+├── app/                    # Next.js App Router 页面和布局
+│   ├── (public)/           # 公共页面（首页、博客、文档）
+│   ├── (app)/              # 应用页面
+│   ├── api/                # API 路由
+│   └── globals.css         # 全局样式
+├── components/             # 按功能组织的 React 组件
+│   ├── marketing/          # 营销页面专用组件
+│   ├── dashboard/          # 仪表板应用组件
+│   ├── shared/            # 共享组件
+│   ├── ui/                # UI 组件（Shadcn/ui）
+│   └── i18n/              # 国际化组件
+├── lib/                   # 核心库和工具
+│   ├── ai/                # AI/LLM 集成
+│   ├── api/               # API 工具和中间件
+│   ├── auth/              # 身份认证配置
+│   ├── database/          # 数据库（Prisma）工具
+│   ├── i18n/              # 国际化工具
+│   ├── logs/              # 日志配置
+│   ├── mail/              # 邮件工具和模板
+│   ├── payments/          # 支付提供商集成
+│   ├── storage/           # 文件存储工具
+│   └── utils/             # 通用工具
+├── config/                # 应用配置
+├── styles/                # 额外的 CSS 文件
+├── types/                 # TypeScript 类型定义
+└── hooks/                 # 自定义 React hooks
 ```
 
-## 🛠️ Getting Started
+## 🛠️ 快速开始
 
-1. **Clone the repository**
+1. **克隆仓库**
    ```bash
    git clone https://github.com/hackathonweekly.git
    cd community
    ```
 
-2. **Install dependencies**
+2. **安装依赖**
    ```bash
    bun install
    ```
 
-3. **Set up environment variables**
-- recommand neon db
+3. **设置环境变量**
+   （推荐使用 Neon DB）
    ```bash
    cp .env.local.example .env.local
-   # Edit .env.local with your configuration
+   # 编辑 .env.local 文件，填入你的配置
    ```
 
-4. **Set up the database**
+4. **设置数据库**
    ```bash
    bun db:generate
    bun db:push
    ```
 
-5. **Start the development server**
+5. **启动开发服务器**
    ```bash
    bun dev
    ```
 
-## 📚 Documentation
+## 📚 文档
 
-The project includes comprehensive documentation in the `/docs` section covering:
+项目包含全面的文档，位于 `/docs` 目录，涵盖以下内容：
 
-- Getting started guide
-- Configuration options
-- Payment provider setup
-- Authentication setup
-- Deployment instructions
+- 入门指南
+- 配置选项
+- 支付提供商设置
+- 身份认证设置
+- 部署说明
 
-## 🔧 Scripts
+## 🔧 脚本命令
 
-- `bun dev` - Start development server
-- `bun run build` - Build for production
-- `bun start` - Start production server
-- `bun lint` - Run Biome linter
-- `bun format` - Format code with Biome
-- `bun type-check` - TypeScript type checking
-- `bun db:generate` - Generate Prisma client
-- `bun db:push` - Push database schema
-- `bun db:studio` - Open Prisma Studio
+- `bun dev` - 启动开发服务器
+- `bun run build` - 构建生产版本
+- `bun start` - 启动生产服务器
+- `bun lint` - 运行 Biome 代码检查
+- `bun format` - 使用 Biome 格式化代码
+- `bun type-check` - TypeScript 类型检查
+- `bun db:generate` - 生成 Prisma 客户端
+- `bun db:push` - 推送数据库结构
+- `bun db:studio` - 打开 Prisma Studio
 
 ## 🪝 Git Hooks
 
-This project uses [Husky](https://typicode.github.io/husky/) to manage Git hooks for maintaining code quality:
+本项目使用 [Husky](https://typicode.github.io/husky/) 管理 Git 钩子以维护代码质量：
 
-- **pre-commit**: Automatically formats staged files using Biome before commit
-- The hooks are automatically installed when you run `bun install`
-- All team members will have the same hooks configured
+- **pre-commit**: 提交前自动使用 Biome 格式化暂存文件
+- 运行 `bun install` 时会自动安装钩子
+- 所有团队成员都将配置相同的钩子
 
-### For New Team Members
+### 新团队成员注意
 
-After cloning the repository and running `bun install`, the Git hooks will be automatically configured. This ensures consistent code formatting across the team.
+克隆仓库并运行 `bun install` 后，Git 钩子将自动配置。这确保了团队间一致的代码格式化。
 
-## 🌐 Internationalization (i18n)
+## 🌐 国际化 (i18n)
 
-This project supports multiple languages using next-intl. Translation files are located in `src/lib/i18n/translations/`.
+本项目使用 next-intl 支持多种语言。翻译文件位于 `src/lib/i18n/translations/`。
 
-### Managing Translations
+### 翻译管理
 
-To validate and check for missing translations, use the `i18n-check` CLI tool:
+要验证和检查缺失的翻译，使用 `i18n-check` 命令行工具：
 
-1. **Install i18n-check**
+1. **安装 i18n-check**
    ```bash
    bun add -D @lingual/i18n-check
    ```
 
-2. **Check for missing translations**
+2. **检查缺失的翻译**
    ```bash
    bun exec i18n-check --locales src/lib/i18n/translations --source en --format i18next
    ```
 
-3. **Add to package.json scripts** (optional)
+3. **添加到 package.json 脚本**（可选）
    ```json
    {
      "scripts": {
@@ -155,10 +155,10 @@ To validate and check for missing translations, use the `i18n-check` CLI tool:
    }
    ```
 
-The tool will identify:
-- Missing translations in target locales
-- Unused translation keys
-- Inconsistent ICU argument usage across translations
+该工具将识别：
+- 目标语言中缺失的翻译
+- 未使用的翻译键
+- 翻译间 ICU 参数使用不一致的问题
 
 ## 🚀 部署指南
 
@@ -254,134 +254,52 @@ Vercel 是最简单的 Next.js 部署方式：
    - `BETTER_AUTH_URL`
    - 其他必需的环境变量
 
-## 🤝 Contributing
+## 🤝 贡献指南
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+1. Fork 本仓库
+2. 创建你的功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交你的更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
 
-## 📄 License
+## 📄 许可证
 
-This project is licensed under the [Todo] License.
+本项目采用 [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE)。
 
+### 🎯 许可证要点
 
-## Why use standalone?
+- ✅ **允许使用**：个人学习、研究、教育、开源协作
+- ✅ **允许修改**：可以修改和改编代码
+- ✅ **允许分享**：可以分享原版和修改版本
+- ❌ **禁止商业使用**：未经授权不得用于商业目的
+- 🏷️ **需要署名**：使用时必须保留版权声明
 
-### benefit of standalone
+### 💼 商业使用
 
-传统方式：
-- 需要复制 .next/、package.json、安装 node_modules
-- 体积大，依赖复杂
+如需商业使用本项目，请联系：
+- **邮箱**：business@hackathonweekly.com
+- **标题**：[商业使用许可申请] HackathonWeekly Community
 
-Standalone 方式：
-- 只需复制 .next/standalone/ 和静态文件
-- 体积小，自包含，无需安装依赖
-- 启动：node server.js（而不是 npm start）
+### 📚 相关文档
 
-部署包对比
-
-# 传统方式：~2GB (包含 cache 和 node_modules)
-.next/ + node_modules/ + package.json
-
-# Standalone 方式：~100MB
-.next/standalone/ + public/ + .next/static/
-
-- standalone 可以正确处理 honojs api
-- 使用 standalone 时，npm build 之后运行 next start 时，实际上使用的是 `node .next/standalone/server.js` 而不是 `npm start`
+- [贡献指南](CONTRIBUTING.md) - 如何参与项目贡献
+- [开发规范](DEVELOPMENT.md) - 详细的开发规范和最佳实践
+- [行为准则](CODE_OF_CONDUCT.md) - 社区行为准则
+- [贡献者协议](DCLA.md) - 开发者授权协议
 
 
-### 使用 standalone + bun 的问题
-https://github.com/vercel/next.js/issues/56900
+## 🔍 关于 Standalone 部署
 
-会出现： Error: Cannot find module 'styled-jsx/style' 这个错误
+本项目使用 Next.js standalone 模式进行生产部署，这种方式具有以下优势：
 
-我的解决方案就是本地用 bun 来开发，然后用 npm 来部署项目，不使用 bun
+### 部署包大小对比
+- **传统方式**: ~2GB（包含 cache 和 node_modules）
+- **Standalone 方式**: ~100MB（仅包含必要文件）
 
+### 需要复制的文件
+- `public/` - 静态资源（图片、图标等）
+- `.next/static/` - 构建生成的静态文件（JS、CSS chunks等）
 
-### 需要复制的其他文件
-⏺ 对于 Next.js standalone 模式，你确实需要复制一些额
-  外的文件，但不是所有内容：
-
-  必须复制的文件：
-
-  1. public/ 文件夹 - 静态资源（图片、图标等）
-  2. .next/static/ 文件夹 -
-  构建生成的静态文件（JS、CSS chunks等）
-
-  标准的 standalone 部署结构：
-
-  deployment/
-  ├── .next/standalone/          # 主程序文件
-  ├── .next/static/             # 静态资源 (必须)
-  ├── public/                   # 公共文件 (必须)
-  └── server.js                # 入口文件
-
-  典型的复制命令：
-
-  # 复制 standalone 文件
-  cp -r .next/standalone/* ./deployment/
-
-  # 复制静态文件
-  cp -r .next/static ./deployment/.next/
-
-  # 复制 public 文件
-  cp -r public ./deployment/
-
-  不需要复制的文件：
-
-  - node_modules/ (standalone 已包含必要依赖)
-  - src/ (源码不需要)
-  - .next/cache/ (缓存文件)
-  - 开发相关配置文件
-
-  最佳实践 - Docker 示例：
-
-  # 构建阶段
-  FROM node:18 AS builder
-  WORKDIR /app
-  COPY package*.json ./
-  RUN npm ci
-  COPY . .
-  RUN npm run build
-
-  # 运行阶段
-  FROM node:18-alpine AS runner
-  WORKDIR /app
-  # 复制 standalone 文件
-  COPY --from=builder /app/.next/standalone ./
-  # 复制静态文件
-  COPY --from=builder /app/.next/static
-  ./.next/static
-  # 复制 public 文件
-  COPY --from=builder /app/public ./public
-  EXPOSE 3000
-  CMD ["node", "server.js"]
-
-  所以答案是：是的，你需要复制 public/ 和
-  .next/static/，但不需要复制源码和 node_modules。
-  
-
-⏺ .next/static/ 里面是什么？
-
-  .next/static/ 包含：
-  - JavaScript chunks - 代码分割后的 JS 文件
-  - CSS 文件 - 样式表
-  - 客户端资源 - React hydration 需要的文件
-  - 媒体文件 - 优化后的图片、字体等
-  - Webpack 生成的资源 - 带有 hash 的静态文件
-
-  为什么不在 standalone 里？
-
-  Next.js 设计上将静态资源和服务器代码分离：
-
-  1. 性能考虑 - 静态文件通常由 CDN/Nginx
-  提供，不需要 Node.js 处理
-  2. 缓存策略 - 静态文件有 hash，可以长期缓存
-  3. 部署灵活性 - 可以将静态文件部署到不同位置
-
-  典型的生产部署架构：
-  CDN/Nginx → 静态文件 (.next/static/, public/)
-      ↓
-  Load Balancer → Node.js 服务器 (standalone)
+### 兼容性说明
+- 开发环境使用 **bun** 进行快速开发
+- 生产环境使用 **npm** 进行部署，避免 [Next.js + bun 的兼容性问题](https://github.com/vercel/next.js/issues/56900)
