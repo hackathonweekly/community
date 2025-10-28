@@ -9,6 +9,7 @@ import { mergeOpenApiSchemas } from "./lib/openapi-schema";
 import { corsMiddleware } from "./middleware/cors";
 import { errorHandler } from "./middleware/error-handler";
 import { apiRateLimit } from "./middleware/rate-limit";
+import { filteredLogger } from "./middleware/logger-filter";
 import adminCommentsRouter from "./routes/admin/comments";
 import { adminRouter } from "./routes/admin/router";
 import { aiRouter } from "./routes/ai";
@@ -55,7 +56,7 @@ export const app = new Hono().basePath("/api");
 
 // Global error handler should be first
 app.use(errorHandler);
-app.use(logger()); // Use Hono's built-in logger
+app.use(filteredLogger); // Use filtered logger instead of default logger
 app.use(corsMiddleware);
 app.use(apiRateLimit);
 
