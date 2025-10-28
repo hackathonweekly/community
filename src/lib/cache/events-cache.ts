@@ -16,10 +16,10 @@ export class EventsCacheManager {
 	 */
 	static async onEventCreated(eventId: string) {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.userEvents),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.userEvents, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 			revalidatePath(CACHE_PATHS.events),
 		]);
 
@@ -31,11 +31,11 @@ export class EventsCacheManager {
 	 */
 	static async onEventUpdated(eventId: string) {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.eventDetails(eventId)),
-			revalidateTag(CACHE_TAGS.userEvents),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.eventDetails(eventId), {}),
+			revalidateTag(CACHE_TAGS.userEvents, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 			revalidatePath(CACHE_PATHS.events),
 		]);
 
@@ -47,11 +47,11 @@ export class EventsCacheManager {
 	 */
 	static async onEventDeleted(eventId: string) {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.eventDetails(eventId)),
-			revalidateTag(CACHE_TAGS.userEvents),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.eventDetails(eventId), {}),
+			revalidateTag(CACHE_TAGS.userEvents, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 			revalidatePath(CACHE_PATHS.events),
 		]);
 
@@ -63,11 +63,11 @@ export class EventsCacheManager {
 	 */
 	static async onRegistrationChanged(eventId: string, userId: string) {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.eventDetails(eventId)),
-			revalidateTag(CACHE_TAGS.userRegistrations),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.eventDetails(eventId), {}),
+			revalidateTag(CACHE_TAGS.userRegistrations, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 		]);
 
 		console.log(
@@ -80,10 +80,10 @@ export class EventsCacheManager {
 	 */
 	static async onOrganizationUpdated(organizationId: string) {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.organizations),
-			revalidateTag(CACHE_TAGS.eventsOrganizations),
-			revalidateTag(CACHE_TAGS.events), // 组织活动也会受影响
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.organizations, {}),
+			revalidateTag(CACHE_TAGS.eventsOrganizations, {}),
+			revalidateTag(CACHE_TAGS.events, {}), // 组织活动也会受影响
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 			revalidatePath(CACHE_PATHS.events),
 		]);
 
@@ -97,13 +97,13 @@ export class EventsCacheManager {
 	 */
 	static async invalidateAll() {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.organizations),
-			revalidateTag(CACHE_TAGS.eventsOrganizations),
-			revalidateTag(CACHE_TAGS.userRegistrations),
-			revalidateTag(CACHE_TAGS.userEvents),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.organizations, {}),
+			revalidateTag(CACHE_TAGS.eventsOrganizations, {}),
+			revalidateTag(CACHE_TAGS.userRegistrations, {}),
+			revalidateTag(CACHE_TAGS.userEvents, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 			revalidatePath(CACHE_PATHS.events),
 		]);
 
@@ -115,9 +115,9 @@ export class EventsCacheManager {
 	 */
 	static async scheduledRefresh() {
 		await Promise.all([
-			revalidateTag(CACHE_TAGS.events),
-			revalidateTag(CACHE_TAGS.eventsList),
-			revalidateTag(CACHE_TAGS.eventsPage),
+			revalidateTag(CACHE_TAGS.events, {}),
+			revalidateTag(CACHE_TAGS.eventsList, {}),
+			revalidateTag(CACHE_TAGS.eventsPage, {}),
 		]);
 
 		console.log("Scheduled cache refresh completed");

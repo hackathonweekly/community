@@ -18,8 +18,11 @@ import { BadgesSection } from "./components/BadgesSection";
 import { FunctionalRolesSection } from "./components/FunctionalRolesSection";
 import type { UserFunctionalRoleAssignment, UserProfile } from "./types";
 
-// 用户个人页面完全动态生成 - 移除ISR缓存
-// 原因：高度个性化、实时性要求高、访问权限敏感
+// 用户个人页面配置
+// - dynamicParams: 允许运行时生成未预渲染的用户页面
+// - revalidate: 1小时后重新验证，平衡实时性和性能
+export const dynamicParams = true;
+export const revalidate = 3600; // 1小时
 
 interface PublicProfilePageProps {
 	params: Promise<{

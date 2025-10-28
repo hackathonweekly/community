@@ -30,7 +30,7 @@ export default async function EventsPage(props: {
 	searchParams: Promise<EventsPageSearchParams>;
 }) {
 	const searchParams = await props.searchParams;
-	const { locale } = await params;
+	const { locale } = await props.params;
 	const resolvedSearchParams = await searchParams;
 	const session = await getSession();
 

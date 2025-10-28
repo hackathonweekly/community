@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { ProjectDetailClient } from "./ProjectDetailClient";
 
 // Enable ISR: Revalidate every 30 minutes for projects
+// dynamicParams: 允许运行时生成未预渲染的项目页面
+export const dynamicParams = true;
 export const revalidate = 1800;
 
 async function getProjectForMetadata(projectId: string) {

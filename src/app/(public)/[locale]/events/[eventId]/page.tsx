@@ -5,8 +5,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EventDetailsWrapper } from "./EventDetailsWrapper";
 
-// Enable ISR: Revalidate every 30 minutes
-export const revalidate = 1800;
+// Enable ISR: Revalidate every 5 minutes
+// dynamicParams: 允许运行时生成未预渲染的活动页面
+export const dynamicParams = true;
+export const revalidate = 300;
 
 interface EventDetailsPageProps {
 	params: {
