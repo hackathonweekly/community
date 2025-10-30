@@ -254,6 +254,60 @@ Vercel 是最简单的 Next.js 部署方式：
    - `BETTER_AUTH_URL`
    - 其他必需的环境变量
 
+## 🔧 Git Remote 配置
+
+本项目同时在 GitHub 和 CNB 平台维护仓库，为了方便协作，建议配置双推送功能：
+
+### 克隆仓库
+
+**从 GitHub 克隆（推荐）：**
+```bash
+git clone git@github.com:hackathonweekly/community.git
+cd community
+```
+
+**从 CNB 克隆：**
+```bash
+git clone https://cnb.cool/hackathonweekly/community.git
+cd community
+```
+
+### 配置双推送（推荐）
+
+克隆后，添加额外的推送 URL，这样一条命令就能同时推送到两个仓库：
+
+```bash
+# 如果从 GitHub 克隆，添加 CNB 作为额外推送地址
+git remote set-url --add --push origin https://cnb.cool/hackathonweekly/community
+
+# 如果从 CNB 克隆，添加 GitHub 作为额外推送地址
+git remote set-url --add --push origin git@github.com:hackathonweekly/community.git
+```
+
+配置完成后，使用 `git push origin main` 即可同时推送到两个仓库。
+
+### 验证配置
+
+```bash
+git remote -v
+```
+
+你应该看到类似这样的输出（origin 有多个 push URL）：
+```
+origin  git@github.com:hackathonweekly/community.git (fetch)
+origin  git@github.com:hackathonweekly/community.git (push)
+origin  https://cnb.cool/hackathonweekly/community (push)
+```
+
+### 使用方式
+
+配置完成后，正常使用 Git 即可：
+```bash
+git add .
+git commit -m "feat: 添加新功能"
+git push origin main  # 这会同时推送到 GitHub 和 CNB
+```
+
 ## 🤝 贡献指南
 
 1. Fork 本仓库
