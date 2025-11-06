@@ -129,9 +129,6 @@ const nextConfig: NextConfig = {
 			},
 		];
 	},
-	eslint: {
-		ignoreDuringBuilds: true,
-	},
 	typescript: {
 		ignoreBuildErrors: !!process.env.SKIP_TYPE_CHECK,
 	},

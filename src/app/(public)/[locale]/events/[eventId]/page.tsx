@@ -89,9 +89,7 @@ export default async function EventDetailsPage({
 	let isEventAdmin = false;
 	try {
 		const session = await auth.api.getSession({
-			headers:
-				await /* @next-codemod-error The APIs under 'next/headers' are async now, need to be manually awaited. */
-				import("next/headers").then((m) => m.headers()),
+			headers: await import("next/headers").then((m) => m.headers()),
 		});
 
 		if (session?.user?.id) {
