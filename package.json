@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"build": "next build",
+		"build": "next build --webpack --experimental-build-mode=compile",
 		"buildskiptype": "SKIP_TYPE_CHECK=true next build",
 		"dev": "next dev --turbopack",
 		"start": "next start",

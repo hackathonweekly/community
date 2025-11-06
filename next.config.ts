@@ -6,6 +6,10 @@ const withNextIntl = nextIntlPlugin("./src/modules/i18n/request.ts");
 
 const nextConfig: NextConfig = {
 	output: "standalone", // 启用 standalone 模式
+	experimental: {
+		// Turbopack File System Caching (beta)
+		turbopackFileSystemCacheForDev: true,
+	},
 	webpack: (config) => {
 		// 忽略 Hono color.js 中的动态导入警告
 		config.ignoreWarnings = [

@@ -137,6 +137,7 @@ export function WhoWeAreSection() {
 							<div className="relative h-64">
 								<Image
 									src="/images/events/meet00006.jpg"
+									alt="线下活动合影"
 									fill
 									className="object-cover"
 									sizes="(max-width: 768px) 100vw, 50vw"

@@ -50,8 +50,7 @@ RUN --mount=type=cache,target=/app/.next/cache \
     NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
     SKIP_TYPE_CHECK=true \
-    NEXT_OUTPUT_MODE=server \
-    npm run build -- --experimental-build-mode=compile
+    npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner

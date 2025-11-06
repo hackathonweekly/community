@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarIcon, HeartIcon, UsersIcon, SparklesIcon } from "lucide-react";
+import { CalendarIcon, HeartIcon, SparklesIcon } from "lucide-react";
 
 export function GetInvolvedSection() {
 	const participationPaths = [
