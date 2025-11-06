@@ -105,13 +105,9 @@ export function SocialSigninButton({
 			disabled={disabled}
 		>
 			{providerData.icon && (
-				<i
-					className={`mr-2 text-primary ${provider === "wechat" ? "text-lg" : ""}`}
-				>
-					<providerData.icon
-						className={provider === "wechat" ? "size-5" : "size-4"}
-					/>
-				</i>
+				<div className="mr-2 flex items-center justify-center">
+					<providerData.icon className="size-7" />
+				</div>
 			)}
 			{getDisplayText()}
 		</Button>

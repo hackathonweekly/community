@@ -387,9 +387,37 @@
 			"verificationCodeSentTo": "验证码已发送至",
 			"verifyAndLogin": "验证登录",
 			"wechatLogin": "微信登录",
+			"wechatRecommended": "推荐使用微信快速登录",
+			"orUseOtherMethods": "或使用其他方式",
+			"moreLoginMethods": "更多登录方式",
 			"toasts": {
 				"codeSent": "验证码已发送",
 				"loginSuccess": "登录成功"
+			}
+		},
+		"bindPhone": {
+			"title": "绑定手机号",
+			"subtitle": "为了您的账户安全，请绑定手机号",
+			"phoneNumber": "手机号",
+			"phoneInputPlaceholder": "输入手机号",
+			"sendVerificationCode": "发送验证码",
+			"enterVerificationCode": "请输入验证码",
+			"verificationCodeSentTo": "验证码已发送至",
+			"backToModifyPhone": "← 返回修改手机号",
+			"resendCodeIn": "秒后可重新发送",
+			"resendVerificationCode": "重新发送验证码",
+			"verifyAndBind": "验证并绑定",
+			"skipForNow": "暂时跳过",
+			"bindingSuccess": "手机号绑定成功！",
+			"redirecting": "正在跳转...",
+			"errors": {
+				"sendCodeFailed": "发送验证码失败，请重试",
+				"sendCodeTooFrequent": "发送验证码过于频繁，请稍后再试",
+				"invalidPhoneNumber": "手机号格式不正确",
+				"smsServiceNotConfigured": "短信服务配置不完整，请联系管理员",
+				"enterSixDigitCode": "请输入6位验证码",
+				"codeExpiredOrIncorrect": "验证码错误或已过期，请重新获取",
+				"bindingFailed": "绑定失败，请重试"
 			}
 		},
 		"resetPassword": {

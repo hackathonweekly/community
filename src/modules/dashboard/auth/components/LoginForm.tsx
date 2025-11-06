@@ -4,6 +4,14 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
 	Form,
 	FormControl,
 	FormField,
@@ -18,15 +26,8 @@ import {
 	InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { PhoneInput } from "@/components/ui/phone-input";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
 import { config } from "@/config";
+import { useRouter } from "@/hooks/router";
 import { authClient } from "@/lib/auth/client";
 import { sendPhoneOTP, verifyPhoneOTP } from "@/lib/auth/phone-api";
 import { isWechatBrowser } from "@/lib/auth/providers/wechat";
@@ -35,14 +36,12 @@ import { useAuthErrorMessages } from "@dashboard/auth/hooks/errors-messages";
 import { sessionQueryKey } from "@dashboard/auth/lib/api";
 import { OrganizationInvitationAlert } from "@dashboard/organizations/components/OrganizationInvitationAlert";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "@/hooks/router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
 	AlertTriangleIcon,
 	ArrowRightIcon,
 	EyeIcon,
 	EyeOffIcon,
-	KeyIcon,
 	Loader2Icon,
 	MailboxIcon,
 	UserIcon,
@@ -120,7 +119,7 @@ export function LoginForm() {
 		defaultValues: {
 			identifier: email ?? "",
 			password: "",
-			mode: "password" as const,
+			mode: "phone" as const, // 默认使用手机号登录
 			acceptAgreements: false,
 		} as any,
 	});
@@ -598,111 +597,6 @@ export function LoginForm() {
 		}
 	};
 
-	const signInWithPasskey = async () => {
-		try {
-			const result = await authClient.signIn.passkey();
-			const { data, error } = result || { data: null, error: null };
-
-			if (error) {
-				// Check if it's a rate limit error first
-				const rateLimitError =
-					AppErrorHandler.handleRateLimitError(error);
-				if (rateLimitError) {
-					AppErrorHandler.showErrorToast(rateLimitError);
-					return;
-				}
-
-				// 提供更友好和具体的错误提示
-				let friendlyMessage: string;
-
-				if (error.message?.toLowerCase().includes("not supported")) {
-					friendlyMessage =
-						"您的浏览器不支持密钥登录，请使用其他方式登录";
-				} else if (
-					error.message?.toLowerCase().includes("cancelled") ||
-					error.message?.toLowerCase().includes("aborted")
-				) {
-					friendlyMessage = "密钥登录已取消";
-				} else if (error.message?.toLowerCase().includes("not found")) {
-					friendlyMessage =
-						"未找到可用的密钥，请先在安全设置中添加密钥";
-				} else if (
-					error.message?.toLowerCase().includes("verification failed")
-				) {
-					friendlyMessage = "密钥验证失败，请重试";
-				} else if (
-					error.message?.toLowerCase().includes("network") ||
-					error.message?.toLowerCase().includes("fetch") ||
-					error.message?.toLowerCase().includes("connection") ||
-					(error as any)?.name === "NetworkError"
-				) {
-					friendlyMessage = "网络连接异常，请检查网络后重试";
-				} else if (
-					error.message?.toLowerCase().includes("server") ||
-					error.message?.toLowerCase().includes("internal") ||
-					error.status >= 500
-				) {
-					friendlyMessage = "服务器暂时无法响应，请稍后重试";
-				} else {
-					// 对于未知错误，提供更有用的默认提示
-					friendlyMessage = "密钥登录失败，请重试或使用其他方式登录";
-				}
-
-				form.setError("root", {
-					message: friendlyMessage,
-				});
-				return;
-			}
-
-			// 更新会话缓存
-			queryClient.invalidateQueries({
-				queryKey: sessionQueryKey,
-			});
-
-			// 处理回发名片的特殊逻辑
-			if (sendCardBack === "true" && targetUser) {
-				const checkProfileAndRedirect = async () => {
-					const updatedSession = await authClient.getSession();
-					const sessionUser = updatedSession.data?.user;
-
-					if (sessionUser) {
-						const isProfileComplete =
-							sessionUser.name &&
-							sessionUser.bio &&
-							sessionUser.userRoleString;
-
-						if (!isProfileComplete) {
-							router.replace(
-								`/app/profile?redirectAfterProfile=${targetUser}`,
-							);
-						} else {
-							if (sessionUser.username) {
-								router.replace(`/zh/u/${sessionUser.username}`);
-							} else {
-								router.replace(redirectPath);
-							}
-						}
-					} else {
-						router.replace(redirectPath);
-					}
-				};
-
-				checkProfileAndRedirect();
-			} else {
-				// 成功登录后跳转
-				router.replace(redirectPath);
-			}
-		} catch (e) {
-			form.setError("root", {
-				message: getAuthErrorMessage(
-					e && typeof e === "object" && "code" in e
-						? (e.code as string)
-						: undefined,
-				),
-			});
-		}
-	};
-
 	const getAgreementProviderName = (provider: OAuthProvider) => {
 		if (provider === "wechat") {
 			return t("auth.login.wechatLogin");
@@ -808,12 +702,64 @@ export function LoginForm() {
 
 			{invitationId && <OrganizationInvitationAlert className="mb-6" />}
 
+			{/* 微信登录优先展示 - 非微信环境 */}
+			{!isWechat &&
+				config.auth.enableSocialLogin &&
+				oAuthProviders.wechat && (
+					<div className="mb-6">
+						<SocialSigninButton
+							provider="wechat"
+							className="w-full h-12 bg-[#07c160] hover:bg-[#06ad56] text-white border-0 text-base font-medium shadow-sm"
+							acceptedAgreements={agreementsAccepted}
+							onAgreementRequired={handleSocialAgreementRequired}
+						/>
+						{/* <p className="mt-2 text-center text-xs text-muted-foreground">
+						{t("auth.login.wechatRecommended")}
+					</p> */}
+					</div>
+				)}
+
+			{/* 微信环境 - 保持原有布局 */}
+			{isWechat && (
+				<div className="mb-6">
+					<SocialSigninButton
+						provider="wechat"
+						className="w-full h-12 bg-[#07c160] hover:bg-[#06ad56] text-white border-0 text-base font-medium shadow-sm"
+						acceptedAgreements={agreementsAccepted}
+						onAgreementRequired={handleSocialAgreementRequired}
+					/>
+				</div>
+			)}
+
+			{/* 分隔线 */}
+			{(config.auth.enablePasswordLogin ||
+				config.auth.enablePhoneLogin) && (
+				<div className="relative my-6 h-4">
+					<hr className="relative top-2" />
+					<p className="-translate-x-1/2 absolute top-0 left-1/2 mx-auto inline-block h-4 bg-card px-3 text-center font-medium text-foreground/60 text-xs leading-tight">
+						{t("auth.login.orUseOtherMethods")}
+					</p>
+				</div>
+			)}
+
 			<Form {...form}>
 				<form
 					className="space-y-4"
 					onSubmit={form.handleSubmit(onSubmit)}
 				>
+					{/* 手机号和邮箱/用户名登录模式切换 */}
 					<div className="mb-4 flex gap-2">
+						<Button
+							type="button"
+							variant={
+								signinMode === "phone" ? "secondary" : "outline"
+							}
+							size="sm"
+							onClick={switchToPhoneMode}
+							className="flex-1"
+						>
+							{t("auth.login.phoneLogin")}
+						</Button>
 						<Button
 							type="button"
 							variant={
@@ -826,17 +772,6 @@ export function LoginForm() {
 							className="flex-1"
 						>
 							{t("auth.login.emailUsernameLogin")}
-						</Button>
-						<Button
-							type="button"
-							variant={
-								signinMode === "phone" ? "secondary" : "outline"
-							}
-							size="sm"
-							onClick={switchToPhoneMode}
-							className="flex-1"
-						>
-							{t("auth.login.phoneLogin")}
 						</Button>
 					</div>
 
@@ -1196,111 +1131,41 @@ export function LoginForm() {
 				</form>
 			</Form>
 
-			{(config.auth.enablePasskeys ||
-				(config.auth.enableSignup &&
-					config.auth.enableSocialLogin)) && (
-				<>
-					<div className="relative my-6 h-4">
-						<hr className="relative top-2" />
-						<p className="-translate-x-1/2 absolute top-0 left-1/2 mx-auto inline-block h-4 bg-card px-2 text-center font-medium text-foreground/60 text-sm leading-tight">
-							{t("auth.login.continueWith")}
-						</p>
-					</div>
+			{/* 其他社交登录方式 */}
+			{(() => {
+				const otherProviders =
+					config.auth.enableSignup && config.auth.enableSocialLogin
+						? Object.keys(oAuthProviders).filter(
+								(p) => p !== "wechat",
+							)
+						: [];
 
-					{/* WeChat login gets priority in WeChat environment */}
-					{isWechat && (
-						<div className="mb-4">
-							<SocialSigninButton
-								provider="wechat"
-								className="w-full h-10"
-								acceptedAgreements={agreementsAccepted}
-								onAgreementRequired={
-									handleSocialAgreementRequired
-								}
-							/>
-							<details className="mt-4 text-sm text-foreground/60">
-								<summary className="cursor-pointer select-none">
+				const hasOtherMethods = otherProviders.length > 0; // 移除 Passkey 选项
+
+				if (!hasOtherMethods) return null;
+
+				return (
+					<>
+						<div className="relative my-6 h-4">
+							<hr className="relative top-2" />
+							<p className="-translate-x-1/2 absolute top-0 left-1/2 mx-auto inline-block h-4 bg-card px-3 text-center font-medium text-foreground/60 text-xs leading-tight">
+								{t("auth.login.moreLoginMethods")}
+							</p>
+						</div>
+
+						{/* 微信环境下显示其他登录方式 */}
+						{isWechat && (
+							<details className="text-sm text-foreground/60">
+								<summary className="cursor-pointer select-none text-center">
 									{t("auth.login.otherLoginMethods")}
 								</summary>
-								<div className="mt-2 grid grid-cols-1 items-stretch gap-2 sm:grid-cols-2">
-									{config.auth.enableSignup &&
-										config.auth.enableSocialLogin &&
-										Object.keys(oAuthProviders)
-											.filter((key) => key !== "wechat")
-											.map((providerId) => (
-												<SocialSigninButton
-													key={providerId}
-													provider={
-														providerId as OAuthProvider
-													}
-													className="w-full h-10"
-													acceptedAgreements={
-														agreementsAccepted
-													}
-													onAgreementRequired={
-														handleSocialAgreementRequired
-													}
-												/>
-											))}
-									{config.auth.enablePasskeys && (
-										<Button
-											variant="outline"
-											className="w-full h-10 sm:col-span-2"
-											onClick={() =>
-												void ensureAgreementsBefore(
-													() => signInWithPasskey(),
-													{
-														providerName: t(
-															"auth.login.loginWithPasskey",
-														),
-													},
-												)
-											}
-										>
-											<KeyIcon className="mr-1.5 size-4 text-primary" />
-											{t("auth.login.loginWithPasskey")}
-										</Button>
-									)}
-								</div>
-							</details>
-						</div>
-					)}
-
-					{/* 非微信环境的正常布局 */}
-					{!isWechat &&
-						(() => {
-							const socialProviders =
-								config.auth.enableSignup &&
-								config.auth.enableSocialLogin
-									? Object.keys(oAuthProviders)
-									: [];
-							const totalItems =
-								socialProviders.length +
-								(config.auth.enablePasskeys ? 1 : 0);
-
-							// Separate WeChat and other social login providers
-							const wechatProvider = socialProviders.find(
-								(p) => p === "wechat",
-							);
-							const otherProviders = socialProviders.filter(
-								(p) => p !== "wechat",
-							);
-
-							// Other providers layout: single column for one item, two columns for multiple
-							const otherProvidersCount =
-								otherProviders.length +
-								(config.auth.enablePasskeys ? 1 : 0);
-							const gridCols =
-								otherProvidersCount <= 1
-									? "grid-cols-1"
-									: "grid-cols-1 sm:grid-cols-2";
-
-							return (
-								<div className="space-y-2">
-									{/* WeChat login takes a separate row */}
-									{wechatProvider && (
+								<div className="mt-4 grid grid-cols-1 items-stretch gap-2 sm:grid-cols-2">
+									{otherProviders.map((providerId) => (
 										<SocialSigninButton
-											provider="wechat"
+											key={providerId}
+											provider={
+												providerId as OAuthProvider
+											}
 											className="w-full h-10"
 											acceptedAgreements={
 												agreementsAccepted
@@ -1309,61 +1174,30 @@ export function LoginForm() {
 												handleSocialAgreementRequired
 											}
 										/>
-									)}
-
-									{/* Other social login providers */}
-									{(otherProviders.length > 0 ||
-										config.auth.enablePasskeys) && (
-										<div
-											className={`grid items-stretch gap-2 ${gridCols}`}
-										>
-											{otherProviders.map(
-												(providerId) => (
-													<SocialSigninButton
-														key={providerId}
-														provider={
-															providerId as OAuthProvider
-														}
-														className="w-full h-10"
-														acceptedAgreements={
-															agreementsAccepted
-														}
-														onAgreementRequired={
-															handleSocialAgreementRequired
-														}
-													/>
-												),
-											)}
-
-											{config.auth.enablePasskeys && (
-												<Button
-													variant="outline"
-													className={`w-full h-10 ${otherProvidersCount > 1 ? "sm:col-span-2" : ""}`}
-													onClick={() =>
-														void ensureAgreementsBefore(
-															() =>
-																signInWithPasskey(),
-															{
-																providerName: t(
-																	"auth.login.loginWithPasskey",
-																),
-															},
-														)
-													}
-												>
-													<KeyIcon className="mr-1.5 size-4 text-primary" />
-													{t(
-														"auth.login.loginWithPasskey",
-													)}
-												</Button>
-											)}
-										</div>
-									)}
+									))}
 								</div>
-							);
-						})()}
-				</>
-			)}
+							</details>
+						)}
+
+						{/* 非微信环境下展开显示 */}
+						{!isWechat && (
+							<div className="grid items-stretch gap-2 grid-cols-1 sm:grid-cols-2">
+								{otherProviders.map((providerId) => (
+									<SocialSigninButton
+										key={providerId}
+										provider={providerId as OAuthProvider}
+										className="w-full h-10"
+										acceptedAgreements={agreementsAccepted}
+										onAgreementRequired={
+											handleSocialAgreementRequired
+										}
+									/>
+								))}
+							</div>
+						)}
+					</>
+				);
+			})()}
 
 			{config.auth.enableSignup && (
 				<div className="mt-6 text-center text-sm">

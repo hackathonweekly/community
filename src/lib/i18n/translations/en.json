@@ -368,9 +368,37 @@
 			"verificationCodeSentTo": "Verification code sent to",
 			"verifyAndLogin": "Verify & Login",
 			"wechatLogin": "WeChat Login",
+			"wechatRecommended": "Recommended for quick login",
+			"orUseOtherMethods": "Or use other methods",
+			"moreLoginMethods": "More login methods",
 			"toasts": {
 				"codeSent": "Verification code sent",
 				"loginSuccess": "Login successful"
+			}
+		},
+		"bindPhone": {
+			"title": "Bind Phone Number",
+			"subtitle": "For your account security, please bind your phone number",
+			"phoneNumber": "Phone Number",
+			"phoneInputPlaceholder": "Enter phone number",
+			"sendVerificationCode": "Send Verification Code",
+			"enterVerificationCode": "Please enter verification code",
+			"verificationCodeSentTo": "Verification code sent to",
+			"backToModifyPhone": "← Back to modify phone number",
+			"resendCodeIn": "seconds until resend available",
+			"resendVerificationCode": "Resend verification code",
+			"verifyAndBind": "Verify & Bind",
+			"skipForNow": "Skip for now",
+			"bindingSuccess": "Phone number bound successfully!",
+			"redirecting": "Redirecting...",
+			"errors": {
+				"sendCodeFailed": "Failed to send verification code, please try again",
+				"sendCodeTooFrequent": "Verification code sent too frequently, please try again later",
+				"invalidPhoneNumber": "Phone number format is incorrect",
+				"smsServiceNotConfigured": "SMS service is not fully configured, please contact administrator",
+				"enterSixDigitCode": "Please enter 6-digit verification code",
+				"codeExpiredOrIncorrect": "Verification code is incorrect or expired, please get a new one",
+				"bindingFailed": "Binding failed, please try again"
 			}
 		},
 		"resetPassword": {

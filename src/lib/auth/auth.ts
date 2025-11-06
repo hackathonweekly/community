@@ -43,10 +43,36 @@ export const auth = betterAuth({
 	].filter(Boolean),
 	appName: config.appName,
 	// 添加登录成功和失败的重定向处理
-	successRedirectTo: (context: any) => {
+	successRedirectTo: async (context: any) => {
 		// 检查是否有来自活动页面的 redirectTo 参数
 		const searchParams = new URLSearchParams(context.searchParams || "");
 		const redirectTo = searchParams.get("redirectTo");
+
+		// 🔧 微信登录后检查是否需要绑定手机号
+		// 检查当前登录方式是否为微信（通过 providerId 判断）
+		const isWeChatLogin =
+			context.user?.accounts?.some((acc: any) =>
+				acc.providerId?.startsWith("wechat-"),
+			) || context.account?.providerId?.startsWith("wechat-");
+
+		if (isWeChatLogin) {
+			// 如果是微信登录，检查用户是否已绑定手机号
+			const user = await db.user.findUnique({
+				where: { id: context.user?.id || context.userId },
+				select: {
+					phoneNumber: true,
+					phoneNumberVerified: true,
+				},
+			});
+
+			// 如果未绑定手机号或手机号未验证，引导到绑定页面
+			if (!user?.phoneNumber || !user?.phoneNumberVerified) {
+				const bindPhoneUrl = redirectTo
+					? `/auth/bind-phone?redirectTo=${encodeURIComponent(redirectTo)}`
+					: "/auth/bind-phone";
+				return bindPhoneUrl;
+			}
+		}
 
 		// 如果有 redirectTo 参数，跳转到指定页面
 		if (redirectTo) {
