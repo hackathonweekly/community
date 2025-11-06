@@ -33,7 +33,33 @@ export function EventQuickStats({
 	return (
 		<Card className="mb-3 md:mb-6">
 			<CardContent className="p-2 md:p-4">
-				<div className="flex items-center justify-between text-sm">
+				{/* Mobile: Show only essential stats */}
+				<div className="flex items-center justify-between text-sm md:hidden">
+					<div className="flex items-center gap-1">
+						<UsersIcon className="w-4 h-4 text-blue-600" />
+						<span className="font-medium">{confirmedCount}</span>
+						<span className="text-muted-foreground text-xs">
+							{t("stats.confirmed")}
+						</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<ClockIcon className="w-4 h-4 text-yellow-600" />
+						<span className="font-medium">{pendingCount}</span>
+						<span className="text-muted-foreground text-xs">
+							{t("stats.pending")}
+						</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<EyeIcon className="w-4 h-4 text-green-600" />
+						<span className="font-medium">{event.viewCount}</span>
+						<span className="text-muted-foreground text-xs">
+							{t("stats.views")}
+						</span>
+					</div>
+				</div>
+
+				{/* Desktop: Show all stats */}
+				<div className="hidden md:flex items-center justify-between text-sm">
 					<div className="flex items-center gap-1">
 						<UsersIcon className="w-4 h-4 text-blue-600" />
 						<span className="font-medium">{confirmedCount}</span>

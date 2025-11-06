@@ -20,7 +20,6 @@ interface EditingProfile {
 	phoneNumber: string;
 	email: string;
 	lifeStatus: string;
-	wechatId: string;
 }
 
 interface ProfileSectionProps {
@@ -37,7 +36,6 @@ interface ProfileSectionProps {
 	onPhoneNumberChange: (value: string) => void;
 	onEmailChange: (value: string) => void;
 	onLifeStatusChange: (value: string) => void;
-	onWechatIdChange: (value: string) => void;
 }
 
 export function ProfileSection({
@@ -54,7 +52,6 @@ export function ProfileSection({
 	onPhoneNumberChange,
 	onEmailChange,
 	onLifeStatusChange,
-	onWechatIdChange,
 }: ProfileSectionProps) {
 	const hasSavedBio = userProfile?.bio?.trim();
 	const hasEditingBio = editingProfile.bio.trim();
@@ -188,7 +185,6 @@ export function ProfileSection({
 						onPhoneNumberChange={onPhoneNumberChange}
 						onEmailChange={onEmailChange}
 						onLifeStatusChange={onLifeStatusChange}
-						onWechatIdChange={onWechatIdChange}
 						onSave={onSaveProfile}
 						showRequired={true}
 						onCancel={() => {
@@ -200,7 +196,6 @@ export function ProfileSection({
 								phoneNumber: userProfile?.phoneNumber || "",
 								email: userProfile?.email || "",
 								lifeStatus: userProfile?.lifeStatus || "",
-								wechatId: userProfile?.wechatId || "",
 							});
 							onToggleInlineEdit(false);
 						}}
@@ -227,7 +222,6 @@ export function ProfileSection({
 				onPhoneNumberChange={onPhoneNumberChange}
 				onEmailChange={onEmailChange}
 				onLifeStatusChange={onLifeStatusChange}
-				onWechatIdChange={onWechatIdChange}
 				onSave={onSaveProfile}
 				showRequired={true}
 			/>
@@ -244,7 +238,6 @@ interface ProfileEditFormProps {
 	onPhoneNumberChange: (value: string) => void;
 	onEmailChange: (value: string) => void;
 	onLifeStatusChange: (value: string) => void;
-	onWechatIdChange: (value: string) => void;
 	onSave: () => void;
 	onCancel?: () => void;
 	showRequired?: boolean;
@@ -259,7 +252,6 @@ function ProfileEditForm({
 	onPhoneNumberChange,
 	onEmailChange,
 	onLifeStatusChange,
-	onWechatIdChange,
 	onSave,
 	onCancel,
 	showRequired = false,
@@ -390,11 +382,9 @@ function ProfileEditForm({
 			<ContactInfoForm
 				phoneNumber={editingProfile.phoneNumber}
 				email={editingProfile.email}
-				wechatId={editingProfile.wechatId}
 				emailError={emailError}
 				onPhoneNumberChange={onPhoneNumberChange}
 				onEmailChange={onEmailChange}
-				onWechatIdChange={onWechatIdChange}
 				phoneValidation={phoneValidation}
 			/>
 

@@ -145,7 +145,6 @@ export function EventRegistrationModal({
 		phoneNumber: "",
 		email: "",
 		lifeStatus: "",
-		wechatId: "",
 	});
 	const [savingProfile, setSavingProfile] = useState(false);
 	const [phoneValidation, setPhoneValidation] =
@@ -228,7 +227,6 @@ export function EventRegistrationModal({
 				phoneNumber: userProfile.phoneNumber || "",
 				email: normalizeEmail(userProfile.email),
 				lifeStatus: userProfile.lifeStatus || "",
-				wechatId: userProfile.wechatId || "",
 			});
 			setEmailError(null);
 		}
@@ -280,7 +278,6 @@ export function EventRegistrationModal({
 
 	const saveUserProfile = async (silent = false) => {
 		const trimmedEmail = editingProfile.email.trim();
-		const trimmedWechatId = editingProfile.wechatId.trim();
 		if (!trimmedEmail) {
 			const message = "请填写邮箱，方便接收通知";
 			setEmailError(message);
@@ -327,7 +324,6 @@ export function EventRegistrationModal({
 					phoneNumber: editingProfile.phoneNumber,
 					email: trimmedEmail,
 					lifeStatus: editingProfile.lifeStatus,
-					wechatId: trimmedWechatId || null,
 				}),
 			});
 
@@ -375,13 +371,11 @@ export function EventRegistrationModal({
 						? (userProfile?.emailVerified ?? null)
 						: false,
 				lifeStatus: editingProfile.lifeStatus,
-				wechatId: trimmedWechatId,
 			};
 			setUserProfile(updatedProfile);
 			setEditingProfile((prev) => ({
 				...prev,
 				email: trimmedEmail,
-				wechatId: trimmedWechatId,
 			}));
 
 			if (!silent) {
@@ -635,8 +629,7 @@ export function EventRegistrationModal({
 				editingProfile.phoneNumber !==
 					(userProfile?.phoneNumber || "") ||
 				trimmedEditingEmail !== initialEmail ||
-				editingProfile.lifeStatus !== (userProfile?.lifeStatus || "") ||
-				editingProfile.wechatId !== (userProfile?.wechatId || ""))
+				editingProfile.lifeStatus !== (userProfile?.lifeStatus || ""))
 		) {
 			try {
 				await saveUserProfile(true); // Silent save, no toast notification
@@ -770,12 +763,6 @@ export function EventRegistrationModal({
 								email: value,
 							}));
 						}}
-						onWechatIdChange={(value) =>
-							setEditingProfile((prev) => ({
-								...prev,
-								wechatId: value,
-							}))
-						}
 						onLifeStatusChange={(value) =>
 							setEditingProfile((prev) => ({
 								...prev,

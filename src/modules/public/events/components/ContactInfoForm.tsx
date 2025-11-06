@@ -6,22 +6,18 @@ import type { PhoneValidationResult } from "@/lib/utils/phone-validation";
 interface ContactInfoFormProps {
 	phoneNumber: string;
 	email: string;
-	wechatId: string;
 	emailError?: string | null;
 	onPhoneNumberChange: (value: string) => void;
 	onEmailChange: (value: string) => void;
-	onWechatIdChange: (value: string) => void;
 	phoneValidation?: PhoneValidationResult;
 }
 
 export function ContactInfoForm({
 	phoneNumber,
 	email,
-	wechatId,
 	emailError,
 	onPhoneNumberChange,
 	onEmailChange,
-	onWechatIdChange,
 	phoneValidation,
 }: ContactInfoFormProps) {
 	return (
@@ -64,26 +60,6 @@ export function ContactInfoForm({
 						<p className="text-xs text-red-500">{emailError}</p>
 					)}
 				</div>
-			</div>
-			<div className="space-y-2">
-				<Label className="text-xs text-muted-foreground">
-					微信号
-					<span className="ml-1 text-[11px] text-muted-foreground">
-						仅互相关注后展示
-					</span>
-				</Label>
-				<Input
-					value={wechatId}
-					onChange={(event) => onWechatIdChange(event.target.value)}
-					placeholder="请填写常用的微信号"
-					autoCapitalize="none"
-					autoComplete="off"
-					spellCheck={false}
-					className="w-full"
-				/>
-				<p className="text-[11px] text-muted-foreground">
-					我们会在活动前后为互相关注的伙伴展示你的微信号，方便社交联系。
-				</p>
 			</div>
 		</div>
 	);

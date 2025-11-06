@@ -1,6 +1,11 @@
 "use client";
 
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+	Sheet,
+	SheetContent,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
 import { NavigationContent } from "@dashboard/shared/components/NavigationContent";
 import { useNavigationData } from "@dashboard/shared/hooks/use-navigation-data";
 import { MenuIcon } from "lucide-react";
@@ -45,6 +50,7 @@ export function MobileSidebar({ trigger }: MobileSidebarProps) {
 				)}
 			</SheetTrigger>
 			<SheetContent side="left" className="w-[280px] flex flex-col p-0">
+				<SheetTitle className="sr-only">Navigation menu</SheetTitle>
 				<NavigationContent
 					user={user}
 					menuItems={menuItems}
