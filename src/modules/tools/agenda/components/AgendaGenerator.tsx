@@ -72,7 +72,7 @@ export interface AgendaData {
 
 const initialAgendaData: AgendaData = {
 	basicInfo: {
-		title: "HackathonWeekly 周周黑客松",
+		title: "周周黑客松",
 		subtitle: "活动主题 | 一起创造精彩",
 		date: "",
 		time: "",
@@ -81,7 +81,7 @@ const initialAgendaData: AgendaData = {
 		sponsor: "",
 		partners: "",
 		communityIntro:
-			"HackathonWeekly周周黑客松是一个公益开源的极客社区，定期举办交流会和黑客松，旨在帮助每个参与者实现最小可行产品。来周周黑客松，让想法落地！",
+			"HackathonWeekly周周黑客松是一个AI 产品创造者社区，每周末，一起创造有趣的 AI 产品！",
 	},
 	schedule: [
 		{
@@ -155,8 +155,8 @@ const initialAgendaData: AgendaData = {
 	},
 	communityInfo: {
 		description:
-			"HackathonWeekly周周黑客松是一个公益开源的极客社区，定期举办交流会和黑客松，旨在帮助每个参与者实现最小可行产品。来周周黑客松，让想法落地！",
-		tagline: "一起创造精彩！",
+			"HackathonWeekly周周黑客松是一个AI 产品创造者社区，每周末，一起创造有趣的 AI 产品！",
+		tagline: "让创造成为一种生活方式",
 	},
 };
 
@@ -455,7 +455,7 @@ export function AgendaGenerator() {
         <div>
             <h1>${agendaData.basicInfo.title}</h1>
             <h3>${agendaData.basicInfo.subtitle}</h3>
-            <p>一起创造精彩！</p>
+            <p>让创造成为一种生活方式</p>
         </div>
     </div>
 
@@ -468,7 +468,7 @@ export function AgendaGenerator() {
         </div>
         <div class="community-intro">
             <strong>社区介绍：</strong><br>
-            HackathonWeekly周周黑客松是一个公益开源的极客社区，定期举办交流会和黑客松，旨在帮助每个参与者实现最小可行产品。来周周黑客松，让想法落地！
+            HackathonWeekly周周黑客松是一个AI 产品创造者社区，每周末，一起创造有趣的 AI 产品！
         </div>
     </div>
 

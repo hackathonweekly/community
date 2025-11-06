@@ -1,9 +1,9 @@
 export function ToolsHeader() {
 	return (
-		<div className="mb-12 pt-8 text-center">
-			<h1 className="mb-4 font-bold text-5xl">黑客马拉松工具箱</h1>
-			<p className="text-balance text-lg text-muted-foreground max-w-2xl mx-auto">
-				精选实用的黑客马拉松开发工具，帮助你快速启动项目、管理团队、展示成果
+		<div className="mb-10 pt-8 text-center">
+			<h1 className="text-3xl font-semibold">周周黑客松常用工具链接</h1>
+			<p className="mt-3 text-base text-muted-foreground">
+				快捷访问社区常用的文档、群组和工具入口
 			</p>
 		</div>
 	);

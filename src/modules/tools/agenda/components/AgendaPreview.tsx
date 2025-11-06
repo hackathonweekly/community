@@ -203,7 +203,7 @@ export function AgendaPreview({ data }: AgendaPreviewProps) {
 			: `
     <div class="community-intro">
         <strong>社区介绍：</strong><br>
-        HackathonWeekly周周黑客松是一个公益开源的极客社区，定期举办交流会和黑客松，旨在帮助每个参与者实现最小可行产品。来周周黑客松，让想法落地！
+        HackathonWeekly周周黑客松是一个AI 产品创造者社区，每周末，一起创造有趣的 AI 产品！
     </div>
     `;
 
@@ -221,7 +221,7 @@ export function AgendaPreview({ data }: AgendaPreviewProps) {
         <div>
             <h1>${data.basicInfo.title}</h1>
             <h3>${data.basicInfo.subtitle}</h3>
-            <p>一起创造精彩！</p>
+            <p>让创造成为一种生活方式</p>
         </div>
     </div>
 
