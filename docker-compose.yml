@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  app:
+    image: hw-community:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SITE_URL: "https://hackathonweekly.com"
+        NEXT_PUBLIC_BUCKET_NAME: "hackweek-public-1303088253"
+        NEXT_PUBLIC_S3_ENDPOINT: "https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com"
+    platform: "linux/amd64"
+    environment:
+      DATABASE_URL: "postgresql://user:pass@host:5432/dbname?schema=public"
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

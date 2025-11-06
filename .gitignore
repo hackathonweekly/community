@@ -60,6 +60,7 @@ dist/
 
 # typescript
 *.tsbuildinfo
+next-env.d.ts
 
 # prisma generated files
 src/lib/database/prisma/zod/
