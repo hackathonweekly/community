@@ -15,11 +15,11 @@ interface PhoneAPIResponse {
 /**
  * 发送手机验证码
  * @param phoneNumber 完整手机号 (如: +8613800138000)
- * @param type 验证类型: "LOGIN" | "REGISTRATION"
+ * @param type 验证类型: "LOGIN" | "REGISTRATION" | "VERIFY"
  */
 export async function sendPhoneOTP(
 	phoneNumber: string,
-	type: "LOGIN" | "REGISTRATION" = "LOGIN",
+	type: "LOGIN" | "REGISTRATION" | "VERIFY" = "LOGIN",
 ): Promise<{ error?: { message: string; retryAfter?: number } }> {
 	try {
 		const { error } = await authClient.phoneNumber.sendOtp({
@@ -82,7 +82,7 @@ export async function sendPhoneOTP(
 export async function verifyPhoneOTP(
 	phoneNumber: string,
 	code: string,
-	type: "LOGIN" | "REGISTRATION" = "LOGIN",
+	type: "LOGIN" | "REGISTRATION" | "VERIFY" = "LOGIN",
 	updatePhoneNumber = false,
 ): Promise<{ data?: any; error?: { message: string; retryAfter?: number } }> {
 	try {
@@ -90,7 +90,10 @@ export async function verifyPhoneOTP(
 			phoneNumber,
 			code,
 			// 如果是绑定场景，更新现有用户的手机号且不创建新会话
-			updatePhoneNumber: type === "REGISTRATION" || updatePhoneNumber,
+			updatePhoneNumber:
+				type === "REGISTRATION" ||
+				type === "VERIFY" ||
+				updatePhoneNumber,
 			disableSession: type === "REGISTRATION",
 		});
 
