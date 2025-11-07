@@ -131,3 +131,12 @@ dev:
 clean:
 	rm -rf .next
 	rm -rf node_modules/.cache
+
+# docker login docker.cnb.cool -u cnb -p $(CNB_TOKEN)
+cnb_docker:
+	@echo "Starting container..."
+	docker run -d \
+		--name community \
+		-p 3000:3000 \
+		--env-file .env.prd \
+		docker.cnb.cool/hackathonweekly/community:latest
