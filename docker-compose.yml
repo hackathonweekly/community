@@ -1,18 +1,31 @@
 version: "3.9"
+
+x-app-service: &app-service
+  env_file:
+    - ${ENV_FILE:-.env.local}
+  environment:
+    NODE_ENV: ${NODE_ENV:-production}
+    PORT: ${PORT:-3000}
+  ports:
+    - "${PORT:-3000}:3000"
+  restart: unless-stopped
+  init: true
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
 services:
   app:
-    image: hw-community:latest
+    <<: *app-service
+    image: ${IMAGE:-community:latest}
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_SITE_URL: "https://hackathonweekly.com"
-        NEXT_PUBLIC_BUCKET_NAME: "hackweek-public-1303088253"
-        NEXT_PUBLIC_S3_ENDPOINT: "https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com"
-    platform: "linux/amd64"
-    # 从 .env.prd 文件加载所有环境变量
-    env_file:
-      - .env.prd
-    ports:
-      - "3000:3000"
-    restart: unless-stopped
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://hackathonweekly.com}
+        NEXT_PUBLIC_BUCKET_NAME: ${NEXT_PUBLIC_BUCKET_NAME:-hackweek-public-1303088253}
+        NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com}
+      platforms:
+        - ${PLATFORM:-linux/amd64}

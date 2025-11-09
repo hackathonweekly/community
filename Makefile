@@ -1,142 +1,148 @@
-.PHONY: help build docker-build docker-build-fast docker-build-arm docker-push docker-push-tencent docker-run docker-run-arm docker-stop docker-logs docker-shell docker-debug dev clean
+.PHONY: help build dev clean
+.PHONY: up down logs shell ps restart
+.PHONY: release deploy rollback prod-logs prod-shell
 
-# Default target
+# ========================================
+# Configuration
+# ========================================
+IMAGE_NAME ?= community
+IMAGE_TAG ?= latest
+REGISTRY ?= docker.cnb.cool/hackathonweekly
+FULL_IMAGE = $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
+
+PORT ?= 3000
+PLATFORM ?= linux/amd64
+
+# ========================================
+# Help
+# ========================================
 help:
-	@echo "Available commands:"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "📦 HackathonWeekly Community - Docker 管理"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 	@echo ""
-	@echo "Development:"
-	@echo "  make dev                - Start development server"
-	@echo "  make build              - Build Next.js application"
-	@echo "  make clean              - Clean build artifacts"
+	@echo "🚀 开发命令"
+	@echo "  make dev          启动开发服务器 (bun dev)"
+	@echo "  make build        构建生产版本 (bun run build)"
+	@echo "  make clean        清理构建缓存"
 	@echo ""
-	@echo "Docker Build:"
-	@echo "  make docker-build       - Build Docker image (traditional, slower)"
-	@echo "  make docker-build-fast  - Build locally then package with Docker (faster)"
-	@echo "  make docker-build-arm   - Build ARM64 image for local Mac testing"
+	@echo "🐳 本地 Docker"
+	@echo "  make up           构建并启动容器"
+	@echo "  make down         停止并删除容器"
+	@echo "  make logs         查看容器日志"
+	@echo "  make shell        进入容器终端"
+	@echo "  make restart      重启容器"
+	@echo "  make ps           查看容器状态"
 	@echo ""
-	@echo "Docker Deploy:"
-	@echo "  make docker-run         - Run Docker container locally (amd64, for production test)"
-	@echo "  make docker-run-arm     - Run Docker container locally (arm64, native Mac)"
-	@echo "  make docker-stop        - Stop and remove Docker container"
-	@echo "  make docker-logs        - View Docker container logs"
-	@echo "  make docker-shell       - Enter running container shell"
-	@echo "  make docker-debug       - Run container in debug mode (interactive shell)"
-	@echo "  make docker-push-tencent VERSION=v1.0.0 - Push to Tencent registry (after docker-build-fast)"
-	@echo "  make docker-push VERSION=v1.0.0 REGISTRY=xxx - Push to custom registry"
+	@echo "🎯 生产部署"
+	@echo "  make release TAG=v1.2.0"
+	@echo "                    构建并推送镜像到仓库"
+	@echo ""
+	@echo "  make deploy TAG=v1.2.0"
+	@echo "                    拉取镜像并部署到生产环境"
+	@echo ""
+	@echo "  make rollback TAG=v1.1.9"
+	@echo "                    回滚到指定版本（使用本地已有镜像）"
+	@echo ""
+	@echo "  make prod-logs    查看生产环境日志"
+	@echo "  make prod-shell   进入生产容器终端"
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "💡 提示: 部署时必须指定 TAG，例如 TAG=v1.2.0"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Build Next.js application
-build:
-	bun run build
-
-# Traditional Docker build (build inside Docker)
-docker-build:
-	./docker-build.sh latest --local-only
-
-# Fast Docker build (use local build artifacts)
-docker-build-fast: # run `bun run build` first
-	./docker-build.sh latest --use-local-build --local-only
-
-# Build ARM64 image for local Mac testing
-docker-build-arm: # run `bun run build` first
-	docker build --platform linux/arm64 \
-		-f Dockerfile.local-build \
-		-t community:latest-arm \
-		.
-
-# Build and push to custom registry (requires version argument)
-# Usage: make docker-push VERSION=v1.0.0 REGISTRY=tencent
-docker-push:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Error: VERSION is required. Usage: make docker-push VERSION=v1.0.0 REGISTRY=xxx"; \
-		exit 1; \
-	fi
-	bun run build && ./docker-build.sh $(VERSION) $(REGISTRY) --use-local-build
-
-# Push to Tencent Cloud registry (use after docker-build-fast)
-# Usage: make docker-push-tencent VERSION=v1.0.0
-docker-push-tencent:
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Error: VERSION is required. Usage: make docker-push-tencent VERSION=v1.0.0"; \
-		exit 1; \
-	fi
-	@echo "Tagging image for Tencent Cloud..."
-	docker tag community:latest ccr.ccs.tencentyun.com/hackathonweekly/community:$(VERSION)
-	docker tag community:latest ccr.ccs.tencentyun.com/hackathonweekly/community:latest
-	@echo "Pushing to Tencent Cloud..."
-	docker push ccr.ccs.tencentyun.com/hackathonweekly/community:$(VERSION)
-	docker push ccr.ccs.tencentyun.com/hackathonweekly/community:latest
-	@echo "Done! Images pushed to Tencent Cloud registry."
-
-# Run Docker container locally (amd64, simulates production)
-docker-run:
-	@docker stop community 2>/dev/null || true
-	@docker rm community 2>/dev/null || true
-	docker run -d \
-		--name community \
-		-p 3000:3000 \
-		--env-file .env.local \
-		community:latest
-	@echo "Container started (amd64 platform)! Access at http://localhost:3000"
-	@echo "View logs: make docker-logs"
-
-# Run Docker container locally (arm64, native Mac performance)
-docker-run-arm:
-	@docker stop community 2>/dev/null || true
-	@docker rm community 2>/dev/null || true
-	docker run -d \
-		--name community \
-		-p 3000:3000 \
-		--env-file .env.local \
-		community:latest-arm
-	@echo "Container started (arm64 native)! Access at http://localhost:3000"
-	@echo "View logs: make docker-logs"
-
-# Stop and remove Docker container
-docker-stop:
-	@docker stop community 2>/dev/null || true
-	@docker rm community 2>/dev/null || true
-	@echo "Container stopped and removed."
-
-# View Docker container logs
-docker-logs:
-	docker logs -f community
-
-# Enter running container shell
-docker-shell:
-	@if ! docker ps --format '{{.Names}}' | grep -q '^community$$'; then \
-		echo "Error: Container 'community' is not running."; \
-		echo "Start it with: make docker-run or make docker-run-arm"; \
-		exit 1; \
-	fi
-	docker exec -it community sh
-
-# Run container in debug mode (interactive shell, no app start)
-docker-debug:
-	docker run --rm -it \
-		--env-file .env.local \
-		--entrypoint sh \
-		community:latest
-
-docker-debug-arm:
-	docker run --rm -it \
-		--env-file .env.local \
-		--entrypoint sh \
-		community:latest-arm
-
-# Start development server
+# ========================================
+# Development Commands
+# ========================================
 dev:
 	bun dev
 
-# Clean build artifacts
-clean:
-	rm -rf .next
-	rm -rf node_modules/.cache
+build:
+	bun run build
 
-# docker login docker.cnb.cool -u cnb -p $(CNB_TOKEN)
-cnb_docker:
-	@echo "Starting container..."
-	docker run -d \
-		--name community \
-		-p 3000:3000 \
-		--env-file .env.prd \
-		docker.cnb.cool/hackathonweekly/community:latest
+clean:
+	rm -rf .next node_modules/.cache
+
+# ========================================
+# Local Docker Commands
+# ========================================
+up:
+	@echo "🔨 构建并启动本地容器..."
+	@IMAGE=$(IMAGE_NAME):$(IMAGE_TAG) docker compose up -d --build
+	@echo "✅ 容器已启动！访问 http://localhost:$(PORT)"
+
+down:
+	@docker compose down --remove-orphans
+	@echo "✅ 容器已停止"
+
+logs:
+	@docker compose logs -f app
+
+shell:
+	@docker compose exec app sh
+
+restart:
+	@docker compose restart app
+	@echo "✅ 容器已重启"
+
+ps:
+	@docker compose ps
+
+# ========================================
+# Production Deployment Commands
+# ========================================
+release:
+	@if [ -z "$(TAG)" ] || [ "$(TAG)" = "latest" ]; then \
+		echo "❌ 错误: 请指定版本号"; \
+		echo "   示例: make release TAG=v1.2.0"; \
+		exit 1; \
+	fi
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🚀 发布版本: $(TAG)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "1️⃣  构建镜像..."
+	@IMAGE=$(IMAGE_NAME):$(TAG) PLATFORM=$(PLATFORM) docker compose build app
+	@echo ""
+	@echo "2️⃣  打标签: $(REGISTRY)/$(IMAGE_NAME):$(TAG)"
+	@docker tag $(IMAGE_NAME):$(TAG) $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+	@echo ""
+	@echo "3️⃣  推送到仓库..."
+	@docker push $(REGISTRY)/$(IMAGE_NAME):$(TAG)
+	@echo ""
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "✅ 发布成功: $(REGISTRY)/$(IMAGE_NAME):$(TAG)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+deploy:
+	@if [ -z "$(TAG)" ] || [ "$(TAG)" = "latest" ]; then \
+		echo "❌ 错误: 请指定版本号"; \
+		echo "   示例: make deploy TAG=v1.2.0"; \
+		exit 1; \
+	fi
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🚀 部署版本: $(TAG)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@IMAGE=$(REGISTRY)/$(IMAGE_NAME):$(TAG) \
+		docker compose -f docker-compose.prod.yml up -d --remove-orphans
+	@echo ""
+	@echo "✅ 部署成功！访问 http://localhost:$(PORT)"
+
+rollback:
+	@if [ -z "$(TAG)" ] || [ "$(TAG)" = "latest" ]; then \
+		echo "❌ 错误: 请指定回滚版本号"; \
+		echo "   示例: make rollback TAG=v1.1.9"; \
+		exit 1; \
+	fi
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "⏪ 回滚到版本: $(TAG)"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@IMAGE=$(REGISTRY)/$(IMAGE_NAME):$(TAG) \
+		docker compose -f docker-compose.prod.yml up -d --remove-orphans
+	@echo ""
+	@echo "✅ 回滚成功！"
+
+prod-logs:
+	@docker compose -f docker-compose.prod.yml logs -f app
+
+prod-shell:
+	@docker compose -f docker-compose.prod.yml exec app sh

@@ -13,7 +13,7 @@
 - `bun run build` compiles standalone output; `bun start` smoke-tests production bits.
 - `bun lint`, `bun lint:fix`, `bun format`, `bun type-check` keep quality gates green.
 - Database lifecycle: `bun db:generate`, `bun db:push`, `bun db:seed`.
-- Docker: `make docker-build-fast` after building, `make docker-run` to verify images.
+- Docker: `make docker-build` to build the image, `make docker-run` to verify it locally.
 
 ## Coding Style & Naming Conventions
 - TypeScript + React 19 with Tailwind; Biome enforces formatting, lint rules, and imports.

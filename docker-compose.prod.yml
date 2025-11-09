@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  app:
+    # 生产环境使用远程镜像
+    image: ${IMAGE:-docker.cnb.cool/hackathonweekly/community:latest}
+    # 平台架构
+    platform: ${PLATFORM:-linux/amd64}
+    # 使用生产环境变量文件
+    env_file:
+      - .env.production
+    # 环境变量
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-3000}
+    # 端口映射
+    ports:
+      - "${PORT:-3000}:3000"
+    # 总是拉取最新镜像
+    pull_policy: always
+    # 重启策略
+    restart: unless-stopped
+    # 初始化进程
+    init: true
+    # 日志配置
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # 安全选项：禁止提权
+    security_opt:
+      - no-new-privileges:true
+    # 优雅退出时间（30秒）
+    stop_grace_period: 30s
