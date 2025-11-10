@@ -43,12 +43,13 @@ ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
 ENV NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME}
 ENV NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT}
 
-# Build the application using Bun
+# Build the application using npm (recommended for production)
+# Using npm instead of bun for better standalone compatibility
 RUN --mount=type=cache,target=/app/.next/cache \
-    NODE_OPTIONS="--max-old-space-size=4096" \
+    NODE_OPTIONS="--max-old-space-size=8192" \
     NEXT_TELEMETRY_DISABLED=1 \
     NODE_ENV=production \
-    bun run build
+    npm run build
 
 # ========================================
 # Runner stage: Production runtime
