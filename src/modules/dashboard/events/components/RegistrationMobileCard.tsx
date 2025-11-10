@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { getProjectStageLabel } from "@/lib/project-stage";
 import { UserAvatar } from "@/components/shared/UserAvatar";
@@ -72,7 +71,7 @@ export function RegistrationMobileCard({
 	const StatusIcon = statusInfo.icon;
 
 	return (
-		<Card className="p-4">
+		<div className="p-3 border-b last:border-b-0 hover:bg-gray-50/50 transition-colors">
 			<div className="flex items-start gap-3">
 				<UserAvatar
 					name={registration.user.name}
@@ -282,6 +281,6 @@ export function RegistrationMobileCard({
 					</div>
 				</div>
 			</div>
-		</Card>
+		</div>
 	);
 }

@@ -7,10 +7,10 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import { logger } from "@/lib/logs";
 
-const LOGO_PATH = join(process.cwd(), "public/image/logo/logowhite.png");
-const DEFAULT_LOGO_SIZE = 200; // 默认Logo宽度（像素）
+const LOGO_PATH = join(process.cwd(), "public/images/logo-white.png");
+const DEFAULT_LOGO_SIZE = 350; // 默认Logo宽度（像素）
 const DEFAULT_OPACITY = 0.7; // 默认透明度
-const WATERMARK_PADDING = 20; // Logo距离边缘的内边距
+const WATERMARK_PADDING = 30; // Logo距离边缘的内边距
 
 interface WatermarkOptions {
 	logoSize?: number;
@@ -48,7 +48,7 @@ export async function addWatermark(
 		const logoAspectRatio =
 			(logoMetadata.width || DEFAULT_LOGO_SIZE) /
 			(logoMetadata.height || DEFAULT_LOGO_SIZE);
-		const logoWidth = Math.min(logoSize, imageWidth * 0.3); // Max 30% of image width
+		const logoWidth = Math.min(logoSize, imageWidth * 0.45); // Max 45% of image width
 		const logoHeight = logoWidth / logoAspectRatio;
 
 		// Prepare logo with opacity

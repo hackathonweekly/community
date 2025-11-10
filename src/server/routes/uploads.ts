@@ -9,8 +9,39 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth";
 
-// Allowed buckets for different user types
-const ALLOWED_BUCKETS = new Set([config.storage.bucketNames.public]);
+// Allowed buckets and alias mapping for different user types
+const bucketAliasEntries: Array<[string, string]> = [];
+for (const [bucketType, bucketName] of Object.entries(
+	config.storage.bucketNames,
+)) {
+	const trimmedName = bucketName.trim();
+	const trimmedType = bucketType.trim();
+
+	if (trimmedName.length > 0) {
+		bucketAliasEntries.push([trimmedName, trimmedName]);
+		bucketAliasEntries.push([trimmedName.toLowerCase(), trimmedName]);
+	}
+
+	if (trimmedType.length > 0 && trimmedType !== trimmedName) {
+		bucketAliasEntries.push([trimmedType, trimmedName]);
+		bucketAliasEntries.push([trimmedType.toLowerCase(), trimmedName]);
+	}
+}
+
+const BUCKET_ALIAS_MAP = new Map(bucketAliasEntries);
+
+const ALLOWED_BUCKETS = new Set(
+	Object.values(config.storage.bucketNames).map((bucket) => bucket.trim()),
+);
+
+const resolveBucketName = (bucket: string): string => {
+	const normalized = bucket.trim();
+	return (
+		BUCKET_ALIAS_MAP.get(normalized) ??
+		BUCKET_ALIAS_MAP.get(normalized.toLowerCase()) ??
+		normalized
+	);
+};
 
 // Allowed file extensions and content types
 const ALLOWED_CONTENT_TYPES = new Map([
@@ -200,6 +231,7 @@ export const uploadsRouter = new Hono<{
 		async (c) => {
 			const { bucket, path, contentType } = c.req.valid("query");
 			const user = c.get("user");
+			const resolvedBucket = resolveBucketName(bucket);
 
 			// Additional server-side validation
 			if (!validateFilePath(path)) {
@@ -213,12 +245,21 @@ export const uploadsRouter = new Hono<{
 			}
 
 			// Check if bucket is allowed
-			if (!ALLOWED_BUCKETS.has(bucket)) {
+			if (!ALLOWED_BUCKETS.has(resolvedBucket)) {
+				console.error("Bucket not allowed:", {
+					requestedBucket: bucket,
+					resolvedBucket,
+				});
 				throw new HTTPException(400, { message: "Bucket not allowed" });
 			}
 
 			// Check user permissions for the bucket
-			if (!hasAccessToBucket(bucket, user)) {
+			if (!hasAccessToBucket(resolvedBucket, user)) {
+				console.error("User lacks bucket access:", {
+					requestedBucket: bucket,
+					resolvedBucket,
+					userId: user.id,
+				});
 				throw new HTTPException(403, {
 					message: "Insufficient permissions for this bucket",
 				});
@@ -226,7 +267,7 @@ export const uploadsRouter = new Hono<{
 
 			try {
 				const signedUrl = await getSignedUploadUrl(path, {
-					bucket,
+					bucket: resolvedBucket,
 					contentType,
 				});
 				return c.json({ signedUrl });
@@ -270,6 +311,7 @@ export const uploadsRouter = new Hono<{
 			const formData = await c.req.formData();
 			const file = formData.get("file") as File | null;
 			const bucket = formData.get("bucket") as string | null;
+			const resolvedBucket = bucket ? resolveBucketName(bucket) : null;
 			const path = formData.get("path") as string | null;
 			const contentType = formData.get("contentType") as
 				| string
@@ -277,18 +319,6 @@ export const uploadsRouter = new Hono<{
 				| undefined;
 			const user = c.get("user");
 
-			// Validate required fields
-			if (!file) {
-				throw new HTTPException(400, { message: "File is required" });
-			}
-			if (!bucket) {
-				throw new HTTPException(400, { message: "Bucket is required" });
-			}
-			if (!path) {
-				throw new HTTPException(400, { message: "Path is required" });
-			}
-
-			// Validate file path
 			if (!validateFilePath(path)) {
 				throw new HTTPException(400, { message: "Invalid file path" });
 			}
@@ -301,12 +331,21 @@ export const uploadsRouter = new Hono<{
 			}
 
 			// Check if bucket is allowed
-			if (!ALLOWED_BUCKETS.has(bucket)) {
+			if (!ALLOWED_BUCKETS.has(resolvedBucket)) {
+				console.error("Bucket not allowed:", {
+					requestedBucket: bucket,
+					resolvedBucket,
+				});
 				throw new HTTPException(400, { message: "Bucket not allowed" });
 			}
 
 			// Check user permissions for the bucket
-			if (!hasAccessToBucket(bucket, user)) {
+			if (!hasAccessToBucket(resolvedBucket, user)) {
+				console.error("User lacks bucket access:", {
+					requestedBucket: bucket,
+					resolvedBucket,
+					userId: user?.id,
+				});
 				throw new HTTPException(403, {
 					message: "Insufficient permissions for this bucket",
 				});
@@ -319,7 +358,7 @@ export const uploadsRouter = new Hono<{
 
 				// Upload to S3
 				await uploadFileToS3(path, {
-					bucket,
+					bucket: resolvedBucket,
 					body: buffer,
 					contentType: contentType || file.type || undefined,
 				});

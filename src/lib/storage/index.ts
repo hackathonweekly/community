@@ -15,6 +15,62 @@ import { logger } from "@/lib/logs";
 
 let s3Client: S3Client | null = null;
 
+/**
+ * Middleware to inject Appid header for Tencent Cloud COS compatibility
+ * This is required when using AWS SDK v3 with Tencent COS virtual-hosted-style URLs
+ */
+const tencentCosMiddleware = {
+	name: "tencentCosMiddleware",
+	middleware: (next: any, _context: any) => {
+		return async (args: any): Promise<any> => {
+			// Check if this is a Tencent COS endpoint and if Appid header is missing
+			const endpoint = args?.request?.hostname || "";
+			const headers = args?.request?.headers || {};
+
+			// Detect Tencent COS endpoint by checking for .myqcloud.com
+			if (endpoint.includes(".myqcloud.com") && !headers.Appid) {
+				// Extract Appid from bucket name (Tencent COS format: bucketname-appid)
+				const bucket = args?.input?.Bucket || "";
+				// Match patterns like "hackweek-public-1303088253" format
+				const appidMatch = bucket.match(/-(\d+)$/);
+
+				let appidToUse: string | null = null;
+
+				if (appidMatch) {
+					appidToUse = appidMatch[1];
+				} else if (process.env.S3_APPID) {
+					// Use explicit S3_APPID from env if available
+					appidToUse = process.env.S3_APPID;
+				} else {
+					// Last resort: extract any numeric part from common bucket patterns
+					const anyNumberMatch = bucket.match(/(\d+)/);
+					if (anyNumberMatch) {
+						appidToUse = anyNumberMatch[1];
+					}
+				}
+
+				if (appidToUse) {
+					// Inject Appid header for Tencent COS
+					args.request.headers = {
+						...headers,
+						Appid: appidToUse,
+					};
+				} else {
+					logger.warn(
+						"无法从bucket名称中提取Appid，可能导致COS请求失败",
+						{
+							bucket,
+							endpoint,
+						},
+					);
+				}
+			}
+
+			return next(args);
+		};
+	},
+};
+
 const getS3Client = () => {
 	if (s3Client) {
 		return s3Client;
@@ -46,6 +102,12 @@ const getS3Client = () => {
 			secretAccessKey: s3SecretAccessKey,
 		},
 	});
+
+	// Apply middleware to all S3 operations for Tencent COS compatibility
+	s3Client.middlewareStack.add(
+		tencentCosMiddleware.middleware.bind(tencentCosMiddleware),
+		{ step: "build" },
+	);
 
 	return s3Client;
 };

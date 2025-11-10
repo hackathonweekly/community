@@ -8,6 +8,7 @@ import { validator } from "hono-openapi/zod";
 import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth";
 import { getPublicStorageUrl } from "@/lib/storage/url";
+import { config } from "@/config";
 
 const uploadPhotoSchema = z.object({
 	imageUrl: z.string().url("请提供有效的图片URL"),
@@ -244,7 +245,7 @@ export const eventPhotosRouter = new Hono()
 
 					// Upload watermarked image to S3
 					const watermarkPath = `events/${eventId}/photos/watermarked_${Date.now()}_${user.id}.jpg`;
-					const watermarkBucket = process.env.S3_BUCKET || "uploads";
+					const watermarkBucket = config.storage.bucketNames.public;
 
 					await uploadFileToS3(watermarkPath, {
 						bucket: watermarkBucket,
@@ -318,12 +319,19 @@ export const eventPhotosRouter = new Hono()
 				const { id: eventId } = c.req.valid("param");
 				const { photoId } = c.req.valid("json");
 
+				// 检查用户是否已登录
+				if (!user || !user.id) {
+					console.error("User not authenticated for photo deletion");
+					return c.json({ error: "请先登录" }, 401);
+				}
+
 				// 检查照片是否存在
 				const photo = await db.eventPhoto.findUnique({
 					where: { id: photoId },
 				});
 
 				if (!photo) {
+					console.error("Photo not found:", { photoId });
 					return c.json({ error: "照片不存在" }, 404);
 				}
 

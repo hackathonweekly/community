@@ -107,143 +107,174 @@ export function RegistrationDetailsDialog({
 	return (
 		<>
 			<DialogContent className="max-w-2xl">
-				<DialogHeader>
-					<DialogTitle>{registration.user.name}</DialogTitle>
-					<DialogDescription>
-						{t("registrations.dialog.title")}
-					</DialogDescription>
-				</DialogHeader>
-				<div className="space-y-4">
-					<div>
-						<h4 className="font-medium mb-2">
-							{t("registrations.dialog.contactInformation")}
-						</h4>
-						<div className="space-y-1 text-sm">
-							<p>
-								<strong>
-									{t("registrations.dialog.email")}
-								</strong>{" "}
-								{registration.user.email}
-							</p>
-							{registration.user.phoneNumber && (
-								<p>
-									<strong>手机号</strong>{" "}
-									{registration.user.phoneNumber}
-								</p>
-							)}
-							{registration.user.wechatId && (
-								<p>
-									<strong>微信号</strong>{" "}
-									{registration.user.wechatId}
-								</p>
-							)}
-							{registration.user.city && (
-								<p>
-									<strong>
-										{t("registrations.dialog.city")}
-									</strong>{" "}
-									{registration.user.city}
-								</p>
-							)}
-						</div>
-					</div>
-
-					<div>
-						<h4 className="font-medium mb-2">用户详情</h4>
-						<div className="space-y-1 text-sm">
-							{registration.user.userRoleString && (
-								<p>
-									<strong>用户角色</strong>{" "}
-									{registration.user.userRoleString}
-								</p>
-							)}
-							{registration.user.currentWorkOn && (
-								<p>
-									<strong>当前在做</strong>{" "}
-									{registration.user.currentWorkOn}
-								</p>
-							)}
-							{registration.user.lifeStatus && (
-								<p>
-									<strong>当前状态</strong>{" "}
-									{getLifeStatusLabel(
-										registration.user.lifeStatus,
-									)}
-								</p>
-							)}
-							{registration.user.bio && (
-								<p>
-									<strong>
-										{t("registrations.dialog.bio")}
-									</strong>{" "}
-									{registration.user.bio}
-								</p>
-							)}
-						</div>
-					</div>
-
-					<div>
-						<h4 className="font-medium mb-2">屏幕展示偏好</h4>
-						<div className="space-y-1 text-sm">
-							<p>
-								<strong>允许屏幕展示自我介绍</strong>{" "}
-								<span
-									className={
-										registration.allowDigitalCardDisplay
-											? "text-green-600"
-											: "text-gray-500"
-									}
-								>
-									{registration.allowDigitalCardDisplay ===
-									true
-										? "✓ 是"
-										: registration.allowDigitalCardDisplay ===
-												false
-											? "✗ 否"
-											: "未设置"}
-								</span>
-							</p>
-						</div>
-					</div>
-
-					{questionsToDisplay.length > 0 && (
+				<div className="max-h-[90vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle>{registration.user.name}</DialogTitle>
+						<DialogDescription>
+							{t("registrations.dialog.title")}
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
 						<div>
 							<h4 className="font-medium mb-2">
-								{t("registrations.dialog.questionAnswers")}
+								{t("registrations.dialog.contactInformation")}
 							</h4>
-							<div className="space-y-3">
-								{questionsToDisplay.map((question) => {
-									const answer = answersMap.get(question.id);
-									return (
-										<div
-											key={question.id}
-											className="border rounded-lg p-3"
-										>
-											<p className="font-medium text-sm">
-												{question.question}
-												{question.required && (
-													<span className="text-red-500 ml-1">
-														*
-													</span>
-												)}
-											</p>
-											<p
-												className={`mt-1 text-sm ${answer ? "text-muted-foreground" : "text-gray-400 italic"}`}
-											>
-												{answer || "未回答"}
-											</p>
-										</div>
-									);
-								})}
+							<div className="space-y-1 text-sm">
+								<p>
+									<strong>
+										{t("registrations.dialog.email")}
+									</strong>{" "}
+									{registration.user.email}
+								</p>
+								{registration.user.phoneNumber && (
+									<p>
+										<strong>手机号</strong>{" "}
+										{registration.user.phoneNumber}
+									</p>
+								)}
+								{registration.user.wechatId && (
+									<p>
+										<strong>微信号</strong>{" "}
+										{registration.user.wechatId}
+									</p>
+								)}
+								{registration.user.city && (
+									<p>
+										<strong>
+											{t("registrations.dialog.city")}
+										</strong>{" "}
+										{registration.user.city}
+									</p>
+								)}
 							</div>
 						</div>
-					)}
-				</div>
 
-				{/* 操作按钮 */}
-				<div className="flex justify-end gap-2 pt-4 border-t">
-					{registration.status === "PENDING" && (
-						<>
+						<div>
+							<h4 className="font-medium mb-2">用户详情</h4>
+							<div className="space-y-1 text-sm">
+								{registration.user.userRoleString && (
+									<p>
+										<strong>用户角色</strong>{" "}
+										{registration.user.userRoleString}
+									</p>
+								)}
+								{registration.user.currentWorkOn && (
+									<p>
+										<strong>当前在做</strong>{" "}
+										{registration.user.currentWorkOn}
+									</p>
+								)}
+								{registration.user.lifeStatus && (
+									<p>
+										<strong>当前状态</strong>{" "}
+										{getLifeStatusLabel(
+											registration.user.lifeStatus,
+										)}
+									</p>
+								)}
+								{registration.user.bio && (
+									<p>
+										<strong>
+											{t("registrations.dialog.bio")}
+										</strong>{" "}
+										{registration.user.bio}
+									</p>
+								)}
+							</div>
+						</div>
+
+						<div>
+							<h4 className="font-medium mb-2">屏幕展示偏好</h4>
+							<div className="space-y-1 text-sm">
+								<p>
+									<strong>允许屏幕展示自我介绍</strong>{" "}
+									<span
+										className={
+											registration.allowDigitalCardDisplay
+												? "text-green-600"
+												: "text-gray-500"
+										}
+									>
+										{registration.allowDigitalCardDisplay ===
+										true
+											? "✓ 是"
+											: registration.allowDigitalCardDisplay ===
+													false
+												? "✗ 否"
+												: "未设置"}
+									</span>
+								</p>
+							</div>
+						</div>
+
+						{questionsToDisplay.length > 0 && (
+							<div>
+								<h4 className="font-medium mb-2">
+									{t("registrations.dialog.questionAnswers")}
+								</h4>
+								<div className="space-y-3">
+									{questionsToDisplay.map((question) => {
+										const answer = answersMap.get(
+											question.id,
+										);
+										return (
+											<div
+												key={question.id}
+												className="border rounded-lg p-3"
+											>
+												<p className="font-medium text-sm">
+													{question.question}
+													{question.required && (
+														<span className="text-red-500 ml-1">
+															*
+														</span>
+													)}
+												</p>
+												<p
+													className={`mt-1 text-sm ${answer ? "text-muted-foreground" : "text-gray-400 italic"}`}
+												>
+													{answer || "未回答"}
+												</p>
+											</div>
+										);
+									})}
+								</div>
+							</div>
+						)}
+					</div>
+
+					{/* 操作按钮 */}
+					<div className="flex justify-end gap-2 pt-4 border-t">
+						{registration.status === "PENDING" && (
+							<>
+								<Button
+									onClick={() =>
+										onUpdateStatus(
+											registration.user.id,
+											"APPROVED",
+										)
+									}
+								>
+									{t(
+										"registrations.dialog.approveRegistration",
+									)}
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										onUpdateStatus(
+											registration.user.id,
+											"REJECTED",
+										)
+									}
+								>
+									{t(
+										"registrations.dialog.rejectRegistration",
+									)}
+								</Button>
+							</>
+						)}
+						{registration.status === "REJECTED" && (
 							<Button
 								onClick={() =>
 									onUpdateStatus(
@@ -252,39 +283,19 @@ export function RegistrationDetailsDialog({
 									)
 								}
 							>
-								{t("registrations.dialog.approveRegistration")}
+								{t("registrations.dialog.undoRejectApprove")}
 							</Button>
+						)}
+						{(registration.status === "APPROVED" ||
+							registration.status === "PENDING") && (
 							<Button
-								variant="outline"
-								onClick={() =>
-									onUpdateStatus(
-										registration.user.id,
-										"REJECTED",
-									)
-								}
+								variant="destructive"
+								onClick={() => setShowCancelDialog(true)}
 							>
-								{t("registrations.dialog.rejectRegistration")}
+								取消报名
 							</Button>
-						</>
-					)}
-					{registration.status === "REJECTED" && (
-						<Button
-							onClick={() =>
-								onUpdateStatus(registration.user.id, "APPROVED")
-							}
-						>
-							{t("registrations.dialog.undoRejectApprove")}
-						</Button>
-					)}
-					{(registration.status === "APPROVED" ||
-						registration.status === "PENDING") && (
-						<Button
-							variant="destructive"
-							onClick={() => setShowCancelDialog(true)}
-						>
-							取消报名
-						</Button>
-					)}
+						)}
+					</div>
 				</div>
 			</DialogContent>
 

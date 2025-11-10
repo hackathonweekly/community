@@ -5,10 +5,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { EventDetailsWrapper } from "./EventDetailsWrapper";
 
-// Enable ISR: Revalidate every 5 minutes
-// dynamicParams: 允许运行时生成未预渲染的活动页面
-export const dynamicParams = true;
-export const revalidate = 300;
+// 混合缓存策略：
+// 1. 使用 30 秒 ISR 缓存减轻数据库压力
+// 2. 在关键操作后使用 revalidatePath 清除缓存
+// 3. 对于实时性要求极高的数据（如报名状态），客户端会独立获取
+export const revalidate = 30; // 30秒缓存
+export const dynamic = "force-static"; // 允许静态生成以提升性能
 
 interface EventDetailsPageProps {
 	params: {
