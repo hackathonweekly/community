@@ -828,18 +828,19 @@ model EventPhoto {
   id              String              @id @default(cuid())
   eventId         String
   userId          String              // 上传者
-  imageUrl        String              // 图片URL
+  imageUrl        String              // 原始图片URL
+  watermarkedUrl  String?             // 加水印后的图片URL
   caption         String?             // 图片说明
   isApproved      Boolean             @default(true) // 是否通过审核
-  
+
   // Timestamps
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  
+
   // Relations
   event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
   user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("event_photo")
 }
 

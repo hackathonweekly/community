@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { HeartIcon, ShareIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
-import { ShareEventDialog } from "@/modules/public/events/components/ShareEventDialog";
-import { useUnifiedEventRegistration } from "../hooks/useUnifiedEventRegistration";
 import { useKeyboardDetection } from "@/lib/hooks/use-keyboard-detection";
 import { cn } from "@/lib/utils";
+import { ShareEventDialog } from "@/modules/public/events/components/ShareEventDialog";
+import { PhotoIcon, ShareIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useUnifiedEventRegistration } from "../hooks/useUnifiedEventRegistration";
 
 interface MobileEventBottomActionsProps {
 	event: {
@@ -33,6 +33,7 @@ interface MobileEventBottomActionsProps {
 	onShowQRGenerator?: () => void;
 	onVolunteerApply?: (eventVolunteerRoleId: string) => void;
 	pathname: string;
+	locale?: string;
 }
 
 export function MobileEventBottomActions({
@@ -44,9 +45,12 @@ export function MobileEventBottomActions({
 	onShowQRGenerator,
 	onVolunteerApply,
 	pathname,
+	locale = "zh",
 }: MobileEventBottomActionsProps) {
+	const router = useRouter();
 	const [isBookmarking, setIsBookmarking] = useState(false);
 	const [showShareDialog, setShowShareDialog] = useState(false);
+	const [showCamera, setShowCamera] = useState(false);
 
 	// 使用自定义 hook 检测键盘是否弹出
 	const isKeyboardVisible = useKeyboardDetection();
@@ -77,6 +81,35 @@ export function MobileEventBottomActions({
 		setShowShareDialog(true);
 	};
 
+	const handleOpenCamera = async () => {
+		try {
+			const stream = await navigator.mediaDevices.getUserMedia({
+				video: true,
+			});
+			setShowCamera(true);
+			// Store stream to close later
+			(sessionStorage as any).cameraStream = stream;
+		} catch (error) {
+			console.error("Camera access denied:", error);
+			// Fallback: open file upload
+			const input = document.createElement("input");
+			input.type = "file";
+			input.accept = "image/*";
+			input.onchange = (e: any) => {
+				const file = e.target.files?.[0];
+				if (file) {
+					// Handle file upload
+					console.log("Selected file:", file);
+				}
+			};
+			input.click();
+		}
+	};
+
+	const handleOpenAlbum = () => {
+		router.push(`/${locale}/events/${event.id}/photos`);
+	};
+
 	// 包装handleBookmark以处理loading状态
 	const handleBookmarkWithLoading = async () => {
 		setIsBookmarking(true);
@@ -103,19 +136,15 @@ export function MobileEventBottomActions({
 					// Show cancel button for pending/waitlisted/approved registrations
 					<div className="max-w-md mx-auto space-y-3">
 						<div className="flex items-center gap-3">
-							{/* 收藏按钮 */}
+							{/* 相册按钮 - 所有人可见 */}
 							<Button
 								variant="outline"
 								size="icon"
-								onClick={handleBookmarkWithLoading}
-								disabled={isBookmarking}
+								onClick={handleOpenAlbum}
 								className="flex-shrink-0 h-11 w-11"
+								title="相册"
 							>
-								{isBookmarked ? (
-									<HeartSolidIcon className="h-5 w-5 text-red-500" />
-								) : (
-									<HeartIcon className="h-5 w-5" />
-								)}
+								<PhotoIcon className="h-5 w-5" />
 							</Button>
 
 							{/* 分享按钮 */}
@@ -124,6 +153,7 @@ export function MobileEventBottomActions({
 								size="icon"
 								onClick={handleShare}
 								className="flex-shrink-0 h-11 w-11"
+								title="分享"
 							>
 								<ShareIcon className="h-5 w-5" />
 							</Button>
@@ -168,19 +198,15 @@ export function MobileEventBottomActions({
 				) : (
 					// Normal layout for other states
 					<div className="max-w-md mx-auto flex items-center gap-3">
-						{/* 收藏按钮 */}
+						{/* 相册按钮 - 所有人可见 */}
 						<Button
 							variant="outline"
 							size="icon"
-							onClick={handleBookmarkWithLoading}
-							disabled={isBookmarking}
+							onClick={handleOpenAlbum}
 							className="flex-shrink-0 h-11 w-11"
+							title="相册"
 						>
-							{isBookmarked ? (
-								<HeartSolidIcon className="h-5 w-5 text-red-500" />
-							) : (
-								<HeartIcon className="h-5 w-5" />
-							)}
+							<PhotoIcon className="h-5 w-5" />
 						</Button>
 
 						{/* 分享按钮 */}
@@ -189,6 +215,7 @@ export function MobileEventBottomActions({
 							size="icon"
 							onClick={handleShare}
 							className="flex-shrink-0 h-11 w-11"
+							title="分享"
 						>
 							<ShareIcon className="h-5 w-5" />
 						</Button>
@@ -221,7 +248,6 @@ export function MobileEventBottomActions({
 					</div>
 				)}
 			</div>
-
 			{/* Share Dialog */}
 			<ShareEventDialog
 				isOpen={showShareDialog}

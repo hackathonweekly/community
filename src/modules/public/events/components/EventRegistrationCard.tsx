@@ -6,11 +6,13 @@ import {
 	ChatBubbleLeftEllipsisIcon,
 	LinkIcon as ExternalLinkIcon,
 	ShareIcon,
+	PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import ContactOrganizerDialog from "./ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "./SimpleEventFeedbackDialog";
@@ -126,6 +128,7 @@ export function EventRegistrationCard({
 }: EventRegistrationCardProps) {
 	const locale = useLocale();
 	const t = useTranslations("events");
+	const router = useRouter();
 
 	const [showContact, setShowContact] = useState(false);
 	const [showFeedback, setShowFeedback] = useState(false);
@@ -407,6 +410,23 @@ export function EventRegistrationCard({
 
 				{/* 辅助操作区域 - 所有用户可见 */}
 				<div className="pt-4 mt-4 border-t border-gray-100 space-y-2">
+					{/* 相册 - 只在桌面端显示 */}
+					<div className="lg:block hidden">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() =>
+								router.push(
+									`/${locale}/events/${event.id}/photos`,
+								)
+							}
+							className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:border-gray-300 transition-all"
+						>
+							<PhotoIcon className="w-4 h-4" />
+							现场相册
+						</Button>
+					</div>
+
 					{/* 分享活动 - 只在桌面端显示 */}
 					<div className="lg:block hidden">
 						<Button
