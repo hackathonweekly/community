@@ -87,7 +87,7 @@ function inferLocaleCode(locale?: string | null): Locale | undefined {
 	return undefined;
 }
 
-// Helper function to generate proper URLs for emails
+// Helper function to generate proper absolute URLs for emails
 const generateEventUrl = (eventId: string, locale?: string) => {
 	const getBaseUrlForEmail = () => {
 		// Try multiple environment variables in order of preference
@@ -113,19 +113,20 @@ const generateEventUrl = (eventId: string, locale?: string) => {
 			return "http://localhost:3000";
 		}
 
-		// Production fallback - this should be configured properly
-		console.warn(
-			"Warning: No proper base URL configured for email links. Please set NEXT_PUBLIC_SITE_URL or NEXT_PUBLIC_APP_URL environment variable.",
+		// Production fallback - always return a valid URL in production
+		// Default to a production URL or throw error if not configured
+		console.error(
+			"ERROR: No base URL configured for email links. Please set NEXT_PUBLIC_SITE_URL or NEXT_PUBLIC_APP_URL environment variable. Using fallback.",
 		);
-		return "";
+		// Provide a reasonable default instead of empty string to prevent broken links
+		return "https://community.hackathonwe.ink";
 	};
 
 	const baseUrl = getBaseUrlForEmail();
 	const localePrefix = locale === "en" ? "en" : "zh";
 
-	return baseUrl
-		? `${baseUrl}/${localePrefix}/events/${eventId}`
-		: `/${localePrefix}/events/${eventId}`;
+	// Always return an absolute URL to avoid relative URL issues in emails
+	return `${baseUrl}/${localePrefix}/events/${eventId}`;
 };
 
 function formatEventDateForLocale(date: Date, locale?: Locale | string | null) {
