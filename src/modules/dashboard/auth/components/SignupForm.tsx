@@ -125,6 +125,7 @@ export function SignupForm({ prefillEmail }: { prefillEmail?: string }) {
 				throw error;
 			}
 
+			// 严格只在邀请模式中重定向，普通注册模式显示验证提示后不再重定向
 			if (invitationOnlyMode && invitationId) {
 				const response = await fetch(
 					`/api/organizations/invitations/${invitationId}/accept`,
@@ -160,7 +161,8 @@ export function SignupForm({ prefillEmail }: { prefillEmail?: string }) {
 				return;
 			}
 
-			router.push(config.auth.redirectAfterSignIn);
+			// 正常注册模式下，不执行重定向，让用户看到验证邮件已发送的提示
+			// router.push(config.auth.redirectAfterSignIn);
 		} catch (e) {
 			if (e instanceof Error && e.message) {
 				form.setError("root", { message: e.message });
@@ -199,6 +201,22 @@ export function SignupForm({ prefillEmail }: { prefillEmail?: string }) {
 					<AlertTitle>
 						{t("auth.signup.hints.verifyEmail")}
 					</AlertTitle>
+					<AlertDescription className="mt-2">
+						{t("auth.signup.hints.checkEmailAndSignIn")}
+						<div className="mt-3">
+							<Link
+								href={withQuery(
+									"/auth/login",
+									Object.fromEntries(searchParams.entries()),
+								)}
+							>
+								<Button variant="default" size="sm">
+									{t("auth.signup.goToSignIn")}
+									<ArrowRightIcon className="ml-1 inline size-4 align-middle" />
+								</Button>
+							</Link>
+						</div>
+					</AlertDescription>
 				</Alert>
 			) : (
 				<>

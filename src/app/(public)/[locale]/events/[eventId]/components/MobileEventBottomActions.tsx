@@ -1,12 +1,24 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+} from "@/components/ui/sheet";
 import { useKeyboardDetection } from "@/lib/hooks/use-keyboard-detection";
 import { cn } from "@/lib/utils";
 import { ShareEventDialog } from "@/modules/public/events/components/ShareEventDialog";
-import { PhotoIcon, ShareIcon } from "@heroicons/react/24/outline";
+import {
+	PhotoIcon,
+	ShareIcon,
+	ChatBubbleLeftEllipsisIcon,
+	EllipsisHorizontalIcon,
+	XCircleIcon,
+} from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useUnifiedEventRegistration } from "../hooks/useUnifiedEventRegistration";
 
 interface MobileEventBottomActionsProps {
@@ -31,9 +43,13 @@ interface MobileEventBottomActionsProps {
 	canRegister: boolean | null;
 	onShowShare: () => void;
 	onShowQRGenerator?: () => void;
-	onVolunteerApply?: (eventVolunteerRoleId: string) => void;
 	pathname: string;
 	locale?: string;
+	onShowFeedback?: () => void;
+	onShowContact?: () => void;
+	canShowFeedback?: boolean;
+	canContactOrganizer?: boolean;
+	hasSubmittedFeedback?: boolean;
 }
 
 export function MobileEventBottomActions({
@@ -43,14 +59,18 @@ export function MobileEventBottomActions({
 	canRegister,
 	onShowShare,
 	onShowQRGenerator,
-	onVolunteerApply,
 	pathname,
 	locale = "zh",
+	onShowFeedback,
+	onShowContact,
+	canShowFeedback,
+	canContactOrganizer,
+	hasSubmittedFeedback,
 }: MobileEventBottomActionsProps) {
 	const router = useRouter();
 	const [isBookmarking, setIsBookmarking] = useState(false);
 	const [showShareDialog, setShowShareDialog] = useState(false);
-	const [showCamera, setShowCamera] = useState(false);
+	const [isActionsSheetOpen, setIsActionsSheetOpen] = useState(false);
 
 	// 使用自定义 hook 检测键盘是否弹出
 	const isKeyboardVisible = useKeyboardDetection();
@@ -81,31 +101,6 @@ export function MobileEventBottomActions({
 		setShowShareDialog(true);
 	};
 
-	const handleOpenCamera = async () => {
-		try {
-			const stream = await navigator.mediaDevices.getUserMedia({
-				video: true,
-			});
-			setShowCamera(true);
-			// Store stream to close later
-			(sessionStorage as any).cameraStream = stream;
-		} catch (error) {
-			console.error("Camera access denied:", error);
-			// Fallback: open file upload
-			const input = document.createElement("input");
-			input.type = "file";
-			input.accept = "image/*";
-			input.onchange = (e: any) => {
-				const file = e.target.files?.[0];
-				if (file) {
-					// Handle file upload
-					console.log("Selected file:", file);
-				}
-			};
-			input.click();
-		}
-	};
-
 	const handleOpenAlbum = () => {
 		router.push(`/${locale}/events/${event.id}/photos`);
 	};
@@ -120,85 +115,75 @@ export function MobileEventBottomActions({
 		}
 	};
 
+	const closeActionsSheet = () => setIsActionsSheetOpen(false);
+
+	const getCancelButtonLabel = () => {
+		if (existingRegistration?.status === "WAITLISTED") {
+			return "❌ 退出等待名单";
+		}
+		if (existingRegistration?.status === "PENDING") {
+			return "❌ 取消报名申请";
+		}
+		return "❌ 取消报名";
+	};
+
+	type MoreAction = {
+		key: string;
+		label: string;
+		icon?: ReactNode;
+		onClick?: () => void;
+		isDanger?: boolean;
+		disabled?: boolean;
+	};
+
+	const moreActions = [
+		{
+			key: "share",
+			label: "分享活动",
+			icon: <ShareIcon className="h-5 w-5" />,
+			onClick: () => handleShare(),
+		},
+		canShowFeedback
+			? {
+					key: "feedback",
+					label: hasSubmittedFeedback ? "修改反馈" : "活动反馈",
+					icon: <span className="text-lg">💬</span>,
+					onClick: onShowFeedback,
+				}
+			: null,
+		canContactOrganizer
+			? {
+					key: "contact",
+					label: "联系组织者",
+					icon: <ChatBubbleLeftEllipsisIcon className="h-5 w-5" />,
+					onClick: onShowContact,
+				}
+			: null,
+		shouldShowCancelButton()
+			? {
+					key: "cancel",
+					label: getCancelButtonLabel(),
+					icon: <XCircleIcon className="h-5 w-5" />,
+					onClick: handleCancelRegistrationAction,
+					isDanger: true,
+					disabled: isRegistering,
+				}
+			: null,
+	].filter(Boolean) as MoreAction[];
+
 	return (
 		<>
 			<div
 				className={cn(
-					"fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg shadow-black/10 px-4 py-4 md:hidden transition-transform duration-300",
-					// 键盘弹出时隐藏底部工具栏
+					"fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg shadow-black/10 px-4 py-4 lg:hidden transition-transform duration-300",
 					isKeyboardVisible ? "translate-y-full" : "translate-y-0",
 				)}
 				style={{
 					paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
 				}}
 			>
-				{shouldShowCancelButton() ? (
-					// Show cancel button for pending/waitlisted/approved registrations
-					<div className="max-w-md mx-auto space-y-3">
-						<div className="flex items-center gap-3">
-							{/* 相册按钮 - 所有人可见 */}
-							<Button
-								variant="outline"
-								size="icon"
-								onClick={handleOpenAlbum}
-								className="flex-shrink-0 h-11 w-11"
-								title="相册"
-							>
-								<PhotoIcon className="h-5 w-5" />
-							</Button>
-
-							{/* 分享按钮 */}
-							<Button
-								variant="outline"
-								size="icon"
-								onClick={handleShare}
-								className="flex-shrink-0 h-11 w-11"
-								title="分享"
-							>
-								<ShareIcon className="h-5 w-5" />
-							</Button>
-
-							{/* 主要操作按钮 - 签到二维码等 */}
-							<Button
-								onClick={() => {
-									const result = handleRegisterAction();
-									if (
-										result === "SHOW_QR_CODE" &&
-										onShowQRGenerator
-									) {
-										onShowQRGenerator();
-									}
-								}}
-								disabled={isRegistering}
-								className={`flex-1 font-medium text-sm h-12 ${
-									existingRegistration?.status === "APPROVED"
-										? "bg-green-600 hover:bg-green-700 text-white"
-										: "bg-gray-100 text-gray-600 cursor-not-allowed"
-								}`}
-								size="lg"
-							>
-								{getRegisterButtonText()}
-							</Button>
-						</div>
-
-						{/* 取消报名按钮 */}
-						<Button
-							onClick={handleCancelRegistrationAction}
-							disabled={isRegistering}
-							variant="outline"
-							className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 font-medium"
-						>
-							{isRegistering
-								? "取消中..."
-								: existingRegistration?.status === "WAITLISTED"
-									? "❌ 退出等待名单"
-									: "❌ 取消报名"}
-						</Button>
-					</div>
-				) : (
-					// Normal layout for other states
-					<div className="max-w-md mx-auto flex items-center gap-3">
-						{/* 相册按钮 - 所有人可见 */}
+				<div className="max-w-md mx-auto">
+					<div className="flex items-center gap-3">
 						<Button
 							variant="outline"
 							size="icon"
@@ -208,19 +193,6 @@ export function MobileEventBottomActions({
 						>
 							<PhotoIcon className="h-5 w-5" />
 						</Button>
-
-						{/* 分享按钮 */}
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={handleShare}
-							className="flex-shrink-0 h-11 w-11"
-							title="分享"
-						>
-							<ShareIcon className="h-5 w-5" />
-						</Button>
-
-						{/* 主要操作按钮 - 报名/签到等 */}
 						<Button
 							onClick={() => {
 								const result = handleRegisterAction();
@@ -245,9 +217,77 @@ export function MobileEventBottomActions({
 						>
 							{getRegisterButtonText()}
 						</Button>
+						<Button
+							variant="outline"
+							size="icon"
+							onClick={() => setIsActionsSheetOpen(true)}
+							className="flex-shrink-0 h-11 w-11"
+							title="更多操作"
+						>
+							<EllipsisHorizontalIcon className="h-5 w-5" />
+						</Button>
 					</div>
-				)}
+				</div>
 			</div>
+
+			<Sheet
+				open={isActionsSheetOpen}
+				onOpenChange={setIsActionsSheetOpen}
+			>
+				<SheetContent
+					side="bottom"
+					className="rounded-t-3xl border-t px-4 pb-6 pt-4"
+				>
+					<SheetHeader className="pb-2 text-left">
+						<SheetTitle className="text-base font-semibold">
+							更多操作
+						</SheetTitle>
+						<p className="text-muted-foreground text-xs">
+							针对当前报名状态的快捷操作
+						</p>
+					</SheetHeader>
+					<div className="space-y-2">
+						{moreActions.length > 0 ? (
+							moreActions.map((action) => (
+								<Button
+									key={action.key}
+									variant="ghost"
+									size="lg"
+									disabled={action.disabled}
+									className={cn(
+										"w-full justify-start gap-3 rounded-2xl border border-gray-100 py-4 text-base font-medium",
+										action.isDanger
+											? "text-red-600 hover:text-red-700"
+											: "text-gray-900 hover:text-gray-950",
+									)}
+									onClick={() => {
+										closeActionsSheet();
+										action.onClick?.();
+									}}
+								>
+									{action.icon && (
+										<span
+											className={cn(
+												"text-gray-500",
+												action.isDanger &&
+													"text-red-500",
+											)}
+										>
+											{action.icon}
+										</span>
+									)}
+									<span>{action.label}</span>
+								</Button>
+							))
+						) : (
+							<p className="text-muted-foreground py-6 text-center text-sm">
+								暂无可用操作
+							</p>
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
+
 			{/* Share Dialog */}
 			<ShareEventDialog
 				isOpen={showShareDialog}

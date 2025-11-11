@@ -27,7 +27,6 @@ import {
 	EventDescription,
 	EventHero,
 	EventInfoCard,
-	EventRegistrationCard,
 } from "@/modules/public/events/components";
 import type { EventDetailsProps } from "../EventDetailsClient";
 import { HackathonProjectGallery } from "@/modules/dashboard/events/components/hackathon/HackathonProjectGallery";
@@ -41,7 +40,6 @@ import {
 
 type EventDetails = EventDetailsProps["event"];
 type EventRegistration = NonNullable<EventDetails["registrations"]>[number];
-type EventFeedback = NonNullable<EventDetails["feedbacks"]>[number];
 
 interface HackathonContentProps {
 	event: EventDetails & { richContent?: string };
@@ -69,7 +67,6 @@ interface HackathonContentProps {
 	onShowQRGenerator: () => void;
 	onShowSuccessInfo: () => void;
 	onShowShare: () => void;
-	existingFeedback?: EventFeedback | null;
 	hasSubmittedFeedback?: boolean;
 }
 
@@ -94,7 +91,6 @@ export function HackathonContent({
 	onShowQRGenerator,
 	onShowSuccessInfo,
 	onShowShare,
-	existingFeedback,
 	hasSubmittedFeedback,
 }: HackathonContentProps) {
 	const t = useTranslations("events");
@@ -218,25 +214,6 @@ export function HackathonContent({
 				currentUserId={user?.id}
 				projectSubmissions={projectSubmissionList}
 			/>
-
-			{/* Mobile registration entry */}
-			<div className="lg:hidden">
-				<EventRegistrationCard
-					event={event}
-					user={user}
-					existingRegistration={existingRegistration}
-					canRegister={registrationOpen}
-					pathname={pathname}
-					onShowQRGenerator={onShowQRGenerator}
-					onShowSuccessInfo={onShowSuccessInfo}
-					onShowShare={onShowShare}
-					onFeedbackSubmit={onFeedbackSubmit}
-					existingFeedback={existingFeedback}
-					hasSubmittedFeedback={hasSubmittedFeedback}
-					onVolunteerApply={onVolunteerApply}
-					onDataRefresh={onDataRefresh}
-				/>
-			</div>
 
 			{/* Event Stage Indicator */}
 			<div className="mb-8">

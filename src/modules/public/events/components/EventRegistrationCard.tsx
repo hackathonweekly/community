@@ -14,8 +14,6 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import ContactOrganizerDialog from "./ContactOrganizerDialog";
-import { SimpleEventFeedbackDialog } from "./SimpleEventFeedbackDialog";
 import { VolunteerListModal } from "./VolunteerListModal";
 import { Users } from "lucide-react";
 import { useUnifiedEventRegistration } from "../../../../app/(public)/[locale]/events/[eventId]/hooks/useUnifiedEventRegistration";
@@ -98,16 +96,12 @@ interface EventRegistrationCardProps {
 		suggestions: string;
 		wouldRecommend: boolean;
 	}) => void;
-	existingFeedback?: {
-		rating: number;
-		comment?: string;
-		suggestions?: string;
-		wouldRecommend: boolean;
-	} | null;
 	hasSubmittedFeedback?: boolean;
 	onVolunteerApply?: (eventVolunteerRoleId: string) => void;
 	onViewAllVolunteers?: () => void;
 	onDataRefresh?: () => void;
+	onShowContact?: () => void;
+	onShowFeedback?: () => void;
 }
 
 export function EventRegistrationCard({
@@ -120,18 +114,17 @@ export function EventRegistrationCard({
 	onShowSuccessInfo,
 	onShowShare,
 	onFeedbackSubmit,
-	existingFeedback,
 	hasSubmittedFeedback,
 	onVolunteerApply,
 	onViewAllVolunteers,
 	onDataRefresh,
+	onShowContact,
+	onShowFeedback,
 }: EventRegistrationCardProps) {
 	const locale = useLocale();
 	const t = useTranslations("events");
 	const router = useRouter();
 
-	const [showContact, setShowContact] = useState(false);
-	const [showFeedback, setShowFeedback] = useState(false);
 	const [showVolunteerModal, setShowVolunteerModal] = useState(false);
 
 	// 使用统一的Hook
@@ -335,7 +328,7 @@ export function EventRegistrationCard({
 											<Button
 												variant="outline"
 												onClick={() =>
-													setShowFeedback(true)
+													onShowFeedback?.()
 												}
 												className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
 											>
@@ -410,7 +403,7 @@ export function EventRegistrationCard({
 
 				{/* 辅助操作区域 - 所有用户可见 */}
 				<div className="pt-4 mt-4 border-t border-gray-100 space-y-2">
-					{/* 相册 - 只在桌面端显示 */}
+					{/* 现场相册入口 - 桌面优先 */}
 					<div className="lg:block hidden">
 						<Button
 							variant="outline"
@@ -447,7 +440,7 @@ export function EventRegistrationCard({
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={() => setShowFeedback(true)}
+								onClick={() => onShowFeedback?.()}
 								className="flex-1 flex items-center justify-center gap-1 text-gray-600 hover:text-gray-800 transition-all"
 								data-testid="feedback-button"
 							>
@@ -461,7 +454,7 @@ export function EventRegistrationCard({
 							<Button
 								variant="ghost"
 								size="sm"
-								onClick={() => setShowContact(true)}
+								onClick={() => onShowContact?.()}
 								className={`flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 transition-all ${
 									onFeedbackSubmit ? "flex-1" : "w-full"
 								}`}
@@ -499,35 +492,6 @@ export function EventRegistrationCard({
 							</div>
 						)}
 				</div>
-
-				{/* 对话框组件 */}
-				{!event.isExternalEvent && (
-					<ContactOrganizerDialog
-						open={showContact}
-						onOpenChange={setShowContact}
-						organizerName={event.organizer?.name}
-						organizerUsername={event.organizer?.username}
-						email={
-							event.organizerContact
-								? undefined
-								: event.organizer?.email
-						}
-						contact={event.organizerContact}
-						wechatQr={undefined}
-					/>
-				)}
-
-				{onFeedbackSubmit && (
-					<SimpleEventFeedbackDialog
-						open={showFeedback}
-						onOpenChange={setShowFeedback}
-						eventTitle={event.title}
-						eventId={event.id}
-						onSubmit={onFeedbackSubmit}
-						existingFeedback={existingFeedback}
-						isEditing={hasSubmittedFeedback}
-					/>
-				)}
 
 				{/* 志愿者列表弹窗 */}
 				<VolunteerListModal

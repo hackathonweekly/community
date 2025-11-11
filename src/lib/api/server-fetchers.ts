@@ -8,7 +8,7 @@ import { CACHE_TAGS } from "../cache/events-cache-constants";
 
 // 缓存时间配置
 const CACHE_TIMES = {
-	events: 60, // 1分钟 - 活动列表、报名人数
+	events: 10, // 10s - 活动列表、报名人数
 	organizations: 3600, // 1小时 - 组织信息
 	eventTypes: 86400, // 24小时 - 活动类型选项
 } as const;

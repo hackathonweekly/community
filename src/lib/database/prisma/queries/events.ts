@@ -798,23 +798,82 @@ export async function updateEvent(
 
 			// Handle questions if provided
 			if (questions !== undefined) {
-				// First, delete all existing questions for this event
-				await tx.eventQuestion.deleteMany({
+				const existingQuestions = await tx.eventQuestion.findMany({
 					where: { eventId: id },
+					select: { id: true },
 				});
-				// Create new questions
-				if (questions.length > 0) {
-					await tx.eventQuestion.createMany({
-						data: questions.map((q, index) => ({
-							eventId: id,
-							question: q.question,
-							description: q.description,
-							type: q.type,
-							required: q.required,
-							options: q.options || [],
-							order: q.order ?? index,
-						})),
-					});
+				const hasExistingQuestions = existingQuestions.length > 0;
+				const incomingHasIds = questions.some(
+					(q) => typeof q.id === "string" && q.id.trim() !== "",
+				);
+				const shouldSkipSync =
+					hasExistingQuestions &&
+					questions.length > 0 &&
+					!incomingHasIds;
+
+				if (shouldSkipSync) {
+					console.warn(
+						"Skipping event question sync due to missing identifiers",
+						{ eventId: id },
+					);
+				} else {
+					const existingQuestionMap = new Map(
+						existingQuestions.map((question) => [
+							question.id,
+							true,
+						]),
+					);
+					const processedQuestionIds = new Set<string>();
+
+					for (const [index, questionData] of questions.entries()) {
+						const incomingQuestionId =
+							typeof questionData.id === "string"
+								? questionData.id.trim()
+								: undefined;
+						const normalizedData = {
+							question: questionData.question,
+							description: questionData.description,
+							type: questionData.type,
+							required: questionData.required ?? false,
+							options: questionData.options || [],
+							order: questionData.order ?? index,
+						};
+
+						if (
+							incomingQuestionId &&
+							existingQuestionMap.has(incomingQuestionId)
+						) {
+							await tx.eventQuestion.update({
+								where: { id: incomingQuestionId },
+								data: normalizedData,
+							});
+							processedQuestionIds.add(incomingQuestionId);
+						} else {
+							await tx.eventQuestion.create({
+								data: {
+									eventId: id,
+									...normalizedData,
+								},
+							});
+						}
+					}
+
+					const idsToDelete = existingQuestions
+						.filter(
+							(question) =>
+								!processedQuestionIds.has(question.id),
+						)
+						.map((question) => question.id);
+
+					if (idsToDelete.length > 0) {
+						await tx.eventQuestion.deleteMany({
+							where: {
+								id: {
+									in: idsToDelete,
+								},
+							},
+						});
+					}
 				}
 			}
 

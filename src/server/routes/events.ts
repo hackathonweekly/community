@@ -1,4 +1,16 @@
+import { getVisitorRestrictionsConfig } from "@/config/visitor-restrictions";
+import {
+	HackathonConfigSchema,
+	withHackathonConfigDefaults,
+} from "@/features/hackathon/config";
+import { NotificationService } from "@/features/notifications/service";
+import { RestrictedAction, canUserDoAction } from "@/features/permissions";
 import { auth } from "@/lib/auth";
+import {
+	ContentType,
+	createContentValidator,
+	ensureImageSafe,
+} from "@/lib/content-moderation";
 import {
 	createEvent,
 	deleteEvent,
@@ -10,41 +22,29 @@ import {
 	updateEvent,
 } from "@/lib/database";
 import { db } from "@/lib/database/prisma";
-import {
-	ContentType,
-	createContentValidator,
-	ensureImageSafe,
-} from "@/lib/content-moderation";
-import { canUserDoAction, RestrictedAction } from "@/features/permissions";
-import { getVisitorRestrictionsConfig } from "@/config/visitor-restrictions";
-import { NotificationService } from "@/features/notifications/service";
-import {
-	sendEventUpdate,
-	sendEventHostNewEventAnnouncement,
-} from "@/lib/mail/events";
+import type { Locale } from "@/lib/i18n";
 import { isSendableEmail } from "@/lib/mail/address";
+import {
+	sendEventHostNewEventAnnouncement,
+	sendEventUpdate,
+} from "@/lib/mail/events";
 import { zValidator } from "@hono/zod-validator";
+import type { Prisma } from "@prisma/client";
+import type { Event, RegistrationStatus } from "@prisma/client";
 import { Hono } from "hono";
 import { z } from "zod";
-import {
-	HackathonConfigSchema,
-	withHackathonConfigDefaults,
-} from "@/features/hackathon/config";
-import type { Prisma } from "@prisma/client";
 import { eventAdminRouter } from "./events/admins";
 import checkinRouter from "./events/checkin";
 import feedbackRouter from "./events/feedback";
+import { eventInvitesRouter } from "./events/invites";
 import { eventLikesRouter } from "./events/likes";
 import participantInterestsRouter from "./events/participant-interests";
 import { eventPhotosRouter } from "./events/photos";
 import registrationsRouter from "./events/registrations";
+import statusRouter from "./events/status";
 import { eventTicketTypesRouter } from "./events/ticket-types";
 import volunteerAdminRouter from "./events/volunteer-admin";
 import volunteersRouter from "./events/volunteers";
-import statusRouter from "./events/status";
-import { eventInvitesRouter } from "./events/invites";
-import type { Event, RegistrationStatus } from "@prisma/client";
-import type { Locale } from "@/lib/i18n";
 
 const validateEventContent = createContentValidator({
 	title: { type: ContentType.EVENT_TITLE, skipIfEmpty: false },

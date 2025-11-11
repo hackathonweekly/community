@@ -4,7 +4,6 @@ import { RegistrationSuccessModal } from "@/modules/public/events/components/reg
 import { EventShareModal } from "@/modules/dashboard/events/components/EventShareModal";
 import { QRGenerator } from "@/modules/dashboard/events/components/QRGenerator";
 import {
-	EventPhotos,
 	EventRegistrationCard,
 	EventRegistrationModal,
 } from "@/modules/public/events/components";
@@ -13,6 +12,8 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
+import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 
 // Local page components
 import { BackToEventsLink } from "./BackToEventsLink";
@@ -25,7 +26,6 @@ import { FixedBackButton } from "./FixedBackButton";
 // Local hooks
 import {
 	useEventEngagement,
-	useEventPhotos,
 	useIncrementViewCount,
 	useEventRegistration,
 	useUserFeedback,
@@ -177,7 +177,6 @@ interface EventLayoutProps {
 		  }) => ReactNode); // 支持函数形式的 children
 	showBackToEvents?: boolean;
 	showSidebar?: boolean;
-	showPhotos?: boolean;
 	containerClassName?: string;
 	onRegister?: (openModal?: () => void) => void;
 	onOpenRegistrationModal?: () => void;
@@ -189,7 +188,6 @@ export function EventLayout({
 	children,
 	showBackToEvents = true,
 	showSidebar = true,
-	showPhotos = true,
 	containerClassName = "container max-w-6xl pt-8 pb-24 md:pb-12",
 	onRegister,
 	onOpenRegistrationModal,
@@ -198,12 +196,13 @@ export function EventLayout({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const [showPhotoUpload, setShowPhotoUpload] = useState(false);
 	const [showQRGenerator, setShowQRGenerator] = useState(false);
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showSuccessInfo, setShowSuccessInfo] = useState(false);
 	const [showRegistrationForm, setShowRegistrationForm] = useState(false);
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
+	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+	const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 
 	const renderChildren = () => {
 		if (typeof children !== "function") {
@@ -308,10 +307,6 @@ export function EventLayout({
 	const { isBookmarked, isLiked, likeCount, toggleBookmark, toggleLike } =
 		useEventEngagement(event.id, user?.id);
 
-	// Photos management
-	const { photos, isLoadingPhotos, handlePhotosChange, isUploadingPhotos } =
-		useEventPhotos(event.id, t);
-
 	// User feedback data
 	const { userFeedback, hasSubmittedFeedback } = useUserFeedback(
 		event.id,
@@ -329,13 +324,10 @@ export function EventLayout({
 		});
 	};
 
-	// 是否可以上传照片（只有参与过活动的用户或组织者可以上传照片）
-	const canUploadPhotos =
-		user &&
-		!event.isExternalEvent &&
-		(user.id === event.organizer.id ||
-			(existingRegistration &&
-				existingRegistration.status === "APPROVED"));
+	const canContactOrganizer = Boolean(
+		event.organizerContact && !event.isExternalEvent,
+	);
+	const canShowFeedback = true;
 
 	const [latestRegistration, setLatestRegistration] = useState<any>(null);
 
@@ -491,10 +483,15 @@ export function EventLayout({
 								}
 								onShowShare={() => setShowShareModal(true)}
 								onFeedbackSubmit={handleFeedbackSubmit}
-								existingFeedback={userFeedback}
 								hasSubmittedFeedback={hasSubmittedFeedback}
 								onVolunteerApply={handleVolunteerApply}
 								onDataRefresh={handleDataRefresh}
+								onShowContact={() =>
+									setIsContactDialogOpen(true)
+								}
+								onShowFeedback={() =>
+									setIsFeedbackDialogOpen(true)
+								}
 							/>
 
 							{/* Organization/Organizer Cards */}
@@ -514,20 +511,6 @@ export function EventLayout({
 								<OrganizerCard
 									title={t("events.organizer")}
 									organizer={event.organizer}
-								/>
-							)}
-
-							{/* Event Photos */}
-							{showPhotos && (
-								<EventPhotos
-									photos={photos}
-									isLoadingPhotos={isLoadingPhotos}
-									showPhotoUpload={showPhotoUpload}
-									canUploadPhotos={canUploadPhotos}
-									onTogglePhotoUpload={() =>
-										setShowPhotoUpload(!showPhotoUpload)
-									}
-									onPhotosChange={handlePhotosChange}
 								/>
 							)}
 						</div>
@@ -611,9 +594,42 @@ export function EventLayout({
 				canRegister={canRegister}
 				onShowShare={() => setShowShareModal(true)}
 				onShowQRGenerator={() => setShowQRGenerator(true)}
-				onVolunteerApply={handleVolunteerApply}
 				pathname={pathname}
+				onShowFeedback={() => setIsFeedbackDialogOpen(true)}
+				onShowContact={() => setIsContactDialogOpen(true)}
+				hasSubmittedFeedback={hasSubmittedFeedback}
+				canShowFeedback={canShowFeedback}
+				canContactOrganizer={canContactOrganizer}
 			/>
+
+			{/* Cross-surface dialogs */}
+			{!event.isExternalEvent && (
+				<ContactOrganizerDialog
+					open={isContactDialogOpen}
+					onOpenChange={setIsContactDialogOpen}
+					organizerName={event.organizer?.name}
+					organizerUsername={event.organizer?.username}
+					email={
+						event.organizerContact
+							? undefined
+							: event.organizer?.email
+					}
+					contact={event.organizerContact}
+					wechatQr={undefined}
+				/>
+			)}
+
+			{canShowFeedback && (
+				<SimpleEventFeedbackDialog
+					open={isFeedbackDialogOpen}
+					onOpenChange={setIsFeedbackDialogOpen}
+					eventTitle={event.title}
+					eventId={event.id}
+					onSubmit={handleFeedbackSubmit}
+					existingFeedback={userFeedback}
+					isEditing={hasSubmittedFeedback}
+				/>
+			)}
 		</div>
 	);
 }

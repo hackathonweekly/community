@@ -1,11 +1,9 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import {
 	EventDescription,
 	EventInfoCard,
 	EventHero,
-	EventRegistrationCard,
 } from "@/modules/public/events/components";
 
 interface MeetupContentProps {
@@ -34,45 +32,17 @@ interface MeetupContentProps {
 	onShowQRGenerator?: () => void;
 	onShowSuccessInfo?: () => void;
 	onShowShare?: () => void;
-	existingFeedback?: {
-		rating: number;
-		comment?: string;
-		suggestions?: string;
-		wouldRecommend: boolean;
-	} | null;
 	hasSubmittedFeedback?: boolean;
 }
 
 export function MeetupContent({
 	event,
 	user,
-	existingRegistration,
-	canRegister,
-	isRegistering,
-	getRegistrationStatusText,
-	handleRegister,
-	handleCancelRegistration,
-	onVolunteerApply,
-	onDataRefresh,
-	onFeedbackSubmit,
 	projectSubmissions,
 	eventTypeColors,
 	eventTypeLabels,
 	isBookmarked,
-	onOpenRegistrationModal,
-	// 新增的移动端处理函数
-	onShowQRGenerator,
-	onShowSuccessInfo,
-	onShowShare,
-	existingFeedback,
-	hasSubmittedFeedback,
 }: MeetupContentProps) {
-	const pathname = usePathname();
-
-	const handleRegistrationClick = () => {
-		handleRegister(onOpenRegistrationModal);
-	};
-
 	return (
 		<>
 			{/* Hero Section */}
@@ -93,25 +63,6 @@ export function MeetupContent({
 				currentUserId={user?.id}
 				projectSubmissions={projectSubmissions}
 			/>
-
-			{/* Mobile Registration Card - placed after event info for small screens */}
-			<div className="lg:hidden">
-				<EventRegistrationCard
-					event={event}
-					user={user}
-					existingRegistration={existingRegistration}
-					canRegister={canRegister}
-					pathname={pathname}
-					onShowQRGenerator={() => onShowQRGenerator?.()}
-					onShowSuccessInfo={() => onShowSuccessInfo?.()}
-					onShowShare={() => onShowShare?.()}
-					onFeedbackSubmit={onFeedbackSubmit}
-					existingFeedback={existingFeedback}
-					hasSubmittedFeedback={hasSubmittedFeedback}
-					onVolunteerApply={onVolunteerApply}
-					onDataRefresh={onDataRefresh}
-				/>
-			</div>
 
 			{/* Description */}
 			<EventDescription richContent={event.richContent || ""} />

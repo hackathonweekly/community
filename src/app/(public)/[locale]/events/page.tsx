@@ -1,16 +1,17 @@
-import { getSession } from "@dashboard/auth/lib/server";
-import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
 import {
 	fetchEventsListServer,
 	fetchEventsOrganizationsServer,
 } from "@/lib/api/server-fetchers";
 import { EventsServerTabs } from "@/modules/public/events/components/EventsServerTabs";
+import { getSession } from "@dashboard/auth/lib/server";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 type EventsPageSearchParams = Record<string, string | string[] | undefined>;
 
-// 页面级缓存策略：5分钟重新生成
-export const revalidate = 300;
+// 禁用缓存，确保活动列表始终展示最新数据
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function generateMetadata({
 	params,

@@ -452,6 +452,7 @@
 			},
 			"hints": {
 				"acceptAgreements": "Please accept the privacy policy and terms of service before continuing with social registration",
+				"checkEmailAndSignIn": "Please check your email and click the verification link. After verification, you can sign in to your account.",
 				"signupFailed": "Sorry, we couldn't create your account. Please try again later.",
 				"verifyEmail": "We've sent you a link to verify your email. Please check your inbox."
 			},

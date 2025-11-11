@@ -373,6 +373,10 @@ export function EventCreateForm({
 			// Transform questions to match API schema
 			questions: formData.questions
 				? formData.questions.map((q, index) => ({
+						id:
+							typeof q.id === "string" && q.id.trim() !== ""
+								? q.id
+								: undefined,
 						question: q.question,
 						description: q.description || undefined,
 						type: q.type,

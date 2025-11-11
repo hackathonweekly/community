@@ -65,6 +65,7 @@ export const eventSchema = z
 		tags: z.array(z.string()),
 		questions: z.array(
 			z.object({
+				id: z.string().optional(),
 				question: z.string().min(1, "Question is required"),
 				description: z.string().optional(),
 				type: z.enum([

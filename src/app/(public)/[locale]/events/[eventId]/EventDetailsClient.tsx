@@ -348,7 +348,6 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 			user={user}
 			showBackToEvents={true}
 			showSidebar={true}
-			showPhotos={event.type !== "HACKATHON"} // Hackathon events manage their own photo display
 			containerClassName={
 				event.type === "HACKATHON"
 					? "container max-w-6xl pt-8 pb-24 md:pb-12 md:pb-safe-bottom"
@@ -397,7 +396,6 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 								onShowQRGenerator={openQRGenerator}
 								onShowSuccessInfo={openSuccessInfo}
 								onShowShare={openShareModal}
-								existingFeedback={userFeedback}
 								hasSubmittedFeedback={hasSubmittedFeedback}
 							/>
 						);
@@ -445,7 +443,6 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 								onShowQRGenerator={openQRGenerator}
 								onShowSuccessInfo={openSuccessInfo}
 								onShowShare={openShareModal}
-								existingFeedback={userFeedback}
 								hasSubmittedFeedback={hasSubmittedFeedback}
 							/>
 						);
