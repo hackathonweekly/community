@@ -8,14 +8,7 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-	Camera,
-	X,
-	FlipHorizontal,
-	Check,
-	RotateCcw,
-	Plus,
-} from "lucide-react";
+import { Camera, X, FlipHorizontal, Check, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 
 interface CameraModalProps {
@@ -185,8 +178,8 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 			<DialogContent
 				className={
 					capturedImage
-						? "max-w-2xl w-full p-0 overflow-hidden"
-						: "md:max-w-md w-full h-full md:h-[70vh] md:max-h-[600px] md:p-0 p-0 overflow-hidden"
+						? "max-w-4xl w-full max-h-[90vh] p-0 overflow-hidden"
+						: "md:max-w-4xl w-full h-[90vh] md:h-[80vh] md:max-h-[700px] md:p-0 p-0 overflow-hidden"
 				}
 			>
 				<DialogHeader className="px-4 py-3 border-b z-10 bg-background">

@@ -510,7 +510,7 @@ export default function EventPhotosPage() {
 		}
 
 		// Sort photos
-		let sortedPhotos = [...photos];
+		const sortedPhotos = [...photos];
 		if (sortBy === "newest") {
 			sortedPhotos.sort(
 				(a, b) =>

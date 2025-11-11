@@ -48,7 +48,12 @@ export async function addWatermark(
 		const logoAspectRatio =
 			(logoMetadata.width || DEFAULT_LOGO_SIZE) /
 			(logoMetadata.height || DEFAULT_LOGO_SIZE);
-		const logoWidth = Math.min(logoSize, imageWidth * 0.45); // Max 45% of image width
+		// 限制最大45%，同时确保最小300px（手机照片也能清晰显示）
+		const logoWidth = Math.min(
+			logoSize,
+			imageWidth * 0.45,
+			imageWidth - WATERMARK_PADDING * 2,
+		);
 		const logoHeight = logoWidth / logoAspectRatio;
 
 		// Prepare logo with opacity
