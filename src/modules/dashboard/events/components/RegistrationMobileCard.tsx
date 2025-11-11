@@ -38,6 +38,10 @@ interface RegistrationMobileCardProps {
 	}>;
 	onUpdateStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
+	allRegistrations?: EventRegistration[];
+	currentIndex?: number;
+	onNavigate?: (direction: "prev" | "next") => void;
+	setCurrentIndex?: (index: number | null) => void;
 }
 
 const registrationStatusColors: Record<
@@ -65,6 +69,10 @@ export function RegistrationMobileCard({
 	eventQuestions,
 	onUpdateStatus,
 	onCancelRegistration,
+	allRegistrations,
+	currentIndex,
+	onNavigate,
+	setCurrentIndex,
 }: RegistrationMobileCardProps) {
 	const t = useTranslations("events.manage");
 	const statusInfo = registrationStatusColors[registration.status];
@@ -201,16 +209,34 @@ export function RegistrationMobileCard({
 									size="sm"
 									variant="ghost"
 									className="text-xs px-2"
+									onClick={() =>
+										setCurrentIndex?.(
+											allRegistrations?.findIndex(
+												(r) => r.id === registration.id,
+											) ?? null,
+										)
+									}
 								>
 									{t("registrations.table.view")}
 								</Button>
 							</DialogTrigger>
-							<RegistrationDetailsDialog
-								registration={registration}
-								eventQuestions={eventQuestions}
-								onUpdateStatus={onUpdateStatus}
-								onCancelRegistration={onCancelRegistration}
-							/>
+							{currentIndex !== null &&
+								allRegistrations?.[currentIndex] && (
+									<RegistrationDetailsDialog
+										registration={
+											allRegistrations[currentIndex]
+										}
+										eventQuestions={eventQuestions}
+										onUpdateStatus={onUpdateStatus}
+										onCancelRegistration={
+											onCancelRegistration
+										}
+										allRegistrations={allRegistrations}
+										currentIndex={currentIndex}
+										onNavigate={onNavigate}
+										setCurrentIndex={setCurrentIndex}
+									/>
+								)}
 						</Dialog>
 
 						{/* 审核按钮 */}

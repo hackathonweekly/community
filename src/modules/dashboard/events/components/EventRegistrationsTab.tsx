@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,6 +103,34 @@ export function EventRegistrationsTab({
 }: EventRegistrationsTabProps) {
 	const t = useTranslations("events.manage");
 	const safeRegistrations = registrations || [];
+	const [selectedRegistrationIndex, setSelectedRegistrationIndex] = useState<
+		number | null
+	>(null);
+
+	const handleNavigate = (direction: "prev" | "next") => {
+		if (selectedRegistrationIndex === null) return;
+
+		const newIndex =
+			direction === "prev"
+				? selectedRegistrationIndex - 1
+				: selectedRegistrationIndex + 1;
+
+		if (newIndex >= 0 && newIndex < safeRegistrations.length) {
+			setSelectedRegistrationIndex(newIndex);
+		}
+	};
+
+	const handleUpdateStatus = (userId: string, status: string) => {
+		onUpdateRegistrationStatus(userId, status);
+		// 通过报名后自动跳转到下一个
+		if (
+			status === "APPROVED" &&
+			selectedRegistrationIndex !== null &&
+			selectedRegistrationIndex < safeRegistrations.length - 1
+		) {
+			setSelectedRegistrationIndex(selectedRegistrationIndex + 1);
+		}
+	};
 
 	return (
 		<Card>
@@ -384,26 +413,57 @@ export function EventRegistrationsTab({
 																<Button
 																	size="sm"
 																	variant="ghost"
+																	onClick={() =>
+																		setSelectedRegistrationIndex(
+																			safeRegistrations.findIndex(
+																				(
+																					r,
+																				) =>
+																					r.id ===
+																					registration.id,
+																			),
+																		)
+																	}
 																>
 																	{t(
 																		"registrations.table.view",
 																	)}
 																</Button>
 															</DialogTrigger>
-															<RegistrationDetailsDialog
-																registration={
-																	registration
-																}
-																eventQuestions={
-																	eventQuestions
-																}
-																onUpdateStatus={
-																	onUpdateRegistrationStatus
-																}
-																onCancelRegistration={
-																	onCancelRegistration
-																}
-															/>
+															{selectedRegistrationIndex !==
+																null &&
+																safeRegistrations[
+																	selectedRegistrationIndex
+																] && (
+																	<RegistrationDetailsDialog
+																		registration={
+																			safeRegistrations[
+																				selectedRegistrationIndex
+																			]
+																		}
+																		eventQuestions={
+																			eventQuestions
+																		}
+																		onUpdateStatus={
+																			handleUpdateStatus
+																		}
+																		onCancelRegistration={
+																			onCancelRegistration
+																		}
+																		allRegistrations={
+																			safeRegistrations
+																		}
+																		currentIndex={
+																			selectedRegistrationIndex
+																		}
+																		onNavigate={
+																			handleNavigate
+																		}
+																		setCurrentIndex={
+																			setSelectedRegistrationIndex
+																		}
+																	/>
+																)}
 														</Dialog>
 
 														{/* 审核按钮 */}
@@ -509,8 +569,14 @@ export function EventRegistrationsTab({
 										requireProjectSubmission
 									}
 									eventQuestions={eventQuestions}
-									onUpdateStatus={onUpdateRegistrationStatus}
+									onUpdateStatus={handleUpdateStatus}
 									onCancelRegistration={onCancelRegistration}
+									allRegistrations={safeRegistrations}
+									currentIndex={selectedRegistrationIndex}
+									onNavigate={handleNavigate}
+									setCurrentIndex={
+										setSelectedRegistrationIndex
+									}
 								/>
 							))}
 						</div>

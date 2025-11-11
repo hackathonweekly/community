@@ -119,7 +119,8 @@ export function RegistrationDetailsDialog({
 					{/* Navigation buttons */}
 					{allRegistrations &&
 						allRegistrations.length > 1 &&
-						currentIndex !== undefined && (
+						currentIndex !== undefined &&
+						currentIndex !== null && (
 							<div className="flex justify-between items-center mb-4">
 								<Button
 									variant="ghost"
