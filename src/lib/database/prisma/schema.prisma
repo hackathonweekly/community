@@ -186,6 +186,7 @@ model User {
   createdTemplates        EventTemplate[]
   projectSubmissions      EventProjectSubmission[]
   reviewedSubmissions     EventProjectSubmission[] @relation("ReviewedSubmissions")
+  submissionVotes         EventSubmissionVote[]   // 作品投票（用户投的票）
   buildingRegistrations   BuildingRegistration[]
   checkInRecords          CheckInRecord[]
   checkInLikes            CheckInLike[]
@@ -1896,47 +1897,59 @@ model EventProjectSubmission {
   projectId       String
   userId          String              // 提交者
   submissionType  SubmissionType      // 提交类型
-  
+
   // 提交信息
   title           String              // 提交标题(可与作品名称不同)
   description     String              // 本次提交的描述
   demoUrl         String?             // 演示链接
   sourceCode      String?             // 源码链接
   presentationUrl String?             // 演示文档链接
-  
+
+  // ---- 新增字段：适用于 VOTE_PROJECT 类型 ----
+  subtitle        String?             // 一句话介绍（活动作品展示用）
+  attachments     String[]            @default([]) // 附件列表（图片、视频、音乐等）
+  consentToUse    Boolean             @default(false) // 是否授权社区使用作品用于宣传
+  customFields    Json?               // 自定义字段（未来扩展用）
+  winnerTeam      Boolean             @default(false) // 是否为获奖队伍（复选框）
+  voteCount       Int                 @default(0) // 获得的投票数（缓存，用于快速排序）
+
   // 状态管理
   status          SubmissionStatus    @default(SUBMITTED)
   submittedAt     DateTime            @default(now())
   reviewedAt      DateTime?
   reviewedBy      String?
   reviewNote      String?
-  
+
   // 评分信息
   judgeScore      Float?              // 评委评分
   audienceScore   Float?              // 观众评分
   finalScore      Float?              // 最终得分
-  
+
   // 作品快照(提交时的作品状态)
   projectSnapshot Json                // 作品信息快照
-  
+
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
-  
+
   // Relations
   event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
   project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewer        User?               @relation("ReviewedSubmissions", fields: [reviewedBy], references: [id])
   awards          ProjectAward[]      // 获得的奖项
-  
+  votes           EventSubmissionVote[] // 接收到的投票
+
   @@unique([eventId, projectId]) // 同一活动中同一作品只能提交一次
+  @@index([eventId, submissionType]) // 活动+提交类型查询优化
+  @@index([eventId, voteCount]) // 投票数排序优化
   @@map("event_project_submission")
 }
 
 enum SubmissionType {
   HACKATHON_PROJECT   // 黑客松作品
-  DEMO_PROJECT        // Demo演示作品  
+  DEMO_PROJECT        // Demo演示作品
   BUILDING_PROJECT    // Building作品
+  VOTE_PROJECT        // 投票评选作品（本次新增）
 }
 
 enum SubmissionStatus {
@@ -2550,4 +2563,24 @@ model NfcCard {
 enum NfcStatus {
   PENDING     // 未绑定
   BOUND       // 已绑定
+}
+
+// ===== 作品投票系统 =====
+// 活动作品投票表（每个用户对每个作品只能投一票）
+model EventSubmissionVote {
+  id              String                  @id @default(cuid())
+  submissionId    String                  // 作品提交ID
+  userId          String                  // 投票用户ID
+  votedAt         DateTime                @default(now())
+
+  createdAt       DateTime                @default(now())
+
+  // Relations
+  submission      EventProjectSubmission  @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  user            User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, userId]) // 同一用户对同一作品只能投一票
+  @@index([submissionId, votedAt]) // 按作品投票时间排序
+  @@index([userId]) // 用户的投票记录
+  @@map("event_submission_vote")
 }
