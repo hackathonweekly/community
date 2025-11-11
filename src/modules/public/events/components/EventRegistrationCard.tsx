@@ -194,23 +194,11 @@ export function EventRegistrationCard({
 											event.registrationSuccessImage?.trim()) && (
 											<Button
 												onClick={onShowSuccessInfo}
-												variant="outline"
 												className="w-full"
 											>
 												📋 查看重要信息
 											</Button>
 										)}
-
-										{/* 签到二维码按钮只在桌面端显示 */}
-										<div className="lg:block hidden">
-											<Button
-												onClick={onShowQRGenerator}
-												className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3"
-												size="lg"
-											>
-												📱 签到二维码
-											</Button>
-										</div>
 									</div>
 								)}
 
@@ -430,6 +418,18 @@ export function EventRegistrationCard({
 						>
 							<ShareIcon className="w-4 h-4" />
 							分享活动
+						</Button>
+					</div>
+
+					{/* 签到二维码 - 只在桌面端显示，移动到更多菜单 */}
+					<div className="lg:block hidden">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={onShowQRGenerator}
+							className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:border-gray-300 transition-all"
+						>
+							📱 签到二维码
 						</Button>
 					</div>
 

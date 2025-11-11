@@ -143,6 +143,14 @@ export function MobileEventBottomActions({
 			icon: <ShareIcon className="h-5 w-5" />,
 			onClick: () => handleShare(),
 		},
+		onShowQRGenerator
+			? {
+					key: "qr",
+					label: "签到二维码",
+					icon: <span className="text-lg">📱</span>,
+					onClick: onShowQRGenerator,
+				}
+			: null,
 		canShowFeedback
 			? {
 					key: "feedback",
