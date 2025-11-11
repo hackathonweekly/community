@@ -227,6 +227,22 @@ export function EventLayout({
 		getRegistrationStatusText,
 	} = useRegistrationStatus(event, user);
 
+	// Check for registration success parameter in URL and auto-open success modal
+	useEffect(() => {
+		const registration = searchParams.get("registration");
+		if (registration === "success" || registration === "pending") {
+			// Wait a bit for data to refresh, then open the success modal
+			const timer = setTimeout(() => {
+				setShowSuccessInfo(true);
+				// Clean up the URL parameter
+				const url = new URL(window.location.href);
+				url.searchParams.delete("registration");
+				window.history.replaceState({}, "", url.toString());
+			}, 300);
+			return () => clearTimeout(timer);
+		}
+	}, [searchParams]);
+
 	// Check for feedback anchor in URL
 	useEffect(() => {
 		const feedback = searchParams.get("feedback");
@@ -594,6 +610,7 @@ export function EventLayout({
 				canRegister={canRegister}
 				onShowShare={() => setShowShareModal(true)}
 				onShowQRGenerator={() => setShowQRGenerator(true)}
+				onShowSuccessInfo={() => setShowSuccessInfo(true)}
 				pathname={pathname}
 				onShowFeedback={() => setIsFeedbackDialogOpen(true)}
 				onShowContact={() => setIsContactDialogOpen(true)}

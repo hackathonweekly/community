@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Grid3x3, User, Upload, Camera, Share2 } from "lucide-react";
@@ -104,6 +104,7 @@ export default function EventPhotosPage() {
 	}, []);
 
 	const eventId = params.eventId as string;
+	const locale = params.locale as string;
 	const [uploadOpen, setUploadOpen] = useState(false);
 	const [cameraOpen, setCameraOpen] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -129,6 +130,23 @@ export default function EventPhotosPage() {
 			}
 			return res.json();
 		},
+		retry: 1,
+	});
+
+	// Check if user is registered for the event
+	const { data: registrationData } = useQuery({
+		queryKey: ["event-registration", eventId],
+		queryFn: async () => {
+			if (!session?.user) {
+				return { isRegistered: false };
+			}
+			const res = await fetch(`/api/events/${eventId}/register`);
+			if (!res.ok) {
+				return { isRegistered: false };
+			}
+			return res.json();
+		},
+		enabled: !!session?.user,
 		retry: 1,
 	});
 
@@ -173,6 +191,38 @@ export default function EventPhotosPage() {
 
 	const allPhotos = allPhotosData?.data.photos || [];
 	const myPhotos = myPhotosData?.data.photos || [];
+
+	// Check upload permission
+	const checkUploadPermission = useCallback(() => {
+		// Check if user is logged in
+		if (!session?.user) {
+			toast.error("请先登录后再上传照片", {
+				action: {
+					label: "去登录",
+					onClick: () =>
+						router.push(
+							`/${locale}/auth/login?callbackUrl=${encodeURIComponent(window.location.href)}`,
+						),
+				},
+			});
+			return false;
+		}
+
+		// Check if user is registered for the event
+		const isRegistered = registrationData?.isRegistered;
+		if (!isRegistered) {
+			toast.error("您需要报名参加活动后才能上传照片", {
+				action: {
+					label: "去报名",
+					onClick: () =>
+						router.push(`/${locale}/events/${eventId}/register`),
+				},
+			});
+			return false;
+		}
+
+		return true;
+	}, [session, registrationData, router, eventId, locale]);
 
 	// Handle file upload (shared logic)
 	const uploadFile = async (file: File) => {
@@ -662,9 +712,11 @@ export default function EventPhotosPage() {
 					<Button
 						variant="ghost"
 						size="sm"
-						onClick={() => router.back()}
+						onClick={() =>
+							router.push(`/${locale}/events/${eventId}`)
+						}
 					>
-						← 返回
+						← 返回活动
 					</Button>
 					<h1 className="font-semibold">活动相册</h1>
 					<div className="flex items-center gap-2">
@@ -780,98 +832,109 @@ export default function EventPhotosPage() {
 			</div>
 
 			{/* Upload & Camera Buttons */}
-			{session?.user && (
-				<>
-					<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
-						<Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-							<DialogTrigger asChild>
-								<Button
-									className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
-									disabled={isUploading}
-								>
-									<Upload className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-									{isUploading ? "上传中..." : "上传照片"}
-								</Button>
-							</DialogTrigger>
-							<DialogContent className="sm:max-w-md">
-								<DialogHeader>
-									<DialogTitle>从相册上传</DialogTitle>
-								</DialogHeader>
-								<div className="py-4">
-									<label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70 transition-colors">
-										<div className="flex flex-col items-center justify-center pt-5 pb-6">
-											<Upload className="w-10 h-10 text-muted-foreground mb-4" />
-											<p className="text-sm font-medium text-foreground">
-												点击选择图片或拖拽到此处
-											</p>
-											<p className="text-xs text-muted-foreground mt-1">
-												支持 JPG、PNG、WEBP
-												格式，单个文件最大 10MB
-											</p>
-										</div>
-										<input
-											type="file"
-											accept="image/*"
-											multiple
-											onChange={handleImageUpload}
-											disabled={isUploading}
-											className="hidden"
-										/>
-									</label>
+			<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
+				<Dialog
+					open={uploadOpen}
+					onOpenChange={(open) => {
+						if (open && !checkUploadPermission()) {
+							return;
+						}
+						setUploadOpen(open);
+					}}
+				>
+					<DialogTrigger asChild>
+						<Button
+							className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
+							disabled={isUploading}
+						>
+							<Upload className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+							{isUploading ? "上传中..." : "上传照片"}
+						</Button>
+					</DialogTrigger>
+					<DialogContent className="sm:max-w-md">
+						<DialogHeader>
+							<DialogTitle>从相册上传</DialogTitle>
+						</DialogHeader>
+						<div className="py-4">
+							<label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70 transition-colors">
+								<div className="flex flex-col items-center justify-center pt-5 pb-6">
+									<Upload className="w-10 h-10 text-muted-foreground mb-4" />
+									<p className="text-sm font-medium text-foreground">
+										点击选择图片或拖拽到此处
+									</p>
+									<p className="text-xs text-muted-foreground mt-1">
+										支持 JPG、PNG、WEBP 格式，单个文件最大
+										10MB
+									</p>
 								</div>
-								{isUploading && (
-									<div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-										<div
-											className="h-full bg-primary animate-pulse"
-											style={{ width: "100%" }}
-										/>
-									</div>
-								)}
-							</DialogContent>
-						</Dialog>
-
-						{/* Desktop: WebRTC Camera */}
-						<div className="hidden md:block">
-							<Button
-								className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
-								onClick={() => setCameraOpen(true)}
-								disabled={isUploading}
-							>
-								<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-								拍照
-							</Button>
+								<input
+									type="file"
+									accept="image/*"
+									multiple
+									onChange={handleImageUpload}
+									disabled={isUploading}
+									className="hidden"
+								/>
+							</label>
 						</div>
+						{isUploading && (
+							<div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+								<div
+									className="h-full bg-primary animate-pulse"
+									style={{ width: "100%" }}
+								/>
+							</div>
+						)}
+					</DialogContent>
+				</Dialog>
 
-						{/* Mobile: Native Camera */}
-						<div className="md:hidden relative">
-							<input
-								type="file"
-								accept="image/*"
-								capture="environment"
-								onChange={handleNativeCameraCapture}
-								disabled={isUploading}
-								className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-							/>
-							<Button
-								className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg pointer-events-none"
-								disabled={isUploading}
-							>
-								<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-								拍照
-							</Button>
-						</div>
-					</div>
+				{/* Desktop: WebRTC Camera */}
+				<div className="hidden md:block">
+					<Button
+						className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
+						onClick={() => {
+							if (checkUploadPermission()) {
+								setCameraOpen(true);
+							}
+						}}
+						disabled={isUploading}
+					>
+						<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+						拍照
+					</Button>
+				</div>
 
-					{/* Camera Modal - Only for desktop */}
-					<div className="hidden md:block">
-						<CameraModal
-							open={cameraOpen}
-							onClose={() => setCameraOpen(false)}
-							onCapture={handleCameraCapture}
-						/>
-					</div>
-				</>
-			)}
+				{/* Mobile: Native Camera */}
+				<div className="md:hidden">
+					<Button
+						className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg relative"
+						disabled={isUploading}
+						onClick={() => {
+							if (!checkUploadPermission()) {
+								return;
+							}
+							const fileInput = document.createElement("input");
+							fileInput.type = "file";
+							fileInput.accept = "image/*";
+							fileInput.capture = "environment";
+							fileInput.onchange = handleNativeCameraCapture;
+							fileInput.click();
+						}}
+					>
+						<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
+						拍照
+					</Button>
+				</div>
+			</div>
+
+			{/* Camera Modal - Only for desktop */}
+			<div className="hidden md:block">
+				<CameraModal
+					open={cameraOpen}
+					onClose={() => setCameraOpen(false)}
+					onCapture={handleCameraCapture}
+				/>
+			</div>
 
 			{/* Image Preview Modal */}
 			{selectedImage && (

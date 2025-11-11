@@ -40,21 +40,21 @@ export function RegistrationSuccessModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+			<DialogContent className="sm:max-w-[600px] max-h-[85vh] sm:max-h-[80vh] overflow-y-auto p-4 sm:p-6">
 				<DialogHeader>
-					<div className="flex items-center gap-3 mb-2">
+					<div className="flex items-center gap-2 sm:gap-3 mb-2">
 						{isPendingState ? (
-							<div className="h-8 w-8 rounded-full bg-yellow-500 flex items-center justify-center">
+							<div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0">
 								<span className="text-white text-sm font-bold">
 									⏳
 								</span>
 							</div>
 						) : (
-							<CheckCircleIcon className="h-8 w-8 text-green-600" />
+							<CheckCircleIcon className="h-7 w-7 sm:h-8 sm:w-8 text-green-600 flex-shrink-0" />
 						)}
-						<div>
+						<div className="flex-1 min-w-0">
 							<DialogTitle
-								className={`text-lg font-semibold ${
+								className={`text-base sm:text-lg font-semibold ${
 									isPendingState
 										? "text-yellow-800"
 										: "text-green-800"
@@ -65,11 +65,11 @@ export function RegistrationSuccessModal({
 									: "报名成功！"}
 							</DialogTitle>
 							<DialogDescription
-								className={
+								className={`text-xs sm:text-sm ${
 									isPendingState
 										? "text-yellow-600"
 										: "text-green-600"
-								}
+								}`}
 							>
 								{isPendingState
 									? `您已成功提交报名申请「${eventTitle}」，请等待审核结果`
@@ -79,7 +79,7 @@ export function RegistrationSuccessModal({
 					</div>
 				</DialogHeader>
 
-				<div className="space-y-4">
+				<div className="space-y-3 sm:space-y-4">
 					{/* 重要信息区域 - 始终显示 */}
 					<div
 						className={`border rounded-lg overflow-hidden ${
@@ -89,20 +89,20 @@ export function RegistrationSuccessModal({
 						}`}
 					>
 						<div
-							className={`px-4 py-3 border-b ${
+							className={`px-3 sm:px-4 py-2 sm:py-3 border-b ${
 								isPendingState
 									? "bg-yellow-100 border-yellow-200"
 									: "bg-blue-100 border-blue-200"
 							}`}
 						>
 							<h4
-								className={`font-semibold flex items-center gap-2 ${
+								className={`text-sm sm:text-base font-semibold flex items-center gap-2 ${
 									isPendingState
 										? "text-yellow-900"
 										: "text-blue-900"
 								}`}
 							>
-								<span className="text-lg">
+								<span className="text-base sm:text-lg">
 									{isPendingState ? "⏰" : "📋"}
 								</span>
 								{isPendingState
@@ -111,7 +111,7 @@ export function RegistrationSuccessModal({
 							</h4>
 						</div>
 						<div
-							className={`p-4 space-y-4 ${
+							className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${
 								isPendingState ? "bg-yellow-50" : "bg-blue-50"
 							}`}
 						>
@@ -126,17 +126,17 @@ export function RegistrationSuccessModal({
 												: "重要信息图片"
 										}
 										className="max-w-full h-auto rounded-lg shadow-sm border"
-										style={{ maxHeight: "300px" }}
+										style={{ maxHeight: "250px" }}
 									/>
 								</div>
 							)}
 							{/* 文字信息 */}
 							{displayInfo?.trim() ? (
-								<div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
+								<div className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
 									{displayInfo}
 								</div>
 							) : (
-								<div className="text-sm text-gray-700 space-y-2">
+								<div className="text-xs sm:text-sm text-gray-700 space-y-2">
 									{isPendingState ? (
 										<>
 											<p>⏳ 您的报名申请正在审核中</p>
@@ -161,10 +161,10 @@ export function RegistrationSuccessModal({
 					</div>
 
 					{/* 确认按钮 - 强调样式 */}
-					<div className="flex justify-center pt-4 border-t">
+					<div className="flex justify-center pt-2 sm:pt-4 border-t">
 						<Button
 							onClick={onClose}
-							className={`px-8 py-2 text-white font-medium ${
+							className={`px-6 sm:px-8 py-2 text-white font-medium w-full sm:w-auto ${
 								isPendingState
 									? "bg-yellow-600 hover:bg-yellow-700"
 									: "bg-blue-600 hover:bg-blue-700"

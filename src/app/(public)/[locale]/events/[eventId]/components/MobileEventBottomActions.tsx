@@ -37,12 +37,17 @@ interface MobileEventBottomActionsProps {
 		onlineUrl?: string;
 		coverImage?: string;
 		richContent?: string | null;
+		registrationSuccessInfo?: string;
+		registrationSuccessImage?: string;
+		registrationPendingInfo?: string;
+		registrationPendingImage?: string;
 	};
 	user?: { id: string } | null;
 	existingRegistration?: { status: string } | null;
 	canRegister: boolean | null;
 	onShowShare: () => void;
 	onShowQRGenerator?: () => void;
+	onShowSuccessInfo?: () => void;
 	pathname: string;
 	locale?: string;
 	onShowFeedback?: () => void;
@@ -59,6 +64,7 @@ export function MobileEventBottomActions({
 	canRegister,
 	onShowShare,
 	onShowQRGenerator,
+	onShowSuccessInfo,
 	pathname,
 	locale = "zh",
 	onShowFeedback,
@@ -127,6 +133,20 @@ export function MobileEventBottomActions({
 		return "❌ 取消报名";
 	};
 
+	// 检查是否有重要信息需要展示
+	const hasImportantInfo = Boolean(
+		event.registrationSuccessInfo ||
+			event.registrationSuccessImage ||
+			event.registrationPendingInfo ||
+			event.registrationPendingImage,
+	);
+
+	// 是否应该显示重要信息按钮
+	const shouldShowImportantInfo =
+		hasImportantInfo &&
+		(existingRegistration?.status === "APPROVED" ||
+			existingRegistration?.status === "PENDING");
+
 	type MoreAction = {
 		key: string;
 		label: string;
@@ -143,7 +163,7 @@ export function MobileEventBottomActions({
 			icon: <ShareIcon className="h-5 w-5" />,
 			onClick: () => handleShare(),
 		},
-		onShowQRGenerator
+		onShowQRGenerator && existingRegistration?.status === "APPROVED"
 			? {
 					key: "qr",
 					label: "签到二维码",
@@ -192,6 +212,7 @@ export function MobileEventBottomActions({
 			>
 				<div className="max-w-md mx-auto">
 					<div className="flex items-center gap-3">
+						{/* 相册按钮 */}
 						<Button
 							variant="outline"
 							size="icon"
@@ -201,30 +222,46 @@ export function MobileEventBottomActions({
 						>
 							<PhotoIcon className="h-5 w-5" />
 						</Button>
-						<Button
-							onClick={() => {
-								const result = handleRegisterAction();
-								if (
-									result === "SHOW_QR_CODE" &&
-									onShowQRGenerator
-								) {
-									onShowQRGenerator();
-								}
-							}}
-							disabled={isRegistering}
-							className={`flex-1 font-medium text-sm h-12 ${
-								existingRegistration?.status === "APPROVED"
-									? "bg-green-600 hover:bg-green-700 text-white"
-									: event.isExternalEvent
-										? "bg-blue-600 hover:bg-blue-700 text-white"
-										: isEventEnded
-											? "bg-gray-100 text-gray-600 cursor-not-allowed"
-											: "bg-primary hover:bg-primary/90 text-white"
-							}`}
-							size="lg"
-						>
-							{getRegisterButtonText()}
-						</Button>
+
+						{/* 主按钮 - 根据状态显示不同内容 */}
+						{shouldShowImportantInfo ? (
+							// 已报名且有重要信息：显示重要信息按钮
+							<Button
+								onClick={onShowSuccessInfo}
+								className="flex-1 font-medium text-sm h-12 bg-blue-600 hover:bg-blue-700 text-white"
+								size="lg"
+							>
+								<span className="mr-1">📋</span> 查看重要信息
+							</Button>
+						) : (
+							// 其他情况：显示报名/查看二维码按钮
+							<Button
+								onClick={() => {
+									const result = handleRegisterAction();
+									if (
+										result === "SHOW_QR_CODE" &&
+										onShowQRGenerator
+									) {
+										onShowQRGenerator();
+									}
+								}}
+								disabled={isRegistering}
+								className={`flex-1 font-medium text-sm h-12 ${
+									existingRegistration?.status === "APPROVED"
+										? "bg-green-600 hover:bg-green-700 text-white"
+										: event.isExternalEvent
+											? "bg-blue-600 hover:bg-blue-700 text-white"
+											: isEventEnded
+												? "bg-gray-100 text-gray-600 cursor-not-allowed"
+												: "bg-primary hover:bg-primary/90 text-white"
+								}`}
+								size="lg"
+							>
+								{getRegisterButtonText()}
+							</Button>
+						)}
+
+						{/* 更多操作按钮 */}
 						<Button
 							variant="outline"
 							size="icon"

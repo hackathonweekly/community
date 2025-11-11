@@ -83,6 +83,10 @@ interface RegistrationDetailsDialogProps {
 	}>;
 	onUpdateStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
+	allRegistrations?: EventRegistration[];
+	currentIndex?: number;
+	onNavigate?: (direction: "prev" | "next") => void;
+	setCurrentIndex?: (index: number | null) => void;
 }
 
 export function RegistrationDetailsDialog({
@@ -90,6 +94,10 @@ export function RegistrationDetailsDialog({
 	eventQuestions,
 	onUpdateStatus,
 	onCancelRegistration,
+	allRegistrations,
+	currentIndex,
+	onNavigate,
+	setCurrentIndex,
 }: RegistrationDetailsDialogProps) {
 	const t = useTranslations("events.manage");
 	const [cancelReason, setCancelReason] = useState("");
@@ -108,6 +116,36 @@ export function RegistrationDetailsDialog({
 		<>
 			<DialogContent className="max-w-2xl">
 				<div className="max-h-[90vh] overflow-y-auto">
+					{/* Navigation buttons */}
+					{allRegistrations &&
+						allRegistrations.length > 1 &&
+						currentIndex !== undefined && (
+							<div className="flex justify-between items-center mb-4">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => onNavigate?.("prev")}
+									disabled={currentIndex === 0}
+								>
+									← 上一个
+								</Button>
+								<span className="text-sm text-muted-foreground">
+									{currentIndex + 1} /{" "}
+									{allRegistrations.length}
+								</span>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => onNavigate?.("next")}
+									disabled={
+										currentIndex ===
+										allRegistrations.length - 1
+									}
+								>
+									下一个 →
+								</Button>
+							</div>
+						)}
 					<DialogHeader>
 						<DialogTitle>{registration.user.name}</DialogTitle>
 						<DialogDescription>

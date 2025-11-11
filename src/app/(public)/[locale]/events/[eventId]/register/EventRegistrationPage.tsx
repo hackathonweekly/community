@@ -61,8 +61,12 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 		// 	queryKey: eventKeys.detail(event.id),
 		// });
 
-		// Redirect back to event page
-		router.push(`/${pathname.split("/")[1]}/events/${event.id}`);
+		// Redirect back to event page with registration success parameter
+		// This will trigger the success info modal to open
+		const locale = pathname.split("/")[1];
+		const status =
+			registration.status === "PENDING" ? "pending" : "success";
+		router.push(`/${locale}/events/${event.id}?registration=${status}`);
 	};
 
 	const handleGoBack = () => {
