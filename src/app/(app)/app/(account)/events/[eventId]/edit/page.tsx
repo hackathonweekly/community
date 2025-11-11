@@ -384,10 +384,9 @@ export default function EventEditPage() {
 	// Helper function to convert UTC date to local datetime-local format
 	const formatDateForInput = (dateString: string) => {
 		const date = new Date(dateString);
-		// Use timezone offset to get consistent local time representation
-		const offset = date.getTimezoneOffset();
-		const localDate = new Date(date.getTime() - offset * 60000);
-		return localDate.toISOString().slice(0, 16);
+		// Return ISO string slice directly - let browser handle timezone display
+		// datetime-local input expects format: YYYY-MM-DDTHH:mm
+		return date.toISOString().slice(0, 16);
 	};
 
 	// Transform event data for the form
