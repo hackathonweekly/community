@@ -1,11 +1,11 @@
-name: Build Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
     branches:
       - main
     tags:
-      - "v*.*.*"
+      - "v*"
   workflow_dispatch:
 
 env:
@@ -22,6 +22,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Load build environment
+        id: build_env
+        run: |
+          BUILD_ENV_FILE="./.env.build"
+          if [ -f "${BUILD_ENV_FILE}" ]; then
+            echo "Loading build environment variables from ${BUILD_ENV_FILE}"
+            while IFS='=' read -r key value; do
+              if [[ ! -z "$key" && "$key" != "#"* ]]; then
+                echo "$key=$value" >> $GITHUB_ENV
+              fi
+            done < "${BUILD_ENV_FILE}"
+            echo "✅ Environment variables loaded"
+          else
+            echo "Warning: .env.build file not found, using defaults"
+          fi
+
+          # Set defaults if not in .env.build
+          echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://hackathonweekly.com}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME:-hackweek-public-1303088253}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT:-https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com}" >> $GITHUB_ENV
+
+      - name: Display environment variables
+        run: |
+          echo "NEXT_PUBLIC_SITE_URL: ${{ env.NEXT_PUBLIC_SITE_URL }}"
+          echo "NEXT_PUBLIC_BUCKET_NAME: ${{ env.NEXT_PUBLIC_BUCKET_NAME }}"
+          echo "NEXT_PUBLIC_S3_ENDPOINT: ${{ env.NEXT_PUBLIC_S3_ENDPOINT }}"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -32,13 +59,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 如果需要推送到其他 registry，取消注释以下部分
-      # - name: Log in to cnb.cool
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: cnb.cool
-      #     username: ${{ secrets.CNB_USERNAME }}
-      #     password: ${{ secrets.CNB_PASSWORD }}
+      # 同时推送到 cnb.cool（可选，需要配置 secrets）
+      - name: Log in to cnb.cool
+        if: secrets.CNB_USERNAME != '' && secrets.CNB_PASSWORD != ''
+        uses: docker/login-action@v3
+        with:
+          registry: cnb.cool
+          username: ${{ secrets.CNB_USERNAME }}
+          password: ${{ secrets.CNB_PASSWORD }}
 
       - name: Extract Docker metadata
         id: meta
@@ -51,12 +79,46 @@ jobs:
             type=sha
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push Docker image
+      # 提取 cnb.cool 的 metadata（可选）
+      - name: Extract CNB Docker metadata
+        if: secrets.CNB_USERNAME != '' && secrets.CNB_PASSWORD != ''
+        id: cnb_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: cnb.cool/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push to GitHub Container Registry
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_BUCKET_NAME=${{ env.NEXT_PUBLIC_BUCKET_NAME }}
+            NEXT_PUBLIC_S3_ENDPOINT=${{ env.NEXT_PUBLIC_S3_ENDPOINT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # 同时推送到 cnb.cool（可选）
+      - name: Build and push to cnb.cool
+        if: secrets.CNB_USERNAME != '' && secrets.CNB_PASSWORD != ''
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.cnb_meta.outputs.tags }}
+          labels: ${{ steps.cnb_meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_BUCKET_NAME=${{ env.NEXT_PUBLIC_BUCKET_NAME }}
+            NEXT_PUBLIC_S3_ENDPOINT=${{ env.NEXT_PUBLIC_S3_ENDPOINT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
