@@ -8,7 +8,14 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Camera, X, FlipHorizontal, Check, RotateCcw } from "lucide-react";
+import {
+	Camera,
+	X,
+	FlipHorizontal,
+	Check,
+	RotateCcw,
+	Plus,
+} from "lucide-react";
 import { toast } from "sonner";
 
 interface CameraModalProps {
@@ -27,6 +34,8 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 	const [facingMode, setFacingMode] = useState<"user" | "environment">(
 		"environment",
 	);
+	const [continuousMode, setContinuousMode] = useState(true);
+	const [capturedCount, setCapturedCount] = useState(0);
 
 	// Start camera stream
 	const startCamera = useCallback(async () => {
@@ -63,7 +72,22 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 		setIsStreaming(false);
 	}, []);
 
-	// Capture photo
+	// Convert data URL to file
+	const dataURLtoFile = (dataURL: string, filename: string): File => {
+		const arr = dataURL.split(",");
+		const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
+		const bstr = atob(arr[1]);
+		let n = bstr.length;
+		const u8arr = new Uint8Array(n);
+
+		while (n--) {
+			u8arr[n] = bstr.charCodeAt(n);
+		}
+
+		return new File([u8arr], filename, { type: mime });
+	};
+
+	// Capture photo - 支持连续拍照和单次拍照
 	const capturePhoto = useCallback(() => {
 		if (!videoRef.current || !canvasRef.current) return;
 
@@ -84,26 +108,35 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 		const capturedDataUrl = canvas.toDataURL("image/jpeg", 0.9);
 		setCapturedImage(capturedDataUrl);
 
-		// Stop camera after capture
-		stopCamera();
-	}, [stopCamera]);
+		// 连续拍照模式：立即上传并快速返回相机
+		if (continuousMode) {
+			const file = dataURLtoFile(
+				capturedDataUrl,
+				`photo_${Date.now()}.jpg`,
+			);
+			// 尽快开始上传，但不等待结果
+			onCapture(file);
+			setCapturedCount((prev) => {
+				const newCount = prev + 1;
+				toast.success(`已拍摄 ${newCount} 张照片`, {
+					id: "capture-count",
+				});
+				return newCount;
+			});
 
-	// Convert data URL to file
-	const dataURLtoFile = (dataURL: string, filename: string): File => {
-		const arr = dataURL.split(",");
-		const mime = arr[0].match(/:(.*?);/)?.[1] || "image/jpeg";
-		const bstr = atob(arr[1]);
-		let n = bstr.length;
-		const u8arr = new Uint8Array(n);
-
-		while (n--) {
-			u8arr[n] = bstr.charCodeAt(n);
+			// 立即预览并开始上传，然后快速返回相机
+			setTimeout(() => {
+				setCapturedImage(null);
+				// 重新启动相机
+				startCamera();
+			}, 500); // 减少到0.5秒，更快返回
+		} else {
+			// 单次拍照模式：停止相机等待用户确认
+			stopCamera();
 		}
+	}, [stopCamera, continuousMode, onCapture, startCamera]);
 
-		return new File([u8arr], filename, { type: mime });
-	};
-
-	// Confirm captured photo
+	// Confirm captured photo (单次拍照模式)
 	const confirmCapture = useCallback(() => {
 		if (!capturedImage) return;
 
@@ -132,6 +165,7 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 		} else if (!open) {
 			stopCamera();
 			setCapturedImage(null);
+			setCapturedCount(0); // Reset counter when closing
 		}
 
 		return () => {
@@ -157,11 +191,37 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 			>
 				<DialogHeader className="px-4 py-3 border-b z-10 bg-background">
 					<div className="flex items-center justify-between">
-						<DialogTitle>相机拍照</DialogTitle>
+						<DialogTitle>
+							相机拍照
+							{capturedCount > 0 && (
+								<span className="ml-2 text-sm text-muted-foreground">
+									(已拍: {capturedCount})
+								</span>
+							)}
+						</DialogTitle>
 						<Button variant="ghost" size="sm" onClick={onClose}>
 							<X className="h-4 w-4" />
 						</Button>
 					</div>
+					{isStreaming && !capturedImage && (
+						<div className="flex items-center gap-2 mt-2">
+							<input
+								type="checkbox"
+								id="continuousMode"
+								checked={continuousMode}
+								onChange={(e) =>
+									setContinuousMode(e.target.checked)
+								}
+								className="h-4 w-4"
+							/>
+							<label
+								htmlFor="continuousMode"
+								className="text-sm text-muted-foreground"
+							>
+								连续拍照模式
+							</label>
+						</div>
+					)}
 				</DialogHeader>
 
 				<div className="relative h-[calc(100vh-56px)] md:h-[calc(70vh-56px)] md:max-h-[544px] bg-black flex items-center justify-center">
@@ -169,7 +229,7 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 						<img
 							src={capturedImage}
 							alt="Captured"
-							className="w-full h-full object-contain"
+							className={`w-full h-full ${continuousMode ? "hidden" : "object-contain"}`}
 						/>
 					) : (
 						<video
@@ -184,25 +244,27 @@ export function CameraModal({ open, onClose, onCapture }: CameraModalProps) {
 					<canvas ref={canvasRef} className="hidden" />
 
 					{capturedImage ? (
-						<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 px-4">
-							<Button
-								variant="outline"
-								size="lg"
-								onClick={retakePhoto}
-								className="flex-1 md:flex-none bg-white/10 backdrop-blur border-white/20 text-white hover:bg-white/20"
-							>
-								<RotateCcw className="h-4 w-4 mr-2" />
-								重拍
-							</Button>
-							<Button
-								size="lg"
-								onClick={confirmCapture}
-								className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white"
-							>
-								<Check className="h-4 w-4 mr-2" />
-								使用照片
-							</Button>
-						</div>
+						!continuousMode && (
+							<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 px-4">
+								<Button
+									variant="outline"
+									size="lg"
+									onClick={retakePhoto}
+									className="flex-1 md:flex-none bg-white/10 backdrop-blur border-white/20 text-white hover:bg-white/20"
+								>
+									<RotateCcw className="h-4 w-4 mr-2" />
+									重拍
+								</Button>
+								<Button
+									size="lg"
+									onClick={confirmCapture}
+									className="flex-1 md:flex-none bg-green-600 hover:bg-green-700 text-white"
+								>
+									<Check className="h-4 w-4 mr-2" />
+									使用照片
+								</Button>
+							</div>
+						)
 					) : (
 						<div className="absolute bottom-6 md:bottom-4 left-0 right-0 flex justify-center">
 							{isStreaming && (

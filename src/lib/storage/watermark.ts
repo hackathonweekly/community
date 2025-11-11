@@ -8,7 +8,7 @@ import { join } from "path";
 import { logger } from "@/lib/logs";
 
 const LOGO_PATH = join(process.cwd(), "public/images/logo-white.png");
-const DEFAULT_LOGO_SIZE = 350; // 默认Logo宽度（像素）
+const DEFAULT_LOGO_SIZE = 600; // 默认Logo宽度（像素）
 const DEFAULT_OPACITY = 0.7; // 默认透明度
 const WATERMARK_PADDING = 30; // Logo距离边缘的内边距
 

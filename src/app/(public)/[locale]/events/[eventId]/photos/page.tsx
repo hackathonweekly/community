@@ -108,6 +108,16 @@ export default function EventPhotosPage() {
 	const [cameraOpen, setCameraOpen] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
+	const [uploadQueue, setUploadQueue] = useState<
+		{
+			file: File;
+			id: string;
+			progress: number;
+			status: "pending" | "uploading" | "done" | "error";
+		}[]
+	>([]);
+	const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
+	const [groupBy, setGroupBy] = useState<"none" | "photographer">("none");
 
 	// Fetch event information for sharing
 	const { data: eventData } = useQuery({
@@ -237,7 +247,7 @@ export default function EventPhotosPage() {
 		}
 	};
 
-	// Handle image upload from file input (supports multiple files)
+	// Handle image upload from file input (supports multiple files) - 并行上传
 	const handleImageUpload = async (
 		event: React.ChangeEvent<HTMLInputElement>,
 	) => {
@@ -248,30 +258,39 @@ export default function EventPhotosPage() {
 		const fileArray = Array.from(files);
 		const totalFiles = fileArray.length;
 
+		// 立即关闭上传对话框，在后台上传
+		setUploadOpen(false);
+
 		try {
-			let successCount = 0;
-			let failCount = 0;
-			const errors: string[] = [];
-
-			// Upload files sequentially to avoid overwhelming the server
-			for (let i = 0; i < fileArray.length; i++) {
-				const file = fileArray[i];
-				try {
-					await uploadFile(file);
-					successCount++;
-
-					// Show progress for multiple files
-					if (totalFiles > 1) {
-						toast.info(`正在上传 ${i + 1}/${totalFiles}...`);
-					}
-				} catch (error) {
-					console.error("Upload error:", error);
-					failCount++;
-					if (error instanceof Error) {
-						errors.push(error.message);
-					}
-				}
+			// 显示开始上传提示
+			if (totalFiles > 1) {
+				toast.info(`开始上传 ${totalFiles} 张照片，将在后台完成...`);
 			}
+
+			// 并行上传所有文件
+			const results = await Promise.allSettled(
+				fileArray.map((file) => uploadFile(file)),
+			);
+
+			const successCount = results.filter(
+				(r) => r.status === "fulfilled",
+			).length;
+			const failCount = results.filter(
+				(r) => r.status === "rejected",
+			).length;
+
+			// 如果有失败，显示哪些文件失败了
+			const errors: string[] = [];
+			results.forEach((result, index) => {
+				if (
+					result.status === "rejected" &&
+					result.reason instanceof Error
+				) {
+					errors.push(
+						`文件 ${fileArray[index].name}: ${result.reason.message}`,
+					);
+				}
+			});
 
 			if (successCount > 0) {
 				const message =
@@ -280,7 +299,7 @@ export default function EventPhotosPage() {
 						: `成功上传 ${successCount} 张照片${failCount > 0 ? `，${failCount} 张失败` : ""}`;
 				toast.success(message);
 
-				// Invalidate queries to refresh
+				// Invalidate queries to refresh photos
 				queryClient.invalidateQueries({
 					queryKey: ["event-photos", eventId],
 				});
@@ -288,18 +307,16 @@ export default function EventPhotosPage() {
 					queryKey: ["my-event-photos", eventId],
 				});
 			} else {
-				// Show specific error if available
+				// All failed
 				const errorMsg =
-					errors.length > 0 ? errors[0] : "上传失败，请重试";
+					errors.length > 0
+						? `上传失败: ${errors[0]}`
+						: "所有文件上传失败，请重试";
 				toast.error(errorMsg);
 			}
-
-			setUploadOpen(false);
 		} catch (error) {
 			console.error("Upload error:", error);
-			toast.error(
-				error instanceof Error ? error.message : "上传失败，请重试",
-			);
+			toast.error("上传失败，请重试");
 		} finally {
 			setIsUploading(false);
 			// Reset input
@@ -423,11 +440,15 @@ export default function EventPhotosPage() {
 		loading,
 		canDelete,
 		error,
+		sortBy,
+		groupBy,
 	}: {
 		photos: Photo[];
 		loading: boolean;
 		canDelete?: boolean;
 		error?: Error | null;
+		sortBy?: "newest" | "oldest";
+		groupBy?: "none" | "photographer";
 	}) => {
 		if (loading) {
 			return (
@@ -488,9 +509,118 @@ export default function EventPhotosPage() {
 			);
 		}
 
+		// Sort photos
+		let sortedPhotos = [...photos];
+		if (sortBy === "newest") {
+			sortedPhotos.sort(
+				(a, b) =>
+					new Date(b.createdAt).getTime() -
+					new Date(a.createdAt).getTime(),
+			);
+		} else if (sortBy === "oldest") {
+			sortedPhotos.sort(
+				(a, b) =>
+					new Date(a.createdAt).getTime() -
+					new Date(b.createdAt).getTime(),
+			);
+		}
+
+		// Group photos by photographer or just display grid
+		if (groupBy === "photographer") {
+			// Group photos by user
+			const groupedPhotos = sortedPhotos.reduce(
+				(acc, photo) => {
+					const userId = photo.user.id;
+					const userName = photo.user.name;
+					if (!acc[userId]) {
+						acc[userId] = {
+							user: photo.user,
+							photos: [],
+						};
+					}
+					acc[userId].photos.push(photo);
+					return acc;
+				},
+				{} as Record<string, { user: Photo["user"]; photos: Photo[] }>,
+			);
+
+			// Sort groups by user name
+			const sortedGroups = Object.values(groupedPhotos).sort((a, b) =>
+				a.user.name.localeCompare(b.user.name),
+			);
+
+			return (
+				<div className="space-y-8">
+					{sortedGroups.map((group) => (
+						<div key={group.user.id}>
+							<div className="flex items-center gap-3 mb-4">
+								{group.user.image ? (
+									<Image
+										src={group.user.image}
+										alt={group.user.name}
+										width={32}
+										height={32}
+										className="rounded-full object-cover border"
+									/>
+								) : (
+									<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+										<User className="h-4 w-4" />
+									</div>
+								)}
+								<h3 className="font-medium text-foreground">
+									{group.user.name}
+									<span className="text-sm text-muted-foreground ml-2">
+										({group.photos.length} 张)
+									</span>
+								</h3>
+							</div>
+							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+								{group.photos.map((photo) => (
+									<div
+										key={photo.id}
+										className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
+									>
+										<Image
+											src={photo.imageUrl}
+											alt={photo.caption || "活动照片"}
+											fill
+											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+											className="object-cover cursor-pointer transition-transform hover:scale-105"
+											onClick={() =>
+												setSelectedImage(photo.imageUrl)
+											}
+											loading="lazy"
+										/>
+										{canDelete && (
+											<Button
+												variant="destructive"
+												size="sm"
+												className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+												onClick={() =>
+													handleDeletePhoto(photo.id)
+												}
+											>
+												×
+											</Button>
+										)}
+										<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+											{formatRelativeTime(
+												photo.createdAt,
+											)}
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+				</div>
+			);
+		}
+
+		// Default grid view
 		return (
 			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-				{photos.map((photo) => (
+				{sortedPhotos.map((photo) => (
 					<div
 						key={photo.id}
 						className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
@@ -551,49 +681,115 @@ export default function EventPhotosPage() {
 			</div>
 
 			{/* Tabs */}
-			<div className="p-4">
+			<div className="p-4 pb-24">
 				<Tabs defaultValue="all" className="w-full">
-					<TabsList className="grid w-full grid-cols-2 mb-4">
-						<TabsTrigger value="all">
-							<Grid3x3 className="h-4 w-4 mr-2" />
-							所有照片
-						</TabsTrigger>
-						<TabsTrigger value="my" disabled={!session?.user}>
-							<User className="h-4 w-4 mr-2" />
-							我的照片
-						</TabsTrigger>
-					</TabsList>
+					<div className="bg-card rounded-xl p-1 mb-4">
+						<TabsList className="grid w-full grid-cols-2 h-auto bg-transparent">
+							<TabsTrigger
+								value="all"
+								className="data-[state=active]:bg-background py-2 pl-4 pr-5 rounded-lg"
+							>
+								<Grid3x3 className="h-4 w-4 mr-2" />
+								所有照片
+							</TabsTrigger>
+							<TabsTrigger
+								value="my"
+								disabled={!session?.user}
+								className="data-[state=active]:bg-background py-2 pl-4 pr-5 rounded-lg disabled:opacity-50"
+							>
+								<User className="h-4 w-4 mr-2" />
+								我的照片
+							</TabsTrigger>
+						</TabsList>
+					</div>
 
-					<TabsContent value="all">
-						<PhotoGrid
-							photos={allPhotos}
-							loading={allPhotosLoading}
-							error={allPhotosError}
-						/>
-					</TabsContent>
+					<div className="mb-4">
+						<TabsContent value="all">
+							{/* Controls for all photos */}
+							<div className="flex flex-wrap items-center gap-2 mb-4">
+								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+									<button
+										onClick={() => setSortBy("newest")}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											sortBy === "newest"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										最新上传
+									</button>
+									<button
+										onClick={() => setSortBy("oldest")}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											sortBy === "oldest"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										最早上传
+									</button>
+								</div>
 
-					<TabsContent value="my">
-						<PhotoGrid
-							photos={myPhotos}
-							loading={myPhotosLoading}
-							canDelete={true}
-							error={myPhotosError}
-						/>
-					</TabsContent>
+								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+									<button
+										onClick={() => setGroupBy("none")}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											groupBy === "none"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										网格视图
+									</button>
+									<button
+										onClick={() =>
+											setGroupBy("photographer")
+										}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											groupBy === "photographer"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										按拍摄者分组
+									</button>
+								</div>
+							</div>
+
+							<PhotoGrid
+								photos={allPhotos}
+								loading={allPhotosLoading}
+								error={allPhotosError}
+								sortBy={sortBy}
+								groupBy={groupBy}
+							/>
+						</TabsContent>
+
+						<TabsContent value="my">
+							<PhotoGrid
+								photos={myPhotos}
+								loading={myPhotosLoading}
+								canDelete={true}
+								error={myPhotosError}
+								sortBy="newest"
+								groupBy="none"
+							/>
+						</TabsContent>
+					</div>
 				</Tabs>
 			</div>
 
 			{/* Upload & Camera Buttons */}
 			{session?.user && (
 				<>
-					<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 px-4">
+					<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
 						<Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
 							<DialogTrigger asChild>
 								<Button
-									className="rounded-full px-6"
+									className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
 									disabled={isUploading}
 								>
-									<Upload className="h-4 w-4 mr-2" />
+									<Upload className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
 									{isUploading ? "上传中..." : "上传照片"}
 								</Button>
 							</DialogTrigger>
@@ -637,11 +833,11 @@ export default function EventPhotosPage() {
 						{/* Desktop: WebRTC Camera */}
 						<div className="hidden md:block">
 							<Button
-								className="rounded-full px-6"
+								className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
 								onClick={() => setCameraOpen(true)}
 								disabled={isUploading}
 							>
-								<Camera className="h-4 w-4 mr-2" />
+								<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
 								拍照
 							</Button>
 						</div>
@@ -657,10 +853,10 @@ export default function EventPhotosPage() {
 								className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
 							/>
 							<Button
-								className="rounded-full px-6 pointer-events-none"
+								className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg pointer-events-none"
 								disabled={isUploading}
 							>
-								<Camera className="h-4 w-4 mr-2" />
+								<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
 								拍照
 							</Button>
 						</div>
