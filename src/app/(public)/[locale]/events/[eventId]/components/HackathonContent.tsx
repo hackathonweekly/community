@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,9 +30,6 @@ import {
 	EventInfoCard,
 } from "@/modules/public/events/components";
 import type { EventDetailsProps } from "../EventDetailsClient";
-import { HackathonProjectGallery } from "@/modules/dashboard/events/components/hackathon/HackathonProjectGallery";
-import { HackathonProjectSubmissionForm } from "@/modules/dashboard/events/components/hackathon/HackathonProjectSubmissionForm";
-import { VotingPanel } from "@/modules/dashboard/events/components/hackathon/VotingPanel";
 import { AwardShowcase } from "@/modules/dashboard/events/components/hackathon/AwardShowcase";
 import {
 	HACKATHON_STAGE_VALUES,
@@ -95,8 +93,8 @@ export function HackathonContent({
 }: HackathonContentProps) {
 	const t = useTranslations("events");
 	const [activeTab, setActiveTab] = useState("overview");
-	const [showSubmissionForm, setShowSubmissionForm] = useState(false);
 	const pathname = usePathname();
+	const currentLocale = pathname?.split("/")?.[1] ?? "zh";
 
 	const config = event.hackathonConfig;
 	const votingConfig = config?.voting;
@@ -132,6 +130,8 @@ export function HackathonContent({
 	};
 	const projectSubmissionList = projectSubmissions || [];
 	const richContent = event.richContent || event.description || "";
+	const publicSubmissionsUrl = `/${currentLocale}/events/${event.id}/submissions`;
+	const privateSubmissionUrl = `/app/events/${event.id}/submissions/new`;
 	const audienceVotingEnabled = Boolean(
 		isVotingWindow && votingConfig?.allowPublicVoting,
 	);
@@ -161,12 +161,6 @@ export function HackathonContent({
 			setActiveTab("results");
 		}
 	}, [currentStage, activeTab]);
-
-	useEffect(() => {
-		if (!isSubmissionWindow) {
-			setShowSubmissionForm(false);
-		}
-	}, [isSubmissionWindow]);
 
 	const stageStatusMessage = t(stageStatusKeyMap[currentStage]);
 
@@ -353,11 +347,10 @@ export function HackathonContent({
 					{isUserRegistered && isSubmissionWindow && (
 						<Card>
 							<CardContent className="pt-6">
-								<Button
-									onClick={() => setShowSubmissionForm(true)}
-									className="w-full"
-								>
-									{t("hackathon.actions.submitProject")}
+								<Button asChild className="w-full">
+									<Link href={privateSubmissionUrl}>
+										{t("hackathon.actions.submitProject")}
+									</Link>
 								</Button>
 							</CardContent>
 						</Card>
@@ -366,13 +359,33 @@ export function HackathonContent({
 
 				{/* Projects Tab */}
 				<TabsContent value="projects" className="space-y-6">
-					<HackathonProjectGallery
-						eventId={event.id}
-						currentUserId={currentUserId}
-						canVote={canCurrentUserVote}
-						config={config}
-						stage={currentStage}
-					/>
+					<Card>
+						<CardHeader>
+							<CardTitle>作品提交与投票</CardTitle>
+							<CardDescription>
+								集中查看本次活动的所有参赛作品，并为你喜爱的团队投票
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="flex flex-col md:flex-row gap-4">
+							<Button asChild className="flex-1">
+								<Link href={publicSubmissionsUrl}>
+									查看作品与实时票数
+								</Link>
+							</Button>
+							<Button
+								asChild
+								variant="secondary"
+								className="flex-1"
+								disabled={!isUserRegistered}
+							>
+								<Link href={privateSubmissionUrl}>
+									{isUserRegistered
+										? "提交我的作品"
+										: "报名后可提交作品"}
+								</Link>
+							</Button>
+						</CardContent>
+					</Card>
 				</TabsContent>
 
 				{/* Resources Tab */}
@@ -516,35 +529,23 @@ export function HackathonContent({
 
 				{/* Results Tab */}
 				<TabsContent value="results" className="space-y-6">
-					{isVotingWindow || isResultsStage ? (
-						<VotingPanel
-							eventId={event.id}
-							currentUserId={currentUserId}
-							canVote={isVotingWindow && canCurrentUserVote}
-							config={config}
-							stage={currentStage}
-						/>
-					) : (
-						<Card>
-							<CardContent className="pt-6">
-								<p className="text-center text-muted-foreground">
-									{t("hackathon.results.notReady")}
-								</p>
-							</CardContent>
-						</Card>
-					)}
+					<Card>
+						<CardHeader>
+							<CardTitle>实时投票结果</CardTitle>
+							<CardDescription>
+								打开作品广场查看最新票数、排行榜以及作品详情
+							</CardDescription>
+						</CardHeader>
+						<CardContent className="flex justify-center">
+							<Button asChild>
+								<Link href={publicSubmissionsUrl}>
+									前往作品广场
+								</Link>
+							</Button>
+						</CardContent>
+					</Card>
 				</TabsContent>
 			</Tabs>
-
-			{/* Project Submission Modal */}
-			{showSubmissionForm && (
-				<HackathonProjectSubmissionForm
-					eventId={event.id}
-					open={showSubmissionForm}
-					onOpenChange={setShowSubmissionForm}
-					maxTeamSize={config?.settings.maxTeamSize || 5}
-				/>
-			)}
 		</>
 	);
 }

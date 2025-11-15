@@ -39,6 +39,7 @@ import feedbackRouter from "./events/feedback";
 import { eventInvitesRouter } from "./events/invites";
 import { eventLikesRouter } from "./events/likes";
 import participantInterestsRouter from "./events/participant-interests";
+import participantsRouter from "./events/participants";
 import { eventPhotosRouter } from "./events/photos";
 import registrationsRouter from "./events/registrations";
 import statusRouter from "./events/status";
@@ -755,6 +756,7 @@ const app = new Hono()
 	.route("/", eventLikesRouter)
 	.route("/:eventId/checkin", checkinRouter)
 	.route("/:eventId/feedback", feedbackRouter)
+	.route("/:eventId/participants", participantsRouter)
 	.route("/:eventId/volunteers", volunteersRouter)
 	.route("/:eventId/volunteer-admin", volunteerAdminRouter)
 	.route("/:eventId/participant-interests", participantInterestsRouter)

@@ -14,6 +14,7 @@ import { logger } from "@/lib/logs";
 // ============================================================================
 
 let s3Client: S3Client | null = null;
+let s3ClientForPresign: S3Client | null = null;
 
 /**
  * Middleware to inject Appid header for Tencent Cloud COS compatibility
@@ -112,6 +113,54 @@ const getS3Client = () => {
 	return s3Client;
 };
 
+/**
+ * 专用于预签名的 S3 Client：不注入 Appid 头，避免把 appid 加入 SignedHeaders
+ * 否则浏览器使用预签名URL直传时无法携带该头，导致 SignatureDoesNotMatch。
+ */
+const getS3ClientForPresign = () => {
+	if (s3ClientForPresign) {
+		return s3ClientForPresign;
+	}
+
+	const s3Endpoint = process.env.S3_ENDPOINT as string;
+	if (!s3Endpoint) {
+		throw new Error("Missing env variable S3_ENDPOINT");
+	}
+
+	const s3Region = (process.env.S3_REGION as string) || "auto";
+	const s3AccessKeyId = process.env.S3_ACCESS_KEY_ID as string;
+	if (!s3AccessKeyId) {
+		throw new Error("Missing env variable S3_ACCESS_KEY_ID");
+	}
+	const s3SecretAccessKey = process.env.S3_SECRET_ACCESS_KEY as string;
+	if (!s3SecretAccessKey) {
+		throw new Error("Missing env variable S3_SECRET_ACCESS_KEY");
+	}
+
+	// 与 getS3Client 相同配置，但不添加 COS Appid 中间件
+	s3ClientForPresign = new S3Client({
+		region: s3Region,
+		endpoint: s3Endpoint,
+		forcePathStyle: false,
+		credentials: {
+			accessKeyId: s3AccessKeyId,
+			secretAccessKey: s3SecretAccessKey,
+		},
+	});
+
+	// 移除灵活校验和中间件，避免在预签名URL中附带 x-amz-sdk-checksum-* 查询参数
+	try {
+		// 名称来自 @aws-sdk/middleware-flexible-checksums
+		// 如果 SDK 版本变动导致名称不同，移除失败也不会影响功能
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(s3ClientForPresign.middlewareStack as any).remove?.(
+			"flexibleChecksumsMiddleware",
+		);
+	} catch {}
+
+	return s3ClientForPresign;
+};
+
 // ============================================================================
 // Signed URL Generation
 // ============================================================================
@@ -133,7 +182,8 @@ export async function getSignedUploadUrl(
 	},
 ): Promise<string> {
 	const { bucket, contentType } = options;
-	const s3Client = getS3Client();
+	// 使用不带 Appid 头的 presign client，避免把 appid 带入 X-Amz-SignedHeaders
+	const s3Client = getS3ClientForPresign();
 
 	try {
 		const command = new PutObjectCommand({

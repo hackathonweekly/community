@@ -140,11 +140,12 @@ export default function EventPhotosPage() {
 			if (!session?.user) {
 				return { isRegistered: false };
 			}
-			const res = await fetch(`/api/events/${eventId}/register`);
+			const res = await fetch(`/api/events/${eventId}/registration`);
 			if (!res.ok) {
 				return { isRegistered: false };
 			}
-			return res.json();
+			const data = await res.json();
+			return { isRegistered: !!data.data }; // Check if registration exists
 		},
 		enabled: !!session?.user,
 		retry: 1,

@@ -98,6 +98,7 @@ model User {
   projectComments    ProjectComment[]
   projectBookmarks   ProjectBookmark[]
   projectMembers     ProjectMember[]  // Projects where user is a team member
+  projectVotes       ProjectVote[]
   
   // Universal comment system relations
   comments           Comment[]         // 用户发表的评论
@@ -472,6 +473,7 @@ model Project {
   userId          String
   title           String
   description     String?           // 作品描述（支持Markdown）- 可选
+  tagline         String?           // 一句话介绍
   url             String?
   featured        Boolean           @default(false)
   order           Int               @default(0)
@@ -500,6 +502,10 @@ model Project {
   // Project completion tracking
   isComplete      Boolean           @default(false) // 是否为高完成度作品（社区展示）
   completionScore Int               @default(0) // 作品完成度评分 (0-100)
+  communityUseAuth Boolean          @default(false)
+  customFields    Json?
+  isSubmission    Boolean           @default(false)
+  submittedAt     DateTime?
   
   // Analytics
   viewCount       Int               @default(0)
@@ -532,6 +538,8 @@ model Project {
   eventSubmissions EventProjectSubmission[]
   buildingRegistrations BuildingRegistration[]
   awards          ProjectAward[]
+  votes           ProjectVote[]
+  attachments     ProjectAttachment[]
 
   
   @@map("project")
@@ -549,6 +557,42 @@ model ProjectMember {
   
   @@unique([projectId, userId])
   @@map("project_member")
+}
+
+model ProjectAttachment {
+  id        String   @id @default(cuid())
+  projectId String
+  fileName  String
+  fileUrl   String
+  fileType  String
+  mimeType  String?
+  fileSize  Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_attachment")
+}
+
+model ProjectVote {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, eventId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([eventId])
+  @@map("project_vote")
 }
 
 model ProjectLike {
@@ -783,6 +827,7 @@ model Event {
   buildingRegistrations BuildingRegistration[]
   checkInRecords  CheckInRecord[]
   projectAwards   ProjectAward[]
+  projectVotes    ProjectVote[]
   bookmarks       EventBookmark[]  // 收藏这个活动的用户
   likes           EventLike[]      // 点赞这个活动的用户
   invites        EventInvite[]

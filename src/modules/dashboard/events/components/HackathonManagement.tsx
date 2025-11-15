@@ -43,6 +43,7 @@ import {
 	type NormalizedHackathonConfig,
 	type HackathonVoting,
 } from "@/features/hackathon/config";
+import { cn } from "@/lib/utils";
 
 interface HackathonManagementProps {
 	eventId: string;
@@ -72,26 +73,72 @@ export function HackathonManagement({
 	const stageOrder = HACKATHON_STAGE_VALUES;
 
 	const sendConfigUpdate = async (payload: NormalizedHackathonConfig) => {
+		// NOTE: Server route is mounted at /api/events/:eventId/hackathon-config
+		// The previous path mistakenly included an extra /hackathon segment.
+		// Sanitize payload: remove incomplete resource items that would fail server-side URL validation
+		const sanitizeResources = (
+			p: NormalizedHackathonConfig["resources"],
+		) => ({
+			tutorials: (p?.tutorials ?? []).filter(
+				(item) =>
+					typeof item?.url === "string" && item.url.trim().length > 0,
+			),
+			tools: (p?.tools ?? []).filter(
+				(item) =>
+					typeof item?.url === "string" && item.url.trim().length > 0,
+			),
+			examples: (p?.examples ?? []).filter(
+				(item) =>
+					typeof item?.url === "string" && item.url.trim().length > 0,
+			),
+		});
+		const bodyPayload: NormalizedHackathonConfig = {
+			...payload,
+			resources: sanitizeResources(payload.resources),
+		};
+
 		const response = await fetch(
-			`/api/hackathon/events/${eventId}/hackathon-config`,
+			`/api/events/${eventId}/hackathon-config`,
 			{
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(payload),
+				body: JSON.stringify(bodyPayload),
 			},
 		);
 
 		if (!response.ok) {
 			let message = toastsT("saveFailed");
+			// Try to extract a meaningful error message from JSON or text
+			const ct = response.headers.get("content-type") ?? "";
+			const cloned = response.clone();
 			try {
-				const errorBody = await response.json();
-				if (errorBody?.message) {
-					message = errorBody.message;
+				if (ct.includes("application/json")) {
+					const errorBody: any = await response.json();
+					const maybeMsg =
+						errorBody?.message ||
+						errorBody?.error?.message ||
+						errorBody?.error ||
+						errorBody?.errors?.[0]?.message;
+					if (typeof maybeMsg === "string" && maybeMsg.trim()) {
+						message = maybeMsg;
+					}
+				} else {
+					const text = await response.text();
+					if (text && text.trim()) {
+						// Clip very long responses to keep toasts tidy
+						message = text.trim().slice(0, 200);
+					}
 				}
 			} catch (error) {
 				console.error("Failed to parse hackathon config error:", error);
+				try {
+					const text = await cloned.text();
+					if (text && text.trim()) {
+						message = text.trim().slice(0, 200);
+					}
+				} catch {}
 			}
 			throw new Error(message);
 		}
@@ -102,7 +149,7 @@ export function HackathonManagement({
 		const loadConfig = async () => {
 			try {
 				const response = await fetch(
-					`/api/hackathon/events/${eventId}/hackathon-config`,
+					`/api/events/${eventId}/hackathon-config`,
 				);
 				if (response.ok) {
 					const data = await response.json();
@@ -129,7 +176,11 @@ export function HackathonManagement({
 			toast.success(toastsT("saveSuccess"));
 		} catch (error) {
 			console.error("Error saving config:", error);
-			toast.error(toastsT("saveFailed"));
+			const msg =
+				error instanceof Error && error.message
+					? error.message
+					: toastsT("saveFailed");
+			toast.error(msg);
 		} finally {
 			setSaving(false);
 		}
@@ -186,7 +237,11 @@ export function HackathonManagement({
 		} catch (error) {
 			console.error("Failed to update hackathon stage:", error);
 			setConfig(previousConfig);
-			toast.error(stageT("updateFailed"));
+			const msg =
+				error instanceof Error && error.message
+					? error.message
+					: stageT("updateFailed");
+			toast.error(msg);
 		} finally {
 			setStageSaving(false);
 		}
@@ -328,73 +383,8 @@ export function HackathonManagement({
 					<CardDescription>{stageT("description")}</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<div className="flex flex-wrap items-center gap-2">
-						{stageOrder.map((stage) => {
-							const stagePosition = stageOrder.indexOf(stage);
-							const variant =
-								stage === config.stage.current
-									? "default"
-									: stagePosition < currentStageIndex
-										? "outline"
-										: "secondary";
-							return (
-								<Badge
-									key={stage}
-									variant={variant}
-									className="text-xs"
-								>
-									{formatStageLabel(stage)}
-								</Badge>
-							);
-						})}
-					</div>
-					<div className="flex flex-wrap items-center gap-2 text-sm">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() =>
-								previousStage && updateStage(previousStage)
-							}
-							disabled={!previousStage || stageSaving}
-						>
-							{stageSaving ? (
-								<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-							) : null}
-							{stageT("previous")}
-						</Button>
-						<Button
-							size="sm"
-							onClick={() => nextStage && updateStage(nextStage)}
-							disabled={!nextStage || stageSaving}
-						>
-							{stageSaving ? (
-								<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-							) : null}
-							{stageT("next")}
-						</Button>
-						<div className="flex items-center gap-2">
-							<Label className="text-xs text-muted-foreground">
-								{stageT("jumpLabel")}
-							</Label>
-							<Select
-								value={config.stage.current}
-								onValueChange={handleStageSelect}
-								disabled={stageSaving}
-							>
-								<SelectTrigger className="w-[180px]">
-									<SelectValue
-										placeholder={stageT("jumpPlaceholder")}
-									/>
-								</SelectTrigger>
-								<SelectContent>
-									{stageOrder.map((stage) => (
-										<SelectItem key={stage} value={stage}>
-											{formatStageLabel(stage)}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
+					{/* Top controls simplified: keep last updated info only */}
+					<div className="flex items-center justify-end">
 						{lastUpdatedAt ? (
 							<span className="text-xs text-muted-foreground">
 								{stageT("lastUpdated", {
@@ -406,21 +396,77 @@ export function HackathonManagement({
 						) : null}
 					</div>
 					<div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-						{stageOrder.map((stage) => (
-							<div
-								key={stage}
-								className="rounded-lg border bg-muted/30 p-3"
-							>
-								<p className="text-sm font-medium">
-									{formatStageLabel(stage)}
-								</p>
-								<p className="mt-1 text-xs text-muted-foreground">
-									{stageT(
-										`descriptions.${stage.toLowerCase()}`,
+						{stageOrder.map((stage) => {
+							const isCurrent = stage === config.stage.current;
+							return (
+								<div
+									key={stage}
+									className={cn(
+										"group rounded-lg border p-3 transition-colors",
+										isCurrent
+											? "border-primary/60 bg-primary/10 ring-1 ring-primary/30"
+											: "bg-muted/30 hover:bg-muted/50",
 									)}
-								</p>
-							</div>
-						))}
+								>
+									<div className="flex items-center justify-between gap-2">
+										<div>
+											<p
+												className={cn(
+													"text-sm font-medium",
+													isCurrent && "text-primary",
+												)}
+											>
+												{formatStageLabel(stage)}
+											</p>
+											<p
+												className={cn(
+													"mt-1 text-xs text-muted-foreground",
+													isCurrent && "text-primary",
+												)}
+											>
+												{stageT(
+													`descriptions.${stage.toLowerCase()}`,
+												)}
+											</p>
+										</div>
+										{/* Controls on the right: Next on current; Set current on others */}
+										{isCurrent ? (
+											nextStage ? (
+												<Button
+													size="sm"
+													onClick={() =>
+														nextStage &&
+														updateStage(nextStage)
+													}
+													disabled={
+														!nextStage ||
+														stageSaving
+													}
+													className="shrink-0"
+												>
+													{stageSaving ? (
+														<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+													) : null}
+													{stageT("next")}
+												</Button>
+											) : null
+										) : (
+											<Button
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													updateStage(stage)
+												}
+												disabled={stageSaving}
+												className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity shrink-0"
+											>
+												{stageT("setCurrent")}
+											</Button>
+										)}
+									</div>
+								</div>
+							);
+						})}
 					</div>
 					{stageHistory.length ? (
 						<div className="space-y-2">
@@ -765,7 +811,7 @@ export function HackathonManagement({
 													/>
 												</div>
 												<div>
-													<Label>获奖人数</Label>
+													<Label>获奖数</Label>
 													<Input
 														type="number"
 														min="1"

@@ -1,0 +1,161 @@
+import type {
+	EventSubmission,
+	SubmissionFormValues,
+	SubmissionListResponse,
+	SubmissionVoteResponse,
+	VoteStatsSummary,
+	UserSearchResult,
+} from "./types";
+
+async function handleResponse<T>(response: Response): Promise<T> {
+	let payload: any = null;
+	try {
+		payload = await response.json();
+	} catch (error) {
+		// Ignore JSON parsing errors for non-JSON responses
+	}
+
+	if (!response.ok) {
+		const message =
+			payload?.error?.message ||
+			payload?.message ||
+			payload?.error ||
+			"Request failed";
+		throw new Error(message);
+	}
+
+	if (payload && "data" in payload) {
+		return payload.data as T;
+	}
+
+	return payload as T;
+}
+
+const jsonHeaders = {
+	"Content-Type": "application/json",
+};
+
+export async function getEventSubmissions(
+	eventId: string,
+	params?: { sort?: string; order?: "asc" | "desc"; includeVotes?: boolean },
+): Promise<SubmissionListResponse> {
+	const searchParams = new URLSearchParams();
+	if (params?.sort) {
+		searchParams.set("sort", params.sort);
+	}
+	if (params?.order) {
+		searchParams.set("order", params.order);
+	}
+	if (params?.includeVotes) {
+		searchParams.set("includeVotes", String(params.includeVotes));
+	}
+	const query = searchParams.toString();
+
+	const response = await fetch(
+		`/api/events/${eventId}/submissions${query ? `?${query}` : ""}`,
+		{
+			credentials: "include",
+		},
+	);
+	return handleResponse<SubmissionListResponse>(response);
+}
+
+export async function getSubmission(
+	submissionId: string,
+): Promise<EventSubmission> {
+	const response = await fetch(`/api/submissions/${submissionId}`, {
+		credentials: "include",
+	});
+	return handleResponse<EventSubmission>(response);
+}
+
+export async function createSubmission(
+	eventId: string,
+	payload: SubmissionFormValues,
+): Promise<EventSubmission> {
+	const response = await fetch(`/api/events/${eventId}/submissions`, {
+		method: "POST",
+		headers: jsonHeaders,
+		credentials: "include",
+		body: JSON.stringify(payload),
+	});
+	return handleResponse<EventSubmission>(response);
+}
+
+export async function updateSubmission(
+	submissionId: string,
+	payload: Partial<SubmissionFormValues>,
+): Promise<EventSubmission> {
+	const response = await fetch(`/api/submissions/${submissionId}`, {
+		method: "PATCH",
+		headers: jsonHeaders,
+		credentials: "include",
+		body: JSON.stringify(payload),
+	});
+	return handleResponse<EventSubmission>(response);
+}
+
+export async function deleteSubmission(submissionId: string): Promise<void> {
+	const response = await fetch(`/api/submissions/${submissionId}`, {
+		method: "DELETE",
+		credentials: "include",
+	});
+	await handleResponse(response);
+}
+
+export async function voteSubmission(
+	submissionId: string,
+): Promise<SubmissionVoteResponse> {
+	const response = await fetch(`/api/submissions/${submissionId}/vote`, {
+		method: "POST",
+		credentials: "include",
+	});
+	return handleResponse<SubmissionVoteResponse>(response);
+}
+
+export async function unvoteSubmission(
+	submissionId: string,
+): Promise<SubmissionVoteResponse> {
+	const response = await fetch(`/api/submissions/${submissionId}/vote`, {
+		method: "DELETE",
+		credentials: "include",
+	});
+	return handleResponse<SubmissionVoteResponse>(response);
+}
+
+export async function getVoteStats(eventId: string): Promise<VoteStatsSummary> {
+	const response = await fetch(`/api/events/${eventId}/votes/stats`, {
+		credentials: "include",
+	});
+	return handleResponse<VoteStatsSummary>(response);
+}
+
+export async function searchParticipants({
+	eventId,
+	query,
+	scope = "event",
+	excludeIds = [],
+}: {
+	eventId: string;
+	query: string;
+	scope?: "event" | "global";
+	excludeIds?: string[];
+}): Promise<UserSearchResult[]> {
+	const searchParams = new URLSearchParams();
+	searchParams.set("q", query);
+	searchParams.set("scope", scope);
+	if (excludeIds.length > 0) {
+		searchParams.set("excludeIds", excludeIds.join(","));
+	}
+
+	const response = await fetch(
+		`/api/events/${eventId}/participants/search?${searchParams.toString()}`,
+		{
+			credentials: "include",
+		},
+	);
+	const result = await handleResponse<{ users: UserSearchResult[] }>(
+		response,
+	);
+	return result.users;
+}

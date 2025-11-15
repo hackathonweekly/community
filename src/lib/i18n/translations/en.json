@@ -843,6 +843,37 @@
 			"freedom": "Freedom",
 			"love": "Love",
 			"title": "Core Values"
+		},
+		"events": {
+			"hackathonManagement": {
+				"stage": {
+					"currentStageLabel": "Current Stage: {stage}",
+					"title": "Stage Management",
+					"description": "Manage hackathon stage transitions",
+					"previous": "Previous Stage",
+					"next": "Next Stage",
+					"jumpLabel": "Jump to Stage",
+					"jumpPlaceholder": "Select stage",
+					"lastUpdated": "Last updated: {time}",
+					"updateSuccess": "Stage updated to: {stage}",
+					"updateFailed": "Failed to update stage",
+					"historyTitle": "Stage Change History",
+					"historyUnknownTime": "Unknown time",
+					"historyBy": "Changed by: {user}",
+					"setCurrent": "Set as current",
+					"descriptions": {
+						"registration": "Participants can register for the hackathon",
+						"development": "Teams start developing their projects",
+						"submission": "Teams submit their final projects",
+						"voting": "Judges and public vote for projects",
+						"results": "Winners are announced"
+					}
+				},
+				"toasts": {
+					"saveSuccess": "Configuration saved",
+					"saveFailed": "Failed to save configuration"
+				}
+			}
 		}
 	},
 	"documentation": {
@@ -904,6 +935,27 @@
 				"noResources": "No resources available"
 			},
 			"awards": {
+				"title": "Awards & Prizes",
+				"description": "Explore the award categories and recognition for this hackathon",
+				"categories": "Award Categories",
+				"judgeAward": "Judges' Award",
+				"publicAward": "People's Choice",
+				"winner": "winner",
+				"winners": "winners",
+				"currentWinners": "Current Winners",
+				"noWinnersYet": "Winners will be announced after judging",
+				"judgeAwards": "Judged Awards",
+				"judgeAwardsDesc": "Selected by the judging panel based on criteria",
+				"publicAwards": "Public Awards",
+				"publicAwardsDesc": "Voted by the community",
+				"recognition": "Recognition Levels",
+				"recognitionDesc": "Gold, Silver and Bronze distinctions highlight excellence",
+				"first": "First Prize",
+				"firstDesc": "Top recognition for outstanding projects",
+				"second": "Second Prize",
+				"secondDesc": "Recognizing excellent work",
+				"third": "Third Prize",
+				"thirdDesc": "Honoring promising projects",
 				"noAwards": "No awards available",
 				"noAwardsDesc": "No awards have been configured for this hackathon"
 			},
@@ -935,6 +987,7 @@
 			"features": {
 				"title": "Hackathon Features",
 				"teamwork": "Team Collaboration",
+				"soloOrTeam": "Solo or team participation supported, up to {max} members per team",
 				"teamOnly": "Team Only",
 				"learning": "Learning Opportunities",
 				"learningDesc": "Learn and exchange with other developers to improve technical skills",
@@ -948,6 +1001,9 @@
 				"joinToParticipate": "Join the hackathon and showcase your creativity",
 				"register": "Register Now",
 				"stageClosed": "Registration is closed during this stage."
+			},
+			"actions": {
+				"submitProject": "Submit My Project"
 			}
 		},
 		"addressTBD": "Address TBD",

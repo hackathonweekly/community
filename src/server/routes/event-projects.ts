@@ -1,521 +1,443 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { db } from "@/lib/database/prisma";
-import { auth } from "@/lib/auth/auth";
+import type { Prisma } from "@prisma/client";
 import { HTTPException } from "hono/http-exception";
+import { auth } from "@/lib/auth/auth";
+import { db } from "@/lib/database/prisma";
 import { withHackathonConfigDefaults } from "@/features/hackathon/config";
+import { config } from "@/config";
 import type { HackathonStage } from "@/features/hackathon/config";
 
+const ACTIVE_REGISTRATION_STATUSES = ["APPROVED", "PENDING"] as const;
+const PUBLIC_SUBMISSION_STATUSES = [
+	"SUBMITTED",
+	"UNDER_REVIEW",
+	"APPROVED",
+	"AWARDED",
+] as const;
+const MAX_TEAM_MEMBERS = 10;
+const MAX_VOTES_PER_USER = 3;
+const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE ?? 209_715_200);
+
+const attachmentSchema = z.object({
+	id: z.string().optional(),
+	fileName: z.string().min(1).max(255),
+	fileUrl: z.string().url(),
+	fileType: z.string().min(1),
+	mimeType: z.string().min(1).max(255).optional(),
+	fileSize: z.number().int().min(0).max(MAX_FILE_SIZE),
+	order: z.number().int().min(0).optional(),
+});
+
+type AttachmentInput = z.infer<typeof attachmentSchema>;
+
+const baseSubmissionSchema = z.object({
+	name: z.string().min(1).max(50),
+	tagline: z.string().min(10).max(100),
+	description: z
+		.string()
+		.max(5000)
+		.optional()
+		.or(z.literal(""))
+		.transform((value) => sanitizeOptionalString(value)),
+	demoUrl: z
+		.string()
+		.url()
+		.optional()
+		.or(z.literal(""))
+		.transform((value) => sanitizeOptionalString(value)),
+	teamLeaderId: z.string().optional(),
+	teamMemberIds: z
+		.array(z.string())
+		.max(MAX_TEAM_MEMBERS)
+		.optional()
+		.refine((ids) => !ids || new Set(ids).size === ids.length, {
+			message: "Duplicate team member ids are not allowed",
+		}),
+	attachments: z.array(attachmentSchema).optional(),
+	communityUseAuthorization: z.boolean(),
+	customFields: z.record(z.any()).optional(),
+});
+
+const createSubmissionSchema = baseSubmissionSchema;
+const updateSubmissionSchema = baseSubmissionSchema.partial();
+
+const userSummarySelect = {
+	id: true,
+	name: true,
+	image: true,
+	username: true,
+	email: true,
+	bio: true,
+	userRoleString: true,
+};
+
+const submissionInclude = {
+	project: {
+		include: {
+			attachments: {
+				orderBy: { order: "asc" },
+			},
+			members: {
+				include: {
+					user: {
+						select: userSummarySelect,
+					},
+				},
+			},
+			user: {
+				select: userSummarySelect,
+			},
+			_count: {
+				select: {
+					votes: true,
+					members: true,
+				},
+			},
+		},
+	},
+	user: {
+		select: {
+			id: true,
+			name: true,
+			image: true,
+			username: true,
+		},
+	},
+	event: {
+		select: {
+			id: true,
+			title: true,
+			startTime: true,
+			endTime: true,
+			organizerId: true,
+			organizationId: true,
+			type: true,
+			hackathonConfig: true,
+			projectSubmissionDeadline: true,
+		},
+	},
+	reviewer: {
+		select: {
+			id: true,
+			name: true,
+			image: true,
+		},
+	},
+	awards: {
+		include: {
+			award: true,
+		},
+	},
+};
+
+type SubmissionWithRelations = Prisma.EventProjectSubmissionGetPayload<{
+	include: typeof submissionInclude;
+}>;
+
 const app = new Hono()
-	// 获取活动的作品提交列表
+	// Public submissions listing
 	.get("/events/:eventId/submissions", async (c) => {
 		const eventId = c.req.param("eventId");
+		const sort = (c.req.query("sort") || "voteCount").toLowerCase();
+		const order = c.req.query("order") === "asc" ? "asc" : "desc";
+		const session = await getSession(c);
 
-		try {
-			const submissions = await db.eventProjectSubmission.findMany({
-				where: { eventId },
-				include: {
-					project: {
-						select: {
-							id: true,
-							title: true,
-							description: true,
-							projectTags: true,
-							url: true,
-							demoVideoUrl: true,
-							stage: true,
-							screenshots: true,
-							// Hackathon specific fields
-							githubUrl: true,
-							slidesUrl: true,
-							inspiration: true,
-							challenges: true,
-							learnings: true,
-							nextSteps: true,
-						},
-					},
-					user: {
-						select: {
-							id: true,
-							name: true,
-							image: true,
-							username: true,
-						},
-					},
-					reviewer: {
-						select: {
-							id: true,
-							name: true,
-							image: true,
-						},
-					},
-					awards: {
-						include: {
-							award: {
-								select: {
-									id: true,
-									name: true,
-									description: true,
-									iconUrl: true,
-									badgeUrl: true,
-									level: true,
-									category: true,
-								},
-							},
-						},
-					},
+		const submissions = await db.eventProjectSubmission.findMany({
+			where: {
+				eventId,
+				status: {
+					in: PUBLIC_SUBMISSION_STATUSES,
 				},
-				orderBy: [{ submittedAt: "desc" }, { finalScore: "desc" }],
-			});
+			},
+			include: submissionInclude,
+		});
 
-			return c.json({
-				success: true,
-				data: submissions,
+		const sorted = sortSubmissions(submissions, sort, order);
+		const map = new Map(
+			sorted.map((submission) => [submission.projectId, submission.id]),
+		);
+
+		let userVotes: string[] = [];
+		let remainingVotes: number | null = null;
+
+		if (session) {
+			const votes = await db.projectVote.findMany({
+				where: {
+					eventId,
+					userId: session.user.id,
+				},
+				select: {
+					projectId: true,
+				},
 			});
-		} catch (error) {
-			console.error("Error fetching event submissions:", error);
-			throw new HTTPException(500, {
-				message: "Failed to fetch event submissions",
-			});
+			userVotes = votes
+				.map((vote) => map.get(vote.projectId))
+				.filter((value): value is string => Boolean(value));
+			remainingVotes = Math.max(0, MAX_VOTES_PER_USER - votes.length);
 		}
+
+		const payload = sorted.map((submission, index) =>
+			serializeSubmission(submission, {
+				rank:
+					sort === "votecount"
+						? order === "asc"
+							? index + 1
+							: index + 1
+						: undefined,
+			}),
+		);
+
+		return c.json({
+			success: true,
+			data: {
+				submissions: payload,
+				total: payload.length,
+				userVotes,
+				remainingVotes,
+			},
+		});
 	})
 
-	// 获取单个作品提交详情
+	// Public submission detail
 	.get("/submissions/:submissionId", async (c) => {
 		const submissionId = c.req.param("submissionId");
+		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+		return c.json({
+			success: true,
+			data: serializeSubmission(submission),
+		});
+	})
 
-		try {
-			const submission = await db.eventProjectSubmission.findUnique({
-				where: { id: submissionId },
-				include: {
-					project: true,
-					user: {
-						select: {
-							id: true,
-							name: true,
-							image: true,
-							username: true,
-							email: true,
-						},
-					},
-					event: {
-						select: {
-							id: true,
-							title: true,
-							type: true,
-							startTime: true,
-							endTime: true,
-						},
-					},
-					reviewer: {
-						select: {
-							id: true,
-							name: true,
-							image: true,
-						},
-					},
-					awards: {
-						include: {
-							award: true,
-						},
-					},
+	// Create submission (new workflow)
+	.post(
+		"/events/:eventId/submissions",
+		zValidator("json", createSubmissionSchema),
+		async (c) => {
+			const session = await requireSession(c);
+			const eventId = c.req.param("eventId");
+			const payload = c.req.valid("json");
+
+			const event = await db.event.findUnique({
+				where: { id: eventId },
+				select: {
+					id: true,
+					type: true,
+					organizerId: true,
+					organizationId: true,
+					projectSubmissionDeadline: true,
+					endTime: true,
+					hackathonConfig: true,
 				},
 			});
 
-			if (!submission) {
-				throw new HTTPException(404, {
-					message: "Project submission not found",
+			if (!event) {
+				throw new HTTPException(404, { message: "Event not found" });
+			}
+
+			await ensureParticipant(eventId, session.user.id);
+
+			const leaderId = payload.teamLeaderId || session.user.id;
+			await ensureParticipant(eventId, leaderId);
+
+			if (
+				event.projectSubmissionDeadline &&
+				new Date() > event.projectSubmissionDeadline
+			) {
+				throw new HTTPException(400, {
+					message: "Project submission deadline has passed",
 				});
 			}
 
-			return c.json({
-				success: true,
-				data: submission,
-			});
-		} catch (error) {
-			console.error("Error fetching submission:", error);
-			if (error instanceof HTTPException) {
-				throw error;
-			}
-			throw new HTTPException(500, {
-				message: "Failed to fetch submission",
-			});
-		}
-	})
-
-	// 提交作品到活动
-	.post(
-		"/events/:eventId/submit-project",
-		zValidator(
-			"json",
-			z.object({
-				projectId: z.string().min(1, "Project ID is required"),
-				submissionType: z.enum([
-					"HACKATHON_PROJECT",
-					"DEMO_PROJECT",
-					"BUILDING_PROJECT",
-				]),
-				title: z
-					.string()
-					.min(1, "Submission title is required")
-					.max(255),
-				description: z.string().min(1, "Description is required"),
-				demoUrl: z.string().url().optional(),
-				sourceCode: z.string().url().optional(),
-				presentationUrl: z.string().url().optional(),
-				// Team members for hackathon projects
-				teamMemberIds: z.array(z.string()).optional(),
-			}),
-		),
-		async (c) => {
-			const session = await auth.api.getSession({
-				headers: c.req.raw.headers,
-			});
-			if (!session) {
-				throw new HTTPException(401, {
-					message: "Authentication required",
-				});
+			if (event.type === "HACKATHON") {
+				const hackathonConfig = withHackathonConfigDefaults(
+					event.hackathonConfig as any,
+				);
+				const allowed: HackathonStage[] = ["DEVELOPMENT", "SUBMISSION"];
+				if (!allowed.includes(hackathonConfig.stage.current)) {
+					throw new HTTPException(400, {
+						message:
+							"Project submissions are not open at this stage",
+					});
+				}
 			}
 
-			const eventId = c.req.param("eventId");
-			const data = c.req.valid("json");
+			const sanitizedMembers = sanitizeMemberIds(
+				payload.teamMemberIds || [],
+				leaderId,
+			);
+			await ensureUsersExist(sanitizedMembers);
 
-			try {
-				// 检查活动是否存在
-				const event = await db.event.findUnique({
-					where: { id: eventId },
-					select: {
-						id: true,
-						title: true,
-						type: true,
-						startTime: true,
-						endTime: true,
-						requireProjectSubmission: true,
-						projectSubmissionDeadline: true,
-						hackathonConfig: true,
+			const submissionId = await db.$transaction(async (tx) => {
+				const project = await tx.project.create({
+					data: {
+						userId: leaderId,
+						title: payload.name,
+						subtitle: payload.tagline,
+						tagline: payload.tagline,
+						description: payload.description,
+						url: payload.demoUrl,
+						communityUseAuth: payload.communityUseAuthorization,
+						customFields: payload.customFields,
+						isSubmission: true,
+						submittedAt: new Date(),
 					},
 				});
 
-				if (!event) {
-					throw new HTTPException(404, {
-						message: "Event not found",
-					});
-				}
-
-				if (event.type === "HACKATHON") {
-					const hackathonConfig = withHackathonConfigDefaults(
-						event.hackathonConfig as any,
+				if (payload.attachments && payload.attachments.length > 0) {
+					await replaceAttachments(
+						tx,
+						project.id,
+						payload.attachments,
 					);
-					const submissionStages: HackathonStage[] = [
-						"DEVELOPMENT",
-						"SUBMISSION",
-					];
-					if (
-						!submissionStages.includes(
-							hackathonConfig.stage.current,
-						)
-					) {
-						throw new HTTPException(400, {
-							message:
-								"Project submissions are not open at this stage",
-						});
-					}
 				}
 
-				// 检查是否在提交截止时间内
-				if (
-					event.projectSubmissionDeadline &&
-					new Date() > event.projectSubmissionDeadline
-				) {
-					throw new HTTPException(400, {
-						message: "Project submission deadline has passed",
-					});
-				}
-
-				// 检查作品是否存在且用户有权限
-				const project = await db.project.findUnique({
-					where: { id: data.projectId },
+				await syncProjectMembers(tx, {
+					projectId: project.id,
+					leaderId,
+					memberIds: sanitizedMembers,
 				});
 
-				if (!project) {
-					throw new HTTPException(404, {
-						message: "Project not found",
-					});
-				}
-
-				// 检查用户是否是作品创建者或团队成员
-				const isOwner = project.userId === session.user.id;
-				let isTeamMember = false;
-
-				if (!isOwner) {
-					const membership = await db.projectMember.findUnique({
-						where: {
-							projectId_userId: {
-								projectId: data.projectId,
-								userId: session.user.id,
-							},
-						},
-					});
-					isTeamMember = Boolean(membership);
-				}
-
-				if (!isOwner && !isTeamMember) {
-					throw new HTTPException(403, {
-						message:
-							"You don't have permission to submit this project",
-					});
-				}
-
-				// 检查是否已经提交过
-				const existingSubmission =
-					await db.eventProjectSubmission.findUnique({
-						where: {
-							eventId_projectId: {
-								eventId,
-								projectId: data.projectId,
-							},
-						},
-					});
-
-				if (existingSubmission) {
-					throw new HTTPException(400, {
-						message:
-							"Project has already been submitted to this event",
-					});
-				}
-
-				// 创建作品快照
-				const projectSnapshot = {
-					id: project.id,
-					title: project.title,
-					description: project.description,
-					techStack: project.projectTags,
-					repoUrl: project.url,
-					demoUrl: project.demoVideoUrl,
-					status: project.stage,
-					stage: project.stage,
-					coverImage: project.screenshots?.[0],
-					createdAt: project.createdAt,
-					updatedAt: project.updatedAt,
-					submittedAt: new Date(),
-				};
-
-				// 创建提交记录
-				const submission = await db.eventProjectSubmission.create({
+				const submission = await tx.eventProjectSubmission.create({
 					data: {
 						eventId,
-						projectId: data.projectId,
+						projectId: project.id,
 						userId: session.user.id,
-						submissionType: data.submissionType,
-						title: data.title,
-						description: data.description,
-						demoUrl: data.demoUrl,
-						sourceCode: data.sourceCode,
-						presentationUrl: data.presentationUrl,
-						projectSnapshot,
+						submissionType:
+							event.type === "HACKATHON"
+								? "HACKATHON_PROJECT"
+								: "DEMO_PROJECT",
+						title: payload.name,
+						description: payload.description || "",
+						demoUrl: payload.demoUrl,
+						projectSnapshot: buildProjectSnapshot(project),
 						status: "SUBMITTED",
 					},
-					include: {
-						project: {
-							select: {
-								id: true,
-								title: true,
-								description: true,
-								screenshots: true,
-							},
-						},
-						event: {
-							select: {
-								id: true,
-								title: true,
-								type: true,
-							},
-						},
-					},
 				});
 
-				// 如果是黑客松项目且有团队成员，添加团队成员
-				if (
-					data.submissionType === "HACKATHON_PROJECT" &&
-					data.teamMemberIds
-				) {
-					const validTeamMembers = [];
-
-					for (const memberId of data.teamMemberIds) {
-						// 检查用户是否存在
-						const member = await db.user.findUnique({
-							where: { id: memberId },
-							select: { id: true, name: true },
-						});
-
-						if (member) {
-							// 检查用户是否已经是团队成员
-							const existingMember =
-								await db.projectMember.findUnique({
-									where: {
-										projectId_userId: {
-											projectId: data.projectId,
-											userId: memberId,
-										},
-									},
-								});
-
-							if (!existingMember) {
-								await db.projectMember.create({
-									data: {
-										projectId: data.projectId,
-										userId: memberId,
-										role: "MEMBER",
-									},
-								});
-								validTeamMembers.push(member);
-							}
-						}
-					}
-				}
-
-				return c.json(
-					{
-						success: true,
-						data: submission,
-						message: "Project submitted successfully",
-					},
-					201,
-				);
-			} catch (error) {
-				console.error("Error submitting project:", error);
-				if (error instanceof HTTPException) {
-					throw error;
-				}
-				throw new HTTPException(500, {
-					message: "Failed to submit project",
-				});
-			}
-		},
-	)
-
-	// 更新作品提交
-	.put(
-		"/submissions/:submissionId",
-		zValidator(
-			"json",
-			z.object({
-				title: z.string().min(1).max(255).optional(),
-				description: z.string().min(1).optional(),
-				demoUrl: z.string().url().optional(),
-				sourceCode: z.string().url().optional(),
-				presentationUrl: z.string().url().optional(),
-			}),
-		),
-		async (c) => {
-			const session = await auth.api.getSession({
-				headers: c.req.raw.headers,
+				return submission.id;
 			});
-			if (!session) {
-				throw new HTTPException(401, {
-					message: "Authentication required",
-				});
-			}
 
-			const submissionId = c.req.param("submissionId");
-			const data = c.req.valid("json");
+			const submission = await fetchSubmissionByIdOrThrow(submissionId);
 
-			try {
-				// 检查提交记录是否存在
-				const existingSubmission =
-					await db.eventProjectSubmission.findUnique({
-						where: { id: submissionId },
-						include: {
-							event: {
-								select: {
-									projectSubmissionDeadline: true,
-								},
-							},
-						},
-					});
-
-				if (!existingSubmission) {
-					throw new HTTPException(404, {
-						message: "Submission not found",
-					});
-				}
-
-				// 检查用户权限
-				if (existingSubmission.userId !== session.user.id) {
-					throw new HTTPException(403, {
-						message:
-							"You don't have permission to update this submission",
-					});
-				}
-
-				// 检查是否在截止时间内
-				if (
-					existingSubmission.event.projectSubmissionDeadline &&
-					new Date() >
-						existingSubmission.event.projectSubmissionDeadline
-				) {
-					throw new HTTPException(400, {
-						message: "Project submission deadline has passed",
-					});
-				}
-
-				// 检查状态是否允许修改
-				if (
-					existingSubmission.status === "APPROVED" ||
-					existingSubmission.status === "AWARDED"
-				) {
-					throw new HTTPException(400, {
-						message:
-							"Cannot update submission that has been approved or awarded",
-					});
-				}
-
-				// 更新提交记录
-				const updatedSubmission =
-					await db.eventProjectSubmission.update({
-						where: { id: submissionId },
-						data: {
-							...data,
-							status: "SUBMITTED", // 重新提交状态
-						},
-						include: {
-							project: {
-								select: {
-									id: true,
-									title: true,
-									description: true,
-									screenshots: true,
-								},
-							},
-							event: {
-								select: {
-									id: true,
-									title: true,
-									type: true,
-								},
-							},
-						},
-					});
-
-				return c.json({
+			return c.json(
+				{
 					success: true,
-					data: updatedSubmission,
-					message: "Submission updated successfully",
-				});
-			} catch (error) {
-				console.error("Error updating submission:", error);
-				if (error instanceof HTTPException) {
-					throw error;
-				}
-				throw new HTTPException(500, {
-					message: "Failed to update submission",
-				});
-			}
+					data: serializeSubmission(submission),
+				},
+				201,
+			);
 		},
 	)
 
-	// 审核作品提交 (仅活动组织者或管理员)
+	// Update submission (new workflow)
+	.patch(
+		"/submissions/:submissionId",
+		zValidator("json", updateSubmissionSchema),
+		async (c) => {
+			const session = await requireSession(c);
+			const submissionId = c.req.param("submissionId");
+			const payload = c.req.valid("json");
+
+			const submission = await fetchSubmissionByIdOrThrow(submissionId);
+			const canManage = await canManageSubmission(
+				submission,
+				session.user.id,
+			);
+
+			if (!canManage) {
+				throw new HTTPException(403, {
+					message:
+						"You don't have permission to update this submission",
+				});
+			}
+
+			const nextLeaderId =
+				payload.teamLeaderId || submission.project.userId;
+			if (
+				payload.teamLeaderId &&
+				payload.teamLeaderId !== submission.project.userId
+			) {
+				await ensureParticipant(submission.eventId, nextLeaderId);
+			}
+
+			const memberIds =
+				payload.teamMemberIds !== undefined
+					? sanitizeMemberIds(payload.teamMemberIds, nextLeaderId)
+					: getExistingMemberIds(submission);
+			await ensureUsersExist(memberIds);
+
+			await db.$transaction(async (tx) => {
+				const projectData: Prisma.ProjectUpdateInput = {};
+				if (payload.name) {
+					projectData.title = payload.name;
+				}
+				if (payload.tagline) {
+					projectData.tagline = payload.tagline;
+					projectData.subtitle = payload.tagline;
+				}
+				if (payload.description !== undefined) {
+					projectData.description = payload.description;
+				}
+				if (payload.demoUrl !== undefined) {
+					projectData.url = payload.demoUrl;
+				}
+				if (payload.communityUseAuthorization !== undefined) {
+					projectData.communityUseAuth =
+						payload.communityUseAuthorization;
+				}
+				if (payload.customFields !== undefined) {
+					projectData.customFields = payload.customFields;
+				}
+				if (payload.teamLeaderId) {
+					projectData.userId = nextLeaderId;
+				}
+
+				if (Object.keys(projectData).length > 0) {
+					await tx.project.update({
+						where: { id: submission.projectId },
+						data: projectData,
+					});
+				}
+
+				if (payload.attachments !== undefined) {
+					await replaceAttachments(
+						tx,
+						submission.projectId,
+						payload.attachments,
+					);
+				}
+
+				await syncProjectMembers(tx, {
+					projectId: submission.projectId,
+					leaderId: nextLeaderId,
+					memberIds,
+				});
+
+				await tx.eventProjectSubmission.update({
+					where: { id: submissionId },
+					data: {
+						title: payload.name || submission.project.title,
+						description:
+							payload.description ??
+							submission.project.description ??
+							"",
+						demoUrl: payload.demoUrl ?? submission.project.url,
+						status: "SUBMITTED",
+					},
+				});
+			});
+
+			const updated = await fetchSubmissionByIdOrThrow(submissionId);
+			return c.json({
+				success: true,
+				data: serializeSubmission(updated),
+			});
+		},
+	)
+
+	// Legacy review endpoint (organizers/admins)
 	.put(
 		"/submissions/:submissionId/review",
 		zValidator(
@@ -527,196 +449,658 @@ const app = new Hono()
 			}),
 		),
 		async (c) => {
-			const session = await auth.api.getSession({
-				headers: c.req.raw.headers,
-			});
-			if (!session) {
-				throw new HTTPException(401, {
-					message: "Authentication required",
-				});
-			}
-
+			const session = await requireSession(c);
 			const submissionId = c.req.param("submissionId");
-			const data = c.req.valid("json");
+			const payload = c.req.valid("json");
+			const submission = await fetchSubmissionByIdOrThrow(submissionId);
 
-			try {
-				// 检查提交记录和权限
-				const submission = await db.eventProjectSubmission.findUnique({
-					where: { id: submissionId },
-					include: {
-						event: {
-							select: {
-								id: true,
-								organizerId: true,
-								organizationId: true,
-							},
-						},
-					},
-				});
+			const hasPermission = await canAdministerEvent(
+				submission.event,
+				session.user.id,
+			);
 
-				if (!submission) {
-					throw new HTTPException(404, {
-						message: "Submission not found",
-					});
-				}
-
-				// 检查用户权限：活动组织者或组织管理员
-				let hasPermission =
-					submission.event.organizerId === session.user.id;
-
-				if (!hasPermission && submission.event.organizationId) {
-					const membership = await db.member.findUnique({
-						where: {
-							organizationId_userId: {
-								organizationId: submission.event.organizationId,
-								userId: session.user.id,
-							},
-						},
-					});
-					hasPermission = Boolean(
-						membership &&
-							(membership.role === "owner" ||
-								membership.role === "admin"),
-					);
-				}
-
-				if (!hasPermission) {
-					throw new HTTPException(403, {
-						message:
-							"You don't have permission to review this submission",
-					});
-				}
-
-				// 更新审核状态
-				const reviewedSubmission =
-					await db.eventProjectSubmission.update({
-						where: { id: submissionId },
-						data: {
-							status: data.status,
-							reviewNote: data.reviewNote,
-							judgeScore: data.judgeScore,
-							reviewedAt: new Date(),
-							reviewedBy: session.user.id,
-						},
-						include: {
-							project: {
-								select: {
-									id: true,
-									title: true,
-									description: true,
-									screenshots: true,
-								},
-							},
-							user: {
-								select: {
-									id: true,
-									name: true,
-									image: true,
-									username: true,
-								},
-							},
-							event: {
-								select: {
-									id: true,
-									title: true,
-									type: true,
-								},
-							},
-						},
-					});
-
-				return c.json({
-					success: true,
-					data: reviewedSubmission,
-					message: `Submission ${data.status.toLowerCase()} successfully`,
-				});
-			} catch (error) {
-				console.error("Error reviewing submission:", error);
-				if (error instanceof HTTPException) {
-					throw error;
-				}
-				throw new HTTPException(500, {
-					message: "Failed to review submission",
-				});
-			}
-		},
-	)
-
-	// 删除作品提交
-	.delete("/submissions/:submissionId", async (c) => {
-		const session = await auth.api.getSession({
-			headers: c.req.raw.headers,
-		});
-		if (!session) {
-			throw new HTTPException(401, {
-				message: "Authentication required",
-			});
-		}
-
-		const submissionId = c.req.param("submissionId");
-
-		try {
-			// 检查提交记录是否存在
-			const submission = await db.eventProjectSubmission.findUnique({
-				where: { id: submissionId },
-				include: {
-					event: {
-						select: {
-							organizerId: true,
-							projectSubmissionDeadline: true,
-						},
-					},
-				},
-			});
-
-			if (!submission) {
-				throw new HTTPException(404, {
-					message: "Submission not found",
-				});
-			}
-
-			// 检查权限：提交者或活动组织者
-			const canDelete =
-				submission.userId === session.user.id ||
-				submission.event.organizerId === session.user.id;
-
-			if (!canDelete) {
+			if (!hasPermission) {
 				throw new HTTPException(403, {
 					message:
-						"You don't have permission to delete this submission",
+						"You don't have permission to review this submission",
 				});
 			}
 
-			// 检查是否已被评分或获奖，如果是则不允许删除
-			if (
-				submission.status === "AWARDED" ||
-				submission.judgeScore ||
-				submission.finalScore
-			) {
-				throw new HTTPException(400, {
-					message:
-						"Cannot delete submission that has been scored or awarded",
-				});
-			}
-
-			// 删除提交记录
-			await db.eventProjectSubmission.delete({
+			const reviewed = await db.eventProjectSubmission.update({
 				where: { id: submissionId },
+				data: {
+					status: payload.status,
+					reviewNote: payload.reviewNote,
+					judgeScore: payload.judgeScore,
+					reviewedAt: new Date(),
+					reviewedBy: session.user.id,
+				},
+				include: submissionInclude,
 			});
 
 			return c.json({
 				success: true,
-				message: "Submission deleted successfully",
+				data: serializeSubmission(reviewed),
+				message: `Submission ${payload.status.toLowerCase()} successfully`,
 			});
-		} catch (error) {
-			console.error("Error deleting submission:", error);
-			if (error instanceof HTTPException) {
-				throw error;
-			}
-			throw new HTTPException(500, {
-				message: "Failed to delete submission",
+		},
+	)
+
+	// Delete submission
+	.delete("/submissions/:submissionId", async (c) => {
+		const session = await requireSession(c);
+		const submissionId = c.req.param("submissionId");
+		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+		const canManage = await canManageSubmission(
+			submission,
+			session.user.id,
+		);
+
+		if (!canManage) {
+			throw new HTTPException(403, {
+				message: "You don't have permission to delete this submission",
 			});
 		}
+
+		await db.$transaction(async (tx) => {
+			await tx.eventProjectSubmission.delete({
+				where: { id: submissionId },
+			});
+			await tx.project.delete({ where: { id: submission.projectId } });
+		});
+
+		return c.json({
+			success: true,
+			message: "Submission deleted successfully",
+		});
+	})
+
+	// Voting endpoints
+	.post("/submissions/:submissionId/vote", async (c) => {
+		const session = await requireSession(c);
+		const submissionId = c.req.param("submissionId");
+		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+
+		const voteResult = await castVote(submission, session.user.id);
+		if (voteResult.error) {
+			return c.json(voteResult, voteResult.status);
+		}
+
+		return c.json({
+			success: true,
+			voteCount: voteResult.voteCount,
+			remainingVotes: voteResult.remainingVotes,
+		});
+	})
+
+	.delete("/submissions/:submissionId/vote", async (c) => {
+		const session = await requireSession(c);
+		const submissionId = c.req.param("submissionId");
+		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+
+		const revokeResult = await revokeVote(submission, session.user.id);
+		if (revokeResult.error) {
+			return c.json(revokeResult, revokeResult.status);
+		}
+
+		return c.json({
+			success: true,
+			voteCount: revokeResult.voteCount,
+			remainingVotes: revokeResult.remainingVotes,
+		});
+	})
+
+	// Voting stats
+	.get("/events/:eventId/votes/stats", async (c) => {
+		const eventId = c.req.param("eventId");
+
+		const [totalVotes, totalParticipants, voterIds, submissions] =
+			await Promise.all([
+				db.projectVote.count({ where: { eventId } }),
+				db.eventRegistration.count({
+					where: {
+						eventId,
+						status: { in: ACTIVE_REGISTRATION_STATUSES },
+					},
+				}),
+				db.projectVote.findMany({
+					where: { eventId },
+					select: { userId: true },
+					distinct: ["userId"],
+				}),
+				db.eventProjectSubmission.findMany({
+					where: {
+						eventId,
+						status: { in: PUBLIC_SUBMISSION_STATUSES },
+					},
+					include: submissionInclude,
+				}),
+			]);
+
+		const sorted = sortSubmissions(submissions, "voteCount", "desc");
+		const topSubmissions = sorted.slice(0, 10).map((submission, index) => ({
+			id: submission.id,
+			projectId: submission.projectId,
+			name: submission.project.title,
+			voteCount: submission.project._count.votes,
+			rank: index + 1,
+		}));
+
+		return c.json({
+			success: true,
+			data: {
+				totalVotes,
+				totalParticipants,
+				votedParticipants: voterIds.length,
+				topSubmissions,
+			},
+		});
+	})
+
+	// Participant search (team builder)
+	.get("/events/:eventId/participants/search", async (c) => {
+		const session = await requireSession(c);
+		const eventId = c.req.param("eventId");
+		const query = (c.req.query("q") || "").trim();
+		const scope = (c.req.query("scope") || "event").toLowerCase();
+		const exclude = parseExcludeIds(c.req.query("excludeIds"));
+
+		if (!query) {
+			return c.json(
+				{
+					success: true,
+					data: { users: [] },
+				},
+				200,
+			);
+		}
+
+		let users;
+		if (scope === "global") {
+			users = await db.user.findMany({
+				where: {
+					id: { notIn: exclude },
+					OR: buildUserSearchFilters(query),
+				},
+				select: userSummarySelect,
+				orderBy: { name: "asc" },
+				ake: 20,
+			});
+		} else {
+			const registrations = await db.eventRegistration.findMany({
+				where: {
+					eventId,
+					status: { in: ACTIVE_REGISTRATION_STATUSES },
+					user: {
+						OR: buildUserSearchFilters(query),
+						id: { notIn: exclude },
+					},
+				},
+				select: {
+					user: {
+						select: userSummarySelect,
+					},
+				},
+				orderBy: { registeredAt: "asc" },
+				take: 20,
+			});
+			users = registrations.map((registration) => registration.user);
+		}
+
+		return c.json({
+			success: true,
+			data: {
+				users: users.map((user) => ({
+					...user,
+					isParticipant: scope !== "global",
+				})),
+			},
+		});
 	});
 
 export default app;
+
+function sanitizeOptionalString(value?: string | null) {
+	if (!value) return undefined;
+	const trimmed = value.trim();
+	return trimmed.length > 0 ? trimmed : undefined;
+}
+
+async function getSession(c: any) {
+	try {
+		return await auth.api.getSession({
+			headers: c.req.raw.headers,
+		});
+	} catch (error) {
+		return null;
+	}
+}
+
+async function requireSession(c: any) {
+	const session = await getSession(c);
+	if (!session) {
+		throw new HTTPException(401, { message: "Authentication required" });
+	}
+	return session;
+}
+
+async function ensureParticipant(eventId: string, userId: string) {
+	const registration = await db.eventRegistration.findUnique({
+		where: {
+			eventId_userId: {
+				eventId,
+				userId,
+			},
+		},
+	});
+	if (
+		!registration ||
+		!ACTIVE_REGISTRATION_STATUSES.includes(registration.status as any)
+	) {
+		throw new HTTPException(403, {
+			message: "You must register for this event before submitting",
+		});
+	}
+	return registration;
+}
+
+function sanitizeMemberIds(ids: string[], leaderId: string) {
+	return Array.from(new Set(ids.filter((id) => id !== leaderId)));
+}
+
+async function ensureUsersExist(userIds: string[]) {
+	if (userIds.length === 0) return;
+	const count = await db.user.count({
+		where: {
+			id: { in: userIds },
+		},
+	});
+	if (count !== userIds.length) {
+		throw new HTTPException(400, {
+			message: "One or more team members do not exist",
+		});
+	}
+}
+
+async function syncProjectMembers(
+	tx: Prisma.TransactionClient,
+	params: { projectId: string; leaderId: string; memberIds: string[] },
+) {
+	await tx.projectMember.deleteMany({
+		where: { projectId: params.projectId },
+	});
+	const data = [
+		{
+			projectId: params.projectId,
+			userId: params.leaderId,
+			role: "LEADER",
+		},
+		...params.memberIds.map((userId) => ({
+			projectId: params.projectId,
+			userId,
+			role: "MEMBER",
+		})),
+	];
+	if (data.length > 0) {
+		await tx.projectMember.createMany({ data, skipDuplicates: true });
+	}
+}
+
+async function replaceAttachments(
+	tx: Prisma.TransactionClient,
+	projectId: string,
+	attachments: AttachmentInput[] = [],
+) {
+	await tx.projectAttachment.deleteMany({ where: { projectId } });
+	if (!attachments.length) return;
+	await tx.projectAttachment.createMany({
+		data: attachments.map((attachment, index) => ({
+			projectId,
+			fileName: attachment.fileName,
+			fileUrl: attachment.fileUrl,
+			fileType: attachment.fileType,
+			mimeType: attachment.mimeType,
+			fileSize: attachment.fileSize,
+			order: attachment.order ?? index,
+		})),
+	});
+}
+
+function buildProjectSnapshot(project: Prisma.Project) {
+	return {
+		id: project.id,
+		title: project.title,
+		description: project.description,
+		tagline: project.tagline,
+		url: project.url,
+		stage: project.stage,
+		screenshots: project.screenshots,
+		submittedAt: project.submittedAt ?? new Date(),
+	};
+}
+
+async function fetchSubmissionByIdOrThrow(id: string) {
+	const submission = await db.eventProjectSubmission.findUnique({
+		where: { id },
+		include: submissionInclude,
+	});
+	if (!submission) {
+		throw new HTTPException(404, { message: "Submission not found" });
+	}
+	return submission;
+}
+
+function sortSubmissions(
+	submissions: SubmissionWithRelations[],
+	sort: string,
+	order: "asc" | "desc",
+) {
+	return [...submissions].sort((a, b) => {
+		switch (sort) {
+			case "createdat": {
+				const diff =
+					new Date(a.submittedAt).getTime() -
+					new Date(b.submittedAt).getTime();
+				return order === "asc" ? diff : -diff;
+			}
+			case "name": {
+				return order === "asc"
+					? a.project.title.localeCompare(b.project.title)
+					: b.project.title.localeCompare(a.project.title);
+			}
+			default: {
+				const diff = a.project._count.votes - b.project._count.votes;
+				return order === "asc" ? diff : -diff;
+			}
+		}
+	});
+}
+
+function serializeSubmission(
+	submission: SubmissionWithRelations,
+	options: { rank?: number } = {},
+) {
+	const leader = submission.project.user;
+	const uniqueMembers = new Map(
+		submission.project.members.map((member) => [member.userId, member]),
+	);
+	uniqueMembers.delete(leader.id);
+
+	// Ensure attachment URLs are absolute and point to the configured public endpoint
+	const resolvePublicUrl = (url: string | null | undefined) => {
+		const value = url ?? "";
+		if (!value) return value;
+		if (value.startsWith("http://") || value.startsWith("https://"))
+			return value;
+		const base = (config.storage.endpoints.public || "")
+			.trim()
+			.replace(/\/+$/, "");
+		const path = value.replace(/^\/+/, "");
+		return base ? `${base}/${path}` : value;
+	};
+
+	const attachments = submission.project.attachments.map((attachment) => ({
+		id: attachment.id,
+		fileName: attachment.fileName,
+		fileUrl: resolvePublicUrl(attachment.fileUrl),
+		fileType: attachment.fileType,
+		mimeType: attachment.mimeType,
+		fileSize: attachment.fileSize,
+		order: attachment.order,
+	}));
+
+	const coverImage =
+		attachments.find((attachment) => attachment.fileType === "image")
+			?.fileUrl ||
+		submission.project.screenshots?.[0] ||
+		null;
+
+	return {
+		id: submission.id,
+		submissionId: submission.id,
+		projectId: submission.projectId,
+		eventId: submission.eventId,
+		name: submission.project.title,
+		tagline: submission.project.tagline,
+		description: submission.project.description,
+		demoUrl: submission.project.url,
+		communityUseAuthorization: submission.project.communityUseAuth,
+		status: submission.status,
+		voteCount: submission.project._count.votes,
+		rank: options.rank ?? null,
+		submittedAt: submission.submittedAt,
+		updatedAt: submission.updatedAt,
+		coverImage,
+		attachments,
+		teamLeader: leader
+			? {
+					id: leader.id,
+					name: leader.name,
+					avatar: leader.image,
+					username: leader.username,
+					bio: leader.bio,
+					role: "LEADER",
+				}
+			: null,
+		teamMembers: Array.from(uniqueMembers.values()).map((member) => ({
+			id: member.user.id,
+			name: member.user.name,
+			avatar: member.user.image,
+			username: member.user.username,
+			bio: member.user.bio,
+			role: member.role,
+		})),
+		teamSize: 1 + uniqueMembers.size,
+		submitter: submission.user,
+		event: {
+			id: submission.event.id,
+			title: submission.event.title,
+			startTime: submission.event.startTime,
+			endTime: submission.event.endTime,
+		},
+		awards: submission.awards?.map((award) => ({
+			id: award.id,
+			award: award.award,
+		})),
+	};
+}
+
+async function canAdministerEvent(
+	event: SubmissionWithRelations["event"],
+	userId: string,
+) {
+	if (event.organizerId === userId) {
+		return true;
+	}
+	if (!event.organizationId) {
+		return false;
+	}
+	const membership = await db.member.findUnique({
+		where: {
+			organizationId_userId: {
+				organizationId: event.organizationId,
+				userId,
+			},
+		},
+	});
+	return Boolean(
+		membership &&
+			["owner", "admin"].includes((membership.role as string) || ""),
+	);
+}
+
+async function canManageSubmission(
+	submission: SubmissionWithRelations,
+	userId: string,
+) {
+	if (submission.project.userId === userId) {
+		return true;
+	}
+	if (submission.userId === userId) {
+		return true;
+	}
+	return await canAdministerEvent(submission.event, userId);
+}
+
+function getExistingMemberIds(submission: SubmissionWithRelations) {
+	return submission.project.members
+		.filter((member) => member.userId !== submission.project.userId)
+		.map((member) => member.userId);
+}
+
+async function castVote(submission: SubmissionWithRelations, userId: string) {
+	if (submission.project.userId === userId) {
+		return {
+			success: false,
+			error: "OWN_PROJECT",
+			message: "You cannot vote for your own submission",
+			status: 400,
+		};
+	}
+
+	// Prevent team members from voting for their own team's submission
+	// Note: project.userId (leader) is handled above; here we check other members
+	const memberIds = getExistingMemberIds(submission);
+	if (memberIds.includes(userId)) {
+		return {
+			success: false,
+			error: "OWN_PROJECT",
+			message: "You cannot vote for your own team's submission",
+			status: 400,
+		};
+	}
+
+	await ensureParticipant(submission.eventId, userId);
+
+	if (isEventVotingClosed(submission.event)) {
+		return {
+			success: false,
+			error: "VOTING_ENDED",
+			message: "Voting has ended for this event",
+			status: 400,
+		};
+	}
+
+	const existingVote = await db.projectVote.findUnique({
+		where: {
+			projectId_userId_eventId: {
+				projectId: submission.projectId,
+				userId,
+				eventId: submission.eventId,
+			},
+		},
+	});
+
+	if (existingVote) {
+		return {
+			success: false,
+			error: "ALREADY_VOTED",
+			message: "You have already voted for this submission",
+			status: 400,
+		};
+	}
+
+	const currentVotes = await db.projectVote.count({
+		where: {
+			eventId: submission.eventId,
+			userId,
+		},
+	});
+
+	if (currentVotes >= MAX_VOTES_PER_USER) {
+		return {
+			success: false,
+			error: "NO_VOTES_LEFT",
+			message: "You have used all available votes",
+			status: 400,
+		};
+	}
+
+	await db.projectVote.create({
+		data: {
+			projectId: submission.projectId,
+			userId,
+			eventId: submission.eventId,
+		},
+	});
+
+	const voteCount = await db.projectVote.count({
+		where: {
+			projectId: submission.projectId,
+		},
+	});
+
+	return {
+		success: true,
+		voteCount,
+		remainingVotes: Math.max(0, MAX_VOTES_PER_USER - (currentVotes + 1)),
+	};
+}
+
+async function revokeVote(submission: SubmissionWithRelations, userId: string) {
+	const existingVote = await db.projectVote.findUnique({
+		where: {
+			projectId_userId_eventId: {
+				projectId: submission.projectId,
+				userId,
+				eventId: submission.eventId,
+			},
+		},
+	});
+
+	if (!existingVote) {
+		return {
+			success: false,
+			error: "NOT_VOTED",
+			message: "You have not voted for this submission",
+			status: 400,
+		};
+	}
+
+	if (isEventVotingClosed(submission.event)) {
+		return {
+			success: false,
+			error: "VOTING_ENDED",
+			message: "Voting has ended for this event",
+			status: 400,
+		};
+	}
+
+	await db.projectVote.delete({
+		where: { id: existingVote.id },
+	});
+
+	const voteCount = await db.projectVote.count({
+		where: { projectId: submission.projectId },
+	});
+
+	const remainingVotes = await db.projectVote.count({
+		where: { eventId: submission.eventId, userId },
+	});
+
+	return {
+		success: true,
+		voteCount,
+		remainingVotes: Math.max(0, MAX_VOTES_PER_USER - remainingVotes),
+	};
+}
+
+function isEventVotingClosed(event: SubmissionWithRelations["event"]) {
+	return Boolean(event.endTime && new Date() > new Date(event.endTime));
+}
+
+function buildUserSearchFilters(query: string) {
+	return [
+		{ name: { contains: query, mode: "insensitive" } },
+		{ email: { contains: query, mode: "insensitive" } },
+		{ username: { contains: query, mode: "insensitive" } },
+	];
+}
+
+function parseExcludeIds(raw?: string) {
+	if (!raw) return [];
+	return raw
+		.split(",")
+		.map((value) => value.trim())
+		.filter(Boolean);
+}

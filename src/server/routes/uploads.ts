@@ -54,6 +54,29 @@ const ALLOWED_CONTENT_TYPES = new Map([
 	["image/gif", [".gif"]],
 	["application/pdf", [".pdf"]],
 	["text/plain", [".txt"]],
+	// Add more common file types for submissions
+	["application/zip", [".zip"]],
+	["application/x-zip-compressed", [".zip"]],
+	["application/vnd.ms-powerpoint", [".ppt"]],
+	[
+		"application/vnd.openxmlformats-officedocument.presentationml.presentation",
+		[".pptx"],
+	],
+	["application/msword", [".doc"]],
+	[
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+		[".docx"],
+	],
+	["application/vnd.ms-excel", [".xls"]],
+	[
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+		[".xlsx"],
+	],
+	["video/mp4", [".mp4"]],
+	["video/quicktime", [".mov"]],
+	["video/x-msvideo", [".avi"]],
+	["audio/mpeg", [".mp3"]],
+	["audio/wav", [".wav"]],
 ]);
 
 // Maximum file path length
@@ -107,7 +130,12 @@ function validateContentType(
 	if (!normalizedType) return false;
 
 	// Check if normalized content type is allowed
-	if (!ALLOWED_CONTENT_TYPES.has(normalizedType)) return false;
+	if (!ALLOWED_CONTENT_TYPES.has(normalizedType)) {
+		console.warn(
+			`Content type not allowed: ${normalizedType} for file: ${filePath}`,
+		);
+		return false;
+	}
 
 	// Check if file extension matches content type
 	const allowedExtensions = ALLOWED_CONTENT_TYPES.get(normalizedType);
@@ -115,7 +143,12 @@ function validateContentType(
 		const hasValidExtension = allowedExtensions.some((ext) =>
 			filePath.toLowerCase().endsWith(ext),
 		);
-		if (!hasValidExtension) return false;
+		if (!hasValidExtension) {
+			console.warn(
+				`File extension mismatch: ${filePath} for content type: ${normalizedType}`,
+			);
+			return false;
+		}
 	}
 
 	return true;

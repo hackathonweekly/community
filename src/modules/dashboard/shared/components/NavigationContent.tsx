@@ -12,10 +12,16 @@ import {
 	type MenuItem,
 } from "@dashboard/shared/components/UnifiedNavMenu";
 import type { ThemeOption } from "@dashboard/shared/hooks/use-navigation-data";
-import { HomeIcon, BookIcon, MessageCircleIcon } from "lucide-react";
+import {
+	HomeIcon,
+	BookIcon,
+	MessageCircleIcon,
+	HardDriveIcon,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { Session, ActiveOrganization } from "@/lib/auth";
+import { useEffect, useState } from "react";
 
 type NavigationContentProps = {
 	user: Session["user"] | null;
@@ -40,6 +46,9 @@ export function NavigationContent({
 	variant = "desktop",
 }: NavigationContentProps) {
 	const t = useTranslations();
+	// Defer theme-dependent UI to client to avoid SSR/CSR hydration mismatch
+	const [mounted, setMounted] = useState(false);
+	useEffect(() => setMounted(true), []);
 
 	const isMobile = variant === "mobile";
 	const navItemClasses = cn(
@@ -114,13 +123,21 @@ export function NavigationContent({
 							onClick={cycleTheme}
 							className={navItemClasses}
 						>
-							{currentThemeOption && (
+							{/* Render a stable icon/label on the server, then swap after mount */}
+							{mounted && currentThemeOption ? (
 								<currentThemeOption.icon
 									className={iconClasses}
 								/>
+							) : (
+								<HardDriveIcon className={iconClasses} />
 							)}
-							<span className={labelClasses}>
-								{currentThemeOption?.label}
+							<span
+								className={labelClasses}
+								suppressHydrationWarning
+							>
+								{mounted && currentThemeOption
+									? currentThemeOption.label
+									: t("app.userMenu.themeSystem")}
 							</span>
 						</button>
 					</li>

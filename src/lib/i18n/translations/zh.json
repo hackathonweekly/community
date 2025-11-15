@@ -890,6 +890,37 @@
 			"freedom": "自由",
 			"love": "爱",
 			"title": "核心价值观"
+		},
+		"events": {
+			"hackathonManagement": {
+				"stage": {
+					"currentStageLabel": "当前阶段：{stage}",
+					"title": "阶段管理",
+					"description": "管理黑客松的不同阶段流转",
+					"previous": "上一阶段",
+					"next": "下一阶段",
+					"jumpLabel": "跳转到阶段",
+					"jumpPlaceholder": "选择阶段",
+					"lastUpdated": "最后更新：{time}",
+					"updateSuccess": "阶段已更新为：{stage}",
+					"updateFailed": "阶段更新失败",
+					"historyTitle": "阶段变更历史",
+					"historyUnknownTime": "未知时间",
+					"historyBy": "操作人：{user}",
+					"setCurrent": "设为当前",
+					"descriptions": {
+						"registration": "参赛者可以报名参加黑客松",
+						"development": "团队开始开发作品",
+						"submission": "团队提交最终作品",
+						"voting": "评委和公众为作品投票",
+						"results": "公布获奖结果"
+					}
+				},
+				"toasts": {
+					"saveSuccess": "配置已保存",
+					"saveFailed": "配置保存失败"
+				}
+			}
 		}
 	},
 	"documentation": {
@@ -952,6 +983,27 @@
 				"noResources": "暂无资源"
 			},
 			"awards": {
+				"title": "奖项与荣誉",
+				"description": "了解本次黑客松的奖项类别与获奖方式",
+				"categories": "奖项类别",
+				"judgeAward": "评审奖",
+				"publicAward": "人气奖",
+				"winner": "获奖名额",
+				"winners": "获奖名额",
+				"currentWinners": "当前获奖者",
+				"noWinnersYet": "暂无获奖者，评审结束后公布",
+				"judgeAwards": "评审类奖项",
+				"judgeAwardsDesc": "由评审团根据评审标准评选产生",
+				"publicAwards": "公共投票类",
+				"publicAwardsDesc": "由社区用户投票产生",
+				"recognition": "奖项等级",
+				"recognitionDesc": "金/银/铜等不同等级用于表彰优秀项目",
+				"first": "一等奖",
+				"firstDesc": "最高荣誉，授予最优秀的项目",
+				"second": "二等奖",
+				"secondDesc": "表彰表现出色的项目",
+				"third": "三等奖",
+				"thirdDesc": "表彰具有潜力的项目",
 				"noAwards": "暂无奖项",
 				"noAwardsDesc": "暂无奖项设置"
 			},
@@ -983,6 +1035,7 @@
 			"features": {
 				"title": "黑客松特色",
 				"teamwork": "团队协作",
+				"soloOrTeam": "支持单人或组队参与，最多 {max} 人/队",
 				"teamOnly": "仅限团队参与",
 				"learning": "学习机会",
 				"learningDesc": "与其他开发者学习交流，提升技术能力",
@@ -996,6 +1049,9 @@
 				"joinToParticipate": "加入黑客松，展示你的创造力",
 				"register": "立即报名",
 				"stageClosed": "当前阶段暂不开放报名，请留意后续安排。"
+			},
+			"actions": {
+				"submitProject": "提交我的作品"
 			}
 		},
 		"addressTBD": "地址待定",
