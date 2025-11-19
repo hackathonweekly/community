@@ -36,8 +36,12 @@ function getAppVersion(): string {
 	return "development";
 }
 
+console.log(
+	`🚀 应用启动中... 版本: ${getAppVersion()} 环境: ${process.env.NODE_ENV || "development"} 时间: ${new Date().toISOString()}`,
+);
+
 export const versionRouter = new Hono().get(
-	"/",
+	"/version",
 	describeRoute({
 		tags: ["System"],
 		summary: "Get system version and build information",
