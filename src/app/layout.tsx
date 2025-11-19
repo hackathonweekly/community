@@ -5,6 +5,7 @@ import "cropperjs/dist/cropper.css";
 import { config } from "@/config";
 import { GeistSans } from "geist/font/sans";
 import { cn } from "@/lib/utils";
+import { VersionLogger } from "@/components/version-logger";
 
 export const metadata: Metadata = {
 	title: {
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
 				)}
 				suppressHydrationWarning
 			>
+				<VersionLogger />
 				{children}
 			</body>
 		</html>

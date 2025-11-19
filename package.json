@@ -45,6 +45,7 @@
 		"@aws-sdk/s3-request-presigner": "^3.846.0",
 		"@fumadocs/content-collections": "^1.2.0",
 		"@heroicons/react": "^2.2.0",
+		"@hono/zod-openapi": "^1.1.5",
 		"@hono/zod-validator": "^0.5.0",
 		"@hookform/resolvers": "^5.1.1",
 		"@next/third-parties": "16",

@@ -431,6 +431,13 @@ export const uploadsRouter = new Hono<{
 		async (c) => {
 			const { imageUrl, mode } = c.req.valid("json");
 
+			// 版本标识日志 - 确认新版本代码生效
+			console.log("🔍 [v1.1-fix] 图片审核请求:", {
+				imageUrl,
+				mode,
+				timestamp: new Date().toISOString(),
+			});
+
 			try {
 				const moderation = await ensureImageSafe(imageUrl, mode, {
 					skipIfEmpty: false,
@@ -443,10 +450,13 @@ export const uploadsRouter = new Hono<{
 						moderation.reason?.includes("审核失败") ||
 						moderation.reason?.includes("允许通过")
 					) {
-						console.warn("图片审核服务异常，但允许图片通过:", {
-							imageUrl,
-							reason: moderation.reason,
-						});
+						console.warn(
+							"✅ [v1.1-fix] 图片审核服务异常，但允许图片通过:",
+							{
+								imageUrl,
+								reason: moderation.reason,
+							},
+						);
 						return c.json({
 							success: true,
 							result: {
@@ -469,6 +479,7 @@ export const uploadsRouter = new Hono<{
 					);
 				}
 
+				console.log("✅ [v1.1-fix] 图片审核通过:", { imageUrl });
 				return c.json({
 					success: true,
 					result: moderation.result,
@@ -476,7 +487,7 @@ export const uploadsRouter = new Hono<{
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : String(error);
-				console.warn("图片审核服务异常，允许图片通过:", {
+				console.warn("✅ [v1.1-fix] 图片审核服务异常，允许图片通过:", {
 					error: errorMessage,
 					imageUrl,
 					mode,
