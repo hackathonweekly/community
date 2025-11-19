@@ -29,6 +29,11 @@ export async function requestImageModeration(
 			const message = payload?.message ?? DEFAULT_ERROR_MESSAGE;
 			throw new Error(message);
 		}
+
+		// 如果有警告信息，记录到控制台
+		if (payload?.result?.warning) {
+			console.warn("图片审核警告:", payload.result.warning);
+		}
 	} catch (error) {
 		if (error instanceof Error) {
 			throw error;

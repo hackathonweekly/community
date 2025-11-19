@@ -437,6 +437,27 @@ export const uploadsRouter = new Hono<{
 				});
 
 				if (!moderation.isApproved) {
+					// 检查是否为审核服务异常
+					if (
+						moderation.reason?.includes("审核服务异常") ||
+						moderation.reason?.includes("审核失败") ||
+						moderation.reason?.includes("允许通过")
+					) {
+						console.warn("图片审核服务异常，但允许图片通过:", {
+							imageUrl,
+							reason: moderation.reason,
+						});
+						return c.json({
+							success: true,
+							result: {
+								suggestion: "Pass",
+								warning: "审核服务不可用，已自动通过",
+								originalReason: moderation.reason,
+							},
+						});
+					}
+
+					// 真正的违规内容拒绝
 					const violationMessage = "发布内容含违规信息，请修改后重试";
 					return c.json(
 						{
@@ -455,19 +476,21 @@ export const uploadsRouter = new Hono<{
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : String(error);
-				console.error("Failed to moderate image:", {
+				console.warn("图片审核服务异常，允许图片通过:", {
 					error: errorMessage,
 					imageUrl,
 					mode,
 				});
 
-				return c.json(
-					{
-						success: false,
-						message: "图片审核服务异常，请稍后重试",
+				// 审核服务异常时允许图片通过，而不是返回错误
+				return c.json({
+					success: true,
+					result: {
+						suggestion: "Pass",
+						warning: "审核服务异常，已自动通过",
+						error: errorMessage,
 					},
-					500,
-				);
+				});
 			}
 		},
 	);

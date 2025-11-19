@@ -28,6 +28,7 @@ import {
 	useVoteSubmission,
 	useUnvoteSubmission,
 } from "@/features/event-submissions/hooks";
+import { createFallbackCaptionSrc } from "./utils";
 
 interface SubmissionDetailProps {
 	submission: EventSubmission;
@@ -204,52 +205,86 @@ export function SubmissionDetail({
 
 					{submission.attachments.length > 0 && (
 						<div className="grid gap-4 sm:grid-cols-2">
-							{submission.attachments.map((attachment) => (
-								<div
-									key={attachment.id}
-									className="rounded-lg border overflow-hidden"
-								>
-									{attachment.fileType === "image" ? (
-										<img
-											src={attachment.fileUrl}
-											alt={attachment.fileName}
-											className="w-full h-56 object-cover"
-										/>
-									) : attachment.fileType === "video" ? (
-										<video
-											controls
-											preload="metadata"
-											className="w-full h-56 bg-black"
-										>
-											<source src={attachment.fileUrl} />
-											您的浏览器不支持视频播放
-										</video>
-									) : attachment.fileType === "audio" ? (
-										<div className="p-4">
-											<audio controls className="w-full">
+							{submission.attachments.map((attachment) => {
+								const fallbackCaptionSrc =
+									createFallbackCaptionSrc(
+										attachment.fileName ??
+											submission.description ??
+											submission.tagline ??
+											submission.name ??
+											"媒体内容",
+									);
+								const captionLabel =
+									locale === "en" ? "Captions" : "字幕";
+								const captionLang =
+									locale === "en" ? "en" : "zh";
+
+								return (
+									<div
+										key={attachment.id}
+										className="rounded-lg border overflow-hidden"
+									>
+										{attachment.fileType === "image" ? (
+											<img
+												src={attachment.fileUrl}
+												alt={attachment.fileName}
+												className="w-full h-56 object-cover"
+											/>
+										) : attachment.fileType === "video" ? (
+											<video
+												controls
+												preload="metadata"
+												className="w-full h-56 bg-black"
+											>
 												<source
 													src={attachment.fileUrl}
 												/>
-												您的浏览器不支持音频播放
-											</audio>
-											<div className="mt-2 text-xs text-muted-foreground">
-												{attachment.fileName}
+												<track
+													default
+													kind="captions"
+													srcLang={captionLang}
+													label={captionLabel}
+													src={fallbackCaptionSrc}
+												/>
+												您的浏览器不支持视频播放
+											</video>
+										) : attachment.fileType === "audio" ? (
+											<div className="p-4">
+												<audio
+													controls
+													className="w-full"
+												>
+													<source
+														src={attachment.fileUrl}
+													/>
+													<track
+														default
+														kind="captions"
+														srcLang={captionLang}
+														label={captionLabel}
+														src={fallbackCaptionSrc}
+													/>
+													您的浏览器不支持音频播放
+												</audio>
+												<div className="mt-2 text-xs text-muted-foreground">
+													{attachment.fileName}
+												</div>
 											</div>
-										</div>
-									) : (
-										<div className="p-4 text-sm text-muted-foreground">
-											<a
-												href={attachment.fileUrl}
-												target="_blank"
-												rel="noreferrer"
-												className="underline"
-											>
-												{attachment.fileName}
-											</a>
-										</div>
-									)}
-								</div>
-							))}
+										) : (
+											<div className="p-4 text-sm text-muted-foreground">
+												<a
+													href={attachment.fileUrl}
+													target="_blank"
+													rel="noreferrer"
+													className="underline"
+												>
+													{attachment.fileName}
+												</a>
+											</div>
+										)}
+									</div>
+								);
+							})}
 						</div>
 					)}
 

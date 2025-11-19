@@ -126,17 +126,19 @@ export function HackathonManagement({
 					}
 				} else {
 					const text = await response.text();
-					if (text && text.trim()) {
+					const trimmed = text?.trim();
+					if (trimmed) {
 						// Clip very long responses to keep toasts tidy
-						message = text.trim().slice(0, 200);
+						message = trimmed.slice(0, 200);
 					}
 				}
 			} catch (error) {
 				console.error("Failed to parse hackathon config error:", error);
 				try {
 					const text = await cloned.text();
-					if (text && text.trim()) {
-						message = text.trim().slice(0, 200);
+					const trimmed = text?.trim();
+					if (trimmed) {
+						message = trimmed.slice(0, 200);
 					}
 				} catch {}
 			}

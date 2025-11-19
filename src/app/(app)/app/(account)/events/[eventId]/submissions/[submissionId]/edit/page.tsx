@@ -24,9 +24,9 @@ async function fetchSubmission(
 	// Only forward whitelisted headers to avoid forbidden header issues
 	const headerObject: Record<string, string> = {};
 	const cookie = headerList.get("cookie");
-	if (cookie) headerObject["cookie"] = cookie;
+	if (cookie) headerObject.cookie = cookie;
 	const authz = headerList.get("authorization");
-	if (authz) headerObject["authorization"] = authz;
+	if (authz) headerObject.authorization = authz;
 	const res = await fetch(absoluteUrl, {
 		cache: "no-store",
 		// Pass through all incoming request headers (includes cookies) so auth/session stays intact

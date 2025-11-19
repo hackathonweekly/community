@@ -26,6 +26,7 @@ import {
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { cn } from "@/lib/utils";
+import { createFallbackCaptionSrc } from "./utils";
 
 interface EventSubmissionsGalleryProps {
 	eventId: string;
@@ -224,6 +225,17 @@ export function EventSubmissionsGallery({
 								const firstAudio = submission.attachments?.find(
 									(att) => att.fileType === "audio",
 								);
+								const fallbackCaptionSrc =
+									createFallbackCaptionSrc(
+										submission.description ??
+											submission.tagline ??
+											submission.name ??
+											"媒体内容",
+									);
+								const captionLabel =
+									locale === "en" ? "Captions" : "字幕";
+								const captionLang =
+									locale === "en" ? "en" : "zh";
 
 								if (firstVideo) {
 									return (
@@ -235,6 +247,13 @@ export function EventSubmissionsGallery({
 											>
 												<source
 													src={firstVideo.fileUrl}
+												/>
+												<track
+													default
+													kind="captions"
+													srcLang={captionLang}
+													label={captionLabel}
+													src={fallbackCaptionSrc}
 												/>
 												您的浏览器不支持视频播放
 											</video>
@@ -248,6 +267,13 @@ export function EventSubmissionsGallery({
 											<audio controls className="w-full">
 												<source
 													src={firstAudio.fileUrl}
+												/>
+												<track
+													default
+													kind="captions"
+													srcLang={captionLang}
+													label={captionLabel}
+													src={fallbackCaptionSrc}
 												/>
 												您的浏览器不支持音频播放
 											</audio>

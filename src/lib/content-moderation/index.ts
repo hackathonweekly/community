@@ -456,15 +456,40 @@ export async function ensureImageSafe(
 	} catch (error) {
 		const errorMessage =
 			error instanceof Error ? error.message : String(error);
-		console.error("图片审核失败:", {
+
+		// 检查是否为特定的腾讯云错误
+		const isTencentError =
+			errorMessage.includes("TencentCloudSDKException") ||
+			errorMessage.includes("ImageDownloadError") ||
+			errorMessage.includes("ResourceUnavailable");
+
+		const isNetworkError =
+			errorMessage.includes("ENOTFOUND") ||
+			errorMessage.includes("ECONNREFUSED") ||
+			errorMessage.includes("timeout");
+
+		console.warn("图片审核服务异常，允许图片通过:", {
 			error: errorMessage,
 			imageUrl,
 			mode,
+			errorType: isTencentError
+				? "TencentCloud"
+				: isNetworkError
+					? "Network"
+					: "Unknown",
 		});
+
+		// 审核服务异常时允许通过，记录详细原因
+		let detailedReason = "图片审核服务异常，允许通过";
+		if (isTencentError) {
+			detailedReason = "腾讯云审核服务异常，允许通过";
+		} else if (isNetworkError) {
+			detailedReason = "网络连接异常，审核服务不可用，允许通过";
+		}
 
 		return {
 			isApproved: true,
-			reason: "图片审核服务异常，允许通过",
+			reason: detailedReason,
 		};
 	}
 }

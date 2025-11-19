@@ -5,13 +5,7 @@ import { useLocale } from "next-intl";
 import { useMemo } from "react";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEventSubmissions } from "@/features/event-submissions/hooks";
