@@ -1,10 +1,44 @@
 import { Hono } from "hono";
-import { createRoute, z } from "@hono/zod-openapi";
+import { describeRoute } from "hono-openapi";
+import { z } from "zod";
 
-export const versionRouter = new Hono().openapi(
-	createRoute({
-		path: "/version",
-		method: "get",
+// 尝试获取 git tag 版本号
+function getVersionFromGit(): string | null {
+	try {
+		// 使用 Bun 的 Shell API 执行 git 命令
+		const result = Bun.spawnSync({
+			cmd: ["git", "describe", "--tags", "--abbrev=0"],
+			stdout: "pipe",
+			stderr: "pipe",
+		});
+
+		if (result.success) {
+			return new TextDecoder().decode(result.stdout).trim();
+		}
+	} catch (error) {
+		// 忽略错误，返回 null
+	}
+	return null;
+}
+
+// 获取应用版本（从环境或 git）
+function getAppVersion(): string {
+	// 1. 优先使用 git tag
+	const gitTag = getVersionFromGit();
+	if (gitTag) return gitTag;
+
+	// 2. 其次使用环境变量
+	if (process.env.npm_package_version) {
+		return process.env.npm_package_version;
+	}
+
+	// 3. 最后使用 development 标记
+	return "development";
+}
+
+export const versionRouter = new Hono().get(
+	"/",
+	describeRoute({
 		tags: ["System"],
 		summary: "Get system version and build information",
 		description: "获取系统版本、构建时间和部署信息",
@@ -41,8 +75,11 @@ export const versionRouter = new Hono().openapi(
 	async (c) => {
 		const now = new Date().toISOString();
 
+		// 获取版本信息
+		const version = getAppVersion();
+
 		return c.json({
-			version: process.env.npm_package_version || "development",
+			version,
 			buildTime: process.env.BUILD_TIME || now,
 			nodeVersion: process.version,
 			gitCommit:

@@ -430,17 +430,30 @@ export const uploadsRouter = new Hono<{
 		}),
 		async (c) => {
 			const { imageUrl, mode } = c.req.valid("json");
+			const user = c.get("user");
+			const requestId = crypto.randomUUID();
 
 			// 版本标识日志 - 确认新版本代码生效
-			console.log("🔍 [v1.1-fix] 图片审核请求:", {
+			console.log(`🔍 [v1.1-fix] 图片审核请求 [${requestId}]:`, {
 				imageUrl,
 				mode,
+				userId: user?.id,
 				timestamp: new Date().toISOString(),
+				env: process.env.NODE_ENV || "development",
 			});
 
 			try {
 				const moderation = await ensureImageSafe(imageUrl, mode, {
 					skipIfEmpty: false,
+				});
+
+				console.log(`🔍 [v1.1-fix] 图片审核完成 [${requestId}]:`, {
+					imageUrl,
+					mode,
+					isApproved: moderation.isApproved,
+					reason: moderation.reason,
+					suggestion: moderation.result?.suggestion,
+					label: moderation.result?.label,
 				});
 
 				if (!moderation.isApproved) {
@@ -451,7 +464,7 @@ export const uploadsRouter = new Hono<{
 						moderation.reason?.includes("允许通过")
 					) {
 						console.warn(
-							"✅ [v1.1-fix] 图片审核服务异常，但允许图片通过:",
+							`✅ [v1.1-fix] 图片审核服务异常，但允许图片通过 [${requestId}]:`,
 							{
 								imageUrl,
 								reason: moderation.reason,
@@ -479,7 +492,9 @@ export const uploadsRouter = new Hono<{
 					);
 				}
 
-				console.log("✅ [v1.1-fix] 图片审核通过:", { imageUrl });
+				console.log(`✅ [v1.1-fix] 图片审核通过 [${requestId}]:`, {
+					imageUrl,
+				});
 				return c.json({
 					success: true,
 					result: moderation.result,
@@ -487,11 +502,17 @@ export const uploadsRouter = new Hono<{
 			} catch (error) {
 				const errorMessage =
 					error instanceof Error ? error.message : String(error);
-				console.warn("✅ [v1.1-fix] 图片审核服务异常，允许图片通过:", {
-					error: errorMessage,
-					imageUrl,
-					mode,
-				});
+				const stack = error instanceof Error ? error.stack : undefined;
+
+				console.warn(
+					`✅ [v1.1-fix] 图片审核服务异常，允许图片通过 [${requestId}]:`,
+					{
+						error: errorMessage,
+						imageUrl,
+						mode,
+						stack,
+					},
+				);
 
 				// 审核服务异常时允许图片通过，而不是返回错误
 				return c.json({
