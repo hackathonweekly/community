@@ -21,23 +21,31 @@ function getVersionFromGit(): string | null {
 	return null;
 }
 
-// 获取应用版本（从环境或 git）
+// 获取应用版本（优先级：BUILD_VERSION > git tag > npm_package_version > development）
 function getAppVersion(): string {
-	// 1. 优先使用 git tag
+	// 1. 优先使用构建时传入的版本（Docker 构建时使用）
+	if (process.env.BUILD_VERSION) {
+		return process.env.BUILD_VERSION;
+	}
+
+	// 2. 其次使用 git tag
 	const gitTag = getVersionFromGit();
 	if (gitTag) return gitTag;
 
-	// 2. 其次使用环境变量
+	// 3. 使用环境变量
 	if (process.env.npm_package_version) {
 		return process.env.npm_package_version;
 	}
 
-	// 3. 最后使用 development 标记
+	// 4. 最后使用 development 标记
 	return "development";
 }
 
-console.log(
-	`🚀 应用启动中... 版本: ${getAppVersion()} 环境: ${process.env.NODE_ENV || "development"} 时间: ${new Date().toISOString()}`,
+// 使用 stderr 确保日志输出到 Docker
+process.stderr.write(
+	`🚀 应用启动中... 版本: ${getAppVersion()} 环境: ${
+		process.env.NODE_ENV || "development"
+	} 时间: ${new Date().toISOString()}\n`,
 );
 
 export const versionRouter = new Hono().get(

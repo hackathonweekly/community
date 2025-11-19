@@ -5,6 +5,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Git - include .git for version detection
+# .git
+
 # Local env files
 .env*.local
 .env.deploy
@@ -18,6 +21,9 @@ next-env.d.ts
 
 # Next.js - exclude most files but keep standalone build artifacts
 /.next/*
+
+# Keep .git for version detection
+# !.git
 !/.next/standalone
 !/.next/static
 /out/

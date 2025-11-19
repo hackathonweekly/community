@@ -434,27 +434,33 @@ export const uploadsRouter = new Hono<{
 			const requestId = crypto.randomUUID();
 
 			// 版本标识日志 - 确认新版本代码生效
-			console.log(`🔍 [v1.1-fix] 图片审核请求 [${requestId}]:`, {
-				imageUrl,
-				mode,
-				userId: user?.id,
-				timestamp: new Date().toISOString(),
-				env: process.env.NODE_ENV || "development",
-			});
+			process.stderr.write(
+				`🔍 [v1.1-fix] 图片审核请求 [${requestId}]: ${JSON.stringify({
+					imageUrl,
+					mode,
+					userId: user?.id,
+					timestamp: new Date().toISOString(),
+					env: process.env.NODE_ENV || "development",
+				})}\n`,
+			);
 
 			try {
 				const moderation = await ensureImageSafe(imageUrl, mode, {
 					skipIfEmpty: false,
 				});
 
-				console.log(`🔍 [v1.1-fix] 图片审核完成 [${requestId}]:`, {
-					imageUrl,
-					mode,
-					isApproved: moderation.isApproved,
-					reason: moderation.reason,
-					suggestion: moderation.result?.suggestion,
-					label: moderation.result?.label,
-				});
+				process.stderr.write(
+					`🔍 [v1.1-fix] 图片审核完成 [${requestId}]: ${JSON.stringify(
+						{
+							imageUrl,
+							mode,
+							isApproved: moderation.isApproved,
+							reason: moderation.reason,
+							suggestion: moderation.result?.suggestion,
+							label: moderation.result?.label,
+						},
+					)}\n`,
+				);
 
 				if (!moderation.isApproved) {
 					// 检查是否为审核服务异常
@@ -463,12 +469,13 @@ export const uploadsRouter = new Hono<{
 						moderation.reason?.includes("审核失败") ||
 						moderation.reason?.includes("允许通过")
 					) {
-						console.warn(
-							`✅ [v1.1-fix] 图片审核服务异常，但允许图片通过 [${requestId}]:`,
-							{
-								imageUrl,
-								reason: moderation.reason,
-							},
+						process.stderr.write(
+							`✅ [v1.1-fix] 图片审核服务异常，但允许图片通过 [${requestId}]: ${JSON.stringify(
+								{
+									imageUrl,
+									reason: moderation.reason,
+								},
+							)}\n`,
 						);
 						return c.json({
 							success: true,
@@ -482,16 +489,17 @@ export const uploadsRouter = new Hono<{
 
 					// 真正的违规内容拒绝
 					const violationMessage = "发布内容含违规信息，请修改后重试";
-					console.error(
-						`❌ [v1.1-fix] 图片审核未通过 [${requestId}]:`,
-						{
-							imageUrl,
-							reason: moderation.reason,
-							suggestion: moderation.result?.suggestion,
-							label: moderation.result?.label,
-							subLabel: moderation.result?.subLabel,
-							score: moderation.result?.score,
-						},
+					process.stderr.write(
+						`❌ [v1.1-fix] 图片审核未通过 [${requestId}]: ${JSON.stringify(
+							{
+								imageUrl,
+								reason: moderation.reason,
+								suggestion: moderation.result?.suggestion,
+								label: moderation.result?.label,
+								subLabel: moderation.result?.subLabel,
+								score: moderation.result?.score,
+							},
+						)}\n`,
 					);
 					return c.json(
 						{
@@ -503,10 +511,14 @@ export const uploadsRouter = new Hono<{
 					);
 				}
 
-				console.log(`✅ [v1.1-fix] 图片审核通过 [${requestId}]:`, {
-					imageUrl,
-					suggestion: moderation.result?.suggestion,
-				});
+				process.stderr.write(
+					`✅ [v1.1-fix] 图片审核通过 [${requestId}]: ${JSON.stringify(
+						{
+							imageUrl,
+							suggestion: moderation.result?.suggestion,
+						},
+					)}\n`,
+				);
 				return c.json({
 					success: true,
 					result: moderation.result,
@@ -516,14 +528,15 @@ export const uploadsRouter = new Hono<{
 					error instanceof Error ? error.message : String(error);
 				const stack = error instanceof Error ? error.stack : undefined;
 
-				console.warn(
-					`✅ [v1.1-fix] 图片审核服务异常，允许图片通过 [${requestId}]:`,
-					{
-						error: errorMessage,
-						imageUrl,
-						mode,
-						stack,
-					},
+				process.stderr.write(
+					`✅ [v1.1-fix] 图片审核服务异常，允许图片通过 [${requestId}]: ${JSON.stringify(
+						{
+							error: errorMessage,
+							imageUrl,
+							mode,
+							stack,
+						},
+					)}\n`,
 				);
 
 				// 审核服务异常时允许图片通过，而不是返回错误
