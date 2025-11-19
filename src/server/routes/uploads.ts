@@ -482,6 +482,17 @@ export const uploadsRouter = new Hono<{
 
 					// 真正的违规内容拒绝
 					const violationMessage = "发布内容含违规信息，请修改后重试";
+					console.error(
+						`❌ [v1.1-fix] 图片审核未通过 [${requestId}]:`,
+						{
+							imageUrl,
+							reason: moderation.reason,
+							suggestion: moderation.result?.suggestion,
+							label: moderation.result?.label,
+							subLabel: moderation.result?.subLabel,
+							score: moderation.result?.score,
+						},
+					);
 					return c.json(
 						{
 							success: false,
@@ -494,6 +505,7 @@ export const uploadsRouter = new Hono<{
 
 				console.log(`✅ [v1.1-fix] 图片审核通过 [${requestId}]:`, {
 					imageUrl,
+					suggestion: moderation.result?.suggestion,
 				});
 				return c.json({
 					success: true,
