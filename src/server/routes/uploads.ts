@@ -2,12 +2,15 @@ import { config } from "@/config";
 import type { Session } from "@/lib/auth";
 import { ensureImageSafe } from "@/lib/content-moderation";
 import { getSignedUploadUrl, uploadFileToS3 } from "@/lib/storage";
+import { createModuleLogger } from "@/lib/logs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth";
+
+const logger = createModuleLogger("uploads");
 
 // Allowed buckets and alias mapping for different user types
 const bucketAliasEntries: Array<[string, string]> = [];
@@ -434,33 +437,27 @@ export const uploadsRouter = new Hono<{
 			const requestId = crypto.randomUUID();
 
 			// 版本标识日志 - 确认新版本代码生效
-			process.stderr.write(
-				`🔍 [v1.1-fix] 图片审核请求 [${requestId}]: ${JSON.stringify({
-					imageUrl,
-					mode,
-					userId: user?.id,
-					timestamp: new Date().toISOString(),
-					env: process.env.NODE_ENV || "development",
-				})}\n`,
-			);
+			logger.info(`[v1.1-fix] 图片审核请求 [${requestId}]:`, {
+				imageUrl,
+				mode,
+				userId: user?.id,
+				timestamp: new Date().toISOString(),
+				env: process.env.NODE_ENV || "development",
+			});
 
 			try {
 				const moderation = await ensureImageSafe(imageUrl, mode, {
 					skipIfEmpty: false,
 				});
 
-				process.stderr.write(
-					`🔍 [v1.1-fix] 图片审核完成 [${requestId}]: ${JSON.stringify(
-						{
-							imageUrl,
-							mode,
-							isApproved: moderation.isApproved,
-							reason: moderation.reason,
-							suggestion: moderation.result?.suggestion,
-							label: moderation.result?.label,
-						},
-					)}\n`,
-				);
+				logger.info(`[v1.1-fix] 图片审核完成 [${requestId}]:`, {
+					imageUrl,
+					mode,
+					isApproved: moderation.isApproved,
+					reason: moderation.reason,
+					suggestion: moderation.result?.suggestion,
+					label: moderation.result?.label,
+				});
 
 				if (!moderation.isApproved) {
 					// 检查是否为审核服务异常
@@ -469,13 +466,12 @@ export const uploadsRouter = new Hono<{
 						moderation.reason?.includes("审核失败") ||
 						moderation.reason?.includes("允许通过")
 					) {
-						process.stderr.write(
-							`✅ [v1.1-fix] 图片审核服务异常，但允许图片通过 [${requestId}]: ${JSON.stringify(
-								{
-									imageUrl,
-									reason: moderation.reason,
-								},
-							)}\n`,
+						logger.info(
+							`[v1.1-fix] 图片审核服务异常，但允许图片通过 [${requestId}]:`,
+							{
+								imageUrl,
+								reason: moderation.reason,
+							},
 						);
 						return c.json({
 							success: true,
@@ -489,18 +485,14 @@ export const uploadsRouter = new Hono<{
 
 					// 真正的违规内容拒绝
 					const violationMessage = "发布内容含违规信息，请修改后重试";
-					process.stderr.write(
-						`❌ [v1.1-fix] 图片审核未通过 [${requestId}]: ${JSON.stringify(
-							{
-								imageUrl,
-								reason: moderation.reason,
-								suggestion: moderation.result?.suggestion,
-								label: moderation.result?.label,
-								subLabel: moderation.result?.subLabel,
-								score: moderation.result?.score,
-							},
-						)}\n`,
-					);
+					logger.error(`[v1.1-fix] 图片审核未通过 [${requestId}]:`, {
+						imageUrl,
+						reason: moderation.reason,
+						suggestion: moderation.result?.suggestion,
+						label: moderation.result?.label,
+						subLabel: moderation.result?.subLabel,
+						score: moderation.result?.score,
+					});
 					return c.json(
 						{
 							success: false,
@@ -511,14 +503,10 @@ export const uploadsRouter = new Hono<{
 					);
 				}
 
-				process.stderr.write(
-					`✅ [v1.1-fix] 图片审核通过 [${requestId}]: ${JSON.stringify(
-						{
-							imageUrl,
-							suggestion: moderation.result?.suggestion,
-						},
-					)}\n`,
-				);
+				logger.info(`[v1.1-fix] 图片审核通过 [${requestId}]:`, {
+					imageUrl,
+					suggestion: moderation.result?.suggestion,
+				});
 				return c.json({
 					success: true,
 					result: moderation.result,
@@ -528,15 +516,14 @@ export const uploadsRouter = new Hono<{
 					error instanceof Error ? error.message : String(error);
 				const stack = error instanceof Error ? error.stack : undefined;
 
-				process.stderr.write(
-					`✅ [v1.1-fix] 图片审核服务异常，允许图片通过 [${requestId}]: ${JSON.stringify(
-						{
-							error: errorMessage,
-							imageUrl,
-							mode,
-							stack,
-						},
-					)}\n`,
+				logger.error(
+					`[v1.1-fix] 图片审核服务异常，允许图片通过 [${requestId}]:`,
+					{
+						error: errorMessage,
+						imageUrl,
+						mode,
+						stack,
+					},
 				);
 
 				// 审核服务异常时允许图片通过，而不是返回错误

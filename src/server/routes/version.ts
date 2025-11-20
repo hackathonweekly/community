@@ -1,6 +1,9 @@
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { z } from "zod";
+import { createModuleLogger } from "@/lib/logs";
+
+const logger = createModuleLogger("version");
 
 // 尝试获取 git tag 版本号
 function getVersionFromGit(): string | null {
@@ -41,11 +44,10 @@ function getAppVersion(): string {
 	return "development";
 }
 
-// 使用 stderr 确保日志输出到 Docker
-process.stderr.write(
-	`🚀 应用启动中... 版本: ${getAppVersion()} 环境: ${
+logger.info(
+	`应用启动 - 版本: ${getAppVersion()} 环境: ${
 		process.env.NODE_ENV || "development"
-	} 时间: ${new Date().toISOString()}\n`,
+	}`,
 );
 
 export const versionRouter = new Hono().get(
