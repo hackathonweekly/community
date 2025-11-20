@@ -43,19 +43,6 @@ docker_build_template: &docker_build_template
       exit 1
     fi
 
-    # Ensure NEXT_PUBLIC_* are available in this stage
-    BUILD_ENV_FILE="./.env.build"
-    if [ -f "${BUILD_ENV_FILE}" ]; then
-      echo "Loading build environment (docker_build_template) from ${BUILD_ENV_FILE}"
-      set -a
-      . "${BUILD_ENV_FILE}"
-      set +a
-      echo "NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-not set}"
-      echo "NEXT_PUBLIC_BUCKET_NAME: ${NEXT_PUBLIC_BUCKET_NAME:-not set}"
-      echo "NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-not set}"
-    else
-      echo "WARNING: .env.build not found in docker_build_template; using defaults"
-    fi
     echo "Building Docker image: ${IMAGE_TAG}"
 
     BUILD_ARGS="--build-arg NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://hackathonweekly.com} --build-arg NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME:-hackweek-public-1303088253} --build-arg NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT:-https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com}"
