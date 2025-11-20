@@ -25,6 +25,8 @@ import { useState } from "react";
 
 export default function EventManagePage() {
 	const t = useTranslations("events.manage");
+	const tabTriggerClass =
+		"!flex-none min-w-[120px] px-3 py-2 text-xs md:text-sm md:px-3";
 	const {
 		event,
 		registrations,
@@ -112,112 +114,118 @@ export default function EventManagePage() {
 				/>
 
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
-					<TabsList className="w-full h-auto flex flex-wrap md:grid md:grid-cols-7 gap-1 md:gap-0">
-						<TabsTrigger
-							value="overview"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">总览</span>
-							<span className="hidden md:inline">
-								{t("tabs.overview")}
-							</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="registrations"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">
-								报名 ({event._count?.registrations || 0})
-							</span>
-							<span className="hidden md:inline">
-								{t("tabs.registrations")} (
-								{event._count?.registrations || 0})
-							</span>
-						</TabsTrigger>
-						{event.type === "BUILDING_PUBLIC" && (
+					<div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:pb-0">
+						<TabsList className="w-max h-auto flex-nowrap gap-2 px-1 md:w-full md:grid md:grid-cols-7 md:gap-0 md:px-0">
 							<TabsTrigger
-								value="building-public"
-								className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
+								value="overview"
+								className={tabTriggerClass}
 							>
-								<span className="md:hidden">
-									Build (
-									{event._count?.buildingRegistrations || 0})
-								</span>
+								<span className="md:hidden">总览</span>
 								<span className="hidden md:inline">
-									Building Public (
-									{event._count?.buildingRegistrations || 0})
+									{t("tabs.overview")}
 								</span>
 							</TabsTrigger>
-						)}
-						{event.type === "HACKATHON" && (
 							<TabsTrigger
-								value="hackathon"
-								className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
+								value="registrations"
+								className={tabTriggerClass}
 							>
 								<span className="md:hidden">
-									黑客松 (
-									{event._count?.hackathonProjects || 0})
+									报名 ({event._count?.registrations || 0})
 								</span>
 								<span className="hidden md:inline">
-									黑客松管理 (
-									{event._count?.hackathonProjects || 0})
+									{t("tabs.registrations")} (
+									{event._count?.registrations || 0})
 								</span>
 							</TabsTrigger>
-						)}
-						<TabsTrigger
-							value="invites"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">邀请</span>
-							<span className="hidden md:inline">
-								{t("tabs.invites")}
-							</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="volunteers"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">
-								志愿 ({event.volunteerRoles?.length || 0})
-							</span>
-							<span className="hidden md:inline">
-								{t("tabs.volunteers")} (
-								{event.volunteerRoles?.length || 0})
-							</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="checkin"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">签到</span>
-							<span className="hidden md:inline">
-								{t("tabs.checkin")}
-							</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="feedback"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">
-								反馈 ({event._count?.feedbacks || 0}/
-								{event._count?.registrations || 0})
-							</span>
-							<span className="hidden md:inline">
-								{t("tabs.feedback")} (
-								{event._count?.feedbacks || 0}/
-								{event._count?.registrations || 0})
-							</span>
-						</TabsTrigger>
-						<TabsTrigger
-							value="admins"
-							className="text-xs md:text-sm px-2 py-1.5 md:px-3 flex-1 min-w-0"
-						>
-							<span className="md:hidden">管理</span>
-							<span className="hidden md:inline">
-								{t("tabs.admins")}
-							</span>
-						</TabsTrigger>
-					</TabsList>
+							{event.type === "BUILDING_PUBLIC" && (
+								<TabsTrigger
+									value="building-public"
+									className={tabTriggerClass}
+								>
+									<span className="md:hidden">
+										Build (
+										{event._count?.buildingRegistrations ||
+											0}
+										)
+									</span>
+									<span className="hidden md:inline">
+										Building Public (
+										{event._count?.buildingRegistrations ||
+											0}
+										)
+									</span>
+								</TabsTrigger>
+							)}
+							{event.type === "HACKATHON" && (
+								<TabsTrigger
+									value="hackathon"
+									className={tabTriggerClass}
+								>
+									<span className="md:hidden">
+										黑客松 (
+										{event._count?.hackathonProjects || 0})
+									</span>
+									<span className="hidden md:inline">
+										黑客松管理 (
+										{event._count?.hackathonProjects || 0})
+									</span>
+								</TabsTrigger>
+							)}
+							<TabsTrigger
+								value="invites"
+								className={tabTriggerClass}
+							>
+								<span className="md:hidden">邀请</span>
+								<span className="hidden md:inline">
+									{t("tabs.invites")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="volunteers"
+								className={tabTriggerClass}
+							>
+								<span className="md:hidden">
+									志愿 ({event.volunteerRoles?.length || 0})
+								</span>
+								<span className="hidden md:inline">
+									{t("tabs.volunteers")} (
+									{event.volunteerRoles?.length || 0})
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="checkin"
+								className={tabTriggerClass}
+							>
+								<span className="md:hidden">签到</span>
+								<span className="hidden md:inline">
+									{t("tabs.checkin")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="feedback"
+								className={tabTriggerClass}
+							>
+								<span className="md:hidden">
+									反馈 ({event._count?.feedbacks || 0}/
+									{event._count?.registrations || 0})
+								</span>
+								<span className="hidden md:inline">
+									{t("tabs.feedback")} (
+									{event._count?.feedbacks || 0}/
+									{event._count?.registrations || 0})
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="admins"
+								className={tabTriggerClass}
+							>
+								<span className="md:hidden">管理</span>
+								<span className="hidden md:inline">
+									{t("tabs.admins")}
+								</span>
+							</TabsTrigger>
+						</TabsList>
+					</div>
 
 					<TabsContent value="overview" className="mt-2 md:mt-6">
 						<EventOverviewTab
