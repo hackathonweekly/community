@@ -68,9 +68,29 @@ docker_build_template: &docker_build_template
       fi
     done
 
+    # Build metadata (version / commit / timestamp)
+    if command -v git >/dev/null 2>&1; then
+      GIT_COMMIT=${GIT_COMMIT:-$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")}
+      BUILD_VERSION=${BUILD_VERSION:-$(git describe --tags --always --dirty 2>/dev/null || echo "")}
+    else
+      GIT_COMMIT=${GIT_COMMIT:-"unknown"}
+      BUILD_VERSION=${BUILD_VERSION:-""}
+    fi
+
+    BUILD_TIME=${BUILD_TIME:-$(date -u +"%Y-%m-%dT%H:%M:%SZ")}
+
+    if [ -z "${BUILD_VERSION}" ]; then
+      BRANCH_NAME=${CNB_BRANCH:-"dev"}
+      BUILD_VERSION="${BRANCH_NAME}-${GIT_COMMIT:-unknown}"
+    fi
+
+    echo "BUILD_VERSION: ${BUILD_VERSION}"
+    echo "BUILD_TIME: ${BUILD_TIME}"
+    echo "GIT_COMMIT: ${GIT_COMMIT}"
+
     echo "Building Docker image: ${IMAGE_TAG}"
 
-    BUILD_ARGS="--build-arg NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} --build-arg NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME} --build-arg NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT}"
+    BUILD_ARGS="--build-arg NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} --build-arg NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME} --build-arg NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT} --build-arg BUILD_VERSION=${BUILD_VERSION} --build-arg BUILD_TIME=${BUILD_TIME} --build-arg GIT_COMMIT=${GIT_COMMIT}"
 
     if command -v docker buildx >/dev/null 2>&1; then
       docker buildx build \
