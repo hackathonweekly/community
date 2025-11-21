@@ -110,7 +110,7 @@ export const config = {
 	storage: {
 		// 各用途的存储桶名称定义
 		bucketNames: {
-			public: process.env.NEXT_PUBLIC_BUCKET_NAME ?? "public",
+			public: "hackweek-public-1303088253",
 		},
 		// 直接访问文件的服务端点
 		endpoints: {
@@ -119,7 +119,7 @@ export const config = {
 				process.env.NEXT_PUBLIC_S3_ENDPOINT ||
 				process.env.S3_PUBLIC_ENDPOINT ||
 				process.env.S3_ENDPOINT ||
-				"",
+				"https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com",
 		},
 	},
 	// 联系表单
