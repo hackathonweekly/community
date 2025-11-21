@@ -74,13 +74,20 @@ WORKDIR /app
 ARG BUILD_VERSION=development
 ARG BUILD_TIME=unknown
 ARG GIT_COMMIT=unknown
+# Public runtime envs are required by the built app to generate full URLs
+ARG NEXT_PUBLIC_SITE_URL
+ARG NEXT_PUBLIC_BUCKET_NAME
+ARG NEXT_PUBLIC_S3_ENDPOINT
 
 ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME="0.0.0.0" \
     BUILD_VERSION=${BUILD_VERSION} \
     BUILD_TIME=${BUILD_TIME} \
-    GIT_COMMIT=${GIT_COMMIT}
+    GIT_COMMIT=${GIT_COMMIT} \
+    NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL} \
+    NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME} \
+    NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT}
 
 # Install OpenSSL for Prisma and wget for health check
 RUN apt-get update && \
