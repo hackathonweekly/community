@@ -23,6 +23,7 @@ common_stages: &common_stages
         echo "✅ Environment variables loaded"
         echo "NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-not set}"
         echo "NEXT_PUBLIC_BUCKET_NAME: ${NEXT_PUBLIC_BUCKET_NAME:-not set}"
+        echo "NEXT_PUBLIC_S3_ENDPOINT: ${NEXT_PUBLIC_S3_ENDPOINT:-not set}"
       else
         echo "Warning: .env.build file not found"
       fi
