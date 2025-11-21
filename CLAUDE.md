@@ -171,6 +171,7 @@ Centralized feature flags and settings:
 - Functional and declarative programming patterns
 - Server components by default, client components when needed (use "use client" directive)
 - Structure: exported component, subcomponents, helpers, types
+- unify public storage endpoint retrieval from `@/config`
 - **TypeScript Path Aliases Available**:
   - `@/*` → `./src/*`
   - `@/config` → `./src/config`

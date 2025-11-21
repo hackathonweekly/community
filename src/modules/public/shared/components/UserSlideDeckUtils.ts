@@ -92,6 +92,8 @@ export interface ProfileUser extends BaseUser {
 }
 
 // 处理图片URL的工具函数
+import { config } from "@/config";
+
 function getImageUrl(imageUrl: string | null | undefined): string | null {
 	if (!imageUrl) {
 		return null;
@@ -102,9 +104,8 @@ function getImageUrl(imageUrl: string | null | undefined): string | null {
 	if (imageUrl.startsWith("/")) {
 		return imageUrl;
 	}
-	const s3Endpoint =
-		process.env.NEXT_PUBLIC_S3_ENDPOINT ||
-		"https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com";
+	// 统一从全局 config 读取公开存储端点
+	const s3Endpoint = config.storage.endpoints.public;
 	return `${s3Endpoint}/${imageUrl}`;
 }
 

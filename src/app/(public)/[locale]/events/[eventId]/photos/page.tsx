@@ -17,6 +17,7 @@ import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 import { CameraModal } from "@/components/camera/CameraModal";
 import Image from "next/image";
+import { config } from "@/config";
 
 interface Photo {
 	id: string;
@@ -248,10 +249,7 @@ export default function EventPhotosPage() {
 			// Prepare form data for direct upload
 			const formData = new FormData();
 			formData.append("file", file);
-			formData.append(
-				"bucket",
-				process.env.NEXT_PUBLIC_BUCKET_NAME || "public",
-			);
+			formData.append("bucket", config.storage.bucketNames.public);
 			formData.append("path", fileName);
 			formData.append("contentType", file.type);
 
@@ -260,7 +258,7 @@ export default function EventPhotosPage() {
 				fileType: file.type,
 				fileSize: file.size,
 				path: fileName,
-				bucket: process.env.NEXT_PUBLIC_BUCKET_NAME || "public",
+				bucket: config.storage.bucketNames.public,
 			});
 
 			// Upload file to storage

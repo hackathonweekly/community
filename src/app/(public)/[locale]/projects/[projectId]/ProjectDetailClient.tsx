@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLinkIcon, VideoIcon } from "lucide-react";
 import Link from "next/link";
 import { CreationExperience } from "./components/CreationExperience";
+import { config } from "@/config";
 import { MobileBottomToolbar } from "./components/MobileBottomToolbar";
 import { ProjectActions } from "./components/ProjectActions";
 import { ProjectDescription } from "./components/ProjectDescription";
@@ -33,10 +34,8 @@ const getImageUrl = (imageUrl: string | null) => {
 	if (imageUrl.startsWith("/")) {
 		return imageUrl; // Next.js会自动处理相对路径
 	}
-	// 如果是云存储的文件名，需要拼接完整域名
-	const s3Endpoint =
-		process.env.NEXT_PUBLIC_S3_ENDPOINT ||
-		"https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com";
+	// 如果是云存储的文件名，需要拼接完整域名（统一从全局 config 读取）
+	const s3Endpoint = config.storage.endpoints.public;
 	return `${s3Endpoint}/${imageUrl}`;
 };
 

@@ -20,14 +20,8 @@ export const buildPublicUrl = (
 ) => {
 	const normalizedPath = path.replace(/^\/+/, "");
 
-	// Prefer explicit endpoint, then config/env, finally derive from signedUrl origin
-	const candidates = [
-		publicEndpoint,
-		config.storage.endpoints.public,
-		process.env.NEXT_PUBLIC_S3_ENDPOINT,
-		process.env.S3_PUBLIC_ENDPOINT,
-		process.env.S3_ENDPOINT,
-	];
+	// Prefer explicit endpoint, then config, finally derive from signedUrl origin
+	const candidates = [publicEndpoint, config.storage.endpoints.public];
 
 	if (signedUrl) {
 		try {

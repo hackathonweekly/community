@@ -1,4 +1,5 @@
 import { getLifeStatusLabel as getLifeStatusLabelUtil } from "@/lib/utils/life-status";
+import { config } from "@/config";
 
 export interface UserFunctionalRoleAssignment {
 	id: string;
@@ -109,9 +110,8 @@ export const getImageUrl = (imageUrl: string | null) => {
 	if (imageUrl.startsWith("/")) {
 		return imageUrl;
 	}
-	const s3Endpoint =
-		process.env.NEXT_PUBLIC_S3_ENDPOINT ||
-		"https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com";
+	// 统一从全局 config 读取公开存储端点
+	const s3Endpoint = config.storage.endpoints.public;
 	return `${s3Endpoint}/${imageUrl}`;
 };
 
