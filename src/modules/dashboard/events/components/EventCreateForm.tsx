@@ -308,11 +308,6 @@ export function EventCreateForm({
 		if ("description" in formData) {
 			(formData as { description?: string }).description = undefined;
 		}
-		// Debug: log the questions data
-		console.log(
-			"EventCreateForm handleFormSubmit - questions data:",
-			formData.questions,
-		);
 
 		// Determine if location is a URL (online event)
 		const isUrl = /^https?:\/\//i.test(formData.location.trim());
@@ -419,12 +414,6 @@ export function EventCreateForm({
 					? formData.hackathonConfig
 					: undefined,
 		};
-
-		// Debug: log the final submission data questions
-		console.log(
-			"EventCreateForm handleFormSubmit - submissionData questions:",
-			submissionData.questions,
-		);
 
 		onSubmit(submissionData, status);
 	};

@@ -195,22 +195,8 @@ export default function EventEditPage() {
 	) => {
 		setIsSubmitting(true);
 
-		// Debug: log the received form data
-		console.log("Edit page handleSubmit - received formData:", formData);
-		console.log("Edit page handleSubmit - questions:", formData.questions);
-
 		try {
 			const dataWithStatus = { ...formData, status };
-
-			// Debug: log the final data being sent to API
-			console.log(
-				"Edit page handleSubmit - sending to API:",
-				dataWithStatus,
-			);
-			console.log(
-				"Edit page handleSubmit - API questions:",
-				dataWithStatus.questions,
-			);
 
 			const response = await fetch(`/api/events/${eventId}`, {
 				method: "PUT",
