@@ -409,12 +409,29 @@ function shouldSkipImage(
 	return typeof imageUrl === "string" && imageUrl.trim().length === 0;
 }
 
+const isImageModerationDisabled = () => {
+	const flag =
+		process.env.DISABLE_IMAGE_MODERATION ||
+		process.env.NEXT_PUBLIC_DISABLE_IMAGE_MODERATION;
+	if (!flag) return false;
+	const normalized = flag.toString().toLowerCase();
+	return normalized === "1" || normalized === "true" || normalized === "yes";
+};
+
 export async function ensureImageSafe(
 	imageUrl: string | null | undefined,
 	mode: ImageModerationMode,
 	options: { skipIfEmpty?: boolean } = {},
 ): Promise<ImageModerationCheckResult> {
 	const skipEmpty = options.skipIfEmpty ?? true;
+
+	// Temporary bypass: allow turning off image moderation via env flag
+	if (isImageModerationDisabled()) {
+		return {
+			isApproved: true,
+			reason: "图片审核已禁用（DISABLE_IMAGE_MODERATION）",
+		};
+	}
 
 	if (shouldSkipImage(imageUrl, skipEmpty)) {
 		return { isApproved: true, reason: "空图片，跳过审核" };
