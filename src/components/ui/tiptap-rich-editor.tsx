@@ -57,7 +57,7 @@ export function TiptapRichEditor({
 			throw new Error("获取上传链接失败");
 		}
 
-		const { signedUrl } = await response.json();
+		const { signedUrl, publicUrl } = await response.json();
 
 		// 上传到S3
 		const uploadResponse = await fetch(signedUrl, {
@@ -71,7 +71,8 @@ export function TiptapRichEditor({
 			throw new Error("文件上传失败");
 		}
 
-		const fileUrl = buildPublicUrl(filePath, undefined, signedUrl);
+		const fileUrl =
+			publicUrl ?? buildPublicUrl(filePath, undefined, signedUrl);
 		await requestImageModeration(fileUrl, "content");
 		return fileUrl;
 	};

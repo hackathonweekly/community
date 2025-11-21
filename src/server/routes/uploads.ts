@@ -157,6 +157,34 @@ function validateContentType(
 	return true;
 }
 
+// 构建可公开访问的 URL，优先使用配置端点，兜底用签名链接的域名
+const buildPublicUrl = (path: string, signedUrl?: string): string => {
+	const normalizedPath = path.replace(/^\/+/, "");
+
+	const candidates = [
+		config.storage.endpoints.public,
+		process.env.NEXT_PUBLIC_S3_ENDPOINT,
+		process.env.S3_PUBLIC_ENDPOINT,
+		process.env.S3_ENDPOINT,
+	];
+
+	if (signedUrl) {
+		try {
+			const origin = new URL(signedUrl).origin;
+			candidates.push(origin);
+		} catch {
+			// ignore invalid URL
+		}
+	}
+
+	const base = candidates
+		.filter(Boolean)
+		.map((b) => (b as string).trim().replace(/\/+$/, ""))
+		.find((b) => b.length > 0);
+
+	return base ? `${base}/${normalizedPath}` : `/${normalizedPath}`;
+};
+
 // Check user permission for bucket access
 function hasAccessToBucket(bucket: string, user: Session["user"]): boolean {
 	// Public bucket access rules
@@ -248,7 +276,10 @@ export const uploadsRouter = new Hono<{
 					content: {
 						"application/json": {
 							schema: resolver(
-								z.object({ signedUrl: z.string() }),
+								z.object({
+									signedUrl: z.string(),
+									publicUrl: z.string().optional(),
+								}),
 							),
 						},
 					},
@@ -306,7 +337,8 @@ export const uploadsRouter = new Hono<{
 					bucket: resolvedBucket,
 					contentType,
 				});
-				return c.json({ signedUrl });
+				const publicUrl = buildPublicUrl(path, signedUrl);
+				return c.json({ signedUrl, publicUrl });
 			} catch (error) {
 				console.error("Failed to generate signed upload URL:", error);
 				throw new HTTPException(500, {
@@ -328,7 +360,12 @@ export const uploadsRouter = new Hono<{
 					description: "Returns the uploaded file URL",
 					content: {
 						"application/json": {
-							schema: resolver(z.object({ fileUrl: z.string() })),
+							schema: resolver(
+								z.object({
+									fileUrl: z.string(),
+									publicUrl: z.string().optional(),
+								}),
+							),
 						},
 					},
 				},
@@ -400,14 +437,9 @@ export const uploadsRouter = new Hono<{
 				});
 
 				// Build public URL
-				const publicEndpoint = config.storage.endpoints.public;
-				const normalizedPath = path.replace(/^\/+/, "");
-				const base = (publicEndpoint ?? "").trim().replace(/\/+$/, "");
-				const fileUrl = base
-					? `${base}/${normalizedPath}`
-					: `/${normalizedPath}`;
+				const fileUrl = buildPublicUrl(path);
 
-				return c.json({ fileUrl });
+				return c.json({ fileUrl, publicUrl: fileUrl });
 			} catch (error) {
 				console.error("Failed to upload file directly:", error);
 				throw new HTTPException(500, {

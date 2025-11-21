@@ -97,8 +97,9 @@ export async function uploadWithSignedUrlFallback({
 			throw new Error(message);
 		}
 
-		const { signedUrl } = (await signedUrlResponse.json()) as {
+		const { signedUrl, publicUrl } = (await signedUrlResponse.json()) as {
 			signedUrl?: string;
+			publicUrl?: string;
 		};
 
 		if (!signedUrl) {
@@ -115,7 +116,7 @@ export async function uploadWithSignedUrlFallback({
 			throw new Error("文件上传失败");
 		}
 
-		return buildPublicUrl(path, publicEndpoint, signedUrl);
+		return publicUrl ?? buildPublicUrl(path, publicEndpoint, signedUrl);
 	} catch (error) {
 		console.warn(
 			"[uploads] Signed URL upload failed, attempting direct upload fallback",
@@ -148,10 +149,13 @@ export async function uploadWithSignedUrlFallback({
 
 			const payload = await safeParseJson(fallbackResponse);
 			const fallbackUrlFromResponse =
-				typeof payload?.fileUrl === "string" &&
-				payload.fileUrl.length > 0
-					? payload.fileUrl
-					: null;
+				(typeof payload?.publicUrl === "string" &&
+					payload.publicUrl.length > 0 &&
+					payload.publicUrl) ||
+				(typeof payload?.fileUrl === "string" &&
+					payload.fileUrl.length > 0 &&
+					payload.fileUrl) ||
+				null;
 
 			return (
 				fallbackUrlFromResponse ?? buildPublicUrl(path, publicEndpoint)

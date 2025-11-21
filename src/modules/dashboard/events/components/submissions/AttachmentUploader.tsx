@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { config } from "@/config";
+import { buildPublicUrl } from "@/lib/uploads/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -189,8 +190,9 @@ async function uploadFileWithProgress(
 		throw new Error(message);
 	}
 
-	const { signedUrl } = (await signedUrlResponse.json()) as {
+	const { signedUrl, publicUrl } = (await signedUrlResponse.json()) as {
 		signedUrl?: string;
+		publicUrl?: string;
 	};
 
 	if (!signedUrl) {
@@ -237,12 +239,11 @@ async function uploadFileWithProgress(
 		xhr.send(file);
 	});
 
-	const baseEndpoint =
-		config.storage.endpoints.public?.replace(/\/+$/, "") ?? "";
-	const normalizedPath = path.replace(/^\/+/, "");
-	return baseEndpoint
-		? `${baseEndpoint}/${normalizedPath}`
-		: `/${normalizedPath}`;
+	// 优先使用后端返回的完整地址，兜底用端点或签名URL推导
+	return (
+		publicUrl ??
+		buildPublicUrl(path, config.storage.endpoints.public, signedUrl)
+	);
 }
 
 export function AttachmentUploader({
