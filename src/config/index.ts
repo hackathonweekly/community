@@ -114,7 +114,12 @@ export const config = {
 		},
 		// 直接访问文件的服务端点
 		endpoints: {
-			public: process.env.NEXT_PUBLIC_S3_ENDPOINT ?? "",
+			// 优先使用前端公开变量，其次回退到后端 S3_ENDPOINT（防止构建时未注入导致前端拿到相对路径）
+			public:
+				process.env.NEXT_PUBLIC_S3_ENDPOINT ||
+				process.env.S3_PUBLIC_ENDPOINT ||
+				process.env.S3_ENDPOINT ||
+				"",
 		},
 	},
 	// 联系表单

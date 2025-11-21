@@ -15,11 +15,25 @@ type UploadOptions = {
 
 const buildPublicUrl = (path: string, publicEndpoint?: string) => {
 	const normalizedPath = path.replace(/^\/+/, "");
-	const base = (publicEndpoint ?? config.storage.endpoints.public ?? "")
-		.trim()
-		.replace(/\/+$/, "");
+
+	// Try provided endpoint → config → env fallback
+	const endpoint =
+		publicEndpoint ||
+		config.storage.endpoints.public ||
+		process.env.NEXT_PUBLIC_S3_ENDPOINT ||
+		process.env.S3_PUBLIC_ENDPOINT ||
+		process.env.S3_ENDPOINT ||
+		"";
+
+	const base = endpoint.trim().replace(/\/+$/, "");
 
 	if (!base) {
+		// Fail loudly in dev, degrade to relative path in prod to avoid crash
+		if (process.env.NODE_ENV !== "production") {
+			console.warn(
+				"[uploads] public endpoint missing, returning relative URL",
+			);
+		}
 		return `/${normalizedPath}`;
 	}
 
