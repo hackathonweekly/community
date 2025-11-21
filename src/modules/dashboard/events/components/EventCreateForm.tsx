@@ -318,6 +318,10 @@ export function EventCreateForm({
 		const isUrl = /^https?:\/\//i.test(formData.location.trim());
 
 		// Transform data for submission - convert new schema to old API format
+		// Convert local time strings (YYYY-MM-DDTHH:mm) to ISO strings (UTC)
+		// The server expects ISO strings, and assumes they are UTC if provided.
+		// By creating a Date object in the browser, we capture the user's local timezone offset,
+		// and toISOString() converts that specific moment to UTC.
 		const submissionData = {
 			...formData,
 			// Map location to appropriate fields based on whether it's external event
@@ -327,6 +331,12 @@ export function EventCreateForm({
 				isUrl && !formData.isExternalEvent ? formData.location : "",
 			// For external events, use the dedicated external URL field
 			externalUrl: formData.isExternalEvent ? formData.externalUrl : "",
+			// Time conversion: ensure we send UTC ISO strings
+			startTime: new Date(formData.startTime).toISOString(),
+			endTime: new Date(formData.endTime).toISOString(),
+			registrationDeadline: formData.registrationDeadline
+				? new Date(formData.registrationDeadline).toISOString()
+				: undefined,
 			organizationId:
 				formData.organizationId === "none"
 					? null

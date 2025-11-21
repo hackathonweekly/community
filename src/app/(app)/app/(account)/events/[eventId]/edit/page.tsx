@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EventCreateForm } from "@/modules/dashboard/events/components/EventCreateForm";
 import type { EventFormData } from "@/modules/dashboard/events/components/types";
 import { extractErrorMessage as extractTemplateErrorMessage } from "@/modules/dashboard/events/utils/template-helpers";
+import { formatForDatetimeLocal } from "@/modules/dashboard/events/utils/date-utils";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { useUserOrganizations } from "@/modules/dashboard/organizations/hooks/use-user-organizations";
 import { TrashIcon } from "@heroicons/react/24/outline";
@@ -384,9 +385,9 @@ export default function EventEditPage() {
 	// Helper function to convert UTC date to local datetime-local format
 	const formatDateForInput = (dateString: string) => {
 		const date = new Date(dateString);
-		// Return ISO string slice directly - let browser handle timezone display
-		// datetime-local input expects format: YYYY-MM-DDTHH:mm
-		return date.toISOString().slice(0, 16);
+		// Use formatForDatetimeLocal to get the local time string (YYYY-MM-DDTHH:mm)
+		// instead of toISOString() which returns UTC time
+		return formatForDatetimeLocal(date);
 	};
 
 	// Transform event data for the form
