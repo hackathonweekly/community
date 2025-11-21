@@ -49,6 +49,11 @@ ENV NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME}
 ENV NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT}
 ENV BUILD_VERSION=${BUILD_VERSION}
 
+# Hard fail early if required public endpoints are missing
+RUN : "${NEXT_PUBLIC_SITE_URL:?NEXT_PUBLIC_SITE_URL is required}" \
+ && : "${NEXT_PUBLIC_BUCKET_NAME:?NEXT_PUBLIC_BUCKET_NAME is required}" \
+ && : "${NEXT_PUBLIC_S3_ENDPOINT:?NEXT_PUBLIC_S3_ENDPOINT is required}"
+
 # Build application with Bun
 RUN --mount=type=cache,target=/app/.next/cache \
     NODE_OPTIONS="--max-old-space-size=8192" \
