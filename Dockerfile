@@ -6,9 +6,9 @@
 FROM node:22 AS base
 WORKDIR /app
 
-# Install Bun on top of Node.js base image
-RUN curl -fsSL https://bun.sh/install | bash && \
-    ln -s /root/.bun/bin/bun /usr/local/bin/bun
+# Install Bun by copying from official image instead of curl
+# This avoids network issues with curl to bun.sh
+COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
 
 # ========================================
 # Dependencies stage: Install dependencies with Bun
