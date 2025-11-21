@@ -9,6 +9,9 @@ import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth";
 import { getPublicStorageUrl } from "@/lib/storage/url";
 import { config } from "@/config";
+import { createModuleLogger } from "@/lib/logs";
+
+const logger = createModuleLogger("events/photos");
 
 const uploadPhotoSchema = z.object({
 	imageUrl: z.string().url("请提供有效的图片URL"),
@@ -77,7 +80,7 @@ export const eventPhotosRouter = new Hono()
 					data: { photos: formattedPhotos },
 				});
 			} catch (error) {
-				console.error("Error fetching event photos:", error);
+				logger.error("Error fetching event photos", { error });
 				return c.json({ error: "获取活动照片失败" }, 500);
 			}
 		},
@@ -142,7 +145,7 @@ export const eventPhotosRouter = new Hono()
 					data: { photos: formattedPhotos },
 				});
 			} catch (error) {
-				console.error("Error fetching my photos:", error);
+				logger.error("Error fetching my photos", { error });
 				return c.json({ error: "获取我的照片失败" }, 500);
 			}
 		},
@@ -215,7 +218,7 @@ export const eventPhotosRouter = new Hono()
 				);
 
 				if (!imageModeration.isApproved) {
-					console.warn("Event photo moderation rejected", {
+					logger.warn("Event photo moderation rejected", {
 						userId: user.id,
 						eventId,
 						imageUrl: validatedData.imageUrl,
@@ -255,7 +258,9 @@ export const eventPhotosRouter = new Hono()
 
 					watermarkedUrl = watermarkPath;
 				} catch (watermarkError) {
-					console.error("Failed to add watermark:", watermarkError);
+					logger.error("Failed to add watermark", {
+						error: watermarkError,
+					});
 					// 如果水印处理失败，仍然上传原图，但不设置 watermarkedUrl
 				}
 
@@ -298,7 +303,7 @@ export const eventPhotosRouter = new Hono()
 					message: "照片上传成功",
 				});
 			} catch (error) {
-				console.error("Error uploading event photo:", error);
+				logger.error("Error uploading event photo", { error });
 				return c.json({ error: "上传照片失败" }, 500);
 			}
 		},
@@ -321,7 +326,7 @@ export const eventPhotosRouter = new Hono()
 
 				// 检查用户是否已登录
 				if (!user || !user.id) {
-					console.error("User not authenticated for photo deletion");
+					logger.error("User not authenticated for photo deletion");
 					return c.json({ error: "请先登录" }, 401);
 				}
 
@@ -331,7 +336,7 @@ export const eventPhotosRouter = new Hono()
 				});
 
 				if (!photo) {
-					console.error("Photo not found:", { photoId });
+					logger.error("Photo not found when deleting", { photoId });
 					return c.json({ error: "照片不存在" }, 404);
 				}
 
@@ -355,7 +360,7 @@ export const eventPhotosRouter = new Hono()
 					message: "照片删除成功",
 				});
 			} catch (error) {
-				console.error("Error deleting event photo:", error);
+				logger.error("Error deleting event photo", { error });
 				return c.json({ error: "删除照片失败" }, 500);
 			}
 		},

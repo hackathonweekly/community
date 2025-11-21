@@ -4,10 +4,27 @@ export type ClientImageModerationMode = "avatar" | "content";
 
 const DEFAULT_ERROR_MESSAGE = "发布内容含违规信息，请修改后重试";
 
+const isImageModerationDisabled = () => {
+	const flag =
+		process.env.NEXT_PUBLIC_DISABLE_IMAGE_MODERATION ||
+		process.env.DISABLE_IMAGE_MODERATION;
+	if (!flag) return false;
+	const normalized = flag.toString().toLowerCase();
+	return normalized === "1" || normalized === "true" || normalized === "yes";
+};
+
 export async function requestImageModeration(
 	imageUrl: string,
 	mode: ClientImageModerationMode = "content",
 ): Promise<void> {
+	// Skip moderation entirely when the flag is set (temporary kill switch)
+	if (isImageModerationDisabled()) {
+		console.info(
+			"[moderation] 图片审核已禁用，直接通过 (DISABLE_IMAGE_MODERATION)",
+		);
+		return;
+	}
+
 	try {
 		const response = await fetch("/api/uploads/moderate-image", {
 			method: "POST",
