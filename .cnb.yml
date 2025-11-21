@@ -57,14 +57,11 @@ docker_build_template: &docker_build_template
       echo "WARNING: .env.build not found in docker_build_template; using defaults"
     fi
 
-    # Hard fail if必需的公共端点未配置，避免构建出带相对路径的镜像
-    REQUIRED_ENV_VARS=(
-      NEXT_PUBLIC_SITE_URL
-      NEXT_PUBLIC_BUCKET_NAME
-      NEXT_PUBLIC_S3_ENDPOINT
-    )
-    for VAR in "${REQUIRED_ENV_VARS[@]}"; do
-      if [ -z "${!VAR}" ]; then
+    # Hard fail if必需的公共端点未配置，避免构建出带相对路径的镜像（POSIX shell 兼容写法）
+    for VAR in NEXT_PUBLIC_SITE_URL NEXT_PUBLIC_BUCKET_NAME NEXT_PUBLIC_S3_ENDPOINT; do
+      # shellcheck disable=SC2086
+      eval "VAL=\${$VAR}"
+      if [ -z "${VAL}" ]; then
         echo "ERROR: ${VAR} is not set. Please configure it in CI env or .env.build."
         exit 1
       fi
