@@ -250,8 +250,85 @@ export function EventSubmissionForm({
 
 	const handleNextStep = async () => {
 		const fields = STEP_FIELDS[currentStep];
-		const valid = await form.trigger(fields);
-		if (!valid) return;
+		// Validate only current step fields. Focus first invalid field when possible.
+		const valid = await form.trigger(fields, { shouldFocus: true });
+		if (!valid) {
+			// Log detailed validation info to help diagnose
+			try {
+				const allErrors = form.formState.errors as any;
+				const fieldErrors = fields
+					.map((name) => {
+						const state = form.getFieldState(name as any);
+						return state.invalid && state.error
+							? { name, message: state.error?.message }
+							: null;
+					})
+					.filter(Boolean);
+
+				console.groupCollapsed(
+					`[submission] validation failed (step ${currentStep + 1})`,
+				);
+				console.log("step fields:", fields);
+				console.log("field errors:", fieldErrors);
+				// Attachments nested errors (if any)
+				if (currentStep === 2 && allErrors?.attachments) {
+					const nested: any[] = allErrors.attachments || [];
+					const nestedMsgs: Array<{
+						index: number;
+						key: string;
+						message: string;
+					}> = [];
+					nested.forEach((err, idx) => {
+						if (!err) return;
+						for (const key of [
+							"fileUrl",
+							"fileName",
+							"fileType",
+							"mimeType",
+							"fileSize",
+						]) {
+							const msg = err?.[key]?.message;
+							if (msg)
+								nestedMsgs.push({
+									index: idx,
+									key,
+									message: String(msg),
+								});
+						}
+					});
+					if (nestedMsgs.length > 0) {
+						console.warn("attachments nested errors:", nestedMsgs);
+					}
+					// Also print obviously invalid URLs (relative)
+					const invalidUrls = attachments
+						.filter(
+							(a) =>
+								a.fileUrl && !/^https?:\/\//i.test(a.fileUrl),
+						)
+						.map((a) => ({
+							fileName: a.fileName,
+							fileUrl: a.fileUrl,
+						}));
+					if (invalidUrls.length > 0) {
+						console.error(
+							"attachments have non-absolute URLs:",
+							invalidUrls,
+						);
+					}
+				}
+				console.log("current values:", form.getValues());
+				console.groupEnd();
+			} catch {}
+
+			// Surface a friendly error. Special-case attachments step so users get feedback.
+			if (currentStep === 2) {
+				toast.error("附件校验失败：请确认已上传完成，且附件链接有效");
+			} else {
+				toast.error("请完善本步骤的必填内容");
+			}
+			return;
+		}
+
 		setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
 	};
 
@@ -293,6 +370,12 @@ export function EventSubmissionForm({
 	const onSubmit = async () => {
 		const valid = await form.trigger();
 		if (!valid) {
+			try {
+				console.groupCollapsed("[submission] submit validation failed");
+				console.log("errors:", form.formState.errors);
+				console.log("values:", form.getValues());
+				console.groupEnd();
+			} catch {}
 			toast.error("请完善表单信息");
 			return;
 		}
@@ -303,6 +386,15 @@ export function EventSubmissionForm({
 		}
 
 		if (hasUploadingAttachment) {
+			try {
+				const uploading = attachments.filter(
+					(a) => a.uploading && !a.fileUrl,
+				);
+				console.warn(
+					"[submission] uploading in progress, block submit:",
+					uploading,
+				);
+			} catch {}
 			toast.error("请等待附件上传完成");
 			return;
 		}
@@ -416,11 +508,23 @@ export function EventSubmissionForm({
 				);
 			case 2:
 				return (
-					<AttachmentUploader
-						eventId={eventId}
-						value={attachments}
-						onChange={handleAttachmentsChange}
-					/>
+					<div className="space-y-2">
+						<AttachmentUploader
+							eventId={eventId}
+							value={attachments}
+							onChange={handleAttachmentsChange}
+						/>
+						{/* Show validation message for attachments (zod errors) */}
+						<FormField
+							control={form.control}
+							name="attachments"
+							render={() => (
+								<FormItem>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
 				);
 			case 3:
 				return (
