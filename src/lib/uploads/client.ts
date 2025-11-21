@@ -13,19 +13,34 @@ type UploadOptions = {
 	publicEndpoint?: string;
 };
 
-const buildPublicUrl = (path: string, publicEndpoint?: string) => {
+export const buildPublicUrl = (
+	path: string,
+	publicEndpoint?: string,
+	signedUrl?: string,
+) => {
 	const normalizedPath = path.replace(/^\/+/, "");
 
-	// Try provided endpoint → config → env fallback
-	const endpoint =
-		publicEndpoint ||
-		config.storage.endpoints.public ||
-		process.env.NEXT_PUBLIC_S3_ENDPOINT ||
-		process.env.S3_PUBLIC_ENDPOINT ||
-		process.env.S3_ENDPOINT ||
-		"";
+	// Prefer explicit endpoint, then config/env, finally derive from signedUrl origin
+	const candidates = [
+		publicEndpoint,
+		config.storage.endpoints.public,
+		process.env.NEXT_PUBLIC_S3_ENDPOINT,
+		process.env.S3_PUBLIC_ENDPOINT,
+		process.env.S3_ENDPOINT,
+	];
 
-	const base = endpoint.trim().replace(/\/+$/, "");
+	if (signedUrl) {
+		try {
+			candidates.push(new URL(signedUrl).origin);
+		} catch {
+			// ignore invalid URL
+		}
+	}
+
+	const base = candidates
+		.filter(Boolean)
+		.map((b) => (b as string).trim().replace(/\/+$/, ""))
+		.find((b) => b.length > 0);
 
 	if (!base) {
 		// Fail loudly in dev, degrade to relative path in prod to avoid crash
@@ -55,7 +70,6 @@ export async function uploadWithSignedUrlFallback({
 	contentType,
 	publicEndpoint,
 }: UploadOptions): Promise<string> {
-	const fileUrl = buildPublicUrl(path, publicEndpoint);
 	const searchParams = new URLSearchParams({
 		bucket,
 		path,
@@ -101,7 +115,7 @@ export async function uploadWithSignedUrlFallback({
 			throw new Error("文件上传失败");
 		}
 
-		return fileUrl;
+		return buildPublicUrl(path, publicEndpoint, signedUrl);
 	} catch (error) {
 		console.warn(
 			"[uploads] Signed URL upload failed, attempting direct upload fallback",
@@ -133,13 +147,15 @@ export async function uploadWithSignedUrlFallback({
 			}
 
 			const payload = await safeParseJson(fallbackResponse);
-			const fallbackUrl =
+			const fallbackUrlFromResponse =
 				typeof payload?.fileUrl === "string" &&
 				payload.fileUrl.length > 0
 					? payload.fileUrl
-					: fileUrl;
+					: null;
 
-			return fallbackUrl;
+			return (
+				fallbackUrlFromResponse ?? buildPublicUrl(path, publicEndpoint)
+			);
 		} catch (fallbackError) {
 			if (fallbackError instanceof Error) {
 				throw fallbackError;

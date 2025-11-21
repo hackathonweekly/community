@@ -5,7 +5,6 @@ import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import Placeholder from "@tiptap/extension-placeholder";
 import DropCursor from "@tiptap/extension-dropcursor";
-import { config } from "@/config";
 import { requestImageModeration } from "@/lib/content-moderation/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,8 @@ import {
 } from "lucide-react";
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
+import { buildPublicUrl } from "@/lib/uploads/client";
+import { config } from "@/config";
 
 interface TiptapRichEditorProps {
 	value?: string;
@@ -40,13 +41,13 @@ export function TiptapRichEditor({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const imageUploadT = useTranslations("editor.imageUpload");
 
-	// 图片上传函数 - 复用现有S3逻辑
+	// 图片上传函数 - 从签名URL推导文件URL，避免依赖编译时 public endpoint
 	const uploadImage = async (file: File): Promise<string> => {
 		const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${file.name.split(".").pop()}`;
-		const bucketName = config.storage.bucketNames.public;
 		const filePath = `event-content/${fileName}`;
 
 		// 获取签名上传URL
+		const bucketName = config.storage.bucketNames.public;
 		const response = await fetch(
 			`/api/uploads/signed-upload-url?bucket=${bucketName}&path=${filePath}&contentType=${encodeURIComponent(file.type)}`,
 			{ method: "POST" },
@@ -70,7 +71,7 @@ export function TiptapRichEditor({
 			throw new Error("文件上传失败");
 		}
 
-		const fileUrl = `${config.storage.endpoints.public}/${filePath}`;
+		const fileUrl = buildPublicUrl(filePath, undefined, signedUrl);
 		await requestImageModeration(fileUrl, "content");
 		return fileUrl;
 	};
