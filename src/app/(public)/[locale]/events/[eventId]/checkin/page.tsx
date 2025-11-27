@@ -14,10 +14,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { LocaleLink } from "@i18n/routing";
 import Link from "next/link";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 interface Event {
 	id: string;
@@ -34,11 +35,14 @@ interface CheckInStatus {
 	isAlreadyCheckedIn: boolean;
 	message: string;
 	event?: Event;
+	statusCode?: string;
 }
 
 export default function EventCheckInPage() {
 	const params = useParams();
 	const pathname = usePathname();
+	const router = useRouter();
+	const locale = useLocale();
 	const eventId = params.eventId as string;
 	const t = useTranslations("events.checkIn");
 	const [checkInStatus, setCheckInStatus] = useState<CheckInStatus | null>(
@@ -66,6 +70,7 @@ export default function EventCheckInPage() {
 					canCheckIn: false,
 					isAlreadyCheckedIn: false,
 					message: t("loginRequiredMessage"),
+					statusCode: "LOGIN_REQUIRED",
 				});
 			} else {
 				toast.error(t("errorLoadCheckInStatus"));
@@ -148,6 +153,26 @@ export default function EventCheckInPage() {
 		);
 	}
 
+	const statusMessageLower = checkInStatus.message.toLowerCase();
+
+	const isNotRegistered =
+		checkInStatus.statusCode === "NOT_REGISTERED" ||
+		statusMessageLower.includes("not registered");
+
+	const isRegistrationPending =
+		checkInStatus.statusCode === "REGISTRATION_PENDING" ||
+		statusMessageLower.includes("not approved");
+
+	// If user is not registered, jump straight to the registration entry
+	useEffect(() => {
+		if (!checkInStatus || !isNotRegistered) return;
+		const searchParams = new URLSearchParams();
+		searchParams.set("openRegistration", "1");
+		searchParams.set("from", "checkin");
+		const targetPath = `/${locale}/events/${eventId}?${searchParams.toString()}`;
+		router.replace(targetPath);
+	}, [checkInStatus, isNotRegistered, locale, eventId, router]);
+
 	return (
 		<div className="min-h-screen bg-background pt-20 pb-16">
 			<div className="container mx-auto px-4">
@@ -173,6 +198,8 @@ export default function EventCheckInPage() {
 									<CheckCircleIcon className="w-16 h-16 text-green-500" />
 								) : checkInStatus.canCheckIn ? (
 									<CheckCircleIcon className="w-16 h-16 text-blue-500" />
+								) : isNotRegistered ? (
+									<ExclamationTriangleIcon className="w-16 h-16 text-amber-500" />
 								) : (
 									<ExclamationTriangleIcon className="w-16 h-16 text-yellow-500" />
 								)}
@@ -182,14 +209,59 @@ export default function EventCheckInPage() {
 									? t("alreadyCheckedIn")
 									: checkInStatus.canCheckIn
 										? t("readyToCheckIn")
-										: t("cannotCheckIn")}
+										: isNotRegistered
+											? t("notRegisteredTitle")
+											: t("cannotCheckIn")}
 							</CardTitle>
-							<CardDescription className="text-base mt-2">
-								{checkInStatus.message}
+							<CardDescription className="text-base mt-2 space-y-1">
+								<span className="block">
+									{isNotRegistered
+										? t("notRegisteredDescription")
+										: checkInStatus.message}
+								</span>
+								{isRegistrationPending && (
+									<span className="block text-sm text-muted-foreground">
+										{t("registrationPendingHelp")}
+									</span>
+								)}
 							</CardDescription>
 						</CardHeader>
 
 						<CardContent className="space-y-6">
+							{isNotRegistered && (
+								<div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4 shadow-inner space-y-4">
+									<div className="flex items-start gap-3">
+										<div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600 text-lg">
+											📝
+										</div>
+										<div className="space-y-1">
+											<p className="font-semibold text-amber-900">
+												{t("notRegisteredTitle")}
+											</p>
+											<p className="text-sm text-amber-800 leading-relaxed">
+												{t("notRegisteredGuide")}
+											</p>
+										</div>
+									</div>
+									<div className="grid gap-2">
+										<Button
+											size="lg"
+											asChild
+											className="w-full bg-amber-600 text-white hover:bg-amber-700"
+										>
+											<LocaleLink
+												href={`/events/${eventId}?openRegistration=1`}
+											>
+												{t("goToRegistration")}
+											</LocaleLink>
+										</Button>
+										<p className="text-xs text-amber-800 text-center">
+											{t("notRegisteredCtaHint")}
+										</p>
+									</div>
+								</div>
+							)}
+
 							{checkInStatus.event && (
 								<div className="bg-muted rounded-lg p-4 space-y-2">
 									<h3 className="font-medium text-foreground">

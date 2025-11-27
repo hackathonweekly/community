@@ -1128,7 +1128,13 @@
 			"wrongEventQR": "此二维码属于其他活动。请扫描正确的二维码。",
 			"pleaseLoginFirst": "请先登录",
 			"loginRequiredMessage": "您需要先登录才能进行签到",
-			"goToLogin": "去登录"
+			"goToLogin": "去登录",
+			"notRegisteredTitle": "还未报名",
+			"notRegisteredDescription": "你尚未报名本次活动，请先完成报名再来签到。",
+			"notRegisteredGuide": "点击下方直接进入报名入口，完成报名后即可返回这里签到。",
+			"notRegisteredCtaHint": "报名完成后再次打开签到二维码即可",
+			"goToRegistration": "去报名入口",
+			"registrationPendingHelp": "报名审核通过后即可完成签到，请留意通知。"
 		},
 		"copy": "复制",
 		"copyFailed": "复制失败，请手动复制链接",

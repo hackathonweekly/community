@@ -339,7 +339,6 @@ export function EventCreateForm({
 			maxAttendees: formData.maxAttendees
 				? Number.parseInt(formData.maxAttendees) || undefined
 				: undefined,
-			registrationDeadline: formData.registrationDeadline || undefined,
 			shortDescription:
 				formData.shortDescription &&
 				formData.shortDescription.trim() !== ""

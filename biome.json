@@ -29,7 +29,6 @@
 				},
 				"noNonNullAssertion": "off",
 				"useBlockStatements": "off",
-				"noCommaOperator": "off",
 				"useNodejsImportProtocol": "off"
 			},
 			"a11y": {

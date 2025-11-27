@@ -1080,7 +1080,13 @@
 			"wrongEventQR": "This QR code is for a different event. Please scan the correct QR code.",
 			"pleaseLoginFirst": "Please log in first",
 			"loginRequiredMessage": "You need to log in to check in",
-			"goToLogin": "Go to Login"
+			"goToLogin": "Go to Login",
+			"notRegisteredTitle": "Not registered yet",
+			"notRegisteredDescription": "You haven't signed up for this event yet. Please register first to continue check-in.",
+			"notRegisteredGuide": "Jump straight to the registration entry below, finish signup and come back to scan again.",
+			"notRegisteredCtaHint": "Complete registration and reopen the check-in QR afterwards",
+			"goToRegistration": "Go to registration",
+			"registrationPendingHelp": "You can check in after approval. We'll notify you once your registration is confirmed."
 		},
 		"copy": "Copy",
 		"copyFailed": "Copy failed, please manually copy the link",

@@ -275,6 +275,7 @@ app.get("/status", async (c) => {
 				data: {
 					canCheckIn: false,
 					isAlreadyCheckedIn: false,
+					statusCode: "NOT_REGISTERED",
 					message:
 						"You are not registered for this event. Please register first.",
 					event,
@@ -288,6 +289,7 @@ app.get("/status", async (c) => {
 				data: {
 					canCheckIn: false,
 					isAlreadyCheckedIn: false,
+					statusCode: "REGISTRATION_PENDING",
 					message: "Your registration is not approved yet.",
 					event,
 				},
@@ -302,6 +304,7 @@ app.get("/status", async (c) => {
 				data: {
 					canCheckIn: false,
 					isAlreadyCheckedIn: true,
+					statusCode: "ALREADY_CHECKED_IN",
 					message: `You have already checked in at ${new Date(existingCheckIn.checkedInAt).toLocaleString()}.`,
 					event,
 				},
@@ -320,6 +323,7 @@ app.get("/status", async (c) => {
 				data: {
 					canCheckIn: false,
 					isAlreadyCheckedIn: false,
+					statusCode: "CHECKIN_NOT_STARTED",
 					message: `Check-in will be available 2 hours before the event starts. Available from ${checkInStartTime.toLocaleString()}.`,
 					event,
 				},
@@ -333,6 +337,7 @@ app.get("/status", async (c) => {
 				data: {
 					canCheckIn: false,
 					isAlreadyCheckedIn: false,
+					statusCode: "EVENT_ENDED",
 					message:
 						"Event has already ended. Check-in is no longer available.",
 					event,
@@ -346,6 +351,7 @@ app.get("/status", async (c) => {
 			data: {
 				canCheckIn: true,
 				isAlreadyCheckedIn: false,
+				statusCode: "READY",
 				message:
 					"Ready to check in! Click the button below to confirm your attendance.",
 				event,

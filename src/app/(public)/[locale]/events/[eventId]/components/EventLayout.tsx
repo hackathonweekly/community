@@ -289,6 +289,37 @@ export function EventLayout({
 		}
 	}, [searchParams, user, existingRegistration, t, pathname, router]);
 
+	// Auto-open registration modal when redirected from check-in
+	useEffect(() => {
+		const openRegistration = searchParams.get("openRegistration");
+		if (!openRegistration) return;
+
+		const searchString = searchParams.toString();
+		const targetPath = searchString
+			? `${pathname}?${searchString}`
+			: pathname;
+
+		if (!user) {
+			const timer = setTimeout(() => {
+				router.push(
+					`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`,
+				);
+			}, 300);
+			return () => clearTimeout(timer);
+		}
+
+		const timer = setTimeout(() => {
+			setShowRegistrationForm(true);
+			if (typeof window !== "undefined") {
+				const url = new URL(window.location.href);
+				url.searchParams.delete("openRegistration");
+				window.history.replaceState({}, "", url.toString());
+			}
+		}, 300);
+
+		return () => clearTimeout(timer);
+	}, [searchParams, user, pathname, router]);
+
 	useEffect(() => {
 		if (typeof window === "undefined") {
 			return;
