@@ -31,19 +31,14 @@ import {
 	Code,
 	Lightbulb,
 	Award,
-	Flag,
-	Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import {
 	withHackathonConfigDefaults,
-	HACKATHON_STAGE_VALUES,
-	type HackathonStage,
 	type NormalizedHackathonConfig,
 	type HackathonVoting,
 } from "@/features/hackathon/config";
-import { cn } from "@/lib/utils";
 
 interface HackathonManagementProps {
 	eventId: string;
@@ -60,17 +55,16 @@ export function HackathonManagement({
 	);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
-	const [stageSaving, setStageSaving] = useState(false);
 	const [activeTab, setActiveTab] = useState("settings");
+	const [controls, setControls] = useState({
+		registrationOpen: true,
+		submissionsOpen: true,
+		votingOpen: true,
+	});
+	const [controlsSaving, setControlsSaving] = useState(false);
 	const toastsT = useTranslations(
 		"dashboard.events.hackathonManagement.toasts",
 	);
-	const stageT = useTranslations(
-		"dashboard.events.hackathonManagement.stage",
-	);
-	const eventsT = useTranslations("events");
-
-	const stageOrder = HACKATHON_STAGE_VALUES;
 
 	const sendConfigUpdate = async (payload: NormalizedHackathonConfig) => {
 		// NOTE: Server route is mounted at /api/events/:eventId/hackathon-config
@@ -146,7 +140,7 @@ export function HackathonManagement({
 		}
 	};
 
-	// Load existing config
+	// Load existing config and controls
 	useEffect(() => {
 		const loadConfig = async () => {
 			try {
@@ -168,7 +162,25 @@ export function HackathonManagement({
 			}
 		};
 
+		const loadControls = async () => {
+			try {
+				const response = await fetch(`/api/events/${eventId}`);
+				if (response.ok) {
+					const data = await response.json();
+					const eventData = data.data || data;
+					setControls({
+						registrationOpen: eventData.registrationOpen ?? true,
+						submissionsOpen: eventData.submissionsOpen ?? true,
+						votingOpen: eventData.votingOpen ?? true,
+					});
+				}
+			} catch (error) {
+				console.error("Error loading hackathon controls:", error);
+			}
+		};
+
 		loadConfig();
+		loadControls();
 	}, [eventId, user?.id]);
 
 	const saveConfig = async (payload: NormalizedHackathonConfig = config) => {
@@ -188,82 +200,46 @@ export function HackathonManagement({
 		}
 	};
 
-	const formatStageLabel = (stage: HackathonStage) =>
-		eventsT(`hackathon.phases.${stage.toLowerCase()}`);
-
-	const updateStage = async (nextStage: HackathonStage) => {
-		if (config.stage.current === nextStage || stageSaving) {
-			return;
-		}
-
-		setStageSaving(true);
-		const previousConfig = config;
-		const now = new Date().toISOString();
-		const history = Array.isArray(config.stage.history)
-			? [...config.stage.history]
-			: [];
-		const lastEntry = history[history.length - 1];
-		const nextHistoryEntry = {
-			stage: nextStage,
-			changedAt: now,
-			changedBy: user?.id,
-		};
-
-		const updatedHistory =
-			lastEntry && lastEntry.stage === nextStage
-				? [
-						...history.slice(0, -1),
-						{ ...lastEntry, ...nextHistoryEntry },
-					]
-				: [...history, nextHistoryEntry];
-
-		const updatedConfig: NormalizedHackathonConfig = {
-			...config,
-			stage: {
-				current: nextStage,
-				lastUpdatedAt: now,
-				lastUpdatedBy: user?.id,
-				history: updatedHistory,
-			},
-		};
-
-		setConfig(updatedConfig);
-
+	const saveControls = async (newControls: typeof controls) => {
+		setControlsSaving(true);
 		try {
-			await sendConfigUpdate(updatedConfig);
-			toast.success(
-				stageT("updateSuccess", {
-					stage: formatStageLabel(nextStage),
-				}),
-			);
+			const response = await fetch(`/api/events/${eventId}/controls`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(newControls),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(
+					errorData.message || "Failed to update controls",
+				);
+			}
+
+			setControls(newControls);
+			toast.success("黑客松控制状态已更新");
 		} catch (error) {
-			console.error("Failed to update hackathon stage:", error);
-			setConfig(previousConfig);
+			console.error("Error saving hackathon controls:", error);
 			const msg =
 				error instanceof Error && error.message
 					? error.message
-					: stageT("updateFailed");
+					: "更新控制状态失败";
 			toast.error(msg);
 		} finally {
-			setStageSaving(false);
+			setControlsSaving(false);
 		}
 	};
 
-	const currentStageIndex = stageOrder.findIndex(
-		(stage) => stage === config.stage.current,
-	);
-	const previousStage =
-		currentStageIndex > 0 ? stageOrder[currentStageIndex - 1] : undefined;
-	const nextStage =
-		currentStageIndex < stageOrder.length - 1
-			? stageOrder[currentStageIndex + 1]
-			: undefined;
-	const stageHistory = [...(config.stage.history ?? [])].slice(-10).reverse();
-	const lastUpdatedAt =
-		config.stage.lastUpdatedAt || stageHistory[0]?.changedAt || null;
-
-	const handleStageSelect = (value: string) =>
-		updateStage(value as HackathonStage);
+	const handleControlChange = (
+		key: keyof typeof controls,
+		value: boolean,
+	) => {
+		const newControls = { ...controls, [key]: value };
+		setControls(newControls);
+		void saveControls(newControls);
+	};
 
 	const addAward = () => {
 		const newAward = {
@@ -363,149 +339,135 @@ export function HackathonManagement({
 					<p className="text-muted-foreground mt-1">
 						配置黑客松活动的设置、奖项和投票规则
 					</p>
-					<div className="mt-2 flex items-center gap-2">
-						<Badge variant="outline" className="text-xs">
-							{stageT("currentStageLabel", {
-								stage: formatStageLabel(config.stage.current),
-							})}
-						</Badge>
-					</div>
 				</div>
 				<Button onClick={() => void saveConfig()} disabled={saving}>
 					{saving ? "保存中..." : "保存配置"}
 				</Button>
 			</div>
-
+			{/* 黑客松流程控制 */}
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Flag className="w-5 h-5" />
-						{stageT("title")}
+						<Settings className="w-5 h-5" />
+						<span>流程控制</span>
 					</CardTitle>
-					<CardDescription>{stageT("description")}</CardDescription>
+					<CardDescription>
+						使用开关直接控制报名、提交、投票，无需阶段切换
+					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Top controls simplified: keep last updated info only */}
-					<div className="flex items-center justify-end">
-						{lastUpdatedAt ? (
-							<span className="text-xs text-muted-foreground">
-								{stageT("lastUpdated", {
-									time: new Date(
-										lastUpdatedAt,
-									).toLocaleString(),
-								})}
-							</span>
-						) : null}
-					</div>
-					<div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-						{stageOrder.map((stage) => {
-							const isCurrent = stage === config.stage.current;
-							return (
-								<div
-									key={stage}
-									className={cn(
-										"group rounded-lg border p-3 transition-colors",
-										isCurrent
-											? "border-primary/60 bg-primary/10 ring-1 ring-primary/30"
-											: "bg-muted/30 hover:bg-muted/50",
-									)}
-								>
-									<div className="flex items-center justify-between gap-2">
-										<div>
-											<p
-												className={cn(
-													"text-sm font-medium",
-													isCurrent && "text-primary",
-												)}
-											>
-												{formatStageLabel(stage)}
-											</p>
-											<p
-												className={cn(
-													"mt-1 text-xs text-muted-foreground",
-													isCurrent && "text-primary",
-												)}
-											>
-												{stageT(
-													`descriptions.${stage.toLowerCase()}`,
-												)}
-											</p>
-										</div>
-										{/* Controls on the right: Next on current; Set current on others */}
-										{isCurrent ? (
-											nextStage ? (
-												<Button
-													size="sm"
-													onClick={() =>
-														nextStage &&
-														updateStage(nextStage)
-													}
-													disabled={
-														!nextStage ||
-														stageSaving
-													}
-													className="shrink-0"
-												>
-													{stageSaving ? (
-														<Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-													) : null}
-													{stageT("next")}
-												</Button>
-											) : null
-										) : (
-											<Button
-												variant="outline"
-												size="sm"
-												onClick={() =>
-													updateStage(stage)
-												}
-												disabled={stageSaving}
-												className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:focus-within:opacity-100 transition-opacity shrink-0"
-											>
-												{stageT("setCurrent")}
-											</Button>
-										)}
-									</div>
+				<CardContent className="space-y-6">
+					<div className="grid gap-6 md:grid-cols-3">
+						{/* 报名开关 */}
+						<div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<p className="font-medium text-sm">
+										🎫 报名状态
+									</p>
+									<p className="text-xs text-muted-foreground">
+										控制是否允许参赛者报名
+									</p>
 								</div>
-							);
-						})}
-					</div>
-					{stageHistory.length ? (
-						<div className="space-y-2">
-							<p className="text-sm font-medium">
-								{stageT("historyTitle")}
-							</p>
-							<div className="space-y-1 text-xs text-muted-foreground">
-								{stageHistory.map((entry, index) => {
-									const changedAtLabel = entry.changedAt
-										? new Date(
-												entry.changedAt,
-											).toLocaleString()
-										: stageT("historyUnknownTime");
-									return (
-										<div
-											key={`${entry.stage}-${entry.changedAt ?? index}`}
-											className="flex items-center justify-between gap-2 border-b pb-1 last:border-b-0 last:pb-0"
-										>
-											<span>
-												{formatStageLabel(entry.stage)}
-											</span>
-											<span className="text-right">
-												{changedAtLabel}
-												{entry.changedBy ? (
-													<span className="ml-2 block text-[0.65rem] text-muted-foreground">
-														{stageT("historyBy", {
-															user: entry.changedBy,
-														})}
-													</span>
-												) : null}
-											</span>
-										</div>
-									);
-								})}
+							</div>
+							<div className="flex items-center justify-between">
+								<Switch
+									checked={controls.registrationOpen}
+									onCheckedChange={(value) =>
+										handleControlChange(
+											"registrationOpen",
+											value,
+										)
+									}
+									disabled={controlsSaving}
+								/>
+								<span
+									className={`text-sm font-medium ${
+										controls.registrationOpen
+											? "text-green-600"
+											: "text-red-600"
+									}`}
+								>
+									{controls.registrationOpen
+										? "开启"
+										: "关闭"}
+								</span>
 							</div>
 						</div>
-					) : null}
+
+						{/* 提交开关 */}
+						<div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<p className="font-medium text-sm">
+										📤 作品提交
+									</p>
+									<p className="text-xs text-muted-foreground">
+										控制是否允许提交作品
+									</p>
+								</div>
+							</div>
+							<div className="flex items-center justify-between">
+								<Switch
+									checked={controls.submissionsOpen}
+									onCheckedChange={(value) =>
+										handleControlChange(
+											"submissionsOpen",
+											value,
+										)
+									}
+									disabled={controlsSaving}
+								/>
+								<span
+									className={`text-sm font-medium ${
+										controls.submissionsOpen
+											? "text-green-600"
+											: "text-red-600"
+									}`}
+								>
+									{controls.submissionsOpen ? "开启" : "关闭"}
+								</span>
+							</div>
+						</div>
+
+						{/* 投票开关 */}
+						<div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<p className="font-medium text-sm">
+										🗳️ 投票状态
+									</p>
+									<p className="text-xs text-muted-foreground">
+										控制是否允许投票
+									</p>
+								</div>
+							</div>
+							<div className="flex items-center justify-between">
+								<Switch
+									checked={controls.votingOpen}
+									onCheckedChange={(value) =>
+										handleControlChange("votingOpen", value)
+									}
+									disabled={controlsSaving}
+								/>
+								<span
+									className={`text-sm font-medium ${
+										controls.votingOpen
+											? "text-green-600"
+											: "text-red-600"
+									}`}
+								>
+									{controls.votingOpen ? "开启" : "关闭"}
+								</span>
+							</div>
+						</div>
+					</div>
+
+					<div className="pt-4 border-t">
+						<p className="text-sm text-muted-foreground">
+							💡
+							提示：直接使用开关即可控制报名、提交与投票，无需再切换阶段。
+						</p>
+					</div>
 				</CardContent>
 			</Card>
 

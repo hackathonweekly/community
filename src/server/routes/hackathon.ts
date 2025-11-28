@@ -7,7 +7,6 @@ import { HTTPException } from "hono/http-exception";
 import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
-	HackathonStageEnum,
 } from "@/features/hackathon/config";
 
 const app = new Hono()
@@ -221,17 +220,11 @@ const app = new Hono()
 				],
 			});
 
-			// 计算最终评分（如果配置了权重）
+			// Get voting config
 			const normalizedConfig = withHackathonConfigDefaults(
 				event.hackathonConfig as any,
 			);
-			if (
-				!["VOTING", "RESULTS"].includes(normalizedConfig.stage.current)
-			) {
-				throw new HTTPException(403, {
-					message: "Voting results are not available at this stage",
-				});
-			}
+			// Note: Results can be viewed anytime, no need to check votingOpen
 			const judgeWeight = normalizedConfig.voting.judgeWeight;
 			const publicWeight = normalizedConfig.voting.publicWeight;
 
@@ -350,14 +343,17 @@ const app = new Hono()
 					});
 				}
 
+				// Check if voting is open
+				if (!event.votingOpen) {
+					throw new HTTPException(403, {
+						message: "Voting is closed",
+					});
+				}
+
+				// Get voting config for permission checks
 				const normalizedConfig = withHackathonConfigDefaults(
 					event.hackathonConfig as any,
 				);
-				if (normalizedConfig.stage.current !== "VOTING") {
-					throw new HTTPException(403, {
-						message: "Voting is not open at this stage",
-					});
-				}
 				const votingConfig = normalizedConfig.voting;
 
 				// 权限检查
@@ -461,10 +457,25 @@ const app = new Hono()
 					}
 
 					// 检查是否是评委（组织者或管理员）
-					const isJudge = event.organizerId === session.user.id;
+					let isJudge = event.organizerId === session.user.id;
+
+					if (!isJudge && event.organizationId) {
+						const membership = await db.member.findUnique({
+							where: {
+								organizationId_userId: {
+									organizationId: event.organizationId,
+									userId: session.user.id,
+								},
+							},
+						});
+						isJudge = Boolean(
+							membership &&
+								(membership.role === "owner" ||
+									membership.role === "admin"),
+						);
+					}
 
 					if (!isJudge) {
-						// 可以在这里添加更多评委判断逻辑，比如检查是否在评委列表中
 						throw new HTTPException(403, {
 							message: "Only judges can submit judge scores",
 						});
@@ -529,13 +540,15 @@ const app = new Hono()
 		},
 	)
 
-	// 快速更新黑客松阶段 (管理员专用)
-	.patch(
-		"/events/:eventId/hackathon-stage",
+	// 快速控制黑客松流程状态 (管理员专用) - 切换报名/提交/投票开关
+	.put(
+		"/events/:eventId/controls",
 		zValidator(
 			"json",
 			z.object({
-				stage: HackathonStageEnum,
+				registrationOpen: z.boolean().optional(),
+				submissionsOpen: z.boolean().optional(),
+				votingOpen: z.boolean().optional(),
 			}),
 		),
 		async (c) => {
@@ -549,7 +562,8 @@ const app = new Hono()
 			}
 
 			const eventId = c.req.param("eventId");
-			const { stage } = c.req.valid("json");
+			const { registrationOpen, submissionsOpen, votingOpen } =
+				c.req.valid("json");
 
 			try {
 				// 检查活动是否存在及权限
@@ -560,7 +574,6 @@ const app = new Hono()
 						type: true,
 						organizerId: true,
 						organizationId: true,
-						hackathonConfig: true,
 					},
 				});
 
@@ -598,62 +611,46 @@ const app = new Hono()
 				if (!hasPermission) {
 					throw new HTTPException(403, {
 						message:
-							"You don't have permission to manage this hackathon",
+							"You don't have permission to control this hackathon",
 					});
 				}
 
-				// 获取当前配置
-				const currentConfig = withHackathonConfigDefaults(
-					event.hackathonConfig as any,
-					{ changedBy: session.user.id },
-				);
+				// 只更新提供的字段
+				const updateData: any = {};
+				if (registrationOpen !== undefined) {
+					updateData.registrationOpen = registrationOpen;
+				}
+				if (submissionsOpen !== undefined) {
+					updateData.submissionsOpen = submissionsOpen;
+				}
+				if (votingOpen !== undefined) {
+					updateData.votingOpen = votingOpen;
+				}
 
-				// 更新阶段信息
-				const now = new Date().toISOString();
-				const newStageState = {
-					current: stage,
-					lastUpdatedAt: now,
-					lastUpdatedBy: session.user.id,
-					history: [
-						...(currentConfig.stage.history || []),
-						{
-							stage: stage,
-							changedAt: now,
-							changedBy: session.user.id,
-						},
-					],
-				};
-
-				const newConfig = {
-					...currentConfig,
-					stage: newStageState,
-				};
-
-				// 更新黑客松配置
 				const updatedEvent = await db.event.update({
 					where: { id: eventId },
-					data: {
-						hackathonConfig: newConfig,
-					},
+					data: updateData,
 					select: {
 						id: true,
 						title: true,
-						hackathonConfig: true,
+						registrationOpen: true,
+						submissionsOpen: true,
+						votingOpen: true,
 					},
 				});
 
 				return c.json({
 					success: true,
 					data: updatedEvent,
-					message: `Stage updated to ${stage}`,
+					message: "Hackathon controls updated successfully",
 				});
 			} catch (error) {
-				console.error("Error updating hackathon stage:", error);
+				console.error("Error updating hackathon controls:", error);
 				if (error instanceof HTTPException) {
 					throw error;
 				}
 				throw new HTTPException(500, {
-					message: "Failed to update hackathon stage",
+					message: "Failed to update hackathon controls",
 				});
 			}
 		},

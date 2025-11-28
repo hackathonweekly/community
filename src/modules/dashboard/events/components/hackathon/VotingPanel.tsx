@@ -23,7 +23,6 @@ import {
 	Crown,
 	TrendingUp,
 } from "lucide-react";
-import type { HackathonStage } from "@/features/hackathon/config";
 
 interface VotingResult {
 	id: string;
@@ -71,7 +70,8 @@ interface VotingPanelProps {
 			publicWeight: number;
 		};
 	};
-	stage?: HackathonStage;
+	isVotingOpen?: boolean;
+	showResults?: boolean;
 }
 
 export function VotingPanel({
@@ -79,18 +79,18 @@ export function VotingPanel({
 	currentUserId,
 	canVote,
 	config,
-	stage,
+	isVotingOpen = false,
+	showResults = false,
 }: VotingPanelProps) {
 	const t = useTranslations("events");
 	const [results, setResults] = useState<VotingResult[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [votingConfig, setVotingConfig] = useState<any>({});
-	const votingPhaseMessage =
-		stage === "RESULTS"
+	const votingPhaseMessage = isVotingOpen
+		? t("hackathon.voting.liveMessage")
+		: showResults
 			? t("hackathon.voting.closedMessage")
-			: stage === "VOTING"
-				? t("hackathon.voting.liveMessage")
-				: null;
+			: t("hackathon.voting.notOpenMessage");
 
 	useEffect(() => {
 		const loadVotingResults = async () => {

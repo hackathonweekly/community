@@ -414,9 +414,15 @@ export function EventSubmissionForm({
 			router.push(`/events/${eventId}/submissions`);
 		} catch (error) {
 			console.error(error);
-			toast.error(
-				error instanceof Error ? error.message : "提交失败，请稍后重试",
-			);
+			let errorMessage =
+				error instanceof Error ? error.message : "提交失败，请稍后重试";
+
+			// Optimize "Request failed" display
+			if (errorMessage.includes("Request failed")) {
+				errorMessage = "提交失败，请检查网络连接或稍后重试";
+			}
+
+			toast.error(errorMessage);
 		}
 	};
 

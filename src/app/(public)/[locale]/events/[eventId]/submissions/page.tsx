@@ -16,17 +16,12 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 		notFound();
 	}
 
-	// Get hackathon stage
-	const hackathonStage =
+	const isVotingOpen =
 		event.type === "HACKATHON"
-			? (event as any)?.hackathonConfig?.stage?.current
-			: null;
-
-	// Only show ranks and exact vote counts in the final results stage
-	const isResultsStage = hackathonStage === "RESULTS";
-
-	// Only allow voting during VOTING stage
-	const isVotingOpen = hackathonStage === "VOTING";
+			? Boolean((event as any)?.votingOpen)
+			: false;
+	// 关闭投票时展示最终结果；打开投票时展示实时榜单但不暴露最终排名
+	const showResults = !isVotingOpen;
 
 	return (
 		<div className="container mx-auto max-w-6xl py-10 space-y-6">
@@ -47,7 +42,7 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 			<EventSubmissionsGallery
 				eventId={eventId}
 				locale={locale}
-				showResults={isResultsStage}
+				showResults={showResults}
 				isVotingOpen={isVotingOpen}
 			/>
 		</div>

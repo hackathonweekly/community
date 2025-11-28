@@ -793,7 +793,12 @@ model Event {
   askDigitalCardConsent Boolean           @default(false) // 是否询问用户是否愿意在现场屏幕公开数字名片
   
   // Hackathon specific configuration
-  hackathonConfig Json?                   // Hackathon configuration (JSON format)
+  hackathonConfig Json?                   // Hackathon configuration (JSON format) - DEPRECATED: use control switches below
+
+  // Hackathon control switches
+  registrationOpen      Boolean     @default(true)   // Is registration open
+  submissionsOpen       Boolean     @default(false)  // Is project submission open
+  votingOpen            Boolean     @default(false)  // Is voting open
 
   // Feedback configuration
   feedbackConfig Json?                    // Custom feedback questions configuration (JSON format)

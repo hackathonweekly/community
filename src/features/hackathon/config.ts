@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-// 黑客松的5个阶段
+// 黑客松阶段已废弃，保留类型兼容性
+/**
+ * @deprecated 使用 Event.registrationOpen / submissionsOpen / votingOpen 控制流程
+ */
 export const HACKATHON_STAGE_VALUES = [
 	"REGISTRATION",
 	"DEVELOPMENT",
@@ -9,8 +12,14 @@ export const HACKATHON_STAGE_VALUES = [
 	"RESULTS",
 ] as const;
 
+/**
+ * @deprecated 使用 Event.registrationOpen / submissionsOpen / votingOpen 控制流程
+ */
 export const HackathonStageEnum = z.enum(HACKATHON_STAGE_VALUES);
 
+/**
+ * @deprecated 使用 Event.registrationOpen / submissionsOpen / votingOpen 控制流程
+ */
 export type HackathonStage = z.infer<typeof HackathonStageEnum>;
 
 export const HackathonSettingsSchema = z.object({
@@ -125,6 +134,9 @@ export type HackathonStageHistoryEntry = z.infer<
 	typeof HackathonStageHistoryEntrySchema
 >;
 
+/**
+ * @deprecated 使用开关控制流程；仅保留历史兼容
+ */
 export const HackathonStageStateSchema = z.object({
 	current: HackathonStageEnum.default("REGISTRATION"),
 	lastUpdatedAt: z.string().optional(),

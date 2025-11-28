@@ -10,10 +10,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	HACKATHON_STAGE_VALUES,
-	type HackathonStage,
-} from "@/features/hackathon/config";
 import { AwardShowcase } from "@/modules/dashboard/events/components/hackathon/AwardShowcase";
 import {
 	EventDescription,
@@ -21,16 +17,13 @@ import {
 	EventInfoCard,
 } from "@/modules/public/events/components";
 import {
-	Award,
 	BookOpen,
 	Clock,
 	Code,
-	Info,
 	LayoutGrid,
 	Settings,
 	Target,
 	Trophy,
-	Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -101,97 +94,30 @@ export function HackathonContent({
 	const config = event.hackathonConfig;
 	const votingConfig = config?.voting;
 	const isEventStarted = new Date() >= new Date(event.startTime);
-	// 双重状态判断：时间判断 + 状态判断
 	const isEventEnded =
 		new Date() >= new Date(event.endTime) || event.status === "COMPLETED";
+	const isRegistrationOpen = event.registrationOpen ?? true;
 
-	// 获取当前阶段
-	const stageOrder = HACKATHON_STAGE_VALUES;
-	const rawStage = config?.stage?.current;
-	const fallbackStage: HackathonStage = !isEventStarted
-		? "REGISTRATION"
-		: !isEventEnded
-			? "DEVELOPMENT"
-			: "RESULTS";
-	const currentStage: HackathonStage = stageOrder.includes(
-		rawStage as HackathonStage,
-	)
-		? (rawStage as HackathonStage)
-		: fallbackStage;
-
-	// 根据阶段判断窗口期
-	const isSubmissionWindow =
-		(currentStage === "DEVELOPMENT" || currentStage === "SUBMISSION") &&
-		isEventStarted &&
-		!isEventEnded;
-	const isVotingWindow = currentStage === "VOTING";
-	const isResultsStage = currentStage === "RESULTS";
-
-	// 阶段状态映射 - 使用5个阶段
-	const stageStatusKeyMap: Record<HackathonStage, string> = {
-		REGISTRATION: "hackathon.status.registration",
-		DEVELOPMENT: "hackathon.status.development",
-		SUBMISSION: "hackathon.status.submission",
-		VOTING: "hackathon.status.voting",
-		RESULTS: "hackathon.status.resultsPublished",
-	};
 	const projectSubmissionList = projectSubmissions || [];
 	const richContent = event.richContent || event.description || "";
 	const publicSubmissionsUrl = `/${currentLocale}/events/${event.id}/submissions`;
 	const privateSubmissionUrl = `/app/events/${event.id}/submissions/new`;
-	const audienceVotingEnabled = Boolean(
-		isVotingWindow && votingConfig?.allowPublicVoting,
-	);
-	const registrationOpen = Boolean(
-		canRegister && !isEventStarted && currentStage === "REGISTRATION",
-	);
 
 	// Check if user is registered
 	const userRegistration = event.registrations?.find(
 		(reg) => reg.user.id === currentUserId && reg.status === "APPROVED",
 	);
 	const isUserRegistered = Boolean(userRegistration);
-	const canCurrentUserVote = (() => {
-		if (!audienceVotingEnabled || !user?.id) {
-			return false;
-		}
-		const scope = votingConfig?.publicVotingScope ?? "PARTICIPANTS";
-		if (scope === "PARTICIPANTS") {
-			return isUserRegistered;
-		}
-		// SCOPE === "REGISTERED" | "ALL" -> any authenticated viewer can vote
-		return true;
-	})();
-
-	const stageStatusMessage = t(stageStatusKeyMap[currentStage]);
 
 	const handleRegistrationClick = () => {
-		if (!registrationOpen) {
+		if (isEventStarted || !isRegistrationOpen) {
 			return;
 		}
 		handleRegister(onOpenRegistrationModal);
 	};
-	const registrationStatusMessage = !isEventStarted
-		? getRegistrationStatusText()
-		: t("hackathon.registration.stageClosed");
 
-	// 阶段显示图标
-	const renderStageIcon = (stage: HackathonStage) => {
-		switch (stage) {
-			case "REGISTRATION":
-				return <Users className="w-4 h-4" />;
-			case "DEVELOPMENT":
-				return <Code className="w-4 h-4" />;
-			case "SUBMISSION":
-				return <Target className="w-4 h-4" />;
-			case "VOTING":
-				return <Trophy className="w-4 h-4" />;
-			case "RESULTS":
-				return <Award className="w-4 h-4" />;
-			default:
-				return null;
-		}
-	};
+	const isSubmissionOpen =
+		(event.submissionsOpen ?? true) && isEventStarted && !isEventEnded;
 
 	return (
 		<>
@@ -247,138 +173,33 @@ export function HackathonContent({
 				projectSubmissions={projectSubmissionList}
 			/>
 
-			{/* Event Stage Indicator & Status - 优化后的赛事进程卡片 */}
-			<Card className="mb-8 border-none shadow-none bg-muted/30">
-				<CardContent className="pt-6 pb-6">
-					<div className="flex flex-col space-y-6">
-						<div className="flex items-center justify-between">
-							<div className="flex items-center gap-2">
-								<div className="h-8 w-1 bg-primary rounded-full" />
-								<h3 className="text-lg font-semibold">
-									赛事进程
-								</h3>
-							</div>
+			{/* Action Buttons */}
+			<div className="flex flex-wrap gap-3 mb-8">
+				<Link href={publicSubmissionsUrl}>
+					<Button variant="outline" className="gap-2">
+						<LayoutGrid className="w-4 h-4" />
+						作品广场
+						{projectSubmissionList.length > 0 && (
+							<Badge variant="secondary" className="ml-1">
+								{projectSubmissionList.length}
+							</Badge>
+						)}
+					</Button>
+				</Link>
 
-							{/* 作品广场入口 */}
-							<Link href={publicSubmissionsUrl}>
-								<Button
-									variant="outline"
-									size="sm"
-									className="gap-2 h-8 bg-background"
-								>
-									<LayoutGrid className="w-3.5 h-3.5" />
-									作品广场
-									{projectSubmissionList.length > 0 && (
-										<Badge
-											variant="secondary"
-											className="ml-1 h-4 min-w-4 px-1 text-[10px]"
-										>
-											{projectSubmissionList.length}
-										</Badge>
-									)}
-								</Button>
-							</Link>
-						</div>
-
-						{/* 简化的步骤条 */}
-						<div className="relative">
-							<div className="flex items-center justify-between w-full">
-								{HACKATHON_STAGE_VALUES.map((stage, index) => {
-									const isActive = stage === currentStage;
-									const isPast =
-										HACKATHON_STAGE_VALUES.indexOf(stage) <
-										HACKATHON_STAGE_VALUES.indexOf(
-											currentStage,
-										);
-									const isLast =
-										index ===
-										HACKATHON_STAGE_VALUES.length - 1;
-
-									return (
-										<div
-											key={stage}
-											className="flex-1 flex items-center relative group"
-										>
-											{/* 节点 */}
-											<div className="flex flex-col items-center gap-2 relative z-10">
-												<div
-													className={`
-														w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300
-														${isActive ? "bg-primary text-primary-foreground border-primary shadow-md scale-110" : ""}
-														${isPast ? "bg-primary/20 text-primary border-primary/20" : ""}
-														${!isActive && !isPast ? "bg-background text-muted-foreground border-border" : ""}
-													`}
-												>
-													{renderStageIcon(stage)}
-												</div>
-												<span
-													className={`
-														absolute top-10 text-xs font-medium whitespace-nowrap transition-colors duration-300
-														${isActive ? "text-primary font-bold" : "text-muted-foreground"}
-													`}
-												>
-													{t(
-														`hackathon.phases.${stage.toLowerCase()}`,
-													)}
-												</span>
-											</div>
-
-											{/* 连接线 */}
-											{!isLast && (
-												<div className="flex-1 h-[2px] mx-2 bg-border relative -top-4">
-													{(isPast || isActive) && (
-														<div
-															className="absolute left-0 top-0 h-full bg-primary transition-all duration-500"
-															style={{
-																width: isPast
-																	? "100%"
-																	: "50%",
-															}}
-														/>
-													)}
-												</div>
-											)}
-										</div>
-									);
-								})}
-							</div>
-							{/* 占位，防止文字被切 */}
-							<div className="h-6" />
-						</div>
-
-						{/* 当前阶段状态提示 - 更加简洁的设计 */}
-						<div className="bg-background rounded-lg p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-							<div className="flex items-start gap-3">
-								<Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-								<div className="space-y-1">
-									<p className="text-sm text-muted-foreground leading-relaxed">
-										{stageStatusMessage}
-									</p>
-								</div>
-							</div>
-
-							{/* 阶段性操作按钮 */}
-							{isSubmissionWindow && (
-								<Button
-									asChild
-									size="sm"
-									className="gap-2 shrink-0"
-								>
-									<Link href={privateSubmissionUrl}>
-										<Target className="w-4 h-4" />
-										{projectSubmissions?.find(
-											(p) =>
-												p.submitterId === currentUserId,
-										)
-											? "编辑作品"
-											: "提交作品"}
-									</Link>
-								</Button>
-							)}
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+				{isSubmissionOpen && (
+					<Button asChild className="gap-2">
+						<Link href={privateSubmissionUrl}>
+							<Target className="w-4 h-4" />
+							{projectSubmissions?.find(
+								(p) => p.submitterId === currentUserId,
+							)
+								? "编辑作品"
+								: "提交作品"}
+						</Link>
+					</Button>
+				)}
+			</div>
 
 			{/* Main Content Section */}
 			<div className="space-y-10 animate-in fade-in-50 duration-300">

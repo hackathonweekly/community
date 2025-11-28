@@ -113,6 +113,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 		setDeadline(targetTime);
 		setIsRunning(true);
 		setIsPaused(false);
+		setIsTimeUp(false);
 		setSettingsOpen(false);
 	};
 
@@ -197,169 +198,14 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 							</p>
 						</div>
 
-						<Dialog
-							open={settingsOpen}
-							onOpenChange={setSettingsOpen}
+						<Button
+							size="lg"
+							className="text-lg px-8 py-6"
+							onClick={handleOpenSettings}
 						>
-							<DialogTrigger asChild>
-								<Button size="lg" className="text-lg px-8 py-6">
-									<Settings className="w-5 h-5 mr-2" />
-									设置时间
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>设置倒计时时间</DialogTitle>
-									<DialogDescription>
-										输入倒计时的小时、分钟和秒数
-									</DialogDescription>
-								</DialogHeader>
-								<div className="grid gap-6 py-4">
-									<div className="grid grid-cols-3 gap-4">
-										<div className="space-y-2">
-											<Label htmlFor="hours">小时</Label>
-											<Input
-												id="hours"
-												type="number"
-												min="0"
-												max="23"
-												value={hours}
-												onChange={(e) =>
-													setHours(e.target.value)
-												}
-												className="text-center text-2xl"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label htmlFor="minutes">
-												分钟
-											</Label>
-											<Input
-												id="minutes"
-												type="number"
-												min="0"
-												max="59"
-												value={minutes}
-												onChange={(e) =>
-													setMinutes(e.target.value)
-												}
-												className="text-center text-2xl"
-											/>
-										</div>
-										<div className="space-y-2">
-											<Label htmlFor="seconds">秒</Label>
-											<Input
-												id="seconds"
-												type="number"
-												min="0"
-												max="59"
-												value={seconds}
-												onChange={(e) =>
-													setSeconds(e.target.value)
-												}
-												className="text-center text-2xl"
-											/>
-										</div>
-									</div>
-
-									{/* Quick presets */}
-									<div className="space-y-2">
-										<Label>快速设置</Label>
-										<div className="grid grid-cols-4 gap-2">
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("0");
-													setMinutes("1");
-													setSeconds("0");
-												}}
-											>
-												1分钟
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("0");
-													setMinutes("5");
-													setSeconds("0");
-												}}
-											>
-												5分钟
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("0");
-													setMinutes("10");
-													setSeconds("0");
-												}}
-											>
-												10分钟
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("0");
-													setMinutes("30");
-													setSeconds("0");
-												}}
-											>
-												30分钟
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("1");
-													setMinutes("0");
-													setSeconds("0");
-												}}
-											>
-												1小时
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("2");
-													setMinutes("0");
-													setSeconds("0");
-												}}
-											>
-												2小时
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("3");
-													setMinutes("0");
-													setSeconds("0");
-												}}
-											>
-												3小时
-											</Button>
-											<Button
-												variant="outline"
-												onClick={() => {
-													setHours("0");
-													setMinutes("0");
-													setSeconds("10");
-												}}
-											>
-												10秒
-											</Button>
-										</div>
-									</div>
-
-									<Button
-										onClick={handleStart}
-										size="lg"
-										className="w-full"
-									>
-										<Play className="w-5 h-5 mr-2" />
-										开始倒计时
-									</Button>
-								</div>
-							</DialogContent>
-						</Dialog>
+							<Settings className="w-5 h-5 mr-2" />
+							设置时间
+						</Button>
 					</div>
 				) : isTimeUp ? (
 					// Time up screen
@@ -554,6 +400,153 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					</div>
 				)}
 			</div>
+
+			<Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>设置倒计时时间</DialogTitle>
+						<DialogDescription>
+							输入倒计时的小时、分钟和秒数
+						</DialogDescription>
+					</DialogHeader>
+					<div className="grid gap-6 py-4">
+						<div className="grid grid-cols-3 gap-4">
+							<div className="space-y-2">
+								<Label htmlFor="hours">小时</Label>
+								<Input
+									id="hours"
+									type="number"
+									min="0"
+									max="23"
+									value={hours}
+									onChange={(e) => setHours(e.target.value)}
+									className="text-center text-2xl"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="minutes">分钟</Label>
+								<Input
+									id="minutes"
+									type="number"
+									min="0"
+									max="59"
+									value={minutes}
+									onChange={(e) => setMinutes(e.target.value)}
+									className="text-center text-2xl"
+								/>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="seconds">秒</Label>
+								<Input
+									id="seconds"
+									type="number"
+									min="0"
+									max="59"
+									value={seconds}
+									onChange={(e) => setSeconds(e.target.value)}
+									className="text-center text-2xl"
+								/>
+							</div>
+						</div>
+
+						{/* Quick presets */}
+						<div className="space-y-2">
+							<Label>快速设置</Label>
+							<div className="grid grid-cols-4 gap-2">
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("0");
+										setMinutes("1");
+										setSeconds("0");
+									}}
+								>
+									1分钟
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("0");
+										setMinutes("5");
+										setSeconds("0");
+									}}
+								>
+									5分钟
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("0");
+										setMinutes("10");
+										setSeconds("0");
+									}}
+								>
+									10分钟
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("0");
+										setMinutes("30");
+										setSeconds("0");
+									}}
+								>
+									30分钟
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("1");
+										setMinutes("0");
+										setSeconds("0");
+									}}
+								>
+									1小时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("2");
+										setMinutes("0");
+										setSeconds("0");
+									}}
+								>
+									2小时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("3");
+										setMinutes("0");
+										setSeconds("0");
+									}}
+								>
+									3小时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() => {
+										setHours("0");
+										setMinutes("0");
+										setSeconds("10");
+									}}
+								>
+									10秒
+								</Button>
+							</div>
+						</div>
+
+						<Button
+							onClick={handleStart}
+							size="lg"
+							className="w-full"
+						>
+							<Play className="w-5 h-5 mr-2" />
+							开始倒计时
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

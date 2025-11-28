@@ -8,6 +8,8 @@ import type {
 } from "./types";
 
 async function handleResponse<T>(response: Response): Promise<T> {
+	// Clone before consuming body so we can fall back to text when JSON parse fails
+	const cloned = response.clone();
 	let payload: any = null;
 	try {
 		payload = await response.json();
@@ -16,11 +18,40 @@ async function handleResponse<T>(response: Response): Promise<T> {
 	}
 
 	if (!response.ok) {
-		const message =
+		let message =
 			payload?.error?.message ||
 			payload?.message ||
-			payload?.error ||
-			"Request failed";
+			(typeof payload?.error === "string" ? payload.error : null);
+
+		if (
+			!message &&
+			payload?.error?.issues &&
+			Array.isArray(payload.error.issues)
+		) {
+			message = payload.error.issues
+				.map((issue: any) => issue.message)
+				.join(", ");
+		}
+
+		if (!message && payload?.details && Array.isArray(payload.details)) {
+			message = payload.details.map((d: any) => d.message).join(", ");
+		}
+
+		if (!message) {
+			try {
+				const text = await cloned.text();
+				const trimmed = text.trim();
+				if (trimmed) {
+					message = trimmed;
+				}
+			} catch (error) {
+				// ignore text parsing fallback
+			}
+		}
+
+		if (!message) {
+			message = `Request failed (${response.status})`;
+		}
 		throw new Error(message);
 	}
 

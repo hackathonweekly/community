@@ -28,7 +28,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { HackathonStage } from "@/features/hackathon/config";
 
 interface ProjectSubmission {
 	id: string;
@@ -82,7 +81,8 @@ interface HackathonProjectGalleryProps {
 			enableJudgeVoting: boolean;
 		};
 	};
-	stage?: HackathonStage;
+	isVotingOpen?: boolean;
+	showResults?: boolean;
 }
 
 export function HackathonProjectGallery({
@@ -90,7 +90,8 @@ export function HackathonProjectGallery({
 	currentUserId,
 	canVote,
 	config,
-	stage,
+	isVotingOpen = false,
+	showResults = false,
 }: HackathonProjectGalleryProps) {
 	const t = useTranslations("events");
 	const [submissions, setSubmissions] = useState<ProjectSubmission[]>([]);
@@ -101,14 +102,13 @@ export function HackathonProjectGallery({
 	const [sortBy, setSortBy] = useState<"recent" | "popular" | "score">(
 		"recent",
 	);
-	const votingStatusMessage =
-		stage && stage !== "VOTING"
-			? t(
-					stage === "RESULTS"
-						? "hackathon.voting.closedMessage"
-						: "hackathon.voting.notOpenMessage",
-				)
-			: null;
+	const votingStatusMessage = isVotingOpen
+		? null
+		: t(
+				showResults
+					? "hackathon.voting.closedMessage"
+					: "hackathon.voting.notOpenMessage",
+			);
 
 	// Load project submissions
 	useEffect(() => {

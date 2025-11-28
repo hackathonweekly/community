@@ -215,116 +215,134 @@ const app = new Hono()
 		"/events/:eventId/submissions",
 		zValidator("json", createSubmissionSchema),
 		async (c) => {
-			const session = await requireSession(c);
-			const eventId = c.req.param("eventId");
-			const payload = c.req.valid("json");
+			try {
+				const session = await requireSession(c);
+				const eventId = c.req.param("eventId");
+				const payload = c.req.valid("json");
 
-			const event = await db.event.findUnique({
-				where: { id: eventId },
-				select: {
-					id: true,
-					type: true,
-					organizerId: true,
-					organizationId: true,
-					projectSubmissionDeadline: true,
-					endTime: true,
-					hackathonConfig: true,
-				},
-			});
-
-			if (!event) {
-				throw new HTTPException(404, { message: "Event not found" });
-			}
-
-			await ensureParticipant(eventId, session.user.id);
-
-			const leaderId = payload.teamLeaderId || session.user.id;
-			await ensureParticipant(eventId, leaderId);
-
-			if (
-				event.projectSubmissionDeadline &&
-				new Date() > event.projectSubmissionDeadline
-			) {
-				throw new HTTPException(400, {
-					message: "Project submission deadline has passed",
-				});
-			}
-
-			// Allow submission at any stage for hackathon events
-			// Organizers can control submission timing via projectSubmissionDeadline
-			if (event.type === "HACKATHON") {
-				const hackathonConfig = withHackathonConfigDefaults(
-					event.hackathonConfig as any,
-				);
-				// Optional: Log current stage for debugging
-				// console.log(`Hackathon stage: ${hackathonConfig.stage.current}`);
-			}
-
-			const sanitizedMembers = sanitizeMemberIds(
-				payload.teamMemberIds || [],
-				leaderId,
-			);
-			await ensureUsersExist(sanitizedMembers);
-
-			const submissionId = await db.$transaction(async (tx) => {
-				const project = await tx.project.create({
-					data: {
-						userId: leaderId,
-						title: payload.name,
-						subtitle: payload.tagline,
-						tagline: payload.tagline,
-						description: payload.description,
-						url: payload.demoUrl,
-						communityUseAuth: payload.communityUseAuthorization,
-						customFields: payload.customFields,
-						isSubmission: true,
-						submittedAt: new Date(),
+				const event = await db.event.findUnique({
+					where: { id: eventId },
+					select: {
+						id: true,
+						type: true,
+						organizerId: true,
+						organizationId: true,
+						projectSubmissionDeadline: true,
+						endTime: true,
+						hackathonConfig: true,
+						submissionsOpen: true,
 					},
 				});
 
-				if (payload.attachments && payload.attachments.length > 0) {
-					await replaceAttachments(
-						tx,
-						project.id,
-						payload.attachments,
-					);
+				if (!event) {
+					throw new HTTPException(404, {
+						message: "Event not found",
+					});
 				}
 
-				await syncProjectMembers(tx, {
-					projectId: project.id,
+				await ensureParticipant(eventId, session.user.id);
+
+				const leaderId = payload.teamLeaderId || session.user.id;
+				await ensureParticipant(eventId, leaderId);
+
+				// Check if submissions are open (for hackathon events)
+				if (event.type === "HACKATHON" && !event.submissionsOpen) {
+					throw new HTTPException(400, {
+						message: "Project submissions are closed",
+					});
+				}
+
+				// Optional: Also check deadline if set
+				if (
+					event.projectSubmissionDeadline &&
+					new Date() > event.projectSubmissionDeadline
+				) {
+					throw new HTTPException(400, {
+						message: "Project submission deadline has passed",
+					});
+				}
+
+				const sanitizedMembers = sanitizeMemberIds(
+					payload.teamMemberIds || [],
 					leaderId,
-					memberIds: sanitizedMembers,
-				});
+				);
+				await ensureUsersExist(sanitizedMembers);
 
-				const submission = await tx.eventProjectSubmission.create({
-					data: {
-						eventId,
+				const submissionId = await db.$transaction(async (tx) => {
+					const project = await tx.project.create({
+						data: {
+							userId: leaderId,
+							title: payload.name,
+							subtitle: payload.tagline,
+							tagline: payload.tagline,
+							description: payload.description,
+							url: payload.demoUrl,
+							communityUseAuth: payload.communityUseAuthorization,
+							customFields: payload.customFields,
+							isSubmission: true,
+							submittedAt: new Date(),
+						},
+					});
+
+					if (payload.attachments && payload.attachments.length > 0) {
+						await replaceAttachments(
+							tx,
+							project.id,
+							payload.attachments,
+						);
+					}
+
+					await syncProjectMembers(tx, {
 						projectId: project.id,
-						userId: session.user.id,
-						submissionType:
-							event.type === "HACKATHON"
-								? "HACKATHON_PROJECT"
-								: "DEMO_PROJECT",
-						title: payload.name,
-						description: payload.description || "",
-						demoUrl: payload.demoUrl,
-						projectSnapshot: buildProjectSnapshot(project),
-						status: "SUBMITTED",
-					},
+						leaderId,
+						memberIds: sanitizedMembers,
+					});
+
+					const submission = await tx.eventProjectSubmission.create({
+						data: {
+							eventId,
+							projectId: project.id,
+							userId: session.user.id,
+							submissionType:
+								event.type === "HACKATHON"
+									? "HACKATHON_PROJECT"
+									: "DEMO_PROJECT",
+							title: payload.name,
+							description: payload.description || "",
+							demoUrl: payload.demoUrl,
+							projectSnapshot: buildProjectSnapshot(project),
+							status: "SUBMITTED",
+						},
+					});
+
+					return submission.id;
 				});
 
-				return submission.id;
-			});
+				const submission =
+					await fetchSubmissionByIdOrThrow(submissionId);
 
-			const submission = await fetchSubmissionByIdOrThrow(submissionId);
-
-			return c.json(
-				{
-					success: true,
-					data: serializeSubmission(submission),
-				},
-				201,
-			);
+				return c.json(
+					{
+						success: true,
+						data: serializeSubmission(submission),
+					},
+					201,
+				);
+			} catch (error) {
+				console.error(
+					"Error creating event submission:",
+					error instanceof Error ? error.message : error,
+				);
+				if (error instanceof HTTPException) {
+					throw error;
+				}
+				throw new HTTPException(400, {
+					message:
+						error instanceof Error
+							? error.message
+							: "Failed to create submission",
+				});
+			}
 		},
 	)
 

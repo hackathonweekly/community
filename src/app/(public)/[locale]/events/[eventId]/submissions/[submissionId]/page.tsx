@@ -32,9 +32,11 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 
 	// Only reveal exact vote counts during the final results stage
 	const event = await getEventById(eventId);
-	const showResults =
-		event?.type === "HACKATHON" &&
-		(event as any)?.hackathonConfig?.stage?.current === "RESULTS";
+	const isVotingOpen =
+		event?.type === "HACKATHON"
+			? Boolean((event as any)?.votingOpen)
+			: false;
+	const showResults = !isVotingOpen;
 
 	return (
 		<div className="container mx-auto max-w-4xl py-10">

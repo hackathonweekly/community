@@ -39,6 +39,9 @@ export interface HackathonConfig {
 			description?: string;
 		}>;
 	};
+	/**
+	 * @deprecated 使用 Event.registrationOpen / submissionsOpen / votingOpen 控制流程
+	 */
 	stage?: {
 		current: HackathonStage;
 		lastUpdatedAt?: string;
