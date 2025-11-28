@@ -24,9 +24,7 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 					<h1 className="text-2xl font-semibold">{event.title}</h1>
 				</div>
 				<Button variant="ghost" asChild>
-					<Link href={`/app/events/${eventId}/submissions`}>
-						返回列表
-					</Link>
+					<Link href={`/events/${eventId}`}>返回活动主页</Link>
 				</Button>
 			</div>
 			<EventSubmissionForm eventId={eventId} eventTitle={event.title} />

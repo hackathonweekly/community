@@ -177,24 +177,27 @@ export function EventRegistrationCard({
 							<div className="space-y-3">
 								{existingRegistration.status === "APPROVED" && (
 									<div className="space-y-4">
-										{/* 状态展示区域 */}
-										<div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3 text-center relative overflow-hidden">
-											<div className="absolute inset-0 bg-gradient-to-r from-green-100/20 to-emerald-100/20 animate-pulse" />
-											<div className="relative">
-												<div className="flex items-center justify-center gap-2">
-													<span className="text-sm font-semibold text-green-800">
-														🎉 报名成功
-													</span>
-												</div>
-											</div>
-										</div>
+										{/* 报名成功后的主要操作按钮 - 提交作品 */}
+										<Button
+											asChild
+											className="w-full font-semibold text-base h-11 shadow-sm"
+											size="lg"
+										>
+											<Link
+												href={`/app/events/${event.id}/submissions/new`}
+											>
+												📤 提交作品
+											</Link>
+										</Button>
 
 										{/* 次要按钮：重要信息 - 只在有内容时显示 */}
 										{(event.registrationSuccessInfo?.trim() ||
 											event.registrationSuccessImage?.trim()) && (
 											<Button
 												onClick={onShowSuccessInfo}
+												variant="outline"
 												className="w-full"
+												size="sm"
 											>
 												📋 查看重要信息
 											</Button>

@@ -918,9 +918,9 @@
 				"results": "Results"
 			},
 			"status": {
-				"registrationOpen": "Registration Open",
-				"inProgress": "Hackathon underway",
-				"submissionOpen": "Project submissions open",
+				"registration": "Registration Open",
+				"development": "Development Phase Underway",
+				"submission": "Project submissions open",
 				"voting": "Voting in progress",
 				"resultsPublished": "Winners announced"
 			},

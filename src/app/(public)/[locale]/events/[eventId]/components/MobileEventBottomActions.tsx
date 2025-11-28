@@ -224,8 +224,22 @@ export function MobileEventBottomActions({
 						</Button>
 
 						{/* 主按钮 - 根据状态显示不同内容 */}
-						{shouldShowImportantInfo ? (
-							// 已报名且有重要信息：显示重要信息按钮
+						{shouldShowImportantInfo &&
+						existingRegistration?.status === "APPROVED" ? (
+							// 已报名且成功：显示提交作品按钮（黑客松场景优先）
+							<Button
+								onClick={() =>
+									router.push(
+										`/app/events/${event.id}/submissions/new`,
+									)
+								}
+								className="flex-1 font-medium text-sm h-12 bg-primary hover:bg-primary/90 text-white"
+								size="lg"
+							>
+								📤 提交作品
+							</Button>
+						) : shouldShowImportantInfo ? (
+							// 报名审核中/等待中且有重要信息：显示查看重要信息
 							<Button
 								onClick={onShowSuccessInfo}
 								className="flex-1 font-medium text-sm h-12 bg-blue-600 hover:bg-blue-700 text-white"
@@ -237,6 +251,17 @@ export function MobileEventBottomActions({
 							// 其他情况：显示报名/查看二维码按钮
 							<Button
 								onClick={() => {
+									// 如果已报名成功，默认行为是提交作品
+									if (
+										existingRegistration?.status ===
+										"APPROVED"
+									) {
+										router.push(
+											`/app/events/${event.id}/submissions/new`,
+										);
+										return;
+									}
+
 									const result = handleRegisterAction();
 									if (
 										result === "SHOW_QR_CODE" &&
@@ -248,7 +273,7 @@ export function MobileEventBottomActions({
 								disabled={isRegistering}
 								className={`flex-1 font-medium text-sm h-12 ${
 									existingRegistration?.status === "APPROVED"
-										? "bg-green-600 hover:bg-green-700 text-white"
+										? "bg-primary hover:bg-primary/90 text-white"
 										: event.isExternalEvent
 											? "bg-blue-600 hover:bg-blue-700 text-white"
 											: isEventEnded
@@ -257,7 +282,9 @@ export function MobileEventBottomActions({
 								}`}
 								size="lg"
 							>
-								{getRegisterButtonText()}
+								{existingRegistration?.status === "APPROVED"
+									? "📤 提交作品"
+									: getRegisterButtonText()}
 							</Button>
 						)}
 

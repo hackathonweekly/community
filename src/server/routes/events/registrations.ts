@@ -124,19 +124,13 @@ app.post(
 				);
 			}
 
+			// Allow registration at any stage for hackathon events
+			// Organizers can control registration timing via registrationDeadline
 			if (event.type === "HACKATHON") {
-				const hackathonStage =
-					(event as any)?.hackathonConfig?.stage?.current ??
-					"REGISTRATION";
-				if (hackathonStage !== "REGISTRATION") {
-					return c.json(
-						{
-							success: false,
-							error: "Registration is not open at this stage",
-						},
-						400,
-					);
-				}
+				// Optional: Log current stage for debugging
+				// const hackathonStage =
+				// 	(event as any)?.hackathonConfig?.stage?.current ?? "REGISTRATION";
+				// console.log(`Hackathon stage: ${hackathonStage}`);
 			}
 
 			// Check if event is external

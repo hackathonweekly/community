@@ -34,7 +34,9 @@ export function TeamSection({
 	leaderLocked = false,
 	currentUserId,
 }: TeamSectionProps) {
-	const [memberScope, setMemberScope] = useState<"event" | "global">("event");
+	const [memberScope, setMemberScope] = useState<"event" | "global">(
+		"global",
+	);
 
 	const handleAddMember = (user: UserSearchResult) => {
 		if (members.find((member) => member.id === user.id)) {

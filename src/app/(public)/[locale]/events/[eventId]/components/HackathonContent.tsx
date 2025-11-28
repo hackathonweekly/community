@@ -1,9 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,26 +11,31 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-	Trophy,
-	Users,
-	Clock,
-	Target,
-	Zap,
-	Lightbulb,
-	Code,
-	Award,
-} from "lucide-react";
+	HACKATHON_STAGE_VALUES,
+	type HackathonStage,
+} from "@/features/hackathon/config";
+import { AwardShowcase } from "@/modules/dashboard/events/components/hackathon/AwardShowcase";
 import {
 	EventDescription,
 	EventHero,
 	EventInfoCard,
 } from "@/modules/public/events/components";
-import type { EventDetailsProps } from "../EventDetailsClient";
-import { AwardShowcase } from "@/modules/dashboard/events/components/hackathon/AwardShowcase";
 import {
-	HACKATHON_STAGE_VALUES,
-	type HackathonStage,
-} from "@/features/hackathon/config";
+	Award,
+	BookOpen,
+	Clock,
+	Code,
+	Info,
+	LayoutGrid,
+	Settings,
+	Target,
+	Trophy,
+	Users,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { EventDetailsProps } from "../EventDetailsClient";
 
 type EventDetails = EventDetailsProps["event"];
 type EventRegistration = NonNullable<EventDetails["registrations"]>[number];
@@ -66,6 +67,7 @@ interface HackathonContentProps {
 	onShowSuccessInfo: () => void;
 	onShowShare: () => void;
 	hasSubmittedFeedback?: boolean;
+	canManageEvent?: boolean; // 新增：是否可以管理活动
 }
 
 export function HackathonContent({
@@ -90,9 +92,9 @@ export function HackathonContent({
 	onShowSuccessInfo,
 	onShowShare,
 	hasSubmittedFeedback,
+	canManageEvent = false,
 }: HackathonContentProps) {
 	const t = useTranslations("events");
-	const [activeTab, setActiveTab] = useState("overview");
 	const pathname = usePathname();
 	const currentLocale = pathname?.split("/")?.[1] ?? "zh";
 
@@ -102,6 +104,8 @@ export function HackathonContent({
 	// 双重状态判断：时间判断 + 状态判断
 	const isEventEnded =
 		new Date() >= new Date(event.endTime) || event.status === "COMPLETED";
+
+	// 获取当前阶段
 	const stageOrder = HACKATHON_STAGE_VALUES;
 	const rawStage = config?.stage?.current;
 	const fallbackStage: HackathonStage = !isEventStarted
@@ -114,17 +118,20 @@ export function HackathonContent({
 	)
 		? (rawStage as HackathonStage)
 		: fallbackStage;
-	const allowSubmissionStages: HackathonStage[] = [
-		"DEVELOPMENT",
-		"SUBMISSION",
-	];
-	const isSubmissionWindow = allowSubmissionStages.includes(currentStage);
+
+	// 根据阶段判断窗口期
+	const isSubmissionWindow =
+		(currentStage === "DEVELOPMENT" || currentStage === "SUBMISSION") &&
+		isEventStarted &&
+		!isEventEnded;
 	const isVotingWindow = currentStage === "VOTING";
 	const isResultsStage = currentStage === "RESULTS";
+
+	// 阶段状态映射 - 使用5个阶段
 	const stageStatusKeyMap: Record<HackathonStage, string> = {
-		REGISTRATION: "hackathon.status.registrationOpen",
-		DEVELOPMENT: "hackathon.status.inProgress",
-		SUBMISSION: "hackathon.status.submissionOpen",
+		REGISTRATION: "hackathon.status.registration",
+		DEVELOPMENT: "hackathon.status.development",
+		SUBMISSION: "hackathon.status.submission",
 		VOTING: "hackathon.status.voting",
 		RESULTS: "hackathon.status.resultsPublished",
 	};
@@ -136,7 +143,7 @@ export function HackathonContent({
 		isVotingWindow && votingConfig?.allowPublicVoting,
 	);
 	const registrationOpen = Boolean(
-		canRegister && currentStage === "REGISTRATION",
+		canRegister && !isEventStarted && currentStage === "REGISTRATION",
 	);
 
 	// Check if user is registered
@@ -156,12 +163,6 @@ export function HackathonContent({
 		return true;
 	})();
 
-	useEffect(() => {
-		if (currentStage === "RESULTS" && activeTab === "overview") {
-			setActiveTab("results");
-		}
-	}, [currentStage, activeTab]);
-
 	const stageStatusMessage = t(stageStatusKeyMap[currentStage]);
 
 	const handleRegistrationClick = () => {
@@ -170,11 +171,11 @@ export function HackathonContent({
 		}
 		handleRegister(onOpenRegistrationModal);
 	};
-	const registrationStatusMessage =
-		currentStage === "REGISTRATION"
-			? getRegistrationStatusText()
-			: t("hackathon.registration.stageClosed");
+	const registrationStatusMessage = !isEventStarted
+		? getRegistrationStatusText()
+		: t("hackathon.registration.stageClosed");
 
+	// 阶段显示图标
 	const renderStageIcon = (stage: HackathonStage) => {
 		switch (stage) {
 			case "REGISTRATION":
@@ -194,6 +195,43 @@ export function HackathonContent({
 
 	return (
 		<>
+			{/* 管理员阶段控制 Sticky Bar */}
+			{canManageEvent && (
+				<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b mb-6">
+					<div className="flex items-center justify-between py-3 px-4">
+						<div className="flex items-center gap-2 text-sm">
+							<Settings className="w-4 h-4" />
+							<span className="font-medium">管理</span>
+						</div>
+						<div className="flex items-center gap-3">
+							<Link
+								href={`/${currentLocale}/events/${event.id}/countdown`}
+								target="_blank"
+							>
+								<Button variant="outline" size="sm">
+									<Clock className="w-4 h-4 mr-2" />
+									倒计时大屏
+								</Button>
+							</Link>
+							<Link
+								href={`/${currentLocale}/events/${event.id}/awards-ceremony`}
+								target="_blank"
+							>
+								<Button variant="outline" size="sm">
+									<Trophy className="w-4 h-4 mr-2" />
+									颁奖墙
+								</Button>
+							</Link>
+							<Link href={`/app/events/${event.id}/edit`}>
+								<Button variant="outline" size="sm">
+									高级设置
+								</Button>
+							</Link>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Core event hero + info, reusing standard event components */}
 			<EventHero
 				event={event}
@@ -209,343 +247,368 @@ export function HackathonContent({
 				projectSubmissions={projectSubmissionList}
 			/>
 
-			{/* Event Stage Indicator */}
-			<div className="mb-8">
-				<div className="flex items-center justify-between mb-4">
-					<div className="flex flex-wrap items-center gap-2">
-						{stageOrder.map((stage) => {
-							const position = stageOrder.indexOf(stage);
-							const variant =
-								stage === currentStage
-									? "default"
-									: position <
-											stageOrder.indexOf(currentStage)
-										? "outline"
-										: "secondary";
-							return (
-								<Badge
-									key={stage}
-									variant={variant}
-									className="flex items-center gap-1 text-xs"
+			{/* Event Stage Indicator & Status - 优化后的赛事进程卡片 */}
+			<Card className="mb-8 border-none shadow-none bg-muted/30">
+				<CardContent className="pt-6 pb-6">
+					<div className="flex flex-col space-y-6">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-2">
+								<div className="h-8 w-1 bg-primary rounded-full" />
+								<h3 className="text-lg font-semibold">
+									赛事进程
+								</h3>
+							</div>
+
+							{/* 作品广场入口 */}
+							<Link href={publicSubmissionsUrl}>
+								<Button
+									variant="outline"
+									size="sm"
+									className="gap-2 h-8 bg-background"
 								>
-									{renderStageIcon(stage)}
-									<span>
-										{t(
-											`hackathon.phases.${stage.toLowerCase()}`,
-										)}
-									</span>
-								</Badge>
-							);
-						})}
-					</div>
-					<div className="flex items-center space-x-2 text-sm text-muted-foreground">
-						<Clock className="w-4 h-4" />
-						<span>{stageStatusMessage}</span>
-					</div>
-				</div>
-			</div>
+									<LayoutGrid className="w-3.5 h-3.5" />
+									作品广场
+									{projectSubmissionList.length > 0 && (
+										<Badge
+											variant="secondary"
+											className="ml-1 h-4 min-w-4 px-1 text-[10px]"
+										>
+											{projectSubmissionList.length}
+										</Badge>
+									)}
+								</Button>
+							</Link>
+						</div>
 
-			{/* Main Content Tabs */}
-			<Tabs
-				value={activeTab}
-				onValueChange={setActiveTab}
-				className="w-full"
-			>
-				<TabsList className="grid w-full grid-cols-5">
-					<TabsTrigger value="overview">
-						{t("hackathon.tabs.overview")}
-					</TabsTrigger>
-					<TabsTrigger value="projects">
-						{t("hackathon.tabs.projects")}
-					</TabsTrigger>
-					<TabsTrigger value="resources">
-						{t("hackathon.tabs.resources")}
-					</TabsTrigger>
-					<TabsTrigger value="awards">
-						{t("hackathon.tabs.awards")}
-					</TabsTrigger>
-					<TabsTrigger value="results">
-						{t("hackathon.tabs.results")}
-					</TabsTrigger>
-				</TabsList>
+						{/* 简化的步骤条 */}
+						<div className="relative">
+							<div className="flex items-center justify-between w-full">
+								{HACKATHON_STAGE_VALUES.map((stage, index) => {
+									const isActive = stage === currentStage;
+									const isPast =
+										HACKATHON_STAGE_VALUES.indexOf(stage) <
+										HACKATHON_STAGE_VALUES.indexOf(
+											currentStage,
+										);
+									const isLast =
+										index ===
+										HACKATHON_STAGE_VALUES.length - 1;
 
-				{/* Overview Tab */}
-				<TabsContent value="overview" className="space-y-6">
-					<EventDescription richContent={richContent} />
+									return (
+										<div
+											key={stage}
+											className="flex-1 flex items-center relative group"
+										>
+											{/* 节点 */}
+											<div className="flex flex-col items-center gap-2 relative z-10">
+												<div
+													className={`
+														w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300
+														${isActive ? "bg-primary text-primary-foreground border-primary shadow-md scale-110" : ""}
+														${isPast ? "bg-primary/20 text-primary border-primary/20" : ""}
+														${!isActive && !isPast ? "bg-background text-muted-foreground border-border" : ""}
+													`}
+												>
+													{renderStageIcon(stage)}
+												</div>
+												<span
+													className={`
+														absolute top-10 text-xs font-medium whitespace-nowrap transition-colors duration-300
+														${isActive ? "text-primary font-bold" : "text-muted-foreground"}
+													`}
+												>
+													{t(
+														`hackathon.phases.${stage.toLowerCase()}`,
+													)}
+												</span>
+											</div>
 
-					{/* Hackathon Features */}
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center">
-								<Zap className="w-5 h-5 mr-2" />
-								{t("hackathon.features.title")}
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="grid gap-4 md:grid-cols-2">
-							<div className="flex items-start space-x-3">
-								<Users className="w-5 h-5 text-blue-500 mt-1" />
-								<div>
-									<h4 className="font-medium">
-										{t("hackathon.features.teamwork")}
-									</h4>
-									<p className="text-sm text-muted-foreground">
-										{config?.settings.allowSolo
-											? t(
-													"hackathon.features.soloOrTeam",
-													{
-														max: config.settings
-															.maxTeamSize,
-													},
-												)
-											: t("hackathon.features.teamOnly", {
-													max:
-														config?.settings
-															.maxTeamSize || 5,
-												})}
+											{/* 连接线 */}
+											{!isLast && (
+												<div className="flex-1 h-[2px] mx-2 bg-border relative -top-4">
+													{(isPast || isActive) && (
+														<div
+															className="absolute left-0 top-0 h-full bg-primary transition-all duration-500"
+															style={{
+																width: isPast
+																	? "100%"
+																	: "50%",
+															}}
+														/>
+													)}
+												</div>
+											)}
+										</div>
+									);
+								})}
+							</div>
+							{/* 占位，防止文字被切 */}
+							<div className="h-6" />
+						</div>
+
+						{/* 当前阶段状态提示 - 更加简洁的设计 */}
+						<div className="bg-background rounded-lg p-4 border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+							<div className="flex items-start gap-3">
+								<Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+								<div className="space-y-1">
+									<p className="text-sm text-muted-foreground leading-relaxed">
+										{stageStatusMessage}
 									</p>
 								</div>
 							</div>
-							<div className="flex items-start space-x-3">
-								<Target className="w-5 h-5 text-green-500 mt-1" />
-								<div>
-									<h4 className="font-medium">
-										{t("hackathon.features.learning")}
-									</h4>
-									<p className="text-sm text-muted-foreground">
-										{t("hackathon.features.learningDesc")}
-									</p>
-								</div>
-							</div>
-							<div className="flex items-start space-x-3">
-								<Lightbulb className="w-5 h-5 text-yellow-500 mt-1" />
-								<div>
-									<h4 className="font-medium">
-										{t("hackathon.features.innovation")}
-									</h4>
-									<p className="text-sm text-muted-foreground">
-										{t("hackathon.features.innovationDesc")}
-									</p>
-								</div>
-							</div>
-							<div className="flex items-start space-x-3">
-								<Award className="w-5 h-5 text-purple-500 mt-1" />
-								<div>
-									<h4 className="font-medium">
-										{t("hackathon.features.recognition")}
-									</h4>
-									<p className="text-sm text-muted-foreground">
-										{t(
-											"hackathon.features.recognitionDesc",
-										)}
-									</p>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
 
-					{/* Quick Submit Button for Registered Users */}
-					{isUserRegistered && isSubmissionWindow && (
-						<Card>
-							<CardContent className="pt-6">
-								<Button asChild className="w-full">
+							{/* 阶段性操作按钮 */}
+							{isSubmissionWindow && (
+								<Button
+									asChild
+									size="sm"
+									className="gap-2 shrink-0"
+								>
 									<Link href={privateSubmissionUrl}>
-										{t("hackathon.actions.submitProject")}
+										<Target className="w-4 h-4" />
+										{projectSubmissions?.find(
+											(p) =>
+												p.submitterId === currentUserId,
+										)
+											? "编辑作品"
+											: "提交作品"}
 									</Link>
 								</Button>
-							</CardContent>
-						</Card>
-					)}
-				</TabsContent>
-
-				{/* Projects Tab */}
-				<TabsContent value="projects" className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>作品提交与投票</CardTitle>
-							<CardDescription>
-								集中查看本次活动的所有参赛作品，并为你喜爱的团队投票
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="flex flex-col md:flex-row gap-4">
-							<Button asChild className="flex-1">
-								<Link href={publicSubmissionsUrl}>
-									查看作品与实时票数
-								</Link>
-							</Button>
-							<Button
-								asChild
-								variant="secondary"
-								className="flex-1"
-								disabled={!isUserRegistered}
-							>
-								<Link href={privateSubmissionUrl}>
-									{isUserRegistered
-										? "提交我的作品"
-										: "报名后可提交作品"}
-								</Link>
-							</Button>
-						</CardContent>
-					</Card>
-				</TabsContent>
-
-				{/* Resources Tab */}
-				<TabsContent value="resources" className="space-y-6">
-					{config?.resources ? (
-						<div className="grid gap-6 md:grid-cols-3">
-							{/* Tutorials */}
-							{config.resources.tutorials.length > 0 && (
-								<Card>
-									<CardHeader>
-										<CardTitle>
-											{t("hackathon.resources.tutorials")}
-										</CardTitle>
-										<CardDescription>
-											{t(
-												"hackathon.resources.tutorialsDesc",
-											)}
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{config.resources.tutorials.map(
-											(tutorial: any, index: number) => (
-												<a
-													key={index}
-													href={tutorial.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="block p-3 rounded-lg border hover:bg-accent transition-colors"
-												>
-													<h4 className="font-medium">
-														{tutorial.title}
-													</h4>
-													{tutorial.description && (
-														<p className="text-sm text-muted-foreground mt-1">
-															{
-																tutorial.description
-															}
-														</p>
-													)}
-												</a>
-											),
-										)}
-									</CardContent>
-								</Card>
-							)}
-
-							{/* Tools */}
-							{config.resources.tools.length > 0 && (
-								<Card>
-									<CardHeader>
-										<CardTitle>
-											{t("hackathon.resources.tools")}
-										</CardTitle>
-										<CardDescription>
-											{t("hackathon.resources.toolsDesc")}
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{config.resources.tools.map(
-											(tool: any, index: number) => (
-												<a
-													key={index}
-													href={tool.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="block p-3 rounded-lg border hover:bg-accent transition-colors"
-												>
-													<h4 className="font-medium">
-														{tool.name}
-													</h4>
-													{tool.description && (
-														<p className="text-sm text-muted-foreground mt-1">
-															{tool.description}
-														</p>
-													)}
-												</a>
-											),
-										)}
-									</CardContent>
-								</Card>
-							)}
-
-							{/* Examples */}
-							{config.resources.examples.length > 0 && (
-								<Card>
-									<CardHeader>
-										<CardTitle>
-											{t("hackathon.resources.examples")}
-										</CardTitle>
-										<CardDescription>
-											{t(
-												"hackathon.resources.examplesDesc",
-											)}
-										</CardDescription>
-									</CardHeader>
-									<CardContent className="space-y-3">
-										{config.resources.examples.map(
-											(example: any, index: number) => (
-												<a
-													key={index}
-													href={example.url}
-													target="_blank"
-													rel="noopener noreferrer"
-													className="block p-3 rounded-lg border hover:bg-accent transition-colors"
-												>
-													<h4 className="font-medium">
-														{example.title}
-													</h4>
-													{example.description && (
-														<p className="text-sm text-muted-foreground mt-1">
-															{
-																example.description
-															}
-														</p>
-													)}
-												</a>
-											),
-										)}
-									</CardContent>
-								</Card>
 							)}
 						</div>
-					) : (
-						<Card>
-							<CardContent className="pt-6">
-								<p className="text-center text-muted-foreground">
-									{t("hackathon.resources.noResources")}
-								</p>
-							</CardContent>
-						</Card>
-					)}
-				</TabsContent>
+					</div>
+				</CardContent>
+			</Card>
 
-				{/* Awards Tab */}
-				<TabsContent value="awards" className="space-y-6">
-					<AwardShowcase
-						awards={config?.awards || []}
-						eventId={event.id}
-					/>
-				</TabsContent>
+			{/* Main Content Section */}
+			<div className="space-y-10 animate-in fade-in-50 duration-300">
+				{/* Overview / Description - 直接展示，不再包含在 Tab 中 */}
+				<div className="space-y-4">
+					<div className="flex items-center gap-2 border-b pb-2 mb-6">
+						<BookOpen className="w-5 h-5 text-primary" />
+						<h2 className="text-xl font-semibold">活动详情</h2>
+					</div>
+					<EventDescription richContent={richContent} />
+				</div>
 
-				{/* Results Tab */}
-				<TabsContent value="results" className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle>实时投票结果</CardTitle>
-							<CardDescription>
-								打开作品广场查看最新票数、排行榜以及作品详情
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="flex justify-center">
-							<Button asChild>
-								<Link href={publicSubmissionsUrl}>
-									前往作品广场
-								</Link>
-							</Button>
-						</CardContent>
-					</Card>
-				</TabsContent>
-			</Tabs>
+				{/* Tabs Section for Awards & Resources - Only show if content exists */}
+				{((config?.awards && config.awards.length > 0) ||
+					(config?.resources?.tutorials &&
+						config.resources.tutorials.length > 0) ||
+					(config?.resources?.tools &&
+						config.resources.tools.length > 0) ||
+					(config?.resources?.examples &&
+						config.resources.examples.length > 0)) && (
+					<Tabs
+						defaultValue={
+							config?.awards && config.awards.length > 0
+								? "awards"
+								: "resources"
+						}
+						className="w-full space-y-6"
+					>
+						<TabsList className="w-full justify-start h-auto p-0 bg-transparent border-b rounded-none gap-6">
+							{config?.awards && config.awards.length > 0 && (
+								<TabsTrigger
+									value="awards"
+									className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-base font-semibold flex items-center gap-2"
+								>
+									<Trophy className="w-4 h-4" />
+									奖项设置
+								</TabsTrigger>
+							)}
+
+							{((config?.resources?.tutorials &&
+								config.resources.tutorials.length > 0) ||
+								(config?.resources?.tools &&
+									config.resources.tools.length > 0) ||
+								(config?.resources?.examples &&
+									config.resources.examples.length > 0)) && (
+								<TabsTrigger
+									value="resources"
+									className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-2 py-3 text-base font-semibold flex items-center gap-2"
+								>
+									<BookOpen className="w-4 h-4" />
+									学习资源
+								</TabsTrigger>
+							)}
+						</TabsList>
+
+						{/* Awards Tab */}
+						{config?.awards && config.awards.length > 0 && (
+							<TabsContent value="awards" className="mt-0">
+								<AwardShowcase
+									awards={config?.awards || []}
+									eventId={event.id}
+								/>
+							</TabsContent>
+						)}
+
+						{/* Resources Tab */}
+						{((config?.resources?.tutorials &&
+							config.resources.tutorials.length > 0) ||
+							(config?.resources?.tools &&
+								config.resources.tools.length > 0) ||
+							(config?.resources?.examples &&
+								config.resources.examples.length > 0)) && (
+							<TabsContent value="resources" className="mt-0">
+								<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+									{/* Tutorials */}
+									{config?.resources?.tutorials &&
+										config.resources.tutorials.length >
+											0 && (
+											<Card className="h-full hover:shadow-md transition-shadow">
+												<CardHeader>
+													<CardTitle className="text-lg flex items-center gap-2">
+														<BookOpen className="w-4 h-4 text-primary" />
+														{t(
+															"hackathon.resources.tutorials",
+														)}
+													</CardTitle>
+													<CardDescription>
+														{t(
+															"hackathon.resources.tutorialsDesc",
+														)}
+													</CardDescription>
+												</CardHeader>
+												<CardContent className="space-y-3">
+													{config.resources.tutorials.map(
+														(
+															tutorial: any,
+															index: number,
+														) => (
+															<a
+																key={index}
+																href={
+																	tutorial.url
+																}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="block p-3 rounded-lg border bg-muted/30 hover:bg-accent transition-colors group"
+															>
+																<h4 className="font-medium text-sm group-hover:text-primary transition-colors">
+																	{
+																		tutorial.title
+																	}
+																</h4>
+																{tutorial.description && (
+																	<p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+																		{
+																			tutorial.description
+																		}
+																	</p>
+																)}
+															</a>
+														),
+													)}
+												</CardContent>
+											</Card>
+										)}
+
+									{/* Tools */}
+									{config?.resources?.tools &&
+										config.resources.tools.length > 0 && (
+											<Card className="h-full hover:shadow-md transition-shadow">
+												<CardHeader>
+													<CardTitle className="text-lg flex items-center gap-2">
+														<Code className="w-4 h-4 text-primary" />
+														{t(
+															"hackathon.resources.tools",
+														)}
+													</CardTitle>
+													<CardDescription>
+														{t(
+															"hackathon.resources.toolsDesc",
+														)}
+													</CardDescription>
+												</CardHeader>
+												<CardContent className="space-y-3">
+													{config.resources.tools.map(
+														(
+															tool: any,
+															index: number,
+														) => (
+															<a
+																key={index}
+																href={tool.url}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="block p-3 rounded-lg border bg-muted/30 hover:bg-accent transition-colors group"
+															>
+																<h4 className="font-medium text-sm group-hover:text-primary transition-colors">
+																	{tool.name}
+																</h4>
+																{tool.description && (
+																	<p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+																		{
+																			tool.description
+																		}
+																	</p>
+																)}
+															</a>
+														),
+													)}
+												</CardContent>
+											</Card>
+										)}
+
+									{/* Examples */}
+									{config?.resources?.examples &&
+										config.resources.examples.length >
+											0 && (
+											<Card className="h-full hover:shadow-md transition-shadow">
+												<CardHeader>
+													<CardTitle className="text-lg flex items-center gap-2">
+														<LayoutGrid className="w-4 h-4 text-primary" />
+														{t(
+															"hackathon.resources.examples",
+														)}
+													</CardTitle>
+													<CardDescription>
+														{t(
+															"hackathon.resources.examplesDesc",
+														)}
+													</CardDescription>
+												</CardHeader>
+												<CardContent className="space-y-3">
+													{config.resources.examples.map(
+														(
+															example: any,
+															index: number,
+														) => (
+															<a
+																key={index}
+																href={
+																	example.url
+																}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="block p-3 rounded-lg border bg-muted/30 hover:bg-accent transition-colors group"
+															>
+																<h4 className="font-medium text-sm group-hover:text-primary transition-colors">
+																	{
+																		example.title
+																	}
+																</h4>
+																{example.description && (
+																	<p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+																		{
+																			example.description
+																		}
+																	</p>
+																)}
+															</a>
+														),
+													)}
+												</CardContent>
+											</Card>
+										)}
+								</div>
+							</TabsContent>
+						)}
+					</Tabs>
+				)}
+			</div>
 		</>
 	);
 }

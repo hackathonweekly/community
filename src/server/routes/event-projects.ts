@@ -250,17 +250,14 @@ const app = new Hono()
 				});
 			}
 
+			// Allow submission at any stage for hackathon events
+			// Organizers can control submission timing via projectSubmissionDeadline
 			if (event.type === "HACKATHON") {
 				const hackathonConfig = withHackathonConfigDefaults(
 					event.hackathonConfig as any,
 				);
-				const allowed: HackathonStage[] = ["DEVELOPMENT", "SUBMISSION"];
-				if (!allowed.includes(hackathonConfig.stage.current)) {
-					throw new HTTPException(400, {
-						message:
-							"Project submissions are not open at this stage",
-					});
-				}
+				// Optional: Log current stage for debugging
+				// console.log(`Hackathon stage: ${hackathonConfig.stage.current}`);
 			}
 
 			const sanitizedMembers = sanitizeMemberIds(

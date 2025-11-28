@@ -4,6 +4,7 @@ import { EventSubmissionForm } from "@/modules/dashboard/events/components/submi
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { config } from "@/config";
 
 interface PageProps {
 	params: Promise<{ eventId: string; submissionId: string }>;
@@ -57,7 +58,9 @@ export default async function EditSubmissionPage({ params }: PageProps) {
 					</h1>
 				</div>
 				<Button variant="ghost" asChild>
-					<Link href={`/app/events/${eventId}/submissions`}>
+					<Link
+						href={`/${config.i18n.defaultLocale}/events/${eventId}/submissions`}
+					>
 						返回列表
 					</Link>
 				</Button>

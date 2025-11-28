@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// 黑客松的5个阶段
 export const HACKATHON_STAGE_VALUES = [
 	"REGISTRATION",
 	"DEVELOPMENT",

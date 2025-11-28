@@ -103,6 +103,7 @@ export default async function EventDetailsPage({
 	const serializedEvent = {
 		...event,
 		isEventAdmin,
+		richContent: event.richContent || undefined,
 		startTime: event.startTime.toISOString(),
 		endTime: event.endTime.toISOString(),
 		address: event.address || undefined,

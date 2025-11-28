@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
 	Form,
 	FormControl,
@@ -24,27 +23,28 @@ import {
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { TiptapRichEditor } from "@/components/ui/tiptap-rich-editor";
-import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
-import { useSubmissionDraft } from "@/modules/dashboard/events/hooks/useSubmissionDraft";
 import {
 	useCreateSubmission,
 	useUpdateSubmission,
 } from "@/features/event-submissions/hooks";
+import { submissionFormSchema } from "@/features/event-submissions/schema";
 import type {
 	EventSubmission,
 	SubmissionFormValues,
 	UserSearchResult,
 } from "@/features/event-submissions/types";
-import { submissionFormSchema } from "@/features/event-submissions/schema";
-import { TeamSection } from "./TeamSection";
+import { cn } from "@/lib/utils";
+import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
+import { useSubmissionDraft } from "@/modules/dashboard/events/hooks/useSubmissionDraft";
 import {
-	AttachmentUploader,
 	type AttachmentChange,
 	type AttachmentDraft,
+	AttachmentUploader,
 } from "./AttachmentUploader";
-import { cn } from "@/lib/utils";
+import { TeamSection } from "./TeamSection";
 
 interface EventSubmissionFormProps {
 	eventId: string;
@@ -430,7 +430,10 @@ export function EventSubmissionForm({
 							name="name"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>作品名称</FormLabel>
+									<FormLabel>
+										作品名称{" "}
+										<span className="text-red-500">*</span>
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="输入作品名称"
@@ -446,10 +449,13 @@ export function EventSubmissionForm({
 							name="tagline"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>一句话介绍</FormLabel>
+									<FormLabel>
+										一句话介绍（至少 10 个字）{" "}
+										<span className="text-red-500">*</span>
+									</FormLabel>
 									<FormControl>
 										<Input
-											placeholder="用一句话介绍你的作品"
+											placeholder="> 10 个字，请直接说明作品核心价值"
 											{...field}
 										/>
 									</FormControl>
@@ -462,7 +468,12 @@ export function EventSubmissionForm({
 							name="demoUrl"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>项目链接</FormLabel>
+									<FormLabel>
+										项目链接{" "}
+										<span className="text-muted-foreground text-xs font-normal">
+											(选填)
+										</span>
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="https://"
@@ -478,7 +489,12 @@ export function EventSubmissionForm({
 							name="description"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>作品描述</FormLabel>
+									<FormLabel>
+										作品描述{" "}
+										<span className="text-muted-foreground text-xs font-normal">
+											(选填)
+										</span>
+									</FormLabel>
 									<FormControl>
 										<TiptapRichEditor
 											value={field.value}
@@ -533,7 +549,10 @@ export function EventSubmissionForm({
 						name="communityUseAuthorization"
 						render={({ field }) => (
 							<FormItem className="space-y-4">
-								<FormLabel>是否授权社区用于宣传</FormLabel>
+								<FormLabel>
+									是否授权社区用于宣传{" "}
+									<span className="text-red-500">*</span>
+								</FormLabel>
 								<FormControl>
 									<RadioGroup
 										onValueChange={(value) =>
@@ -590,9 +609,6 @@ export function EventSubmissionForm({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h2 className="text-2xl font-semibold">
-					{eventTitle} · 作品提交流程
-				</h2>
 				<p className="text-muted-foreground">
 					请按照步骤完成作品信息，系统将自动保存草稿。
 				</p>
@@ -604,7 +620,28 @@ export function EventSubmissionForm({
 				)}
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-4">
+			{/* Mobile Step Indicator */}
+			<div className="md:hidden mb-6">
+				<div className="flex items-center justify-between mb-2">
+					<span className="font-medium">
+						步骤 {currentStep + 1}: {steps[currentStep].title}
+					</span>
+					<span className="text-sm text-muted-foreground">
+						{currentStep + 1} / {steps.length}
+					</span>
+				</div>
+				<div className="h-2 bg-secondary rounded-full overflow-hidden">
+					<div
+						className="h-full bg-primary transition-all duration-300 ease-in-out"
+						style={{
+							width: `${((currentStep + 1) / steps.length) * 100}%`,
+						}}
+					/>
+				</div>
+			</div>
+
+			{/* Desktop Step Indicator */}
+			<div className="hidden md:grid gap-4 grid-cols-4">
 				{steps.map((step, index) => (
 					<div
 						key={step.title}

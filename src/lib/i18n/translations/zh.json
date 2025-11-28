@@ -966,9 +966,9 @@
 				"results": "结果公布阶段"
 			},
 			"status": {
-				"registrationOpen": "报名进行中",
-				"inProgress": "黑客松进行中",
-				"submissionOpen": "作品提交开放",
+				"registration": "报名进行中",
+				"development": "开发阶段进行中",
+				"submission": "作品提交开放",
 				"voting": "投票进行中",
 				"resultsPublished": "结果已公布"
 			},

@@ -30,6 +30,7 @@ export interface EventDetailsProps {
 		id: string;
 		title: string;
 		description: string;
+		richContent?: string;
 		type: string;
 		status: string;
 		startTime: string;
@@ -371,7 +372,8 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 							<HackathonContent
 								event={{
 									...event,
-									richContent: event.description,
+									richContent:
+										event.richContent || event.description,
 								}}
 								currentUserId={user?.id}
 								user={user}
@@ -397,6 +399,7 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 								onShowSuccessInfo={openSuccessInfo}
 								onShowShare={openShareModal}
 								hasSubmittedFeedback={hasSubmittedFeedback}
+								canManageEvent={event.isEventAdmin}
 							/>
 						);
 					case "BUILDING_PUBLIC":
@@ -404,7 +407,8 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 							<BuildingPublicContent
 								event={{
 									...event,
-									richContent: event.description,
+									richContent:
+										event.richContent || event.description,
 								}}
 								currentUserId={user?.id}
 								eventRegistration={existingRegistration}

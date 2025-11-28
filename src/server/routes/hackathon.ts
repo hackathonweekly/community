@@ -7,6 +7,7 @@ import { HTTPException } from "hono/http-exception";
 import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
+	HackathonStageEnum,
 } from "@/features/hackathon/config";
 
 const app = new Hono()
@@ -523,6 +524,136 @@ const app = new Hono()
 				}
 				throw new HTTPException(500, {
 					message: "Failed to submit vote",
+				});
+			}
+		},
+	)
+
+	// 快速更新黑客松阶段 (管理员专用)
+	.patch(
+		"/events/:eventId/hackathon-stage",
+		zValidator(
+			"json",
+			z.object({
+				stage: HackathonStageEnum,
+			}),
+		),
+		async (c) => {
+			const session = await auth.api.getSession({
+				headers: c.req.raw.headers,
+			});
+			if (!session) {
+				throw new HTTPException(401, {
+					message: "Authentication required",
+				});
+			}
+
+			const eventId = c.req.param("eventId");
+			const { stage } = c.req.valid("json");
+
+			try {
+				// 检查活动是否存在及权限
+				const event = await db.event.findUnique({
+					where: { id: eventId },
+					select: {
+						id: true,
+						type: true,
+						organizerId: true,
+						organizationId: true,
+						hackathonConfig: true,
+					},
+				});
+
+				if (!event) {
+					throw new HTTPException(404, {
+						message: "Event not found",
+					});
+				}
+
+				if (event.type !== "HACKATHON") {
+					throw new HTTPException(400, {
+						message: "Event is not a hackathon",
+					});
+				}
+
+				// 检查用户权限：活动组织者或组织管理员
+				let hasPermission = event.organizerId === session.user.id;
+
+				if (!hasPermission && event.organizationId) {
+					const membership = await db.member.findUnique({
+						where: {
+							organizationId_userId: {
+								organizationId: event.organizationId,
+								userId: session.user.id,
+							},
+						},
+					});
+					hasPermission = Boolean(
+						membership &&
+							(membership.role === "owner" ||
+								membership.role === "admin"),
+					);
+				}
+
+				if (!hasPermission) {
+					throw new HTTPException(403, {
+						message:
+							"You don't have permission to manage this hackathon",
+					});
+				}
+
+				// 获取当前配置
+				const currentConfig = withHackathonConfigDefaults(
+					event.hackathonConfig as any,
+					{ changedBy: session.user.id },
+				);
+
+				// 更新阶段信息
+				const now = new Date().toISOString();
+				const newStageState = {
+					current: stage,
+					lastUpdatedAt: now,
+					lastUpdatedBy: session.user.id,
+					history: [
+						...(currentConfig.stage.history || []),
+						{
+							stage: stage,
+							changedAt: now,
+							changedBy: session.user.id,
+						},
+					],
+				};
+
+				const newConfig = {
+					...currentConfig,
+					stage: newStageState,
+				};
+
+				// 更新黑客松配置
+				const updatedEvent = await db.event.update({
+					where: { id: eventId },
+					data: {
+						hackathonConfig: newConfig,
+					},
+					select: {
+						id: true,
+						title: true,
+						hackathonConfig: true,
+					},
+				});
+
+				return c.json({
+					success: true,
+					data: updatedEvent,
+					message: `Stage updated to ${stage}`,
+				});
+			} catch (error) {
+				console.error("Error updating hackathon stage:", error);
+				if (error instanceof HTTPException) {
+					throw error;
+				}
+				throw new HTTPException(500, {
+					message: "Failed to update hackathon stage",
 				});
 			}
 		},
