@@ -44,6 +44,8 @@ interface EventSubmissionsGalleryProps {
 	showResults?: boolean;
 	// When true, allow voting; when false, disable voting buttons
 	isVotingOpen?: boolean;
+	// When true (default), gallery shows vote counts and live standings; when false, hide them
+	showVotesOnGallery?: boolean;
 }
 
 // Available sort options
@@ -66,6 +68,7 @@ export function EventSubmissionsGallery({
 	locale,
 	showResults = false,
 	isVotingOpen = false,
+	showVotesOnGallery = true,
 }: EventSubmissionsGalleryProps) {
 	// Default to earliest submission order (Oldest -> Newest)
 	const [sortValue, setSortValue] = useState("createdAt:asc");
@@ -74,34 +77,31 @@ export function EventSubmissionsGallery({
 	// 筛选状态
 	const [filter, setFilter] = useState<"all" | "mine" | "voted">("all");
 
-	// Only show vote count animation when voting is open and not in results stage
+	// Only show vote visuals when voting is open, not showing final results, and gallery display is enabled
 	// This creates a fun "live" feel without revealing final ranks
-	const showLiveVoteVisuals = isVotingOpen && !showResults;
+	const showLiveVoteVisuals =
+		isVotingOpen && !showResults && showVotesOnGallery;
 
-	// Ensure `voteCount` is only used during results stage or if specifically allowed
+	// Unified gate: whether we can show any vote numbers or standings in the gallery
+	const canShowVotes =
+		showVotesOnGallery && (showResults || showLiveVoteVisuals);
+
+	// Ensure `voteCount` sort is only used when vote visibility is allowed
 	useEffect(() => {
-		if (!showResults && sortBy === "voteCount") {
-			// In non-results stage, we might still allow sorting by votes if that's the intention,
-			// but usually vote counts are hidden. However, the user asked for "vote count more->less" sorting.
-			// If we are in a stage where votes are hidden (e.g. before voting), we shouldn't sort by votes.
-			// But if `showLiveVoteVisuals` is true (voting open), we DO show vote counts, so sorting is valid.
-
-			// If neither results nor live voting visuals are shown, reset sort
-			if (!showLiveVoteVisuals) {
-				setSortValue("createdAt:asc");
-			}
+		if (sortBy === "voteCount" && !canShowVotes) {
+			setSortValue("createdAt:asc");
 		}
-	}, [showResults, sortBy, showLiveVoteVisuals]);
+	}, [canShowVotes, sortBy]);
 
 	const sortOptions = useMemo(() => {
 		// Filter options based on visibility
 		return ALL_SORT_OPTIONS.filter((opt) => {
 			if (opt.value.startsWith("voteCount")) {
-				return showResults || showLiveVoteVisuals;
+				return canShowVotes;
 			}
 			return true;
 		});
-	}, [showResults, showLiveVoteVisuals]);
+	}, [canShowVotes]);
 
 	const isVisible = usePageVisibility();
 	const { user } = useSession();
@@ -147,8 +147,8 @@ export function EventSubmissionsGallery({
 
 	// Top 3 Logic
 	const top3Submissions = useMemo(() => {
-		// Only show leaderboard when votes are visible (either voting is open or results are shown)
-		if (!showLiveVoteVisuals && !showResults) return [];
+		// Only show leaderboard when votes are visible
+		if (!canShowVotes) return [];
 
 		return [...submissions]
 			.sort((a, b) => {
@@ -670,8 +670,7 @@ export function EventSubmissionsGallery({
 										</p>
 										<div className="flex items-center justify-between text-sm pt-2">
 											<div className="flex items-center gap-1">
-												{showResults ||
-												showLiveVoteVisuals ? (
+												{canShowVotes ? (
 													<div
 														className="flex items-center gap-1"
 														title={

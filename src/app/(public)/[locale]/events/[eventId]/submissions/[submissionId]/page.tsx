@@ -36,7 +36,13 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 		event?.type === "HACKATHON"
 			? Boolean((event as any)?.votingOpen)
 			: false;
-	const showResults = !isVotingOpen;
+
+	// Respect admin toggle: when disabled, hide vote counts on gallery (even after voting ends)
+	const showVotesOnGallery =
+		event?.type === "HACKATHON"
+			? Boolean((event as any)?.showVotesOnGallery ?? true)
+			: false;
+	const showResults = showVotesOnGallery && !isVotingOpen;
 
 	return (
 		<div className="container mx-auto max-w-4xl py-10">

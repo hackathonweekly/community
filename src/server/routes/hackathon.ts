@@ -549,6 +549,8 @@ const app = new Hono()
 				registrationOpen: z.boolean().optional(),
 				submissionsOpen: z.boolean().optional(),
 				votingOpen: z.boolean().optional(),
+				// New: toggle whether the public gallery displays vote counts and live standings
+				showVotesOnGallery: z.boolean().optional(),
 			}),
 		),
 		async (c) => {
@@ -562,8 +564,12 @@ const app = new Hono()
 			}
 
 			const eventId = c.req.param("eventId");
-			const { registrationOpen, submissionsOpen, votingOpen } =
-				c.req.valid("json");
+			const {
+				registrationOpen,
+				submissionsOpen,
+				votingOpen,
+				showVotesOnGallery,
+			} = c.req.valid("json");
 
 			try {
 				// 检查活动是否存在及权限
@@ -627,6 +633,10 @@ const app = new Hono()
 					updateData.votingOpen = votingOpen;
 				}
 
+				if (showVotesOnGallery !== undefined) {
+					updateData.showVotesOnGallery = showVotesOnGallery;
+				}
+
 				const updatedEvent = await db.event.update({
 					where: { id: eventId },
 					data: updateData,
@@ -636,6 +646,7 @@ const app = new Hono()
 						registrationOpen: true,
 						submissionsOpen: true,
 						votingOpen: true,
+						showVotesOnGallery: true,
 					},
 				});
 

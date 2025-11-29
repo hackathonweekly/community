@@ -20,6 +20,12 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 		event.type === "HACKATHON"
 			? Boolean((event as any)?.votingOpen)
 			: false;
+
+	// Whether the public gallery shows vote counts and live standings
+	const showVotesOnGallery =
+		event.type === "HACKATHON"
+			? Boolean((event as any)?.showVotesOnGallery ?? true)
+			: false;
 	// 关闭投票时展示最终结果；打开投票时展示实时榜单但不暴露最终排名
 	const showResults = !isVotingOpen;
 
@@ -44,6 +50,7 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 				locale={locale}
 				showResults={showResults}
 				isVotingOpen={isVotingOpen}
+				showVotesOnGallery={showVotesOnGallery}
 			/>
 		</div>
 	);

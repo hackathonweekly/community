@@ -800,6 +800,10 @@ model Event {
   submissionsOpen       Boolean     @default(false)  // Is project submission open
   votingOpen            Boolean     @default(false)  // Is voting open
 
+  // Hackathon public display controls
+  // Whether to show vote counts and live standings on the public submissions gallery
+  showVotesOnGallery    Boolean     @default(true)
+
   // Feedback configuration
   feedbackConfig Json?                    // Custom feedback questions configuration (JSON format)
   

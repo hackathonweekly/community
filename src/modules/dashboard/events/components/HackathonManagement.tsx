@@ -60,6 +60,8 @@ export function HackathonManagement({
 		registrationOpen: true,
 		submissionsOpen: true,
 		votingOpen: true,
+		// Whether gallery shows vote counts and live standings
+		showVotesOnGallery: true,
 	});
 	const [controlsSaving, setControlsSaving] = useState(false);
 	const toastsT = useTranslations(
@@ -172,6 +174,8 @@ export function HackathonManagement({
 						registrationOpen: eventData.registrationOpen ?? true,
 						submissionsOpen: eventData.submissionsOpen ?? true,
 						votingOpen: eventData.votingOpen ?? true,
+						showVotesOnGallery:
+							eventData.showVotesOnGallery ?? true,
 					});
 				}
 			} catch (error) {
@@ -458,6 +462,37 @@ export function HackathonManagement({
 								>
 									{controls.votingOpen ? "开启" : "关闭"}
 								</span>
+							</div>
+
+							{/* 作品广场显示票数与战况开关 */}
+							<div className="flex items-start justify-between gap-3 pt-3 border-t mt-2">
+								<div className="space-y-1">
+									<p className="font-medium text-sm">
+										📊 作品广场显示票数与实时战况
+									</p>
+									<p className="text-xs text-muted-foreground">
+										关闭后，作品广场将隐藏各作品票数与右侧实时榜单；仍可投票
+									</p>
+								</div>
+								<div className="flex items-center gap-2">
+									<Switch
+										checked={controls.showVotesOnGallery}
+										onCheckedChange={(value) =>
+											handleControlChange(
+												"showVotesOnGallery",
+												value,
+											)
+										}
+										disabled={controlsSaving}
+									/>
+									<span
+										className={`text-sm font-medium ${controls.showVotesOnGallery ? "text-green-600" : "text-red-600"}`}
+									>
+										{controls.showVotesOnGallery
+											? "显示"
+											: "隐藏"}
+									</span>
+								</div>
 							</div>
 						</div>
 					</div>
