@@ -56,7 +56,13 @@ interface MobileEventBottomActionsProps {
 	canContactOrganizer?: boolean;
 	hasSubmittedFeedback?: boolean;
 	userSubmission?: { id: string; projectId: string } | null;
-	projectSubmissions?: Array<{ id: string; submitter: { id: string } }>;
+	projectSubmissions?: Array<{
+		id: string;
+		userId?: string;
+		submitter?: { id?: string };
+		user?: { id?: string };
+		submitterId?: string;
+	}>;
 }
 
 export function MobileEventBottomActions({
@@ -77,6 +83,10 @@ export function MobileEventBottomActions({
 	userSubmission,
 	projectSubmissions,
 }: MobileEventBottomActionsProps) {
+	type ProjectSubmission = NonNullable<
+		MobileEventBottomActionsProps["projectSubmissions"]
+	>[number];
+
 	const router = useRouter();
 	const [isBookmarking, setIsBookmarking] = useState(false);
 	const [showShareDialog, setShowShareDialog] = useState(false);
@@ -115,14 +125,24 @@ export function MobileEventBottomActions({
 		router.push(`/${locale}/events/${event.id}/photos`);
 	};
 
+	const getSubmissionOwnerId = (submission?: ProjectSubmission) =>
+		submission?.submitter?.id ??
+		submission?.user?.id ??
+		submission?.submitterId ??
+		submission?.userId ??
+		null;
+
 	// 检查用户是否已提交过作品
 	const hasUserSubmitted =
 		user && projectSubmissions
-			? projectSubmissions.some((sub) => sub.submitter.id === user.id)
+			? projectSubmissions.some(
+					(submission) =>
+						getSubmissionOwnerId(submission) === user.id,
+				)
 			: false;
 
 	const userSubmittedProject = projectSubmissions?.find(
-		(sub) => sub.submitter.id === user?.id,
+		(submission) => getSubmissionOwnerId(submission) === user?.id,
 	);
 
 	// 包装handleBookmark以处理loading状态
