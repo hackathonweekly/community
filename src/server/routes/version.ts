@@ -1,7 +1,7 @@
+import { createModuleLogger } from "@/lib/logs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { z } from "zod";
-import { createModuleLogger } from "@/lib/logs";
 
 const logger = createModuleLogger("version");
 
@@ -44,11 +44,11 @@ function getAppVersion(): string {
 	return "development";
 }
 
-logger.info(
-	`应用启动 - 版本: ${getAppVersion()} 环境: ${
-		process.env.NODE_ENV || "development"
-	}`,
-);
+// logger.info(
+// 	`应用启动 - 版本: ${getAppVersion()} 环境: ${
+// 		process.env.NODE_ENV || "development"
+// 	}`,
+// );
 
 export const versionRouter = new Hono().get(
 	"/version",

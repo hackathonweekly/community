@@ -90,6 +90,12 @@ export default function EventPhotosPage() {
 	const [uploadOpen, setUploadOpen] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
+	const [uploadProgress, setUploadProgress] = useState(0);
+	const [uploadingFileName, setUploadingFileName] = useState<string | null>(
+		null,
+	);
+	const [uploadingFileIndex, setUploadingFileIndex] = useState(0);
+	const [uploadingTotalFiles, setUploadingTotalFiles] = useState(0);
 	const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 	const [groupBy, setGroupBy] = useState<"none" | "photographer">("none");
 	const allPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
@@ -280,8 +286,45 @@ export default function EventPhotosPage() {
 		return true;
 	}, [session, registrationData, router, eventId, locale]);
 
+	const uploadToSignedUrl = (
+		signedUrl: string,
+		file: File,
+		onProgress?: (loaded: number, total?: number) => void,
+	) =>
+		new Promise<void>((resolve, reject) => {
+			const xhr = new XMLHttpRequest();
+			xhr.open("PUT", signedUrl, true);
+
+			if (file.type) {
+				xhr.setRequestHeader("Content-Type", file.type);
+			}
+
+			xhr.upload.onprogress = (event) => {
+				if (onProgress) {
+					onProgress(
+						event.loaded,
+						event.lengthComputable ? event.total : undefined,
+					);
+				}
+			};
+
+			xhr.onerror = () => reject(new Error("图片上传失败，请重试"));
+			xhr.onload = () => {
+				if (xhr.status >= 200 && xhr.status < 300) {
+					resolve();
+				} else {
+					reject(new Error("图片上传失败，请重试"));
+				}
+			};
+
+			xhr.send(file);
+		});
+
 	// Handle file upload (shared logic)
-	const uploadFile = async (file: File) => {
+	const uploadFile = async (
+		file: File,
+		onProgress?: (loaded: number, total?: number) => void,
+	) => {
 		// Check file size (max 10MB)
 		if (file.size > 10 * 1024 * 1024) {
 			throw new Error("图片大小不能超过10MB");
@@ -334,15 +377,7 @@ export default function EventPhotosPage() {
 				throw new Error("获取上传地址失败");
 			}
 
-			const uploadRes = await fetch(signedUrl, {
-				method: "PUT",
-				body: file,
-				headers: file.type ? { "Content-Type": file.type } : undefined,
-			});
-
-			if (!uploadRes.ok) {
-				throw new Error("图片上传失败，请重试");
-			}
+			await uploadToSignedUrl(signedUrl, file, onProgress);
 
 			const fileUrl =
 				publicUrl ??
@@ -373,7 +408,7 @@ export default function EventPhotosPage() {
 		}
 	};
 
-	// Handle image upload from file input (supports multiple files) - 并行上传
+	// Handle image upload from file input (supports multiple files) - 带上传进度
 	const handleImageUpload = async (
 		event: React.ChangeEvent<HTMLInputElement>,
 	) => {
@@ -383,6 +418,13 @@ export default function EventPhotosPage() {
 		setIsUploading(true);
 		const fileArray = Array.from(files);
 		const totalFiles = fileArray.length;
+		const totalBytes = fileArray.reduce((sum, file) => sum + file.size, 0);
+		let uploadedBytes = 0;
+
+		setUploadProgress(0);
+		setUploadingTotalFiles(totalFiles);
+		setUploadingFileIndex(0);
+		setUploadingFileName(null);
 
 		// 立即关闭上传对话框，在后台上传
 		setUploadOpen(false);
@@ -393,10 +435,52 @@ export default function EventPhotosPage() {
 				toast.info(`开始上传 ${totalFiles} 张照片，将在后台完成...`);
 			}
 
-			// 并行上传所有文件
-			const results = await Promise.allSettled(
-				fileArray.map((file) => uploadFile(file)),
-			);
+			// 逐个上传文件，带进度
+			const results: Array<PromiseSettledResult<unknown>> = [];
+
+			for (let i = 0; i < fileArray.length; i++) {
+				const file = fileArray[i];
+				setUploadingFileName(file.name);
+				setUploadingFileIndex(i + 1);
+
+				const updateProgress = (loaded: number, total?: number) => {
+					const currentLoaded = Math.min(
+						loaded,
+						typeof total === "number" ? total : file.size,
+					);
+					const overallLoaded = uploadedBytes + currentLoaded;
+					const percent =
+						totalBytes === 0
+							? 100
+							: Math.min(
+									100,
+									Math.round(
+										(overallLoaded / totalBytes) * 100,
+									),
+								);
+					setUploadProgress(percent);
+				};
+
+				try {
+					const value = await uploadFile(file, updateProgress);
+					results.push({ status: "fulfilled", value });
+				} catch (error) {
+					results.push({ status: "rejected", reason: error });
+				} finally {
+					uploadedBytes += file.size;
+					const percent =
+						totalBytes === 0
+							? 100
+							: Math.min(
+									100,
+									Math.round(
+										(uploadedBytes / totalBytes) * 100,
+									),
+								);
+					setUploadProgress(percent);
+				}
+			}
+			setUploadingFileName(null);
 
 			const successCount = results.filter(
 				(r) => r.status === "fulfilled",
@@ -445,6 +529,10 @@ export default function EventPhotosPage() {
 			toast.error("上传失败，请重试");
 		} finally {
 			setIsUploading(false);
+			setUploadProgress(0);
+			setUploadingFileName(null);
+			setUploadingFileIndex(0);
+			setUploadingTotalFiles(0);
 			// Reset input
 			event.target.value = "";
 		}
@@ -894,6 +982,35 @@ export default function EventPhotosPage() {
 				</Tabs>
 			</div>
 
+			{isUploading && (
+				<div className="fixed bottom-24 left-0 right-0 z-40 px-4">
+					<div className="mx-auto max-w-lg rounded-xl border bg-background/95 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
+						<div className="flex items-center justify-between text-sm font-medium">
+							<span>
+								正在上传照片
+								{uploadingTotalFiles > 0
+									? ` (${uploadingFileIndex}/${uploadingTotalFiles})`
+									: ""}
+							</span>
+							<span className="text-primary">
+								{uploadProgress}%
+							</span>
+						</div>
+						<p className="mt-1 truncate text-xs text-muted-foreground">
+							{uploadingFileName
+								? `当前：${uploadingFileName}`
+								: "准备上传..."}
+						</p>
+						<div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+							<div
+								className="h-full bg-primary transition-[width] duration-200"
+								style={{ width: `${uploadProgress}%` }}
+							/>
+						</div>
+					</div>
+				</div>
+			)}
+
 			{/* Upload Button */}
 			<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
 				<Dialog
@@ -943,8 +1060,8 @@ export default function EventPhotosPage() {
 						{isUploading && (
 							<div className="w-full h-1 bg-muted rounded-full overflow-hidden">
 								<div
-									className="h-full bg-primary animate-pulse"
-									style={{ width: "100%" }}
+									className="h-full bg-primary transition-[width] duration-200"
+									style={{ width: `${uploadProgress}%` }}
 								/>
 							</div>
 						)}

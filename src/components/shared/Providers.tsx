@@ -7,6 +7,7 @@ import { ConfirmationAlertProvider } from "@dashboard/shared/components/Confirma
 import { ApiClientProvider } from "@/components/shared/ApiClientProvider";
 import { ConsentBanner } from "@/components/shared/ConsentBanner";
 import { ConsentProvider } from "@/components/shared/ConsentProvider";
+import { ClientErrorTracker } from "@/components/shared/ClientErrorTracker";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { PropsWithChildren } from "react";
@@ -30,6 +31,7 @@ export function Providers({ children }: PropsWithChildren) {
 						<ApiClientProvider>
 							<JotaiProvider>
 								<ConfirmationAlertProvider>
+									<ClientErrorTracker />
 									{children}
 								</ConfirmationAlertProvider>
 							</JotaiProvider>

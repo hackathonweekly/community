@@ -50,6 +50,7 @@ import { webhooksRouter } from "./routes/webhooks";
 import { websitesRouter } from "./routes/websites";
 import { functionalRolesRouter } from "./routes/functional-roles";
 import { versionRouter } from "./routes/version";
+import { clientLogsRouter } from "./routes/client-logs";
 
 export const app = new Hono().basePath("/api");
 
@@ -63,6 +64,7 @@ app.route("/", authRouter) // 🔧 Better Auth处理 /auth/* 路径
 	.route("/", webhooksRouter)
 	.route("/", healthRouter)
 	.route("/", versionRouter)
+	.route("/", clientLogsRouter)
 	.route("/", communityStatsRouter)
 	.route("/tasks", tasksRouter)
 	.route("/", contactRouter)

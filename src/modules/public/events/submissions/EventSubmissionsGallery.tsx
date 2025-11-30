@@ -7,6 +7,7 @@ import {
 	Edit,
 	Heart,
 	Loader2,
+	Target,
 	Trophy,
 	UserRound,
 	Play,
@@ -46,6 +47,8 @@ interface EventSubmissionsGalleryProps {
 	isVotingOpen?: boolean;
 	// When true (default), gallery shows vote counts and live standings; when false, hide them
 	showVotesOnGallery?: boolean;
+	// Whether submissions are currently open for this event
+	isSubmissionOpen?: boolean;
 }
 
 // Available sort options
@@ -69,6 +72,7 @@ export function EventSubmissionsGallery({
 	showResults = false,
 	isVotingOpen = false,
 	showVotesOnGallery = true,
+	isSubmissionOpen = false,
 }: EventSubmissionsGalleryProps) {
 	// Default to earliest submission order (Oldest -> Newest)
 	const [sortValue, setSortValue] = useState("createdAt:asc");
@@ -123,6 +127,17 @@ export function EventSubmissionsGallery({
 	const votedIds = useMemo(
 		() => new Set(data?.userVotes ?? []),
 		[data?.userVotes],
+	);
+	const mySubmission = useMemo(
+		() =>
+			user
+				? submissions.find(
+						(submission) =>
+							submission.teamLeader?.id === user.id ||
+							submission.submitter?.id === user.id,
+					) || null
+				: null,
+		[submissions, user],
 	);
 
 	// 筛选逻辑
@@ -188,8 +203,9 @@ export function EventSubmissionsGallery({
 		}
 	};
 
-	const handleRequireAuth = () => {
-		const redirectTo = encodeURIComponent(pathname || `/events/${eventId}`);
+	const handleRequireAuth = (redirectPath?: string) => {
+		const targetPath = redirectPath || pathname || `/events/${eventId}`;
+		const redirectTo = encodeURIComponent(targetPath);
 		router.push(`/auth/login?redirectTo=${redirectTo}`);
 	};
 
@@ -410,52 +426,83 @@ export function EventSubmissionsGallery({
 						</p>
 					)}
 				</div>
-				<div className="flex items-center gap-3">
-					{/* 筛选按钮组 */}
-					{user && (
-						<div className="flex items-center gap-2 border rounded-lg p-1">
-							<Button
-								variant={filter === "all" ? "default" : "ghost"}
-								size="sm"
-								onClick={() => setFilter("all")}
-							>
-								全部
-							</Button>
-							<Button
-								variant={
-									filter === "mine" ? "default" : "ghost"
-								}
-								size="sm"
-								onClick={() => setFilter("mine")}
-							>
-								我的作品
-							</Button>
-							<Button
-								variant={
-									filter === "voted" ? "default" : "ghost"
-								}
-								size="sm"
-								onClick={() => setFilter("voted")}
-							>
-								已投票
-							</Button>
-						</div>
-					)}
-					<Select value={sortValue} onValueChange={setSortValue}>
-						<SelectTrigger className="w-[140px] md:w-[200px]">
-							<SelectValue placeholder="排序方式" />
-						</SelectTrigger>
-						<SelectContent>
-							{sortOptions.map((option) => (
-								<SelectItem
-									key={option.value}
-									value={option.value}
+				<div className="flex flex-wrap items-center gap-3 md:justify-end">
+					{isSubmissionOpen &&
+						(user ? (
+							<Button asChild className="gap-2">
+								<Link
+									href={
+										mySubmission
+											? `/app/events/${eventId}/submissions/${mySubmission.id}/edit`
+											: `/app/events/${eventId}/submissions/new`
+									}
 								>
-									{option.label}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+									<Target className="h-4 w-4" />
+									{mySubmission ? "编辑我的作品" : "提交作品"}
+								</Link>
+							</Button>
+						) : (
+							<Button
+								className="gap-2"
+								onClick={() =>
+									handleRequireAuth(
+										`/app/events/${eventId}/submissions/new`,
+									)
+								}
+							>
+								<Target className="h-4 w-4" />
+								提交作品
+							</Button>
+						))}
+					<div className="flex items-center gap-3">
+						{/* 筛选按钮组 */}
+						{user && (
+							<div className="flex items-center gap-2 border rounded-lg p-1">
+								<Button
+									variant={
+										filter === "all" ? "default" : "ghost"
+									}
+									size="sm"
+									onClick={() => setFilter("all")}
+								>
+									全部
+								</Button>
+								<Button
+									variant={
+										filter === "mine" ? "default" : "ghost"
+									}
+									size="sm"
+									onClick={() => setFilter("mine")}
+								>
+									我的作品
+								</Button>
+								<Button
+									variant={
+										filter === "voted" ? "default" : "ghost"
+									}
+									size="sm"
+									onClick={() => setFilter("voted")}
+								>
+									已投票
+								</Button>
+							</div>
+						)}
+						<Select value={sortValue} onValueChange={setSortValue}>
+							<SelectTrigger className="w-[140px] md:w-[200px]">
+								<SelectValue placeholder="排序方式" />
+							</SelectTrigger>
+							<SelectContent>
+								{sortOptions.map((option) => (
+									<SelectItem
+										key={option.value}
+										value={option.value}
+									>
+										{option.label}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 				</div>
 			</div>
 

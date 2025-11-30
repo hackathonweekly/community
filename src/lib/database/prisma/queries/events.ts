@@ -71,6 +71,10 @@ export async function createEvent(data: {
 	askDigitalCardConsent?: boolean;
 	// Hackathon 配置
 	hackathonConfig?: Prisma.InputJsonValue;
+	// Hackathon 控制开关
+	registrationOpen?: boolean;
+	submissionsOpen?: boolean;
+	votingOpen?: boolean;
 }) {
 	const {
 		questions,
@@ -91,8 +95,22 @@ export async function createEvent(data: {
 		registrationPendingInfo,
 		registrationPendingImage,
 		hackathonConfig,
+		registrationOpen,
+		submissionsOpen,
+		votingOpen,
 		...eventData
 	} = data; // 默认为 PUBLISHED，但可以被覆盖
+
+	const hackathonControls =
+		eventData.type === "HACKATHON"
+			? {
+					submissionsOpen: submissionsOpen ?? true,
+					votingOpen: votingOpen ?? true,
+				}
+			: {
+					submissionsOpen: submissionsOpen ?? false,
+					votingOpen: votingOpen ?? false,
+				};
 
 	const createdEvent = await db.event.create({
 		data: {
@@ -105,6 +123,10 @@ export async function createEvent(data: {
 			registrationPendingInfo,
 			registrationPendingImage,
 			hackathonConfig,
+			// 默认开启黑客松提交流程与投票（可在管理页关闭）
+			registrationOpen: registrationOpen ?? true,
+			submissionsOpen: hackathonControls.submissionsOpen,
+			votingOpen: hackathonControls.votingOpen,
 			questions: questions
 				? {
 						create: questions.map((q, index) => ({
@@ -223,10 +245,14 @@ export async function getEventById(id: string) {
 					logo: true,
 				},
 			},
+			// Filter out orphaned registrations with missing user records to prevent Prisma from throwing
 			registrations: {
 				where: {
 					status: {
 						in: ["APPROVED", "PENDING"],
+					},
+					user: {
+						is: {},
 					},
 				},
 				select: {
@@ -289,6 +315,11 @@ export async function getEventById(id: string) {
 				include: {
 					volunteerRole: true,
 					registrations: {
+						where: {
+							user: {
+								is: {},
+							},
+						},
 						include: {
 							user: {
 								select: {
@@ -311,6 +342,11 @@ export async function getEventById(id: string) {
 				},
 			},
 			feedbacks: {
+				where: {
+					user: {
+						is: {},
+					},
+				},
 				include: {
 					user: {
 						select: {
@@ -331,6 +367,9 @@ export async function getEventById(id: string) {
 						where: {
 							status: {
 								in: ["APPROVED", "PENDING"],
+							},
+							user: {
+								is: {},
 							},
 						},
 					},

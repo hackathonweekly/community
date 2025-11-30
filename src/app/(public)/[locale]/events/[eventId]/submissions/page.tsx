@@ -21,6 +21,14 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 			? Boolean((event as any)?.votingOpen)
 			: false;
 
+	const now = new Date();
+	const startTime = new Date(event.startTime);
+	const endTime = new Date(event.endTime);
+	const isEventStarted = now >= startTime;
+	const isEventEnded = now >= endTime || event.status === "COMPLETED";
+	const isSubmissionOpen =
+		(event.submissionsOpen ?? true) && isEventStarted && !isEventEnded;
+
 	// Whether the public gallery shows vote counts and live standings
 	const showVotesOnGallery =
 		event.type === "HACKATHON"
@@ -51,6 +59,7 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 				showResults={showResults}
 				isVotingOpen={isVotingOpen}
 				showVotesOnGallery={showVotesOnGallery}
+				isSubmissionOpen={isSubmissionOpen}
 			/>
 		</div>
 	);
