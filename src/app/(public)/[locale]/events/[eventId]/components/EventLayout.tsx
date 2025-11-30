@@ -648,6 +648,7 @@ export function EventLayout({
 				hasSubmittedFeedback={hasSubmittedFeedback}
 				canShowFeedback={canShowFeedback}
 				canContactOrganizer={canContactOrganizer}
+				projectSubmissions={projectSubmissions}
 			/>
 
 			{/* Cross-surface dialogs */}

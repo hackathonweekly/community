@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Grid3x3, User, Upload, Camera, Share2 } from "lucide-react";
+import {
+	useInfiniteQuery,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import { Loader2, Grid3x3, User, Upload, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -15,9 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
-import { CameraModal } from "@/components/camera/CameraModal";
 import Image from "next/image";
 import { config } from "@/config";
+import { buildPublicUrl } from "@/lib/uploads/client";
 
 interface Photo {
 	id: string;
@@ -72,7 +76,7 @@ function formatRelativeTime(dateString: string): string {
 
 interface PhotosResponse {
 	success: boolean;
-	data: { photos: Photo[] };
+	data: { photos: Photo[]; nextCursor?: string | null };
 }
 
 export default function EventPhotosPage() {
@@ -81,45 +85,15 @@ export default function EventPhotosPage() {
 	const { data: session } = useSession();
 	const queryClient = useQueryClient();
 
-	const [isMobile, setIsMobile] = useState(false);
-
-	useEffect(() => {
-		// Detect mobile device
-		const checkIsMobile = () => {
-			if (typeof window !== "undefined") {
-				const isMobileDevice =
-					/mobile|android|iphone|ipod|ipad|phone/i.test(
-						navigator.userAgent,
-					);
-				const isSmallScreen = window.innerWidth < 768;
-				setIsMobile(isMobileDevice || isSmallScreen);
-			}
-		};
-
-		checkIsMobile();
-		window.addEventListener("resize", checkIsMobile);
-
-		return () => {
-			window.removeEventListener("resize", checkIsMobile);
-		};
-	}, []);
-
 	const eventId = params.eventId as string;
 	const locale = params.locale as string;
 	const [uploadOpen, setUploadOpen] = useState(false);
-	const [cameraOpen, setCameraOpen] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
-	const [uploadQueue, setUploadQueue] = useState<
-		{
-			file: File;
-			id: string;
-			progress: number;
-			status: "pending" | "uploading" | "done" | "error";
-		}[]
-	>([]);
 	const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 	const [groupBy, setGroupBy] = useState<"none" | "photographer">("none");
+	const allPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
+	const myPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 
 	// Fetch event information for sharing
 	const { data: eventData } = useQuery({
@@ -154,32 +128,60 @@ export default function EventPhotosPage() {
 
 	// Fetch all photos
 	const {
-		data: allPhotosData,
+		data: allPhotosPages,
 		isLoading: allPhotosLoading,
-		error: allPhotosError,
-	} = useQuery<PhotosResponse>({
+		isFetchingNextPage: isFetchingMorePhotos,
+		error: allPhotosErrorRaw,
+		fetchNextPage,
+		hasNextPage,
+	} = useInfiniteQuery<PhotosResponse, Error>({
 		queryKey: ["event-photos", eventId],
-		queryFn: async () => {
-			const res = await fetch(`/api/events/${eventId}/photos`);
+		queryFn: async ({ pageParam }) => {
+			const searchParams = new URLSearchParams({
+				limit: "24",
+			});
+
+			if (typeof pageParam === "string" && pageParam.length > 0) {
+				searchParams.set("cursor", pageParam);
+			}
+
+			const res = await fetch(
+				`/api/events/${eventId}/photos?${searchParams.toString()}`,
+			);
 			if (!res.ok) {
 				const errorData = await res.json().catch(() => ({}));
 				throw new Error(errorData.error || "获取照片失败");
 			}
 			return res.json();
 		},
+		getNextPageParam: (lastPage) => lastPage?.data?.nextCursor ?? undefined,
+		initialPageParam: undefined,
 		retry: 2,
 		retryDelay: 1000,
 	});
 
 	// Fetch my photos
 	const {
-		data: myPhotosData,
+		data: myPhotosPages,
 		isLoading: myPhotosLoading,
-		error: myPhotosError,
+		error: myPhotosErrorRaw,
+		isFetchingNextPage: isFetchingMoreMyPhotos,
+		fetchNextPage: fetchNextMyPhotos,
+		hasNextPage: hasMoreMyPhotos,
 	} = useQuery<PhotosResponse>({
 		queryKey: ["my-event-photos", eventId],
-		queryFn: async () => {
-			const res = await fetch(`/api/events/${eventId}/photos/my`);
+		queryFn: async ({ pageParam }) => {
+			const searchParams = new URLSearchParams({
+				limit: "24",
+			});
+
+			if (typeof pageParam === "string" && pageParam.length > 0) {
+				searchParams.set("cursor", pageParam);
+			}
+
+			const res = await fetch(
+				`/api/events/${eventId}/photos/my?${searchParams.toString()}`,
+			);
 			if (!res.ok) {
 				const errorData = await res.json().catch(() => ({}));
 				throw new Error(errorData.error || "获取我的照片失败");
@@ -187,12 +189,64 @@ export default function EventPhotosPage() {
 			return res.json();
 		},
 		enabled: !!session?.user,
+		getNextPageParam: (lastPage) => lastPage?.data?.nextCursor ?? undefined,
+		initialPageParam: undefined,
 		retry: 2,
 		retryDelay: 1000,
 	});
 
-	const allPhotos = allPhotosData?.data.photos || [];
-	const myPhotos = myPhotosData?.data.photos || [];
+	const allPhotos =
+		allPhotosPages?.pages.flatMap((page) => page.data.photos) || [];
+	const myPhotos =
+		myPhotosPages?.pages.flatMap((page) => page.data.photos) || [];
+	const allPhotosError = allPhotosErrorRaw ?? null;
+	const myPhotosError = myPhotosErrorRaw ?? null;
+
+	useEffect(() => {
+		const target = allPhotosLoadMoreRef.current;
+		if (!target) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const [entry] = entries;
+				if (
+					entry.isIntersecting &&
+					hasNextPage &&
+					!isFetchingMorePhotos
+				) {
+					fetchNextPage();
+				}
+			},
+			{ rootMargin: "320px" },
+		);
+
+		observer.observe(target);
+
+		return () => observer.disconnect();
+	}, [fetchNextPage, hasNextPage, isFetchingMorePhotos]);
+
+	useEffect(() => {
+		const target = myPhotosLoadMoreRef.current;
+		if (!target) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				const [entry] = entries;
+				if (
+					entry.isIntersecting &&
+					hasMoreMyPhotos &&
+					!isFetchingMoreMyPhotos
+				) {
+					fetchNextMyPhotos();
+				}
+			},
+			{ rootMargin: "320px" },
+		);
+
+		observer.observe(target);
+
+		return () => observer.disconnect();
+	}, [fetchNextMyPhotos, hasMoreMyPhotos, isFetchingMoreMyPhotos]);
 
 	// Check upload permission
 	const checkUploadPermission = useCallback(() => {
@@ -246,34 +300,57 @@ export default function EventPhotosPage() {
 				file.name.split(".").pop()?.toLowerCase() || "jpg";
 			const fileName = `events/${eventId}/photos/${timestamp}_${randomStr}.${extension}`;
 
-			// Prepare form data for direct upload
-			const formData = new FormData();
-			formData.append("file", file);
-			formData.append("bucket", config.storage.bucketNames.public);
-			formData.append("path", fileName);
-			formData.append("contentType", file.type);
-
-			console.log("上传文件:", {
-				fileName: file.name,
-				fileType: file.type,
-				fileSize: file.size,
-				path: fileName,
+			const searchParams = new URLSearchParams({
 				bucket: config.storage.bucketNames.public,
+				path: fileName,
 			});
 
-			// Upload file to storage
-			const uploadRes = await fetch("/api/uploads/direct-upload", {
-				method: "POST",
-				body: formData,
+			if (file.type) {
+				searchParams.set("contentType", file.type);
+			}
+
+			// Get signed upload URL to let the client upload directly to S3
+			const signedUrlRes = await fetch(
+				`/api/uploads/signed-upload-url?${searchParams.toString()}`,
+				{
+					method: "POST",
+					credentials: "include",
+				},
+			);
+
+			if (!signedUrlRes.ok) {
+				const errorData = await signedUrlRes.json().catch(() => ({}));
+				throw new Error(
+					errorData.error || errorData.message || "获取上传地址失败",
+				);
+			}
+
+			const { signedUrl, publicUrl } = (await signedUrlRes.json()) as {
+				signedUrl?: string;
+				publicUrl?: string;
+			};
+
+			if (!signedUrl) {
+				throw new Error("获取上传地址失败");
+			}
+
+			const uploadRes = await fetch(signedUrl, {
+				method: "PUT",
+				body: file,
+				headers: file.type ? { "Content-Type": file.type } : undefined,
 			});
 
 			if (!uploadRes.ok) {
-				const errorData = await uploadRes.json().catch(() => ({}));
-				console.error("上传失败:", errorData);
-				throw new Error(errorData.message || "上传文件失败");
+				throw new Error("图片上传失败，请重试");
 			}
 
-			const { fileUrl } = await uploadRes.json();
+			const fileUrl =
+				publicUrl ??
+				buildPublicUrl(
+					fileName,
+					config.storage.endpoints.public,
+					signedUrl,
+				);
 
 			// Then submit to photos API
 			const submitRes = await fetch(`/api/events/${eventId}/photos`, {
@@ -373,64 +450,6 @@ export default function EventPhotosPage() {
 		}
 	};
 
-	// Handle camera capture
-	const handleCameraCapture = async (file: File) => {
-		setIsUploading(true);
-
-		try {
-			await uploadFile(file);
-			toast.success("照片上传成功！");
-
-			// Invalidate queries to refresh
-			queryClient.invalidateQueries({
-				queryKey: ["event-photos", eventId],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ["my-event-photos", eventId],
-			});
-
-			setCameraOpen(false);
-		} catch (error) {
-			console.error("Upload error:", error);
-			toast.error(
-				error instanceof Error ? error.message : "上传失败，请重试",
-			);
-		} finally {
-			setIsUploading(false);
-		}
-	};
-
-	// Handle native camera capture (mobile)
-	const handleNativeCameraCapture = async (
-		event: React.ChangeEvent<HTMLInputElement>,
-	) => {
-		const file = event.target.files?.[0];
-		if (!file) return;
-
-		setIsUploading(true);
-		try {
-			await uploadFile(file);
-			toast.success("照片上传成功！");
-
-			// Invalidate queries to refresh
-			queryClient.invalidateQueries({
-				queryKey: ["event-photos", eventId],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ["my-event-photos", eventId],
-			});
-		} catch (error) {
-			console.error("Upload error:", error);
-			toast.error(
-				error instanceof Error ? error.message : "上传失败，请重试",
-			);
-		} finally {
-			setIsUploading(false);
-			// Reset input
-			event.target.value = "";
-		}
-	};
-
 	// Handle photo delete
 	const handleDeletePhoto = async (photoId: string) => {
 		if (!confirm("确定要删除这张照片吗？")) return;
@@ -491,6 +510,9 @@ export default function EventPhotosPage() {
 		error,
 		sortBy,
 		groupBy,
+		loadMoreRef,
+		isFetchingMore,
+		hasMore,
 	}: {
 		photos: Photo[];
 		loading: boolean;
@@ -498,7 +520,35 @@ export default function EventPhotosPage() {
 		error?: Error | null;
 		sortBy?: "newest" | "oldest";
 		groupBy?: "none" | "photographer";
+		loadMoreRef?: React.RefObject<HTMLDivElement | null>;
+		isFetchingMore?: boolean;
+		hasMore?: boolean;
 	}) => {
+		const renderLoadMore = () => {
+			if (!loadMoreRef) return null;
+			if (!hasMore && !isFetchingMore) return null;
+
+			return (
+				<div
+					ref={(node) => {
+						if (loadMoreRef) {
+							loadMoreRef.current = node;
+						}
+					}}
+					className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
+				>
+					{isFetchingMore ? (
+						<>
+							<Loader2 className="h-4 w-4 animate-spin" />
+							<span>加载更多照片...</span>
+						</>
+					) : (
+						<span>继续下滑加载更多</span>
+					)}
+				</div>
+			);
+		};
+
 		if (loading) {
 			return (
 				<div className="flex justify-center py-12">
@@ -662,44 +712,48 @@ export default function EventPhotosPage() {
 							</div>
 						</div>
 					))}
+					{renderLoadMore()}
 				</div>
 			);
 		}
 
 		// Default grid view
 		return (
-			<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-				{sortedPhotos.map((photo) => (
-					<div
-						key={photo.id}
-						className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
-					>
-						<Image
-							src={photo.imageUrl}
-							alt={photo.caption || "活动照片"}
-							fill
-							sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-							className="object-cover cursor-pointer transition-transform hover:scale-105"
-							onClick={() => setSelectedImage(photo.imageUrl)}
-							loading="lazy"
-						/>
-						{canDelete && (
-							<Button
-								variant="destructive"
-								size="sm"
-								className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-								onClick={() => handleDeletePhoto(photo.id)}
-							>
-								×
-							</Button>
-						)}
-						{/* Time label */}
-						<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-							{formatRelativeTime(photo.createdAt)}
+			<>
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+					{sortedPhotos.map((photo) => (
+						<div
+							key={photo.id}
+							className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
+						>
+							<Image
+								src={photo.imageUrl}
+								alt={photo.caption || "活动照片"}
+								fill
+								sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+								className="object-cover cursor-pointer transition-transform hover:scale-105"
+								onClick={() => setSelectedImage(photo.imageUrl)}
+								loading="lazy"
+							/>
+							{canDelete && (
+								<Button
+									variant="destructive"
+									size="sm"
+									className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+									onClick={() => handleDeletePhoto(photo.id)}
+								>
+									×
+								</Button>
+							)}
+							{/* Time label */}
+							<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+								{formatRelativeTime(photo.createdAt)}
+							</div>
 						</div>
-					</div>
-				))}
-			</div>
+					))}
+				</div>
+				{renderLoadMore()}
+			</>
 		);
 	};
 
@@ -809,28 +863,38 @@ export default function EventPhotosPage() {
 
 							<PhotoGrid
 								photos={allPhotos}
-								loading={allPhotosLoading}
+								loading={
+									allPhotosLoading && !isFetchingMorePhotos
+								}
 								error={allPhotosError}
 								sortBy={sortBy}
 								groupBy={groupBy}
+								loadMoreRef={loadMoreRef}
+								isFetchingMore={isFetchingMorePhotos}
+								hasMore={Boolean(hasNextPage)}
 							/>
 						</TabsContent>
 
 						<TabsContent value="my">
 							<PhotoGrid
 								photos={myPhotos}
-								loading={myPhotosLoading}
+								loading={
+									myPhotosLoading && !isFetchingMoreMyPhotos
+								}
 								canDelete={true}
 								error={myPhotosError}
 								sortBy="newest"
 								groupBy="none"
+								loadMoreRef={myPhotosLoadMoreRef}
+								isFetchingMore={isFetchingMoreMyPhotos}
+								hasMore={Boolean(hasMoreMyPhotos)}
 							/>
 						</TabsContent>
 					</div>
 				</Tabs>
 			</div>
 
-			{/* Upload & Camera Buttons */}
+			{/* Upload Button */}
 			<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
 				<Dialog
 					open={uploadOpen}
@@ -886,53 +950,6 @@ export default function EventPhotosPage() {
 						)}
 					</DialogContent>
 				</Dialog>
-
-				{/* Desktop: WebRTC Camera */}
-				<div className="hidden md:block">
-					<Button
-						className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
-						onClick={() => {
-							if (checkUploadPermission()) {
-								setCameraOpen(true);
-							}
-						}}
-						disabled={isUploading}
-					>
-						<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-						拍照
-					</Button>
-				</div>
-
-				{/* Mobile: Native Camera */}
-				<div className="md:hidden">
-					<Button
-						className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg relative"
-						disabled={isUploading}
-						onClick={() => {
-							if (!checkUploadPermission()) {
-								return;
-							}
-							const fileInput = document.createElement("input");
-							fileInput.type = "file";
-							fileInput.accept = "image/*";
-							fileInput.capture = "environment";
-							fileInput.onchange = handleNativeCameraCapture;
-							fileInput.click();
-						}}
-					>
-						<Camera className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-						拍照
-					</Button>
-				</div>
-			</div>
-
-			{/* Camera Modal - Only for desktop */}
-			<div className="hidden md:block">
-				<CameraModal
-					open={cameraOpen}
-					onClose={() => setCameraOpen(false)}
-					onCapture={handleCameraCapture}
-				/>
 			</div>
 
 			{/* Image Preview Modal */}

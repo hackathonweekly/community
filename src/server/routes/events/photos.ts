@@ -22,11 +22,17 @@ const deletePhotoSchema = z.object({
 	photoId: z.string(),
 });
 
+const listPhotosQuerySchema = z.object({
+	cursor: z.string().optional(),
+	limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
 export const eventPhotosRouter = new Hono()
 	// 获取所有照片（带水印）
 	.get(
 		"/:id/photos",
 		validator("param", z.object({ id: z.string() })),
+		validator("query", listPhotosQuerySchema),
 		describeRoute({
 			summary: "Get event photos",
 			tags: ["Events"],
@@ -34,6 +40,8 @@ export const eventPhotosRouter = new Hono()
 		async (c) => {
 			try {
 				const { id: eventId } = c.req.valid("param");
+				const { cursor, limit } = c.req.valid("query");
+				const take = Math.min(limit ?? 24, 100);
 
 				// 验证活动是否存在
 				const event = await db.event.findUnique({
@@ -61,11 +69,17 @@ export const eventPhotosRouter = new Hono()
 							},
 						},
 					},
-					orderBy: { createdAt: "desc" },
+					orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+					take: take + 1,
+					skip: cursor ? 1 : 0,
+					cursor: cursor ? { id: cursor } : undefined,
 				});
 
+				const hasMore = photos.length > take;
+				const limitedPhotos = hasMore ? photos.slice(0, take) : photos;
+
 				// 格式化响应，使用水印图片URL
-				const formattedPhotos = photos.map((photo) => ({
+				const formattedPhotos = limitedPhotos.map((photo) => ({
 					...photo,
 					imageUrl:
 						getPublicStorageUrl(
@@ -77,7 +91,12 @@ export const eventPhotosRouter = new Hono()
 
 				return c.json({
 					success: true,
-					data: { photos: formattedPhotos },
+					data: {
+						photos: formattedPhotos,
+						nextCursor: hasMore
+							? limitedPhotos[limitedPhotos.length - 1]?.id
+							: null,
+					},
 				});
 			} catch (error) {
 				logger.error("Error fetching event photos", { error });
@@ -89,6 +108,7 @@ export const eventPhotosRouter = new Hono()
 	.get(
 		"/:id/photos/my",
 		validator("param", z.object({ id: z.string() })),
+		validator("query", listPhotosQuerySchema),
 		authMiddleware,
 		describeRoute({
 			summary: "Get current user's photos for event",
@@ -97,6 +117,8 @@ export const eventPhotosRouter = new Hono()
 		async (c) => {
 			try {
 				const { id: eventId } = c.req.valid("param");
+				const { cursor, limit } = c.req.valid("query");
+				const take = Math.min(limit ?? 24, 100);
 				const user = c.get("user");
 
 				// 验证活动是否存在
@@ -126,11 +148,17 @@ export const eventPhotosRouter = new Hono()
 							},
 						},
 					},
-					orderBy: { createdAt: "desc" },
+					orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+					take: take + 1,
+					skip: cursor ? 1 : 0,
+					cursor: cursor ? { id: cursor } : undefined,
 				});
 
+				const hasMore = photos.length > take;
+				const limitedPhotos = hasMore ? photos.slice(0, take) : photos;
+
 				// 格式化响应
-				const formattedPhotos = photos.map((photo) => ({
+				const formattedPhotos = limitedPhotos.map((photo) => ({
 					...photo,
 					imageUrl:
 						getPublicStorageUrl(
@@ -142,7 +170,12 @@ export const eventPhotosRouter = new Hono()
 
 				return c.json({
 					success: true,
-					data: { photos: formattedPhotos },
+					data: {
+						photos: formattedPhotos,
+						nextCursor: hasMore
+							? limitedPhotos[limitedPhotos.length - 1]?.id
+							: null,
+					},
 				});
 			} catch (error) {
 				logger.error("Error fetching my photos", { error });

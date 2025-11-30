@@ -55,6 +55,8 @@ interface MobileEventBottomActionsProps {
 	canShowFeedback?: boolean;
 	canContactOrganizer?: boolean;
 	hasSubmittedFeedback?: boolean;
+	userSubmission?: { id: string; projectId: string } | null;
+	projectSubmissions?: Array<{ id: string; submitter: { id: string } }>;
 }
 
 export function MobileEventBottomActions({
@@ -72,6 +74,8 @@ export function MobileEventBottomActions({
 	canShowFeedback,
 	canContactOrganizer,
 	hasSubmittedFeedback,
+	userSubmission,
+	projectSubmissions,
 }: MobileEventBottomActionsProps) {
 	const router = useRouter();
 	const [isBookmarking, setIsBookmarking] = useState(false);
@@ -110,6 +114,16 @@ export function MobileEventBottomActions({
 	const handleOpenAlbum = () => {
 		router.push(`/${locale}/events/${event.id}/photos`);
 	};
+
+	// 检查用户是否已提交过作品
+	const hasUserSubmitted =
+		user && projectSubmissions
+			? projectSubmissions.some((sub) => sub.submitter.id === user.id)
+			: false;
+
+	const userSubmittedProject = projectSubmissions?.find(
+		(sub) => sub.submitter.id === user?.id,
+	);
 
 	// 包装handleBookmark以处理loading状态
 	const handleBookmarkWithLoading = async () => {
@@ -203,11 +217,12 @@ export function MobileEventBottomActions({
 		<>
 			<div
 				className={cn(
-					"fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg shadow-black/10 px-4 py-4 lg:hidden transition-transform duration-300",
+					"fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg shadow-black/10 px-4 py-3 lg:hidden transition-transform duration-300",
 					isKeyboardVisible ? "translate-y-full" : "translate-y-0",
 				)}
 				style={{
-					paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+					paddingBottom:
+						"max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))",
 				}}
 			>
 				<div className="max-w-md mx-auto">
@@ -226,17 +241,20 @@ export function MobileEventBottomActions({
 						{/* 主按钮 - 根据状态显示不同内容 */}
 						{shouldShowImportantInfo &&
 						existingRegistration?.status === "APPROVED" ? (
-							// 已报名且成功：显示提交作品按钮（黑客松场景优先）
+							// 已报名且成功：显示提交/修改作品按钮（黑客松场景优先）
 							<Button
-								onClick={() =>
-									router.push(
-										`/app/events/${event.id}/submissions/new`,
-									)
-								}
+								onClick={() => {
+									const route = hasUserSubmitted
+										? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}`
+										: `/app/events/${event.id}/submissions/new`;
+									router.push(route);
+								}}
 								className="flex-1 font-medium text-sm h-12 bg-primary hover:bg-primary/90 text-white"
 								size="lg"
 							>
-								📤 提交作品
+								{hasUserSubmitted
+									? "✏️ 修改作品"
+									: "📤 提交作品"}
 							</Button>
 						) : shouldShowImportantInfo ? (
 							// 报名审核中/等待中且有重要信息：显示查看重要信息
@@ -251,14 +269,15 @@ export function MobileEventBottomActions({
 							// 其他情况：显示报名/查看二维码按钮
 							<Button
 								onClick={() => {
-									// 如果已报名成功，默认行为是提交作品
+									// 如果已报名成功，默认行为是提交/修改作品
 									if (
 										existingRegistration?.status ===
 										"APPROVED"
 									) {
-										router.push(
-											`/app/events/${event.id}/submissions/new`,
-										);
+										const route = hasUserSubmitted
+											? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}`
+											: `/app/events/${event.id}/submissions/new`;
+										router.push(route);
 										return;
 									}
 
@@ -283,7 +302,9 @@ export function MobileEventBottomActions({
 								size="lg"
 							>
 								{existingRegistration?.status === "APPROVED"
-									? "📤 提交作品"
+									? hasUserSubmitted
+										? "✏️ 修改作品"
+										: "📤 提交作品"
 									: getRegisterButtonText()}
 							</Button>
 						)}
