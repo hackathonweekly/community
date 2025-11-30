@@ -116,6 +116,26 @@ export default function EventCheckInPage() {
 		}
 	};
 
+	const statusMessageLower = checkInStatus?.message?.toLowerCase() ?? "";
+
+	const isNotRegistered =
+		checkInStatus?.statusCode === "NOT_REGISTERED" ||
+		statusMessageLower.includes("not registered");
+
+	const isRegistrationPending =
+		checkInStatus?.statusCode === "REGISTRATION_PENDING" ||
+		statusMessageLower.includes("not approved");
+
+	// If user is not registered, jump straight to the registration entry
+	useEffect(() => {
+		if (!checkInStatus || !isNotRegistered) return;
+		const searchParams = new URLSearchParams();
+		searchParams.set("openRegistration", "1");
+		searchParams.set("from", "checkin");
+		const targetPath = `/${locale}/events/${eventId}?${searchParams.toString()}`;
+		router.replace(targetPath);
+	}, [checkInStatus, isNotRegistered, locale, eventId, router]);
+
 	if (loading) {
 		return (
 			<div className="min-h-screen flex items-center justify-center">
@@ -152,26 +172,6 @@ export default function EventCheckInPage() {
 			</div>
 		);
 	}
-
-	const statusMessageLower = checkInStatus.message.toLowerCase();
-
-	const isNotRegistered =
-		checkInStatus.statusCode === "NOT_REGISTERED" ||
-		statusMessageLower.includes("not registered");
-
-	const isRegistrationPending =
-		checkInStatus.statusCode === "REGISTRATION_PENDING" ||
-		statusMessageLower.includes("not approved");
-
-	// If user is not registered, jump straight to the registration entry
-	useEffect(() => {
-		if (!checkInStatus || !isNotRegistered) return;
-		const searchParams = new URLSearchParams();
-		searchParams.set("openRegistration", "1");
-		searchParams.set("from", "checkin");
-		const targetPath = `/${locale}/events/${eventId}?${searchParams.toString()}`;
-		router.replace(targetPath);
-	}, [checkInStatus, isNotRegistered, locale, eventId, router]);
 
 	return (
 		<div className="min-h-screen bg-background pt-20 pb-16">
