@@ -168,7 +168,7 @@ export default function EventPhotosPage() {
 		isFetchingNextPage: isFetchingMoreMyPhotos,
 		fetchNextPage: fetchNextMyPhotos,
 		hasNextPage: hasMoreMyPhotos,
-	} = useQuery<PhotosResponse>({
+	} = useInfiniteQuery<PhotosResponse, Error>({
 		queryKey: ["my-event-photos", eventId],
 		queryFn: async ({ pageParam }) => {
 			const searchParams = new URLSearchParams({
@@ -869,7 +869,7 @@ export default function EventPhotosPage() {
 								error={allPhotosError}
 								sortBy={sortBy}
 								groupBy={groupBy}
-								loadMoreRef={loadMoreRef}
+								loadMoreRef={allPhotosLoadMoreRef}
 								isFetchingMore={isFetchingMorePhotos}
 								hasMore={Boolean(hasNextPage)}
 							/>
