@@ -20,7 +20,7 @@ import { NotificationService } from "@/features/notifications/service";
 import { getAllTags, getBaseUrl } from "@/lib/utils";
 import { withOrganizationPublicUrls } from "@/lib/storage";
 import { BatchCommunicationService } from "@/lib/services/communication-service";
-import { Prisma } from "@prisma/client";
+import { MembershipLevel, Prisma } from "@prisma/client";
 import type { CommunicationType } from "@prisma/client";
 import { canUserDoAction, RestrictedAction } from "@/features/permissions";
 import { getVisitorRestrictionsConfig } from "@/config/visitor-restrictions";
@@ -61,18 +61,39 @@ const OrganizationCreateSchema = z.object({
 	membershipRequirements: z.string().optional(),
 });
 
+const MAX_APPLICATION_REASON_LENGTH = 2000;
+
 const OrganizationApplicationSchema = z.object({
 	organizationId: z.string(),
-	reason: z
+	introduction: z
 		.string()
-		.min(10, "申请理由至少需要10个字符")
-		.max(1000, "申请理由不能超过1000个字符"),
+		.min(30, "自我介绍至少需要30个字符")
+		.max(800, "自我介绍不能超过800个字符"),
+	contributions: z
+		.array(z.string().min(5, "请填写具体的贡献内容"))
+		.min(1, "至少填写一项过往贡献"),
+	offlineEvents: z
+		.array(z.string().min(5, "请填写线下活动场次"))
+		.min(2, "至少填写两场线下活动"),
+	inviterUserId: z.string(),
+	inviterName: z.string(),
+	availability: z
+		.string()
+		.min(10, "请填写未来一周可访谈时间")
+		.max(300, "访谈时间说明不超过300个字符"),
 	invitationRequestCode: z
 		.string()
 		.min(8, "邀请码无效")
 		.max(32, "邀请码无效")
 		.optional(),
 });
+
+const formatApplicationListField = (items: string[]) =>
+	items
+		.map((item) => item.trim())
+		.filter(Boolean)
+		.map((item, index) => `${index + 1}. ${item}`)
+		.join("\n");
 
 const buildInvitationPath = (invitationId: string) =>
 	`/app/organization-invitation/${invitationId}`;
@@ -1765,8 +1786,16 @@ export const organizationsRouter = new Hono()
 			tags: ["Organizations"],
 		}),
 		async (c) => {
-			const { organizationId, reason, invitationRequestCode } =
-				c.req.valid("json");
+			const {
+				organizationId,
+				introduction,
+				contributions,
+				offlineEvents,
+				inviterUserId,
+				inviterName,
+				availability,
+				invitationRequestCode,
+			} = c.req.valid("json");
 			const user = c.get("user");
 
 			if (!user) {
@@ -1833,8 +1862,81 @@ export const organizationsRouter = new Hono()
 					}
 				}
 
+				const sanitizedContributions = contributions
+					.map((item) => item.trim())
+					.filter(Boolean);
+				const sanitizedOfflineEvents = offlineEvents
+					.map((item) => item.trim())
+					.filter(Boolean);
+
+				if (inviterUserId === user.id) {
+					return c.json({ error: "不能选择自己作为邀请人" }, 400);
+				}
+
+				const inviterUser = await db.user.findUnique({
+					where: { id: inviterUserId },
+					select: {
+						id: true,
+						name: true,
+						username: true,
+						email: true,
+						membershipLevel: true,
+						userRoleString: true,
+					},
+				});
+
+				if (!inviterUser) {
+					return c.json({ error: "未找到该邀请人，请重新选择" }, 400);
+				}
+
+				const inviterIsMember =
+					inviterUser.membershipLevel === MembershipLevel.MEMBER ||
+					inviterUser.userRoleString
+						?.toLowerCase()
+						.includes("member");
+
+				if (!inviterIsMember) {
+					return c.json(
+						{ error: "邀请人需要是社区 member 级别，请重新选择" },
+						400,
+					);
+				}
+
+				const applicationReason = [
+					`【自我介绍】${introduction.trim()}`,
+					`【过往贡献】\n${formatApplicationListField(sanitizedContributions)}`,
+					`【参加过的线下活动】\n${formatApplicationListField(sanitizedOfflineEvents)}`,
+					`【邀请人】${inviterUser.name || inviterName || "未填写"}${
+						inviterUser.username
+							? ` (@${inviterUser.username})`
+							: ""
+					}${
+						inviterUser.userRoleString
+							? ` - ${inviterUser.userRoleString}`
+							: inviterUser.membershipLevel
+								? ` - ${inviterUser.membershipLevel}`
+								: ""
+					}`,
+					`【未来一周可访谈时间】${availability.trim()}`,
+				].join("\n\n");
+
+				if (
+					applicationReason.length > MAX_APPLICATION_REASON_LENGTH ||
+					sanitizedContributions.length === 0 ||
+					sanitizedOfflineEvents.length < 2
+				) {
+					return c.json(
+						{
+							error: "申请信息不符合要求，请检查贡献、线下活动数量或压缩到2000字内",
+						},
+						400,
+					);
+				}
+
 				const reasonModeration =
-					await validateOrganizationApplicationReason(reason);
+					await validateOrganizationApplicationReason(
+						applicationReason,
+					);
 
 				if (!reasonModeration.isValid) {
 					console.warn("Organization application moderation failed", {
@@ -1860,7 +1962,7 @@ export const organizationsRouter = new Hono()
 					data: {
 						organizationId,
 						userId: user.id,
-						reason,
+						reason: applicationReason,
 						status: "PENDING",
 						submittedAt: new Date(),
 					},

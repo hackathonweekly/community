@@ -11,6 +11,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
 	type ProfileRequirementStatus,
@@ -23,8 +24,10 @@ import {
 	Heart,
 	Info,
 	MessageSquare,
+	Plus,
 	Send,
 	User,
+	X,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
@@ -62,13 +65,29 @@ interface OrganizationData {
 	members?: OrganizationMember[];
 }
 
+interface InviterOption {
+	id: string;
+	name: string;
+	username?: string | null;
+	image?: string | null;
+	userRoleString?: string | null;
+	membershipLevel?: string | null;
+	currentWorkOn?: string | null;
+}
+
 interface OrganizationApplicationFormProps {
 	slug: string;
 	invitationCode?: string | null;
 }
 
-const MIN_REASON_LENGTH = 10;
-const MAX_REASON_LENGTH = 1000;
+const MIN_INTRO_LENGTH = 30;
+const MAX_INTRO_LENGTH = 800;
+const MAX_REASON_LENGTH = 2000;
+const MIN_DETAIL_LENGTH = 5;
+const MIN_CONTRIBUTIONS = 1;
+const MIN_OFFLINE_EVENTS = 2;
+const MIN_AVAILABILITY_LENGTH = 10;
+const MAX_AVAILABILITY_LENGTH = 300;
 
 export function OrganizationApplicationForm({
 	slug,
@@ -102,17 +121,31 @@ export function OrganizationApplicationForm({
 		memberSince?: Date;
 	} | null>(null);
 	const [membershipLoading, setMembershipLoading] = useState(false);
-
-	const [formData, setFormData] = useState({
-		reason: "",
-	});
-	const [errors, setErrors] = useState<{ reason?: string; profile?: string }>(
-		{},
-	);
+	const [introduction, setIntroduction] = useState("");
+	const [contributions, setContributions] = useState<string[]>([""]);
+	const [offlineEvents, setOfflineEvents] = useState<string[]>(["", ""]);
+	const [availability, setAvailability] = useState("");
+	const [selectedInviter, setSelectedInviter] =
+		useState<InviterOption | null>(null);
+	const [inviterQuery, setInviterQuery] = useState("");
+	const [inviterResults, setInviterResults] = useState<InviterOption[]>([]);
+	const [searchingInviter, setSearchingInviter] = useState(false);
+	const [inviterErrorMessage, setInviterErrorMessage] = useState<
+		string | null
+	>(null);
+	const [errors, setErrors] = useState<{
+		introduction?: string;
+		contributions?: string;
+		offlineEvents?: string;
+		inviter?: string;
+		availability?: string;
+		profile?: string;
+	}>(() => ({}));
 
 	const router = useRouter();
 	const t = useTranslations("organizations.public.application");
 	const { toast } = useToast();
+	const currentUserId = currentUser?.id ?? "";
 
 	const handleFixProfileField = useCallback(
 		(field: ProfileRequirementStatus) => {
@@ -244,16 +277,116 @@ export function OrganizationApplicationForm({
 		loadReferral();
 	}, [invitationCode, isLoggedIn]);
 
-	const reasonLength = formData.reason.length;
-	const reasonTooShort = reasonLength < MIN_REASON_LENGTH;
-	const reasonTooLong = reasonLength > MAX_REASON_LENGTH;
+	const formatListField = useCallback(
+		(items: string[]) =>
+			items
+				.map((item) => item.trim())
+				.filter(Boolean)
+				.map((item, index) => `${index + 1}. ${item}`)
+				.join("\n"),
+		[],
+	);
+
+	const normalizedContributions = useMemo(
+		() => contributions.map((item) => item.trim()).filter(Boolean),
+		[contributions],
+	);
+
+	const normalizedOfflineEvents = useMemo(
+		() => offlineEvents.map((item) => item.trim()).filter(Boolean),
+		[offlineEvents],
+	);
+
+	const applicationReason = useMemo(() => {
+		const inviterLabel = selectedInviter
+			? `${selectedInviter.name}${
+					selectedInviter.username
+						? ` (@${selectedInviter.username})`
+						: ""
+				}${
+					selectedInviter.userRoleString
+						? ` - ${selectedInviter.userRoleString}`
+						: selectedInviter.membershipLevel
+							? ` - ${selectedInviter.membershipLevel}`
+							: ""
+				}`
+			: t("form.inviterPlaceholder");
+
+		return [
+			`【自我介绍】${introduction.trim()}`,
+			`【过往贡献】\n${formatListField(normalizedContributions)}`,
+			`【参加过的线下活动】\n${formatListField(normalizedOfflineEvents)}`,
+			`【邀请人】${inviterLabel}`,
+			`【未来一周可访谈时间】${availability.trim()}`,
+		].join("\n\n");
+	}, [
+		introduction,
+		normalizedContributions,
+		normalizedOfflineEvents,
+		selectedInviter,
+		availability,
+		formatListField,
+		t,
+	]);
+
+	const applicationReasonLength = applicationReason.length;
+	const introTooShort = introduction.trim().length < MIN_INTRO_LENGTH;
+	const introTooLong = introduction.trim().length > MAX_INTRO_LENGTH;
+	const contributionsInsufficient =
+		normalizedContributions.length < MIN_CONTRIBUTIONS;
+	const contributionsTooShort = normalizedContributions.some(
+		(item) => item.length < MIN_DETAIL_LENGTH,
+	);
+	const offlineEventsInsufficient =
+		normalizedOfflineEvents.length < MIN_OFFLINE_EVENTS;
+	const offlineEventsTooShort = normalizedOfflineEvents.some(
+		(item) => item.length < MIN_DETAIL_LENGTH,
+	);
+	const inviterMissing = !selectedInviter;
+	const availabilityTooShort =
+		availability.trim().length < MIN_AVAILABILITY_LENGTH;
+	const availabilityTooLong =
+		availability.trim().length > MAX_AVAILABILITY_LENGTH;
+	const reasonTooLong = applicationReasonLength > MAX_REASON_LENGTH;
 	const profileIncomplete = profileValidation?.isComplete === false;
 
 	const submitBlockingMessages = useMemo(() => {
 		const messages: string[] = [];
-		if (reasonTooShort) {
+		if (introTooShort) {
 			messages.push(
-				t("form.submitHintReason", { min: MIN_REASON_LENGTH }),
+				t("form.submitHintReason", { min: MIN_INTRO_LENGTH }),
+			);
+		}
+		if (introTooLong) {
+			messages.push(
+				t("form.submitHintIntroMax", { max: MAX_INTRO_LENGTH }),
+			);
+		}
+		if (contributionsInsufficient || contributionsTooShort) {
+			messages.push(
+				t("form.submitHintContributions", {
+					min: MIN_CONTRIBUTIONS,
+					minDetail: MIN_DETAIL_LENGTH,
+				}),
+			);
+		}
+		if (offlineEventsInsufficient || offlineEventsTooShort) {
+			messages.push(
+				t("form.submitHintOfflineEvents", {
+					min: MIN_OFFLINE_EVENTS,
+					minDetail: MIN_DETAIL_LENGTH,
+				}),
+			);
+		}
+		if (inviterMissing) {
+			messages.push(t("form.submitHintInviter"));
+		}
+		if (availabilityTooShort || availabilityTooLong) {
+			messages.push(
+				t("form.submitHintAvailability", {
+					min: MIN_AVAILABILITY_LENGTH,
+					max: MAX_AVAILABILITY_LENGTH,
+				}),
 			);
 		}
 		if (reasonTooLong) {
@@ -268,7 +401,15 @@ export function OrganizationApplicationForm({
 		return messages;
 	}, [
 		t,
-		reasonTooShort,
+		introTooShort,
+		introTooLong,
+		contributionsInsufficient,
+		contributionsTooShort,
+		offlineEventsInsufficient,
+		offlineEventsTooShort,
+		inviterMissing,
+		availabilityTooShort,
+		availabilityTooLong,
 		reasonTooLong,
 		profileIncomplete,
 		profileValidation,
@@ -317,14 +458,45 @@ export function OrganizationApplicationForm({
 	};
 
 	const validateForm = () => {
-		const newErrors: { reason?: string; profile?: string } = {};
+		const newErrors: typeof errors = {};
 
-		if (reasonTooShort) {
-			newErrors.reason = t("form.errorReasonTooShort", {
-				min: MIN_REASON_LENGTH,
+		if (introTooShort) {
+			newErrors.introduction = t("form.errorReasonTooShort", {
+				min: MIN_INTRO_LENGTH,
 			});
-		} else if (reasonTooLong) {
-			newErrors.reason = t("form.errorReasonTooLong", {
+		} else if (introTooLong) {
+			newErrors.introduction = t("form.errorReasonTooLong", {
+				max: MAX_INTRO_LENGTH,
+			});
+		}
+
+		if (contributionsInsufficient || contributionsTooShort) {
+			newErrors.contributions = t("form.errorContributions", {
+				min: MIN_CONTRIBUTIONS,
+				minDetail: MIN_DETAIL_LENGTH,
+			});
+		}
+
+		if (offlineEventsInsufficient || offlineEventsTooShort) {
+			newErrors.offlineEvents = t("form.errorOfflineEvents", {
+				min: MIN_OFFLINE_EVENTS,
+				minDetail: MIN_DETAIL_LENGTH,
+			});
+		}
+
+		if (inviterMissing) {
+			newErrors.inviter = t("form.errorInviterRequired");
+		}
+
+		if (availabilityTooShort || availabilityTooLong) {
+			newErrors.availability = t("form.errorAvailability", {
+				min: MIN_AVAILABILITY_LENGTH,
+				max: MAX_AVAILABILITY_LENGTH,
+			});
+		}
+
+		if (reasonTooLong) {
+			newErrors.introduction = t("form.errorApplicationTooLong", {
 				max: MAX_REASON_LENGTH,
 			});
 		}
@@ -338,18 +510,119 @@ export function OrganizationApplicationForm({
 		return Object.keys(newErrors).length === 0;
 	};
 
-	const handleInputChange = (
-		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-	) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({
-			...prev,
-			[name]: value,
-		}));
-		// Clear errors when user starts typing
-		if (errors[name as keyof typeof errors]) {
-			setErrors((prev) => ({ ...prev, [name]: undefined }));
+	useEffect(() => {
+		if (inviterQuery.trim().length < 2) {
+			setInviterResults([]);
+			setInviterErrorMessage(null);
+			return;
 		}
+
+		const controller = new AbortController();
+		const timeoutId = setTimeout(async () => {
+			setSearchingInviter(true);
+			try {
+				const response = await fetch(
+					`/api/users/search?query=${encodeURIComponent(inviterQuery.trim())}`,
+					{ signal: controller.signal },
+				);
+
+				if (response.ok) {
+					const data = await response.json();
+					const filteredResults = (data.data || []).filter(
+						(user: InviterOption) => {
+							const roleString =
+								user.userRoleString?.toLowerCase() || "";
+							const isMemberLevel =
+								user.membershipLevel === "MEMBER" ||
+								roleString.includes("member");
+							const notSelf = user.id !== currentUserId;
+							return isMemberLevel && notSelf;
+						},
+					);
+					setInviterResults(filteredResults);
+					setInviterErrorMessage(
+						filteredResults.length === 0
+							? t("form.inviterSearchEmpty")
+							: null,
+					);
+				} else {
+					setInviterResults([]);
+					setInviterErrorMessage(t("form.inviterSearchFailed"));
+				}
+			} catch (error) {
+				if (controller.signal.aborted) return;
+				console.error("Failed to search inviter:", error);
+				setInviterResults([]);
+				setInviterErrorMessage(t("form.inviterSearchFailed"));
+			} finally {
+				setSearchingInviter(false);
+			}
+		}, 300);
+
+		return () => {
+			controller.abort();
+			clearTimeout(timeoutId);
+		};
+	}, [inviterQuery, currentUserId, t]);
+
+	const clearFieldError = (field: keyof typeof errors) => {
+		if (errors[field]) {
+			setErrors((prev) => ({ ...prev, [field]: undefined }));
+		}
+	};
+
+	const updateContribution = (index: number, value: string) => {
+		setContributions((prev) => {
+			const next = [...prev];
+			next[index] = value;
+			return next;
+		});
+		clearFieldError("contributions");
+	};
+
+	const addContributionField = () =>
+		setContributions((prev) => [...prev, ""]);
+
+	const removeContributionField = (index: number) => {
+		setContributions((prev) => {
+			if (prev.length <= 1) return prev;
+			return prev.filter((_, i) => i !== index);
+		});
+	};
+
+	const updateOfflineEvent = (index: number, value: string) => {
+		setOfflineEvents((prev) => {
+			const next = [...prev];
+			next[index] = value;
+			return next;
+		});
+		clearFieldError("offlineEvents");
+	};
+
+	const addOfflineEventField = () =>
+		setOfflineEvents((prev) => [...prev, ""]);
+
+	const removeOfflineEventField = (index: number) => {
+		setOfflineEvents((prev) => {
+			if (prev.length <= MIN_OFFLINE_EVENTS) return prev;
+			return prev.filter((_, i) => i !== index);
+		});
+	};
+
+	const handleSelectInviter = (inviter: InviterOption) => {
+		setSelectedInviter(inviter);
+		setInviterQuery(inviter.name || inviter.username || "");
+		setInviterResults([]);
+		setInviterErrorMessage(null);
+		clearFieldError("inviter");
+	};
+
+	const handleClearInviter = () => {
+		setSelectedInviter(null);
+		setInviterQuery("");
+		setInviterResults([]);
+		setInviterErrorMessage(null);
+		clearFieldError("inviter");
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -362,11 +635,24 @@ export function OrganizationApplicationForm({
 			return;
 		}
 
+		if (!selectedInviter) {
+			setErrors((prev) => ({
+				...prev,
+				inviter: t("form.errorInviterRequired"),
+			}));
+			return;
+		}
+
 		setIsSubmitting(true);
 		try {
 			const payload: Record<string, unknown> = {
 				organizationId: organization.id,
-				reason: formData.reason,
+				introduction: introduction.trim(),
+				contributions: normalizedContributions,
+				offlineEvents: normalizedOfflineEvents,
+				inviterUserId: selectedInviter.id,
+				inviterName: selectedInviter.name,
+				availability: availability.trim(),
 			};
 
 			if (referralInfo && invitationCode) {
@@ -387,13 +673,38 @@ export function OrganizationApplicationForm({
 				const errorData = await response.json();
 				// Handle validation errors from server
 				if (response.status === 400 && errorData.error) {
-					// Handle specific error cases
-					if (errorData.error.includes("10个字符")) {
-						setErrors({ reason: errorData.error });
+					if (errorData.error.includes("member")) {
+						setErrors((prev) => ({
+							...prev,
+							inviter: errorData.error,
+						}));
 						return;
 					}
 
-					// Handle "Already a member" error specially
+					if (errorData.error.includes("线下活动")) {
+						setErrors((prev) => ({
+							...prev,
+							offlineEvents: errorData.error,
+						}));
+						return;
+					}
+
+					if (errorData.error.includes("贡献")) {
+						setErrors((prev) => ({
+							...prev,
+							contributions: errorData.error,
+						}));
+						return;
+					}
+
+					if (errorData.error.includes("2000")) {
+						setErrors((prev) => ({
+							...prev,
+							introduction: errorData.error,
+						}));
+						return;
+					}
+
 					if (
 						errorData.error.includes(
 							"Already a member of this organization",
@@ -404,17 +715,27 @@ export function OrganizationApplicationForm({
 						return;
 					}
 
-					// Handle other server errors
 					if (
 						errorData.error.includes(
 							"Application already submitted",
 						)
 					) {
 						setErrors({
-							reason: "您已经提交过申请，请等待管理员审核",
+							introduction: "您已经提交过申请，请等待管理员审核",
 						});
 						return;
 					}
+
+					setErrors((prev) => ({
+						...prev,
+						introduction: errorData.error,
+					}));
+					toast({
+						title: "提交失败",
+						description: errorData.error,
+						variant: "destructive",
+					});
+					return;
 				}
 				throw new Error(
 					errorData.error || "Failed to submit application",
@@ -767,23 +1088,322 @@ export function OrganizationApplicationForm({
 						</CardHeader>
 						<CardContent>
 							<form onSubmit={handleSubmit} className="space-y-6">
-								<div>
+								<div className="space-y-2">
 									<label className="text-sm font-medium mb-2 block">
-										{t("form.reason")}
+										{t("form.introduction")}
 									</label>
 									<Textarea
-										name="reason"
-										value={formData.reason}
-										onChange={handleInputChange}
+										name="introduction"
+										value={introduction}
+										onChange={(e) => {
+											setIntroduction(e.target.value);
+											clearFieldError("introduction");
+										}}
 										placeholder={t(
 											"form.reasonPlaceholder",
 										)}
 										rows={6}
+										maxLength={MAX_INTRO_LENGTH}
 										required
 									/>
-									<p className="text-xs text-muted-foreground mt-2">
-										{t("form.reasonHelp")}
+									<div className="flex items-center justify-between text-xs text-muted-foreground">
+										<span>{t("form.reasonHelp")}</span>
+										<span>
+											{applicationReasonLength}/
+											{MAX_REASON_LENGTH}
+										</span>
+									</div>
+									{errors.introduction ? (
+										<p className="text-sm text-red-600">
+											{errors.introduction}
+										</p>
+									) : null}
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium mb-1 block">
+										{t("form.contributionsTitle")}
+									</label>
+									<p className="text-xs text-muted-foreground">
+										{t("form.contributionsHelp")}
 									</p>
+									<div className="space-y-3">
+										{contributions.map((item, index) => (
+											<div
+												className="flex gap-2"
+												key={`contribution-${index}`}
+											>
+												<Input
+													value={item}
+													onChange={(e) =>
+														updateContribution(
+															index,
+															e.target.value,
+														)
+													}
+													placeholder={t(
+														"form.contributionPlaceholder",
+													)}
+												/>
+												{contributions.length > 1 && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														onClick={() =>
+															removeContributionField(
+																index,
+															)
+														}
+														aria-label={t(
+															"form.removeField",
+														)}
+													>
+														<X className="h-4 w-4" />
+													</Button>
+												)}
+											</div>
+										))}
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={addContributionField}
+										>
+											<Plus className="h-4 w-4 mr-1" />
+											{t("form.addContribution")}
+										</Button>
+									</div>
+									{errors.contributions ? (
+										<p className="text-sm text-red-600">
+											{errors.contributions}
+										</p>
+									) : null}
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium mb-1 block">
+										{t("form.offlineEventsTitle")}
+									</label>
+									<p className="text-xs text-muted-foreground">
+										{t("form.offlineEventsHelp")}
+									</p>
+									<div className="space-y-3">
+										{offlineEvents.map((event, index) => (
+											<div
+												className="flex gap-2"
+												key={`offline-${index}`}
+											>
+												<Input
+													value={event}
+													onChange={(e) =>
+														updateOfflineEvent(
+															index,
+															e.target.value,
+														)
+													}
+													placeholder={t(
+														"form.offlineEventsPlaceholder",
+													)}
+												/>
+												{offlineEvents.length >
+													MIN_OFFLINE_EVENTS && (
+													<Button
+														type="button"
+														variant="ghost"
+														size="icon"
+														onClick={() =>
+															removeOfflineEventField(
+																index,
+															)
+														}
+														aria-label={t(
+															"form.removeField",
+														)}
+													>
+														<X className="h-4 w-4" />
+													</Button>
+												)}
+											</div>
+										))}
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											onClick={addOfflineEventField}
+										>
+											<Plus className="h-4 w-4 mr-1" />
+											{t("form.addOfflineEvent")}
+										</Button>
+									</div>
+									{errors.offlineEvents ? (
+										<p className="text-sm text-red-600">
+											{errors.offlineEvents}
+										</p>
+									) : null}
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium mb-1 block">
+										{t("form.inviterTitle")}
+									</label>
+									<p className="text-xs text-muted-foreground">
+										{t("form.inviterHelp")}
+									</p>
+									<div className="relative">
+										<Input
+											value={inviterQuery}
+											onChange={(e) => {
+												setInviterQuery(e.target.value);
+												if (selectedInviter) {
+													setSelectedInviter(null);
+												}
+												clearFieldError("inviter");
+											}}
+											placeholder={t(
+												"form.inviterSearchPlaceholder",
+											)}
+										/>
+										{searchingInviter && (
+											<div className="absolute right-3 top-1/2 -translate-y-1/2">
+												<div className="h-4 w-4 animate-spin rounded-full border-b-2 border-foreground" />
+											</div>
+										)}
+
+										{inviterResults.length > 0 && (
+											<div className="absolute z-10 mt-1 max-h-64 w-full overflow-y-auto rounded-md border bg-card shadow-lg">
+												{inviterResults.map((user) => (
+													<button
+														type="button"
+														key={user.id}
+														onClick={() =>
+															handleSelectInviter(
+																user,
+															)
+														}
+														className="flex w-full items-center gap-3 px-3 py-2 hover:bg-muted"
+													>
+														<Avatar className="h-8 w-8">
+															<AvatarImage
+																src={
+																	user.image ||
+																	""
+																}
+															/>
+															<AvatarFallback>
+																{user.name?.charAt(
+																	0,
+																) || "U"}
+															</AvatarFallback>
+														</Avatar>
+														<div className="flex-1 text-left">
+															<div className="text-sm font-medium">
+																{user.name}
+															</div>
+															<div className="text-xs text-muted-foreground">
+																{user.username
+																	? `@${user.username}`
+																	: ""}
+																{user.userRoleString
+																	? ` • ${user.userRoleString}`
+																	: user.membershipLevel
+																		? ` • ${user.membershipLevel}`
+																		: ""}
+															</div>
+															{user.currentWorkOn && (
+																<div className="text-xs text-muted-foreground">
+																	{
+																		user.currentWorkOn
+																	}
+																</div>
+															)}
+														</div>
+													</button>
+												))}
+											</div>
+										)}
+									</div>
+
+									{selectedInviter ? (
+										<div className="flex items-center justify-between rounded-md border p-3">
+											<div className="flex items-center gap-3">
+												<Avatar className="h-9 w-9">
+													<AvatarImage
+														src={
+															selectedInviter.image ||
+															""
+														}
+													/>
+													<AvatarFallback>
+														{selectedInviter.name?.charAt(
+															0,
+														) || "U"}
+													</AvatarFallback>
+												</Avatar>
+												<div>
+													<div className="text-sm font-medium">
+														{selectedInviter.name}
+													</div>
+													<div className="text-xs text-muted-foreground">
+														{selectedInviter.username
+															? `@${selectedInviter.username}`
+															: ""}
+														{selectedInviter.userRoleString
+															? ` • ${selectedInviter.userRoleString}`
+															: selectedInviter.membershipLevel
+																? ` • ${selectedInviter.membershipLevel}`
+																: ""}
+													</div>
+												</div>
+											</div>
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												onClick={handleClearInviter}
+											>
+												{t("form.changeInviter")}
+											</Button>
+										</div>
+									) : null}
+									{inviterErrorMessage ? (
+										<p className="text-xs text-muted-foreground">
+											{inviterErrorMessage}
+										</p>
+									) : null}
+									{errors.inviter ? (
+										<p className="text-sm text-red-600">
+											{errors.inviter}
+										</p>
+									) : null}
+								</div>
+
+								<div className="space-y-2">
+									<label className="text-sm font-medium mb-2 block">
+										{t("form.availability")}
+									</label>
+									<Textarea
+										name="availability"
+										value={availability}
+										onChange={(e) => {
+											setAvailability(e.target.value);
+											clearFieldError("availability");
+										}}
+										placeholder={t(
+											"form.availabilityPlaceholder",
+										)}
+										rows={3}
+										maxLength={MAX_AVAILABILITY_LENGTH}
+										required
+									/>
+									<p className="text-xs text-muted-foreground">
+										{t("form.availabilityHelp")}
+									</p>
+									{errors.availability ? (
+										<p className="text-sm text-red-600">
+											{errors.availability}
+										</p>
+									) : null}
 								</div>
 
 								<Button
@@ -792,7 +1412,15 @@ export function OrganizationApplicationForm({
 									size="lg"
 									disabled={
 										isSubmitting ||
-										reasonTooShort ||
+										introTooShort ||
+										introTooLong ||
+										contributionsInsufficient ||
+										contributionsTooShort ||
+										offlineEventsInsufficient ||
+										offlineEventsTooShort ||
+										inviterMissing ||
+										availabilityTooShort ||
+										availabilityTooLong ||
 										reasonTooLong ||
 										profileIncomplete
 									}

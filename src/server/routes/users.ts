@@ -63,6 +63,7 @@ app.get("/search", zValidator("query", userSearchSchema), async (c) => {
 				username: true,
 				image: true,
 				userRoleString: true,
+				membershipLevel: true,
 				currentWorkOn: true,
 			},
 			take: Math.min(limit, 50), // 最多返回50个结果

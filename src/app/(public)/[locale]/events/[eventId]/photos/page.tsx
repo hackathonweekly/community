@@ -8,6 +8,7 @@ import {
 	useQueryClient,
 } from "@tanstack/react-query";
 import { Loader2, Grid3x3, User, Upload, Share2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -17,11 +18,13 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 import Image from "next/image";
 import { config } from "@/config";
 import { buildPublicUrl } from "@/lib/uploads/client";
+import { cn } from "@/lib/utils";
 
 interface Photo {
 	id: string;
@@ -87,6 +90,7 @@ export default function EventPhotosPage() {
 
 	const eventId = params.eventId as string;
 	const locale = params.locale as string;
+	const [activeTab, setActiveTab] = useState<"all" | "my">("all");
 	const [uploadOpen, setUploadOpen] = useState(false);
 	const [selectedImage, setSelectedImage] = useState<string | null>(null);
 	const [isUploading, setIsUploading] = useState(false);
@@ -98,6 +102,13 @@ export default function EventPhotosPage() {
 	const [uploadingTotalFiles, setUploadingTotalFiles] = useState(0);
 	const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
 	const [groupBy, setGroupBy] = useState<"none" | "photographer">("none");
+	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [selectionMode, setSelectionMode] = useState(false);
+	const [selectedPhotoIds, setSelectedPhotoIds] = useState<Set<string>>(
+		new Set(),
+	);
+	const [isBatchDeleting, setIsBatchDeleting] = useState(false);
+	const [showWatermark, setShowWatermark] = useState(true);
 	const allPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 	const myPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -210,7 +221,7 @@ export default function EventPhotosPage() {
 
 	useEffect(() => {
 		const target = allPhotosLoadMoreRef.current;
-		if (!target) return;
+		if (!target || !hasNextPage) return;
 
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -223,7 +234,7 @@ export default function EventPhotosPage() {
 					fetchNextPage();
 				}
 			},
-			{ rootMargin: "320px" },
+			{ rootMargin: "480px", threshold: 0.01 },
 		);
 
 		observer.observe(target);
@@ -233,7 +244,7 @@ export default function EventPhotosPage() {
 
 	useEffect(() => {
 		const target = myPhotosLoadMoreRef.current;
-		if (!target) return;
+		if (!target || !hasMoreMyPhotos) return;
 
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -246,7 +257,7 @@ export default function EventPhotosPage() {
 					fetchNextMyPhotos();
 				}
 			},
-			{ rootMargin: "320px" },
+			{ rootMargin: "480px", threshold: 0.01 },
 		);
 
 		observer.observe(target);
@@ -538,6 +549,11 @@ export default function EventPhotosPage() {
 		}
 	};
 
+	const clearSelection = () => {
+		setSelectionMode(false);
+		setSelectedPhotoIds(new Set());
+	};
+
 	// Handle photo delete
 	const handleDeletePhoto = async (photoId: string) => {
 		if (!confirm("确定要删除这张照片吗？")) return;
@@ -566,6 +582,48 @@ export default function EventPhotosPage() {
 			toast.error(
 				error instanceof Error ? error.message : "删除失败，请重试",
 			);
+		}
+	};
+
+	const handleBatchDelete = async () => {
+		const ids = Array.from(selectedPhotoIds);
+		if (ids.length === 0) {
+			toast.error("请先选择要删除的照片");
+			return;
+		}
+		if (!confirm(`确定删除选中的 ${ids.length} 张照片吗？`)) return;
+		setIsBatchDeleting(true);
+
+		try {
+			await Promise.all(
+				ids.map(async (photoId) => {
+					const res = await fetch(`/api/events/${eventId}/photos`, {
+						method: "DELETE",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ photoId }),
+					});
+					if (!res.ok) {
+						const errorData = await res.json().catch(() => ({}));
+						throw new Error(errorData.error || "删除失败");
+					}
+				}),
+			);
+
+			toast.success(`已删除 ${ids.length} 张照片`);
+			clearSelection();
+			queryClient.invalidateQueries({
+				queryKey: ["event-photos", eventId],
+			});
+			queryClient.invalidateQueries({
+				queryKey: ["my-event-photos", eventId],
+			});
+		} catch (error) {
+			console.error("Batch delete error:", error);
+			toast.error(
+				error instanceof Error ? error.message : "删除失败，请重试",
+			);
+		} finally {
+			setIsBatchDeleting(false);
 		}
 	};
 
@@ -601,6 +659,12 @@ export default function EventPhotosPage() {
 		loadMoreRef,
 		isFetchingMore,
 		hasMore,
+		showWatermark: showWatermarkProp = true,
+		selectionMode: selectionModeProp = false,
+		selectedPhotoIds: selectedPhotoIdsProp = new Set<string>(),
+		onToggleSelect,
+		onManualLoadMore,
+		viewMode: viewModeProp = "grid",
 	}: {
 		photos: Photo[];
 		loading: boolean;
@@ -611,6 +675,12 @@ export default function EventPhotosPage() {
 		loadMoreRef?: React.RefObject<HTMLDivElement | null>;
 		isFetchingMore?: boolean;
 		hasMore?: boolean;
+		showWatermark?: boolean;
+		selectionMode?: boolean;
+		selectedPhotoIds?: Set<string>;
+		onToggleSelect?: (photoId: string) => void;
+		onManualLoadMore?: () => void;
+		viewMode?: "grid" | "list";
 	}) => {
 		const renderLoadMore = () => {
 			if (!loadMoreRef) return null;
@@ -623,7 +693,7 @@ export default function EventPhotosPage() {
 							loadMoreRef.current = node;
 						}
 					}}
-					className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
+					className="flex flex-col items-center justify-center gap-3 py-6 text-sm text-muted-foreground"
 				>
 					{isFetchingMore ? (
 						<>
@@ -631,7 +701,17 @@ export default function EventPhotosPage() {
 							<span>加载更多照片...</span>
 						</>
 					) : (
-						<span>继续下滑加载更多</span>
+						<>
+							<span>继续下滑加载更多</span>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onManualLoadMore}
+								disabled={!hasMore || isFetchingMore}
+							>
+								点击加载更多
+							</Button>
+						</>
 					)}
 				</div>
 			);
@@ -768,13 +848,23 @@ export default function EventPhotosPage() {
 										className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
 									>
 										<Image
-											src={photo.imageUrl}
+											src={
+												showWatermarkProp
+													? photo.imageUrl
+													: photo.originalUrl ||
+														photo.imageUrl
+											}
 											alt={photo.caption || "活动照片"}
 											fill
 											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
 											className="object-cover cursor-pointer transition-transform hover:scale-105"
 											onClick={() =>
-												setSelectedImage(photo.imageUrl)
+												setSelectedImage(
+													showWatermarkProp
+														? photo.imageUrl
+														: photo.originalUrl ||
+																photo.imageUrl,
+												)
 											}
 											loading="lazy"
 										/>
@@ -805,40 +895,148 @@ export default function EventPhotosPage() {
 			);
 		}
 
+		if (viewModeProp === "list") {
+			return (
+				<>
+					<div className="space-y-3">
+						{sortedPhotos.map((photo) => {
+							const isSelected =
+								selectionModeProp &&
+								selectedPhotoIdsProp.has(photo.id);
+							const displayUrl = showWatermarkProp
+								? photo.imageUrl
+								: photo.originalUrl || photo.imageUrl;
+
+							return (
+								<div
+									key={photo.id}
+									className={cn(
+										"flex items-center gap-3 rounded-lg border bg-muted/40 p-2 pr-3",
+										isSelected
+											? "ring-2 ring-primary/70"
+											: "",
+									)}
+								>
+									<div className="relative h-20 w-20 overflow-hidden rounded-md bg-muted">
+										<Image
+											src={displayUrl}
+											alt={photo.caption || "活动照片"}
+											fill
+											sizes="80px"
+											className="object-cover cursor-pointer"
+											onClick={() =>
+												setSelectedImage(displayUrl)
+											}
+										/>
+									</div>
+									<div className="flex-1 min-w-0">
+										<div className="flex items-center gap-2">
+											<p className="text-sm font-medium truncate">
+												{photo.caption || "未添加描述"}
+											</p>
+											<span className="text-xs text-muted-foreground">
+												{formatRelativeTime(
+													photo.createdAt,
+												)}
+											</span>
+										</div>
+										<p className="text-xs text-muted-foreground truncate">
+											{photo.user?.name}
+										</p>
+										{!showWatermarkProp &&
+											photo.originalUrl && (
+												<p className="text-[11px] text-muted-foreground/80 truncate">
+													原图链接可右键保存
+												</p>
+											)}
+									</div>
+									{selectionModeProp && onToggleSelect ? (
+										<Checkbox
+											checked={isSelected}
+											onCheckedChange={() =>
+												onToggleSelect(photo.id)
+											}
+										/>
+									) : null}
+									{canDelete && !selectionModeProp && (
+										<Button
+											variant="destructive"
+											size="sm"
+											onClick={() =>
+												handleDeletePhoto(photo.id)
+											}
+										>
+											删除
+										</Button>
+									)}
+								</div>
+							);
+						})}
+					</div>
+					{renderLoadMore()}
+				</>
+			);
+		}
+
 		// Default grid view
 		return (
 			<>
 				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-					{sortedPhotos.map((photo) => (
-						<div
-							key={photo.id}
-							className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
-						>
-							<Image
-								src={photo.imageUrl}
-								alt={photo.caption || "活动照片"}
-								fill
-								sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-								className="object-cover cursor-pointer transition-transform hover:scale-105"
-								onClick={() => setSelectedImage(photo.imageUrl)}
-								loading="lazy"
-							/>
-							{canDelete && (
-								<Button
-									variant="destructive"
-									size="sm"
-									className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-									onClick={() => handleDeletePhoto(photo.id)}
-								>
-									×
-								</Button>
-							)}
-							{/* Time label */}
-							<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-								{formatRelativeTime(photo.createdAt)}
+					{sortedPhotos.map((photo) => {
+						const isSelected =
+							selectionModeProp &&
+							selectedPhotoIdsProp.has(photo.id);
+						const displayUrl = showWatermarkProp
+							? photo.imageUrl
+							: photo.originalUrl || photo.imageUrl;
+
+						return (
+							<div
+								key={photo.id}
+								className={cn(
+									"relative group aspect-square overflow-hidden rounded-lg border bg-muted",
+									isSelected ? "ring-2 ring-primary/70" : "",
+								)}
+							>
+								<Image
+									src={displayUrl}
+									alt={photo.caption || "活动照片"}
+									fill
+									sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+									className="object-cover cursor-pointer transition-transform hover:scale-105"
+									onClick={() => setSelectedImage(displayUrl)}
+									loading="lazy"
+								/>
+								{selectionModeProp && onToggleSelect ? (
+									<div className="absolute top-2 left-2">
+										<Checkbox
+											checked={isSelected}
+											onCheckedChange={() =>
+												onToggleSelect(photo.id)
+											}
+											className="bg-white/80 shadow"
+										/>
+									</div>
+								) : null}
+								{canDelete && !selectionModeProp && (
+									<Button
+										variant="destructive"
+										size="sm"
+										className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+										onClick={() =>
+											handleDeletePhoto(photo.id)
+										}
+									>
+										×
+									</Button>
+								)}
+								{/* Time label */}
+								<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+									{formatRelativeTime(photo.createdAt)}
+								</div>
 							</div>
-						</div>
-					))}
+						);
+					})}
 				</div>
 				{renderLoadMore()}
 			</>
@@ -875,7 +1073,19 @@ export default function EventPhotosPage() {
 
 			{/* Tabs */}
 			<div className="p-4 pb-24">
-				<Tabs defaultValue="all" className="w-full">
+				<Tabs
+					value={activeTab}
+					defaultValue="all"
+					className="w-full"
+					onValueChange={(value) => {
+						const next = value as "all" | "my";
+						setActiveTab(next);
+						if (next === "all") {
+							clearSelection();
+							setViewMode("grid");
+						}
+					}}
+				>
 					<div className="bg-card rounded-xl p-1 mb-4">
 						<TabsList className="grid w-full grid-cols-2 h-auto bg-transparent">
 							<TabsTrigger
@@ -947,6 +1157,18 @@ export default function EventPhotosPage() {
 										按拍摄者分组
 									</button>
 								</div>
+
+								<div className="flex items-center gap-2 ml-auto rounded-lg border bg-background px-3 py-1.5">
+									<span className="text-xs text-muted-foreground">
+										显示水印
+									</span>
+									<Switch
+										checked={showWatermark}
+										onCheckedChange={(checked) =>
+											setShowWatermark(!!checked)
+										}
+									/>
+								</div>
 							</div>
 
 							<PhotoGrid
@@ -960,10 +1182,85 @@ export default function EventPhotosPage() {
 								loadMoreRef={allPhotosLoadMoreRef}
 								isFetchingMore={isFetchingMorePhotos}
 								hasMore={Boolean(hasNextPage)}
+								showWatermark={showWatermark}
+								onManualLoadMore={() => {
+									if (hasNextPage && !isFetchingMorePhotos) {
+										fetchNextPage();
+									}
+								}}
 							/>
 						</TabsContent>
 
 						<TabsContent value="my">
+							<div className="flex flex-wrap items-center gap-2 mb-4">
+								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+									<button
+										onClick={() => setViewMode("grid")}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											viewMode === "grid"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										网格视图
+									</button>
+									<button
+										onClick={() => setViewMode("list")}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											viewMode === "list"
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										列表视图
+									</button>
+								</div>
+
+								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+									<button
+										onClick={() => {
+											const next = !selectionMode;
+											setSelectionMode(next);
+											if (!next) {
+												setSelectedPhotoIds(new Set());
+											}
+										}}
+										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+											selectionMode
+												? "bg-primary text-primary-foreground"
+												: "text-muted-foreground hover:text-foreground"
+										}`}
+									>
+										批量管理
+									</button>
+									<Button
+										variant="outline"
+										size="sm"
+										disabled={
+											selectedPhotoIds.size === 0 ||
+											isBatchDeleting
+										}
+										onClick={handleBatchDelete}
+									>
+										{isBatchDeleting
+											? "删除中..."
+											: `删除选中 (${selectedPhotoIds.size})`}
+									</Button>
+								</div>
+
+								<div className="flex items-center gap-2 ml-auto rounded-lg border bg-background px-3 py-1.5">
+									<span className="text-xs text-muted-foreground">
+										显示水印
+									</span>
+									<Switch
+										checked={showWatermark}
+										onCheckedChange={(checked) =>
+											setShowWatermark(!!checked)
+										}
+									/>
+								</div>
+							</div>
+
 							<PhotoGrid
 								photos={myPhotos}
 								loading={
@@ -976,6 +1273,29 @@ export default function EventPhotosPage() {
 								loadMoreRef={myPhotosLoadMoreRef}
 								isFetchingMore={isFetchingMoreMyPhotos}
 								hasMore={Boolean(hasMoreMyPhotos)}
+								showWatermark={showWatermark}
+								selectionMode={selectionMode}
+								selectedPhotoIds={selectedPhotoIds}
+								onToggleSelect={(photoId) => {
+									setSelectedPhotoIds((prev) => {
+										const next = new Set(prev);
+										if (next.has(photoId)) {
+											next.delete(photoId);
+										} else {
+											next.add(photoId);
+										}
+										return next;
+									});
+								}}
+								onManualLoadMore={() => {
+									if (
+										hasMoreMyPhotos &&
+										!isFetchingMoreMyPhotos
+									) {
+										fetchNextMyPhotos();
+									}
+								}}
+								viewMode={viewMode}
 							/>
 						</TabsContent>
 					</div>

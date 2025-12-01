@@ -38,8 +38,11 @@ export async function addWatermark(
 		// Read logo image
 		const logoBuffer = await readFile(LOGO_PATH);
 
+		// Normalize original image orientation based on EXIF
+		const baseImage = sharp(imageBuffer, { failOnError: false }).rotate();
+
 		// Get original image metadata
-		const imageMetadata = await sharp(imageBuffer).metadata();
+		const imageMetadata = await baseImage.metadata();
 		const imageWidth = imageMetadata.width || 800;
 		const imageHeight = imageMetadata.height || 600;
 
@@ -78,7 +81,7 @@ export async function addWatermark(
 		}
 
 		// Composite logo onto image
-		const watermarkedImage = await sharp(imageBuffer)
+		const watermarkedImage = await baseImage
 			.composite([
 				{
 					input: logoWithOpacity,
@@ -86,6 +89,8 @@ export async function addWatermark(
 					top: topPos,
 				},
 			])
+			// Clear orientation so consumers don't re-rotate it
+			.withMetadata({ orientation: 1 })
 			.toBuffer();
 
 		return watermarkedImage;
