@@ -10,7 +10,7 @@ IMAGE_TAG ?= latest
 REGISTRY ?= docker.cnb.cool/hackathonweekly
 FULL_IMAGE = $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 
-PORT ?= 3000
+HOST_PORT ?= 3000
 PLATFORM ?= linux/amd64
 
 # ========================================
@@ -69,7 +69,7 @@ clean:
 up:
 	@echo "🔨 构建并启动本地容器..."
 	@IMAGE=$(IMAGE_NAME):$(IMAGE_TAG) docker compose up -d --build
-	@echo "✅ 容器已启动！访问 http://localhost:$(PORT)"
+	@echo "✅ 容器已启动！访问 http://localhost:$(HOST_PORT)"
 
 down:
 	@docker compose down --remove-orphans
@@ -125,7 +125,7 @@ deploy:
 	@IMAGE=$(REGISTRY)/$(IMAGE_NAME):$(TAG) \
 		docker compose -f docker-compose.prod.yml up -d --remove-orphans
 	@echo ""
-	@echo "✅ 部署成功！访问 http://localhost:$(PORT)"
+	@echo "✅ 部署成功！访问 http://localhost:$(HOST_PORT)"
 
 rollback:
 	@if [ -z "$(TAG)" ] || [ "$(TAG)" = "latest" ]; then \

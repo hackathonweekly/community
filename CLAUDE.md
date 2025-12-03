@@ -208,7 +208,7 @@ Centralized feature flags and settings:
 ### Environment Setup
 - Copy `.env.local.example` to `.env.local`
 - Configure `DATABASE_URL` (recommend Neon DB for PostgreSQL)
-- Configure `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`
+- Configure `BETTER_AUTH_SECRET` 
 - Set up authentication providers (WeChat OAuth, SMS)
 - Configure email provider (SMTP or service like Resend)
 - Set up storage provider (S3-compatible like AWS S3, Cloudflare R2)

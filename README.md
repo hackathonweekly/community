@@ -229,7 +229,6 @@ Vercel 是最简单的 Next.js 部署方式：
    在 Vercel Dashboard 配置：
    - `DATABASE_URL`
    - `BETTER_AUTH_SECRET`
-   - `BETTER_AUTH_URL`
    - 其他必需的环境变量
 
 ### 传统服务器部署

@@ -12,10 +12,10 @@ services:
     # 环境变量
     environment:
       NODE_ENV: production
-      PORT: ${PORT:-3000}
+      PORT: ${HOST_PORT:-3000}
     # 端口映射
     ports:
-      - "${PORT:-3000}:3000"
+      - "${HOST_PORT:-3000}:3000"
     # 总是拉取最新镜像
     pull_policy: always
     # 重启策略
