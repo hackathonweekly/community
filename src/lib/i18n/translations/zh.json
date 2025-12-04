@@ -1524,6 +1524,7 @@
 			"registering": "报名中...",
 			"registerNow": "立即报名",
 			"remaining": "剩余: {count} 张",
+			"ticketType": "票种类型",
 			"required": "*",
 			"requiresApproval": "（需要主办方审核）",
 			"selectTicketType": "选择票种 *",

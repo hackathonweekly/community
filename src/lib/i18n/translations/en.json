@@ -1462,6 +1462,7 @@
 			"registering": "Registering...",
 			"registerNow": "Register Now",
 			"remaining": "Remaining: {count} tickets",
+			"ticketType": "Ticket Type",
 			"required": "*",
 			"requiresApproval": "(requires organizer approval)",
 			"selectTicketType": "Select ticket type *",
