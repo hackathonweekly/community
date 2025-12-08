@@ -95,11 +95,13 @@ docker_build_template: &docker_build_template
     if command -v docker buildx >/dev/null 2>&1; then
       docker buildx build \
         --load \
+        --no-cache \
         ${BUILD_ARGS} \
         -t "${IMAGE_TAG}" \
         .
     else
       docker build \
+        --no-cache \
         ${BUILD_ARGS} \
         -t "${IMAGE_TAG}" \
         .
