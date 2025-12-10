@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/sheet";
 import { useKeyboardDetection } from "@/lib/hooks/use-keyboard-detection";
 import { cn } from "@/lib/utils";
-import { ShareEventDialog } from "@/modules/public/events/components/ShareEventDialog";
 import {
 	PhotoIcon,
 	ShareIcon,
@@ -89,7 +88,6 @@ export function MobileEventBottomActions({
 
 	const router = useRouter();
 	const [isBookmarking, setIsBookmarking] = useState(false);
-	const [showShareDialog, setShowShareDialog] = useState(false);
 	const [isActionsSheetOpen, setIsActionsSheetOpen] = useState(false);
 
 	// 使用自定义 hook 检测键盘是否弹出
@@ -105,9 +103,6 @@ export function MobileEventBottomActions({
 		handleCancelRegistrationAction,
 		handleBookmark,
 		shouldShowCancelButton,
-		getShareUrl,
-		generateShareText,
-		event: eventHookData,
 	} = useUnifiedEventRegistration({
 		event,
 		user,
@@ -117,8 +112,7 @@ export function MobileEventBottomActions({
 	});
 
 	const handleShare = () => {
-		// Always show our share dialog for mobile users to have full options
-		setShowShareDialog(true);
+		onShowShare();
 	};
 
 	const handleOpenAlbum = () => {
@@ -400,24 +394,6 @@ export function MobileEventBottomActions({
 					</div>
 				</SheetContent>
 			</Sheet>
-
-			{/* Share Dialog */}
-			<ShareEventDialog
-				isOpen={showShareDialog}
-				onClose={() => setShowShareDialog(false)}
-				eventTitle={event.title}
-				eventId={event.id}
-				eventUrl={""}
-				event={{
-					startTime: event.startTime,
-					endTime: event.endTime,
-					address: event.address,
-					isOnline: event.isOnline ?? false,
-					onlineUrl: event.onlineUrl,
-					coverImage: event.coverImage,
-					richContent: event.richContent,
-				}}
-			/>
 		</>
 	);
 }
