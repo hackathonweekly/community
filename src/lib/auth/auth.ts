@@ -281,20 +281,15 @@ export const auth = betterAuth({
 								// 关联到现有用户
 								account.userId = existingUser.id;
 
-								// 删除新创建的重复用户（如果创建了新用户）
+								// 🔧 修复：不在 before 钩子中删除用户，因为 Better Auth 后续流程仍需要用户对象
+								// 改为在 after 钩子中异步清理重复用户
 								if (originalUserId !== existingUser.id) {
-									try {
-										await db.user.delete({
-											where: { id: originalUserId },
-										});
-										logger.info(
-											`[WECHAT_AUTH] Deleted duplicate user ${originalUserId}`,
-										);
-									} catch (error) {
-										logger.warn(
-											`[WECHAT_AUTH] Could not delete duplicate user: ${error}`,
-										);
-									}
+									// 将需要删除的用户 ID 存储在 context 中，供 after 钩子使用
+									(context as any)._duplicateUserIdToDelete =
+										originalUserId;
+									logger.info(
+										`[WECHAT_AUTH] Marked duplicate user ${originalUserId} for deletion after account creation`,
+									);
 								}
 
 								return;
@@ -311,6 +306,34 @@ export const auth = betterAuth({
 						} catch (error) {
 							logger.warn(
 								`[WECHAT_AUTH] Error in account linking: ${error}`,
+							);
+						}
+					}
+				},
+				after: async (account, context) => {
+					// 🔧 清理在 before 钩子中标记的重复用户
+					const duplicateUserId = (context as any)
+						._duplicateUserIdToDelete;
+					if (duplicateUserId) {
+						try {
+							// 延迟删除，确保 Better Auth 的 session 创建流程已完成
+							setTimeout(async () => {
+								try {
+									await db.user.delete({
+										where: { id: duplicateUserId },
+									});
+									logger.info(
+										`[WECHAT_AUTH] Deleted duplicate user ${duplicateUserId}`,
+									);
+								} catch (error) {
+									logger.warn(
+										`[WECHAT_AUTH] Could not delete duplicate user: ${error}`,
+									);
+								}
+							}, 1000);
+						} catch (error) {
+							logger.warn(
+								`[WECHAT_AUTH] Error scheduling duplicate user deletion: ${error}`,
 							);
 						}
 					}
