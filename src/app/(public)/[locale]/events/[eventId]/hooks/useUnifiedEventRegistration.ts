@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEventEngagement, useEventRegistration } from "./useEventQueries";
 import { useTranslations } from "next-intl";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 export interface UnifiedEventRegistrationProps {
 	event: {
@@ -49,13 +49,19 @@ export function useUnifiedEventRegistration({
 		isApplyingVolunteer,
 	} = useEventRegistration(event.id, t);
 
-	// 计算活动状态
-	const isEventEnded = useMemo(
-		() =>
-			new Date(event.endTime) < new Date() ||
-			event.status === "COMPLETED",
-		[event.endTime, event.status],
-	);
+	// 使用 state 来存储当前时间，避免 hydration mismatch
+	const [now, setNow] = useState<Date | null>(null);
+
+	useEffect(() => {
+		setNow(new Date());
+	}, []);
+
+	// 计算活动状态 - 在客户端 mount 前只依赖 status 判断
+	const isEventEnded = useMemo(() => {
+		const isStatusCompleted = event.status === "COMPLETED";
+		if (!now) return isStatusCompleted;
+		return new Date(event.endTime) < now || isStatusCompleted;
+	}, [event.endTime, event.status, now]);
 
 	const isEventDraft = useMemo(
 		() => event.status === "DRAFT",
@@ -102,11 +108,10 @@ export function useUnifiedEventRegistration({
 		if (event.requireApproval) {
 			return "需要审核";
 		}
-		if (
-			event.registrationDeadline &&
-			new Date(event.registrationDeadline) < new Date()
-		) {
-			return "报名已截止";
+		if (event.registrationDeadline && now) {
+			if (new Date(event.registrationDeadline) < now) {
+				return "报名已截止";
+			}
 		}
 		return "暂不可报名";
 	};

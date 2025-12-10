@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 type User = { id: string } | null | undefined;
 
@@ -32,28 +32,39 @@ type EventLike = {
 };
 
 export function useRegistrationStatus(event: EventLike, user: User) {
+	// 使用 state 来存储当前时间，避免 hydration mismatch
+	// 初始值设为 null，在客户端 mount 后才设置真实时间
+	const [now, setNow] = useState<Date | null>(null);
+
+	useEffect(() => {
+		// 客户端 mount 后设置当前时间
+		setNow(new Date());
+	}, []);
+
 	const existingRegistration = useMemo(
 		() => event.registrations?.find((reg) => reg.user.id === user?.id),
 		[event.registrations, user?.id],
 	);
 
 	// 双重状态判断：时间判断 + 状态判断
+	// 在客户端 mount 前，只依赖 status 判断，避免 hydration mismatch
 	const isEventEnded = useMemo(() => {
-		const isTimePassed = new Date(event.endTime) < new Date();
 		const isStatusCompleted = event.status === "COMPLETED";
+		// 如果 now 还没设置（SSR 或首次渲染），只用 status 判断
+		if (!now) return isStatusCompleted;
+		const isTimePassed = new Date(event.endTime) < now;
 		return isTimePassed || isStatusCompleted;
-	}, [event.endTime, event.status]);
+	}, [event.endTime, event.status, now]);
 
 	// 为了向后兼容，保留原名称但使用新逻辑
 	const isEventPast = isEventEnded;
 
-	const isRegistrationClosed = useMemo(
-		() =>
-			event.registrationDeadline
-				? new Date(event.registrationDeadline) < new Date()
-				: false,
-		[event.registrationDeadline],
-	);
+	const isRegistrationClosed = useMemo(() => {
+		if (!event.registrationDeadline) return false;
+		// 如果 now 还没设置（SSR 或首次渲染），返回 false
+		if (!now) return false;
+		return new Date(event.registrationDeadline) < now;
+	}, [event.registrationDeadline, now]);
 
 	const isEventFull = useMemo(
 		() =>

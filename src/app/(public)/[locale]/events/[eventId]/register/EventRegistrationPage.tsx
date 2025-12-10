@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
@@ -25,6 +25,13 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 	const queryClient = useQueryClient();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
+	// 使用 state 来存储当前时间，避免 hydration mismatch
+	const [now, setNow] = useState<Date | null>(null);
+
+	useEffect(() => {
+		setNow(new Date());
+	}, []);
+
 	// Redirect to event page if user is not logged in
 	useEffect(() => {
 		if (!user) {
@@ -34,20 +41,26 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 		}
 	}, [user, router, pathname]);
 
-	// Check if event allows registration
-	const canRegister = () => {
+	// Check if event allows registration - 使用 useMemo 避免重复计算
+	const canRegisterResult = useMemo(() => {
 		if (event.isExternalEvent) return false;
 		if (event.status === "COMPLETED") return false;
 		if (event.status === "DRAFT") return false;
-		if (new Date(event.endTime) < new Date()) return false;
-		if (
-			event.registrationDeadline &&
-			new Date(event.registrationDeadline) < new Date()
-		) {
-			return false;
+		// 在客户端 mount 前，不进行时间判断，返回 true（保守值）
+		if (now) {
+			if (new Date(event.endTime) < now) return false;
+			if (
+				event.registrationDeadline &&
+				new Date(event.registrationDeadline) < now
+			) {
+				return false;
+			}
 		}
 		return true;
-	};
+	}, [event, now]);
+
+	// 保持原有的函数接口兼容性
+	const canRegister = () => canRegisterResult;
 
 	const handleRegistrationComplete = (registration: any) => {
 		toast.success(
@@ -106,7 +119,7 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 							<div className="text-center py-8">
 								<p className="text-gray-600 mb-4">
 									{event.status === "COMPLETED" ||
-									new Date(event.endTime) < new Date()
+									(now && new Date(event.endTime) < now)
 										? "该活动已结束，无法报名"
 										: event.status === "DRAFT"
 											? "该活动尚未开始报名"

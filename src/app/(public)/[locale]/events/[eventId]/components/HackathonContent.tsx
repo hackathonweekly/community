@@ -28,6 +28,7 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import type { EventDetailsProps } from "../EventDetailsClient";
 
 type EventDetails = EventDetailsProps["event"];
@@ -91,11 +92,20 @@ export function HackathonContent({
 	const pathname = usePathname();
 	const currentLocale = pathname?.split("/")?.[1] ?? "zh";
 
+	// 使用 state 来存储当前时间，避免 hydration mismatch
+	const [now, setNow] = useState<Date | null>(null);
+
+	useEffect(() => {
+		setNow(new Date());
+	}, []);
+
 	const config = event.hackathonConfig;
 	const votingConfig = config?.voting;
-	const isEventStarted = new Date() >= new Date(event.startTime);
-	const isEventEnded =
-		new Date() >= new Date(event.endTime) || event.status === "COMPLETED";
+	// 在客户端 mount 前，使用保守的默认值（false），避免 hydration mismatch
+	const isEventStarted = now ? now >= new Date(event.startTime) : false;
+	const isEventEnded = now
+		? now >= new Date(event.endTime) || event.status === "COMPLETED"
+		: event.status === "COMPLETED";
 	const isRegistrationOpen = event.registrationOpen ?? true;
 
 	const projectSubmissionList = projectSubmissions || [];
