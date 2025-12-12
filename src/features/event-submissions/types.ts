@@ -168,5 +168,9 @@ export interface SubmissionFormField {
 }
 
 export interface SubmissionFormConfig {
-	fields: SubmissionFormField[];
+	fields?: SubmissionFormField[];
+	settings?: {
+		attachmentsEnabled?: boolean;
+		communityUseAuthorizationEnabled?: boolean;
+	};
 }

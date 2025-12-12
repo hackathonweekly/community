@@ -79,6 +79,11 @@ export function EventSubmissionForm({
 }: EventSubmissionFormProps) {
 	const router = useRouter();
 	const { user } = useSession();
+	const attachmentsEnabled =
+		submissionFormConfig?.settings?.attachmentsEnabled ?? true;
+	const communityAuthorizationEnabled =
+		submissionFormConfig?.settings?.communityUseAuthorizationEnabled ??
+		true;
 	const [attachments, setAttachments] = useState<AttachmentDraft[]>(() =>
 		(initialData?.attachments ?? []).map((attachment, index) => ({
 			fileName: attachment.fileName,
@@ -293,9 +298,11 @@ export function EventSubmissionForm({
 			),
 	});
 
-	const hasUploadingAttachment = attachments.some(
-		(attachment) => attachment.uploading && !attachment.fileUrl,
-	);
+	const hasUploadingAttachment =
+		attachmentsEnabled &&
+		attachments.some(
+			(attachment) => attachment.uploading && !attachment.fileUrl,
+		);
 
 	const onSubmit = async () => {
 		const valid = await form.trigger();
@@ -524,102 +531,108 @@ export function EventSubmissionForm({
 					</Card>
 
 					{/* 附件上传 */}
-					<Card>
-						<CardHeader className={COMPACT_CARD_HEADER}>
-							<CardTitle>附件上传</CardTitle>
-							<CardDescription>
-								上传展示图片或演示文件
-							</CardDescription>
-						</CardHeader>
-						<CardContent className={COMPACT_CARD_CONTENT}>
-							<AttachmentUploader
-								eventId={eventId}
-								value={attachments}
-								onChange={handleAttachmentsChange}
-							/>
-							<FormField
-								control={form.control}
-								name="attachments"
-								render={() => (
-									<FormItem>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-						</CardContent>
-					</Card>
+					{attachmentsEnabled && (
+						<Card>
+							<CardHeader className={COMPACT_CARD_HEADER}>
+								<CardTitle>附件上传</CardTitle>
+								<CardDescription>
+									上传展示图片或演示文件
+								</CardDescription>
+							</CardHeader>
+							<CardContent className={COMPACT_CARD_CONTENT}>
+								<AttachmentUploader
+									eventId={eventId}
+									value={attachments}
+									onChange={handleAttachmentsChange}
+								/>
+								<FormField
+									control={form.control}
+									name="attachments"
+									render={() => (
+										<FormItem>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</CardContent>
+						</Card>
+					)}
 
 					{/* 授权说明 */}
-					<Card>
-						<CardHeader className={COMPACT_CARD_HEADER}>
-							<CardTitle>授权说明</CardTitle>
-							<CardDescription>确认宣传授权</CardDescription>
-						</CardHeader>
-						<CardContent className={COMPACT_CARD_CONTENT}>
-							<FormField
-								control={form.control}
-								name="communityUseAuthorization"
-								render={({ field }) => (
-									<FormItem className="space-y-3">
-										<FormLabel>
-											是否授权社区用于宣传{" "}
-											<span className="text-red-500">
-												*
-											</span>
-										</FormLabel>
-										<FormControl>
-											<RadioGroup
-												onValueChange={(value) =>
-													field.onChange(
-														value === "yes",
-													)
-												}
-												value={
-													field.value ? "yes" : "no"
-												}
-												className="flex flex-col space-y-2"
-											>
-												<label
-													className={cn(
-														"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
-														field.value &&
-															"border-primary bg-primary/5",
-													)}
+					{communityAuthorizationEnabled && (
+						<Card>
+							<CardHeader className={COMPACT_CARD_HEADER}>
+								<CardTitle>授权说明</CardTitle>
+								<CardDescription>确认宣传授权</CardDescription>
+							</CardHeader>
+							<CardContent className={COMPACT_CARD_CONTENT}>
+								<FormField
+									control={form.control}
+									name="communityUseAuthorization"
+									render={({ field }) => (
+										<FormItem className="space-y-3">
+											<FormLabel>
+												是否授权社区用于宣传{" "}
+												<span className="text-red-500">
+													*
+												</span>
+											</FormLabel>
+											<FormControl>
+												<RadioGroup
+													onValueChange={(value) =>
+														field.onChange(
+															value === "yes",
+														)
+													}
+													value={
+														field.value
+															? "yes"
+															: "no"
+													}
+													className="flex flex-col space-y-2"
 												>
-													<RadioGroupItem value="yes" />
-													<div>
-														<p className="font-medium">
-															是的，同意授权
-														</p>
-														<p className="text-sm text-muted-foreground">
-															社区可在宣传渠道展示作品内容
-														</p>
-													</div>
-												</label>
-												<label
-													className={cn(
-														"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
-														!field.value &&
-															"border-primary bg-primary/5",
-													)}
-												>
-													<RadioGroupItem value="no" />
-													<div>
-														<p className="font-medium">
-															暂不同意
-														</p>
-														<p className="text-sm text-muted-foreground">
-															不会影响作品展示与投票
-														</p>
-													</div>
-												</label>
-											</RadioGroup>
-										</FormControl>
-									</FormItem>
-								)}
-							/>
-						</CardContent>
-					</Card>
+													<label
+														className={cn(
+															"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
+															field.value &&
+																"border-primary bg-primary/5",
+														)}
+													>
+														<RadioGroupItem value="yes" />
+														<div>
+															<p className="font-medium">
+																是的，同意授权
+															</p>
+															<p className="text-sm text-muted-foreground">
+																社区可在宣传渠道展示作品内容
+															</p>
+														</div>
+													</label>
+													<label
+														className={cn(
+															"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
+															!field.value &&
+																"border-primary bg-primary/5",
+														)}
+													>
+														<RadioGroupItem value="no" />
+														<div>
+															<p className="font-medium">
+																暂不同意
+															</p>
+															<p className="text-sm text-muted-foreground">
+																不会影响作品展示与投票
+															</p>
+														</div>
+													</label>
+												</RadioGroup>
+											</FormControl>
+										</FormItem>
+									)}
+								/>
+							</CardContent>
+						</Card>
+					)}
 
 					{hasUploadingAttachment && (
 						<div className="flex items-center gap-2 text-amber-600 text-sm">

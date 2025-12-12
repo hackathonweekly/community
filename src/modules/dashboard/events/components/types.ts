@@ -182,29 +182,39 @@ export const eventSchema = z
 		// 作品提交表单配置
 		submissionFormConfig: z
 			.object({
-				fields: z.array(
-					z.object({
-						key: z.string(),
-						label: z.string(),
-						type: z.enum([
-							"text",
-							"textarea",
-							"url",
-							"phone",
-							"email",
-							"image",
-							"file",
-							"select",
-							"radio",
-							"checkbox",
-						]),
-						required: z.boolean(),
-						placeholder: z.string().optional(),
-						description: z.string().optional(),
-						options: z.array(z.string()).optional(),
-						order: z.number(),
-					}),
-				),
+				fields: z
+					.array(
+						z.object({
+							key: z.string(),
+							label: z.string(),
+							type: z.enum([
+								"text",
+								"textarea",
+								"url",
+								"phone",
+								"email",
+								"image",
+								"file",
+								"select",
+								"radio",
+								"checkbox",
+							]),
+							required: z.boolean(),
+							placeholder: z.string().optional(),
+							description: z.string().optional(),
+							options: z.array(z.string()).optional(),
+							order: z.number(),
+						}),
+					)
+					.optional(),
+				settings: z
+					.object({
+						attachmentsEnabled: z.boolean().optional(),
+						communityUseAuthorizationEnabled: z
+							.boolean()
+							.optional(),
+					})
+					.optional(),
 			})
 			.nullable()
 			.optional(),

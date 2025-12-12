@@ -128,9 +128,17 @@ const submissionFormFieldSchema = z.object({
 	order: z.number(),
 });
 
+const submissionFormSettingsSchema = z
+	.object({
+		attachmentsEnabled: z.boolean().optional(),
+		communityUseAuthorizationEnabled: z.boolean().optional(),
+	})
+	.optional();
+
 const submissionFormConfigSchema = z
 	.object({
-		fields: z.array(submissionFormFieldSchema),
+		fields: z.array(submissionFormFieldSchema).optional(),
+		settings: submissionFormSettingsSchema,
 	})
 	.nullable()
 	.optional();

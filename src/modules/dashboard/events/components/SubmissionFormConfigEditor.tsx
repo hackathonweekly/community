@@ -65,19 +65,43 @@ const DEFAULT_FIELD: Omit<SubmissionFormField, "key" | "order"> = {
 	description: "",
 };
 
+const DEFAULT_SETTINGS = {
+	attachmentsEnabled: true,
+	communityUseAuthorizationEnabled: true,
+};
+
 export function SubmissionFormConfigEditor({
 	value,
 	onChange,
 }: SubmissionFormConfigEditorProps) {
 	const fields = value?.fields || [];
+	const settings = {
+		...DEFAULT_SETTINGS,
+		...(value?.settings ?? {}),
+	};
 
-	const updateConfig = (nextFields: SubmissionFormField[]) => {
-		if (nextFields.length === 0) {
+	const commitConfig = (
+		nextFields: SubmissionFormField[],
+		nextSettings:
+			| SubmissionFormConfig["settings"]
+			| undefined = value?.settings,
+	) => {
+		const hasFields = nextFields.length > 0;
+		const hasSettings = !!nextSettings;
+
+		if (!hasFields && !hasSettings) {
 			onChange(null);
 			return;
 		}
 
-		onChange({ fields: nextFields });
+		onChange({
+			...(hasFields ? { fields: nextFields } : { fields: [] }),
+			...(nextSettings ? { settings: nextSettings } : {}),
+		});
+	};
+
+	const updateConfig = (nextFields: SubmissionFormField[]) => {
+		commitConfig(nextFields, value?.settings);
 	};
 
 	const addField = () => {
@@ -173,6 +197,11 @@ export function SubmissionFormConfigEditor({
 		updateField(fieldIndex, { options });
 	};
 
+	const updateSettings = (updates: Partial<typeof DEFAULT_SETTINGS>) => {
+		const nextSettings = { ...settings, ...updates };
+		commitConfig(fields, nextSettings);
+	};
+
 	return (
 		<Card>
 			<CardHeader>
@@ -182,6 +211,39 @@ export function SubmissionFormConfigEditor({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
+				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+					<div className="flex items-center justify-between rounded-lg border p-3">
+						<div className="space-y-1">
+							<p className="font-medium">附件上传</p>
+							<p className="text-sm text-muted-foreground">
+								控制是否在提交表单展示附件上传区域
+							</p>
+						</div>
+						<Switch
+							checked={settings.attachmentsEnabled}
+							onCheckedChange={(checked) =>
+								updateSettings({ attachmentsEnabled: checked })
+							}
+						/>
+					</div>
+					<div className="flex items-center justify-between rounded-lg border p-3">
+						<div className="space-y-1">
+							<p className="font-medium">宣传授权确认</p>
+							<p className="text-sm text-muted-foreground">
+								可选，关闭后不再展示“是否授权用于宣传”问题
+							</p>
+						</div>
+						<Switch
+							checked={settings.communityUseAuthorizationEnabled}
+							onCheckedChange={(checked) =>
+								updateSettings({
+									communityUseAuthorizationEnabled: checked,
+								})
+							}
+						/>
+					</div>
+				</div>
+
 				{fields.length === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">
 						<p>暂无自定义字段</p>
