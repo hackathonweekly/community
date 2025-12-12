@@ -16,15 +16,7 @@ import {
 	EventHero,
 	EventInfoCard,
 } from "@/modules/public/events/components";
-import {
-	BookOpen,
-	Clock,
-	Code,
-	LayoutGrid,
-	Settings,
-	Target,
-	Trophy,
-} from "lucide-react";
+import { BookOpen, Code, LayoutGrid, Target, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -61,7 +53,6 @@ interface HackathonContentProps {
 	onShowSuccessInfo: () => void;
 	onShowShare: () => void;
 	hasSubmittedFeedback?: boolean;
-	canManageEvent?: boolean; // 新增：是否可以管理活动
 }
 
 export function HackathonContent({
@@ -86,7 +77,6 @@ export function HackathonContent({
 	onShowSuccessInfo,
 	onShowShare,
 	hasSubmittedFeedback,
-	canManageEvent = false,
 }: HackathonContentProps) {
 	const t = useTranslations("events");
 	const pathname = usePathname();
@@ -111,7 +101,24 @@ export function HackathonContent({
 	const projectSubmissionList = projectSubmissions || [];
 	const richContent = event.richContent || event.description || "";
 	const publicSubmissionsUrl = `/${currentLocale}/events/${event.id}/submissions`;
-	const privateSubmissionUrl = `/app/events/${event.id}/submissions/new`;
+
+	const getSubmissionOwnerId = (submission?: any) =>
+		submission?.submitterId ||
+		submission?.userId ||
+		submission?.user?.id ||
+		submission?.submitter?.id ||
+		submission?.project?.user?.id ||
+		null;
+
+	// 查找当前用户的作品提交
+	const userSubmission = projectSubmissions?.find(
+		(p) => getSubmissionOwnerId(p) === currentUserId,
+	);
+
+	// 根据是否已提交作品，决定跳转URL
+	const privateSubmissionUrl = userSubmission
+		? `/app/events/${event.id}/submissions/${userSubmission.id}/edit`
+		: `/app/events/${event.id}/submissions/new`;
 
 	// Check if user is registered
 	const userRegistration = event.registrations?.find(
@@ -131,43 +138,6 @@ export function HackathonContent({
 
 	return (
 		<>
-			{/* 管理员阶段控制 Sticky Bar */}
-			{canManageEvent && (
-				<div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b mb-6">
-					<div className="flex items-center justify-between py-3 px-4">
-						<div className="flex items-center gap-2 text-sm">
-							<Settings className="w-4 h-4" />
-							<span className="font-medium">管理</span>
-						</div>
-						<div className="flex items-center gap-3">
-							<Link
-								href={`/${currentLocale}/events/${event.id}/countdown`}
-								target="_blank"
-							>
-								<Button variant="outline" size="sm">
-									<Clock className="w-4 h-4 mr-2" />
-									倒计时大屏
-								</Button>
-							</Link>
-							<Link
-								href={`/${currentLocale}/events/${event.id}/awards-ceremony`}
-								target="_blank"
-							>
-								<Button variant="outline" size="sm">
-									<Trophy className="w-4 h-4 mr-2" />
-									颁奖墙
-								</Button>
-							</Link>
-							<Link href={`/app/events/${event.id}/edit`}>
-								<Button variant="outline" size="sm">
-									高级设置
-								</Button>
-							</Link>
-						</div>
-					</div>
-				</div>
-			)}
-
 			{/* Core event hero + info, reusing standard event components */}
 			<EventHero
 				event={event}
@@ -201,11 +171,7 @@ export function HackathonContent({
 					<Button asChild className="gap-2">
 						<Link href={privateSubmissionUrl}>
 							<Target className="w-4 h-4" />
-							{projectSubmissions?.find(
-								(p) => p.submitterId === currentUserId,
-							)
-								? "编辑作品"
-								: "提交作品"}
+							{userSubmission ? "我的作品" : "提交作品"}
 						</Link>
 					</Button>
 				)}

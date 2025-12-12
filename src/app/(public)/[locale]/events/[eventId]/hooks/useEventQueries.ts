@@ -354,6 +354,9 @@ export function useEventRegistration(
 		onSuccess: (data) => {
 			// 使用新的缓存失效策略
 			cacheInvalidation.onEventUpdate(queryClient, eventId);
+			queryClient.invalidateQueries({
+				queryKey: eventKeys.projectSubmissions(eventId),
+			});
 			toast.success(t("events.registrationSuccess"));
 			return data;
 		},
@@ -388,6 +391,9 @@ export function useEventRegistration(
 		onSuccess: () => {
 			// 使用新的缓存失效策略
 			cacheInvalidation.onEventUpdate(queryClient, eventId);
+			queryClient.invalidateQueries({
+				queryKey: eventKeys.projectSubmissions(eventId),
+			});
 			toast.success(t("events.registrationCancelledSuccess"));
 		},
 		onError: (error: Error) => {

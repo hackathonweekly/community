@@ -73,7 +73,6 @@ interface Event {
 		settings?: {
 			maxTeamSize: number;
 			allowSolo: boolean;
-			requireProject: boolean;
 		};
 		voting?: {
 			allowPublicVoting: boolean;
@@ -83,6 +82,29 @@ interface Event {
 			publicVotingScope: "ALL" | "REGISTERED" | "PARTICIPANTS";
 		};
 	};
+	// 作品提交表单配置
+	submissionFormConfig?: {
+		fields: Array<{
+			key: string;
+			label: string;
+			type:
+				| "text"
+				| "textarea"
+				| "url"
+				| "phone"
+				| "email"
+				| "image"
+				| "file"
+				| "select"
+				| "radio"
+				| "checkbox";
+			required: boolean;
+			placeholder?: string;
+			description?: string;
+			options?: string[];
+			order: number;
+		}>;
+	} | null;
 	volunteerContactInfo?: string;
 	volunteerWechatQrCode?: string;
 	organizerContact?: string;
@@ -128,6 +150,7 @@ interface Event {
 		slug: string;
 		logo?: string;
 	};
+	registrationFieldConfig?: any;
 }
 
 interface Organization {
@@ -409,6 +432,7 @@ export default function EventEditPage() {
 		registrationSuccessImage: event.registrationSuccessImage || "",
 		registrationPendingInfo: event.registrationPendingInfo || "",
 		registrationPendingImage: event.registrationPendingImage || "",
+		registrationFieldConfig: event.registrationFieldConfig || undefined,
 		coverImage: event.coverImage || "", // Pass the actual cover image URL
 		tags: event.tags,
 		questions: event.questions.map((q, index) => ({
@@ -446,13 +470,13 @@ export default function EventEditPage() {
 		paymentQRCode: event.buildingConfig?.paymentQRCode || "",
 		paymentNote: event.buildingConfig?.paymentNote || "",
 		// Hackathon 字段
-		hackathonConfig: event.hackathonConfig || {
+		hackathonConfig: {
+			...(event.hackathonConfig ?? {}),
 			settings: {
-				maxTeamSize: 5,
-				allowSolo: true,
-				requireProject: false,
+				maxTeamSize: event.hackathonConfig?.settings?.maxTeamSize ?? 5,
+				allowSolo: event.hackathonConfig?.settings?.allowSolo ?? true,
 			},
-			voting: {
+			voting: event.hackathonConfig?.voting ?? {
 				allowPublicVoting: true,
 				enableJudgeVoting: true,
 				judgeWeight: 0.7,
@@ -460,6 +484,8 @@ export default function EventEditPage() {
 				publicVotingScope: "PARTICIPANTS" as const,
 			},
 		},
+		// 作品提交表单配置
+		submissionFormConfig: event.submissionFormConfig || null,
 	};
 
 	return (

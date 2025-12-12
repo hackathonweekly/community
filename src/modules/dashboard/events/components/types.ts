@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { HackathonConfigSchema as hackathonConfigSchema } from "@/features/hackathon/config";
+import { defaultRegistrationFieldConfig } from "@/lib/events/registration-fields";
 
 // Feedback configuration schema
 const feedbackQuestionSchema = z.object({
@@ -24,6 +25,26 @@ const feedbackConfigSchema = z
 		questions: z.array(feedbackQuestionSchema),
 	})
 	.optional();
+
+const registrationFieldSwitchSchema = z.object({
+	enabled: z.boolean().default(false),
+	required: z.boolean().default(false),
+});
+
+const registrationFieldConfigSchema = z.object({
+	template: z.enum(["FULL", "MINIMAL", "CUSTOM"]).default("FULL"),
+	fields: z.object({
+		name: registrationFieldSwitchSchema,
+		userRoleString: registrationFieldSwitchSchema,
+		currentWorkOn: registrationFieldSwitchSchema,
+		lifeStatus: registrationFieldSwitchSchema,
+		bio: registrationFieldSwitchSchema,
+		phoneNumber: registrationFieldSwitchSchema,
+		email: registrationFieldSwitchSchema,
+		wechatId: registrationFieldSwitchSchema,
+		shippingAddress: registrationFieldSwitchSchema,
+	}),
+});
 
 export const eventSchema = z
 	.object({
@@ -150,10 +171,43 @@ export const eventSchema = z
 		requireProjectSubmission: z.boolean().default(false),
 		// 数字名片公开确认
 		askDigitalCardConsent: z.boolean().default(false),
+		// 报名字段配置
+		registrationFieldConfig: registrationFieldConfigSchema.default(
+			defaultRegistrationFieldConfig,
+		),
 		// Hackathon 专门字段
 		hackathonConfig: hackathonConfigSchema,
 		// 反馈配置
 		feedbackConfig: feedbackConfigSchema,
+		// 作品提交表单配置
+		submissionFormConfig: z
+			.object({
+				fields: z.array(
+					z.object({
+						key: z.string(),
+						label: z.string(),
+						type: z.enum([
+							"text",
+							"textarea",
+							"url",
+							"phone",
+							"email",
+							"image",
+							"file",
+							"select",
+							"radio",
+							"checkbox",
+						]),
+						required: z.boolean(),
+						placeholder: z.string().optional(),
+						description: z.string().optional(),
+						options: z.array(z.string()).optional(),
+						order: z.number(),
+					}),
+				),
+			})
+			.nullable()
+			.optional(),
 	})
 	.refine(
 		(data) => {
@@ -181,6 +235,9 @@ export const eventSchema = z
 	);
 
 export type EventFormData = z.infer<typeof eventSchema>;
+export type RegistrationFieldConfig = z.infer<
+	typeof registrationFieldConfigSchema
+>;
 
 export interface Organization {
 	id: string;

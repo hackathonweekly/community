@@ -1,10 +1,14 @@
-import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
-import type { EventSubmission } from "@/features/event-submissions/types";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { notFound } from "next/navigation";
+
 import { config } from "@/config";
+import { getEventById } from "@/lib/database";
+import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
+import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
+import type {
+	EventSubmission,
+	SubmissionFormConfig,
+} from "@/features/event-submissions/types";
 
 interface PageProps {
 	params: Promise<{ eventId: string; submissionId: string }>;
@@ -42,35 +46,32 @@ async function fetchSubmission(
 
 export default async function EditSubmissionPage({ params }: PageProps) {
 	const { eventId, submissionId } = await params;
-	const submission = await fetchSubmission(submissionId);
+	const [submission, event] = await Promise.all([
+		fetchSubmission(submissionId),
+		getEventById(eventId),
+	]);
 
-	if (!submission) {
+	if (!submission || !event) {
 		notFound();
 	}
 
+	const submissionFormConfig = (event.submissionFormConfig ??
+		null) as SubmissionFormConfig | null;
+
 	return (
-		<div className="container mx-auto max-w-4xl py-10">
-			<div className="flex items-center justify-between mb-6">
-				<div>
-					<p className="text-sm text-muted-foreground">编辑作品</p>
-					<h1 className="text-2xl font-semibold">
-						{submission.event.title}
-					</h1>
-				</div>
-				<Button variant="ghost" asChild>
-					<Link
-						href={`/${config.i18n.defaultLocale}/events/${eventId}/submissions`}
-					>
-						返回列表
-					</Link>
-				</Button>
-			</div>
+		<SubmissionPageShell
+			eyebrow="编辑作品"
+			title={event.title}
+			backHref={`/${config.i18n.defaultLocale}/events/${eventId}/submissions`}
+			backLabel="返回列表"
+		>
 			<EventSubmissionForm
 				eventId={eventId}
-				eventTitle={submission.event.title}
+				eventTitle={event.title}
 				initialData={submission}
 				mode="edit"
+				submissionFormConfig={submissionFormConfig}
 			/>
-		</div>
+		</SubmissionPageShell>
 	);
 }

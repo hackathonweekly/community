@@ -592,26 +592,6 @@ export function HackathonManagement({
 											}
 										/>
 									</div>
-									<div className="flex items-center justify-between">
-										<Label htmlFor="requireProject">
-											强制要求提交作品
-										</Label>
-										<Switch
-											id="requireProject"
-											checked={
-												config.settings.requireProject
-											}
-											onCheckedChange={(checked) =>
-												setConfig((prev) => ({
-													...prev,
-													settings: {
-														...prev.settings,
-														requireProject: checked,
-													},
-												}))
-											}
-										/>
-									</div>
 								</div>
 							</div>
 						</CardContent>

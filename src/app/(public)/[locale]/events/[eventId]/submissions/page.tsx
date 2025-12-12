@@ -4,6 +4,7 @@ import { EventSubmissionsGallery } from "@/modules/public/events/submissions/Eve
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { SubmissionsActionButton } from "@/modules/public/events/submissions/SubmissionsActionButton";
 
 interface PageProps {
 	params: Promise<{ locale: string; eventId: string }>;
@@ -38,20 +39,32 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 	const showResults = !isVotingOpen;
 
 	return (
-		<div className="container mx-auto max-w-6xl py-10 space-y-6">
-			<div className="flex items-center gap-3">
-				<Button variant="ghost" asChild>
-					<Link
-						href={`/${locale}/events/${eventId}`}
-						aria-label="返回活动"
-					>
-						<span className="inline-flex items-center gap-2">
-							<ArrowLeft className="h-4 w-4" />
-							返回活动
-						</span>
-					</Link>
-				</Button>
-				<h1 className="text-3xl font-semibold">{event.title}</h1>
+		<div className="container mx-auto max-w-7xl pt-6 pb-10 space-y-6">
+			<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+				<div className="flex items-center gap-3">
+					<Button variant="ghost" asChild>
+						<Link
+							href={`/${locale}/events/${eventId}`}
+							aria-label="返回活动"
+						>
+							<span className="inline-flex items-center gap-2">
+								<ArrowLeft className="h-4 w-4" />
+								返回活动
+							</span>
+						</Link>
+					</Button>
+					<h1 className="text-2xl md:text-3xl font-semibold">
+						{event.title}
+					</h1>
+				</div>
+
+				<SubmissionsActionButton
+					eventId={eventId}
+					locale={locale}
+					isSubmissionOpen={isSubmissionOpen}
+					size="lg"
+					className="hidden md:inline-flex"
+				/>
 			</div>
 			<EventSubmissionsGallery
 				eventId={eventId}
@@ -60,6 +73,7 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 				isVotingOpen={isVotingOpen}
 				showVotesOnGallery={showVotesOnGallery}
 				isSubmissionOpen={isSubmissionOpen}
+				showInlineSubmissionCta
 			/>
 		</div>
 	);

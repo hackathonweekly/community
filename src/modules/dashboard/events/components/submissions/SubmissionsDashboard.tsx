@@ -3,18 +3,35 @@
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useMemo } from "react";
+import { Trash2 } from "lucide-react";
 import { useSession } from "@dashboard/auth/hooks/use-session";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEventSubmissions } from "@/features/event-submissions/hooks";
+import {
+	useDeleteSubmission,
+	useEventSubmissions,
+} from "@/features/event-submissions/hooks";
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { cn } from "@/lib/utils";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface SubmissionsDashboardProps {
 	eventId: string;
 	eventTitle: string;
+	isSubmissionOpen?: boolean;
 }
 
 const statusColorMap: Record<string, string> = {
@@ -24,13 +41,31 @@ const statusColorMap: Record<string, string> = {
 	AWARDED: "bg-purple-100 text-purple-700",
 };
 
-const SubmissionCard = ({ submission }: { submission: EventSubmission }) => {
+const SubmissionCard = ({
+	submission,
+}: {
+	submission: EventSubmission;
+}) => {
 	// Current locale for linking to the public detail page
 	const locale = useLocale();
 	const thumbnail =
 		submission.attachments.find(
 			(attachment) => attachment.fileType === "image",
 		)?.fileUrl || submission.coverImage;
+
+	const deleteMutation = useDeleteSubmission(
+		submission.id,
+		submission.eventId,
+	);
+
+	const handleDelete = async () => {
+		try {
+			await deleteMutation.mutateAsync();
+			toast.success("已删除作品");
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "删除失败");
+		}
+	};
 
 	return (
 		<Card className="hover:shadow-md transition">
@@ -70,7 +105,7 @@ const SubmissionCard = ({ submission }: { submission: EventSubmission }) => {
 						<span className="text-muted-foreground">
 							投票数：{submission.voteCount}
 						</span>
-						<div className="flex gap-2">
+						<div className="flex flex-wrap justify-end gap-2">
 							<Button variant="outline" size="sm" asChild>
 								<Link
 									href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
@@ -85,6 +120,40 @@ const SubmissionCard = ({ submission }: { submission: EventSubmission }) => {
 									编辑
 								</Link>
 							</Button>
+							<AlertDialog>
+								<AlertDialogTrigger asChild>
+									<Button
+										variant="destructive"
+										size="sm"
+										disabled={deleteMutation.isPending}
+										className="gap-1"
+									>
+										<Trash2 className="h-4 w-4" />
+										删除
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>
+											确认删除作品？
+										</AlertDialogTitle>
+										<AlertDialogDescription>
+											此操作不可撤销。作品、附件及投票记录都会被删除。
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel>
+											取消
+										</AlertDialogCancel>
+										<AlertDialogAction
+											onClick={handleDelete}
+											disabled={deleteMutation.isPending}
+										>
+											确认删除
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
 						</div>
 					</div>
 				</div>
@@ -96,6 +165,7 @@ const SubmissionCard = ({ submission }: { submission: EventSubmission }) => {
 export function SubmissionsDashboard({
 	eventId,
 	eventTitle,
+	isSubmissionOpen = false,
 }: SubmissionsDashboardProps) {
 	const { user } = useSession();
 	const { data, isLoading } = useEventSubmissions(eventId, {
@@ -118,14 +188,22 @@ export function SubmissionsDashboard({
 						{eventTitle} · 我的作品
 					</h1>
 					<p className="text-muted-foreground text-sm">
-						在提交截止前，你可以随时编辑或再次提交作品。
+						{isSubmissionOpen
+							? "在提交截止前，你可以随时编辑或再次提交作品。"
+							: "提交已结束，你仍可以查看和管理你已提交的作品。"}
 					</p>
 				</div>
-				<Button asChild>
-					<Link href={`/app/events/${eventId}/submissions/new`}>
-						提交新作品
-					</Link>
-				</Button>
+				{isSubmissionOpen ? (
+					<Button asChild>
+						<Link href={`/app/events/${eventId}/submissions/new`}>
+							提交新作品
+						</Link>
+					</Button>
+				) : (
+					<Button variant="outline" disabled title="作品提交已结束">
+						提交已结束
+					</Button>
+				)}
 			</div>
 
 			{isLoading ? (

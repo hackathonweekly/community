@@ -16,6 +16,7 @@ import {
 	validateFullPhoneNumber,
 	type PhoneValidationResult,
 } from "@/lib/utils/phone-validation";
+import { resolveRegistrationFieldConfig } from "@/lib/events/registration-fields";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -111,6 +112,7 @@ interface EventRegistrationModalProps {
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;
 		registrationPendingImage?: string;
+		registrationFieldConfig?: any;
 	};
 	inviteCode?: string;
 	onRegistrationComplete: (registration: any) => void;
@@ -126,6 +128,9 @@ export function EventRegistrationModal({
 	const t = useTranslations("events.registration");
 	const router = useRouter();
 	const defaultRegistrationError = t("toasts.registrationFailed");
+	const fieldConfig = resolveRegistrationFieldConfig(
+		event.registrationFieldConfig,
+	);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
@@ -139,12 +144,15 @@ export function EventRegistrationModal({
 	const [profileLoading, setProfileLoading] = useState(false);
 	const [showInlineProfileEdit, setShowInlineProfileEdit] = useState(false);
 	const [editingProfile, setEditingProfile] = useState({
+		name: "",
 		bio: "",
 		userRoleString: "",
 		currentWorkOn: "",
 		phoneNumber: "",
 		email: "",
 		lifeStatus: "",
+		wechatId: "",
+		shippingAddress: "",
 	});
 	const [savingProfile, setSavingProfile] = useState(false);
 	const [phoneValidation, setPhoneValidation] =
@@ -180,6 +188,12 @@ export function EventRegistrationModal({
 		const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 		return pattern.test(value);
 	};
+
+	const isFieldEnabled = (key: keyof typeof fieldConfig.fields) =>
+		fieldConfig.fields[key]?.enabled;
+
+	const isFieldRequired = (key: keyof typeof fieldConfig.fields) =>
+		fieldConfig.fields[key]?.required;
 
 	// Handle phone number change with proper validation
 	const handlePhoneNumberChange = (value: string) => {
@@ -221,12 +235,15 @@ export function EventRegistrationModal({
 	useEffect(() => {
 		if (userProfile) {
 			setEditingProfile({
+				name: userProfile.name || "",
 				bio: userProfile.bio || "",
 				userRoleString: userProfile.userRoleString || "",
 				currentWorkOn: userProfile.currentWorkOn || "",
 				phoneNumber: userProfile.phoneNumber || "",
 				email: normalizeEmail(userProfile.email),
 				lifeStatus: userProfile.lifeStatus || "",
+				wechatId: userProfile.wechatId || "",
+				shippingAddress: userProfile.shippingAddress || "",
 			});
 			setEmailError(null);
 		}
@@ -267,6 +284,7 @@ export function EventRegistrationModal({
 					showWechat: data.user?.showWechat,
 					showEmail: data.user?.showEmail,
 					lifeStatus: data.user?.lifeStatus,
+					shippingAddress: data.user?.shippingAddress,
 				});
 			}
 		} catch (error) {
@@ -277,8 +295,21 @@ export function EventRegistrationModal({
 	};
 
 	const saveUserProfile = async (silent = false) => {
+		const nameRequired = isFieldRequired("name");
+		const nameToSave =
+			editingProfile.name.trim() || userProfile?.name?.trim() || "";
+		if (nameRequired && !nameToSave) {
+			const message = "请填写姓名";
+			if (!silent) toast.error(message);
+			throw new Error(message);
+		}
+
+		const emailRequired = isFieldRequired("email");
 		const trimmedEmail = editingProfile.email.trim();
-		if (!trimmedEmail) {
+		const effectiveEmail =
+			trimmedEmail || (!emailRequired ? userProfile?.email || "" : "");
+
+		if (emailRequired && !effectiveEmail) {
 			const message = "请填写邮箱，方便接收通知";
 			setEmailError(message);
 			if (!silent) {
@@ -287,7 +318,7 @@ export function EventRegistrationModal({
 			throw new Error(message);
 		}
 
-		if (!isEmailValid(trimmedEmail)) {
+		if (effectiveEmail && !isEmailValid(effectiveEmail)) {
 			const message = "请输入有效的邮箱地址";
 			setEmailError(message);
 			if (!silent) {
@@ -299,7 +330,15 @@ export function EventRegistrationModal({
 		setEmailError(null);
 
 		// Check for phone validation errors before saving
-		if (!phoneValidation.isValid && editingProfile.phoneNumber.trim()) {
+		const phoneRequired = isFieldRequired("phoneNumber");
+		const phoneToSave = editingProfile.phoneNumber.trim();
+		if (phoneRequired && !phoneToSave) {
+			const message = "请填写手机号";
+			if (!silent) toast.error(message);
+			throw new Error(message);
+		}
+
+		if (!phoneValidation.isValid && phoneToSave) {
 			if (!silent) {
 				toast.error(
 					phoneValidation.errorMessage || t("toasts.invalidPhone"),
@@ -312,19 +351,35 @@ export function EventRegistrationModal({
 
 		setSavingProfile(true);
 		try {
+			const payload: Record<string, unknown> = {
+				bio: editingProfile.bio,
+				userRoleString: editingProfile.userRoleString,
+				currentWorkOn: editingProfile.currentWorkOn,
+				lifeStatus: editingProfile.lifeStatus,
+			};
+
+			if (isFieldEnabled("name") || nameToSave) {
+				payload.name = nameToSave;
+			}
+			if (phoneToSave) {
+				payload.phoneNumber = phoneToSave;
+			}
+			if (effectiveEmail) {
+				payload.email = effectiveEmail;
+			}
+			if (isFieldEnabled("wechatId")) {
+				payload.wechatId = editingProfile.wechatId;
+			}
+			if (isFieldEnabled("shippingAddress")) {
+				payload.shippingAddress = editingProfile.shippingAddress;
+			}
+
 			const response = await fetch("/api/profile/update", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					bio: editingProfile.bio,
-					userRoleString: editingProfile.userRoleString,
-					currentWorkOn: editingProfile.currentWorkOn,
-					phoneNumber: editingProfile.phoneNumber,
-					email: trimmedEmail,
-					lifeStatus: editingProfile.lifeStatus,
-				}),
+				body: JSON.stringify(payload),
 			});
 
 			if (!response.ok) {
@@ -361,21 +416,24 @@ export function EventRegistrationModal({
 			// Update local state immediately
 			const updatedProfile = {
 				...userProfile,
+				name: nameToSave || userProfile?.name,
 				bio: editingProfile.bio,
 				userRoleString: editingProfile.userRoleString,
 				currentWorkOn: editingProfile.currentWorkOn,
-				phoneNumber: editingProfile.phoneNumber,
-				email: trimmedEmail,
+				phoneNumber: phoneToSave || userProfile?.phoneNumber,
+				email: effectiveEmail || userProfile?.email,
 				emailVerified:
-					userProfile?.email === trimmedEmail
+					userProfile?.email === effectiveEmail
 						? (userProfile?.emailVerified ?? null)
 						: false,
 				lifeStatus: editingProfile.lifeStatus,
+				wechatId: editingProfile.wechatId,
+				shippingAddress: editingProfile.shippingAddress,
 			};
 			setUserProfile(updatedProfile);
 			setEditingProfile((prev) => ({
 				...prev,
-				email: trimmedEmail,
+				email: effectiveEmail,
 			}));
 
 			if (!silent) {
@@ -506,69 +564,59 @@ export function EventRegistrationModal({
 
 		// Project selection is now optional - no validation needed
 
-		// Check if user profile is incomplete and show inline edit
-		const hasSavedBio = userProfile?.bio?.trim();
-		const hasEditingBio = editingProfile.bio.trim();
+		const getFieldValue = (key: keyof typeof fieldConfig.fields) => {
+			const editingValue = (editingProfile as any)[key];
+			if (typeof editingValue === "string" && editingValue.trim()) {
+				return editingValue.trim();
+			}
+			const saved = (userProfile as any)?.[key];
+			if (typeof saved === "string" && saved.trim()) {
+				return saved.trim();
+			}
+			return "";
+		};
 
-		// If user has no saved bio and no editing content, require them to fill it
-		if (!hasSavedBio && !hasEditingBio) {
-			toast.error(t("toasts.profileBioRequired"));
-			setShowInlineProfileEdit(true);
-			return;
+		const requiredFields: Array<keyof typeof fieldConfig.fields> = [];
+		for (const key of Object.keys(fieldConfig.fields) as Array<
+			keyof typeof fieldConfig.fields
+		>) {
+			if (isFieldEnabled(key) && isFieldRequired(key)) {
+				requiredFields.push(key);
+			}
 		}
 
-		// Check bio minimum length (15 characters)
-		const currentBio = hasEditingBio || hasSavedBio;
-		if (currentBio && currentBio.length < 15) {
-			toast.error(t("toasts.bioTooShort"));
-			setShowInlineProfileEdit(true);
-			return;
-		}
-
-		// Check if required fields are complete
-		const trimmedEditingEmail = editingProfile.email.trim();
-		const currentProfile = hasEditingBio
-			? {
-					...userProfile,
-					...editingProfile,
-					email: trimmedEditingEmail,
+		for (const key of requiredFields) {
+			const value = getFieldValue(key);
+			if (!value) {
+				const fieldLabels: Record<string, string> = {
+					name: "姓名",
+					userRoleString: "个人角色",
+					currentWorkOn: "当前在做",
+					lifeStatus: "当前状态",
+					bio: "个人简介",
+					phoneNumber: "手机号",
+					email: "邮箱",
+					wechatId: "微信号",
+					shippingAddress: "邮寄地址",
+				};
+				toast.error(`请填写${fieldLabels[key] || key}`);
+				if (key === "bio" || key === "userRoleString") {
+					setShowInlineProfileEdit(true);
 				}
-			: userProfile
-				? {
-						...userProfile,
-						email: normalizeEmail(userProfile.email),
-					}
-				: userProfile;
-
-		// Check required fields: userRoleString, currentWorkOn, bio, lifeStatus
-		if (!currentProfile?.userRoleString?.trim()) {
-			toast.error(t("toasts.roleRequired"));
-			setShowInlineProfileEdit(true);
-			return;
+				return;
+			}
+			if (key === "bio" && value.length < 15) {
+				toast.error(t("toasts.bioTooShort"));
+				setShowInlineProfileEdit(true);
+				return;
+			}
 		}
 
-		if (!currentProfile?.currentWorkOn?.trim()) {
-			toast.error(t("toasts.currentWorkRequired"));
-			setShowInlineProfileEdit(true);
-			return;
-		}
-
-		if (!currentProfile?.lifeStatus?.trim()) {
-			toast.error(t("toasts.lifeStatusRequired"));
-			setShowInlineProfileEdit(true);
-			return;
-		}
-
-		// Check if user has required contact information
-		const hasPhoneNumber = currentProfile?.phoneNumber?.trim();
-		const currentEmail = currentProfile?.email?.trim();
-
-		// Validate phone number format if provided
-		if (hasPhoneNumber) {
-			// For Chinese phone numbers, add +86 prefix if not present
-			const fullPhoneNumber = hasPhoneNumber.startsWith("+")
-				? hasPhoneNumber
-				: `+86${hasPhoneNumber}`;
+		const currentPhone = getFieldValue("phoneNumber");
+		if (currentPhone) {
+			const fullPhoneNumber = currentPhone.startsWith("+")
+				? currentPhone
+				: `+86${currentPhone}`;
 			const phoneValidationResult =
 				validateFullPhoneNumber(fullPhoneNumber);
 			if (!phoneValidationResult.isValid) {
@@ -582,21 +630,8 @@ export function EventRegistrationModal({
 			}
 		}
 
-		if (!hasPhoneNumber) {
-			toast.error(t("toasts.phoneRequired"));
-			setShowInlineProfileEdit(true);
-			return;
-		}
-
-		if (!currentEmail) {
-			const message = "请填写邮箱，方便接收通知";
-			setEmailError(message);
-			toast.error(message);
-			setShowInlineProfileEdit(true);
-			return;
-		}
-
-		if (!isEmailValid(currentEmail)) {
+		const currentEmail = getFieldValue("email");
+		if (currentEmail && !isEmailValid(currentEmail)) {
 			const message = "请输入有效的邮箱地址";
 			setEmailError(message);
 			toast.error(message);
@@ -615,22 +650,32 @@ export function EventRegistrationModal({
 		}
 
 		// If user has unsaved changes, save them first before registration
-		const initialEmail = userProfile
-			? normalizeEmail(userProfile.email)
-			: "";
-		if (
-			hasEditingBio &&
-			(!hasSavedBio ||
-				editingProfile.bio !== userProfile?.bio ||
-				editingProfile.userRoleString !==
-					(userProfile?.userRoleString || "") ||
-				editingProfile.currentWorkOn !==
-					(userProfile?.currentWorkOn || "") ||
-				editingProfile.phoneNumber !==
-					(userProfile?.phoneNumber || "") ||
-				trimmedEditingEmail !== initialEmail ||
-				editingProfile.lifeStatus !== (userProfile?.lifeStatus || ""))
-		) {
+		const fieldsToCompare: Array<keyof typeof editingProfile> = [
+			"name",
+			"bio",
+			"userRoleString",
+			"currentWorkOn",
+			"phoneNumber",
+			"email",
+			"lifeStatus",
+			"wechatId",
+			"shippingAddress",
+		];
+
+		const hasUnsavedChanges = fieldsToCompare.some((key) => {
+			const editingValue = (editingProfile as any)[key];
+			if (typeof editingValue !== "string") {
+				return false;
+			}
+			const normalizedEditing = editingValue.trim();
+			if (!normalizedEditing) {
+				return false;
+			}
+			const savedValue = ((userProfile as any)?.[key] || "").trim();
+			return normalizedEditing !== savedValue;
+		});
+
+		if (hasUnsavedChanges) {
 			try {
 				await saveUserProfile(true); // Silent save, no toast notification
 				// After saving, proceed with registration
@@ -747,6 +792,7 @@ export function EventRegistrationModal({
 						emailError={emailError}
 						savingProfile={savingProfile}
 						profileLoading={profileLoading}
+						fieldConfig={fieldConfig}
 						onToggleInlineEdit={setShowInlineProfileEdit}
 						onSaveProfile={handleSaveProfile}
 						onUpdateEditingProfile={(profile) =>

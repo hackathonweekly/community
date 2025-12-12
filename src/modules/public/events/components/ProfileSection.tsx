@@ -12,14 +12,26 @@ import { SimpleLifeStatusSelector } from "@/modules/dashboard/profile/components
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { ContactInfoForm } from "./ContactInfoForm";
 import type { UserProfile } from "./types";
+import {
+	resolveRegistrationFieldConfig,
+	registrationFieldKeys,
+} from "@/lib/events/registration-fields";
+
+const ROLE_MAX = 10;
+const CURRENT_WORK_MAX = 100;
+const BIO_MAX = 500;
+const BIO_MIN = 15;
 
 interface EditingProfile {
+	name: string;
 	bio: string;
 	userRoleString: string;
 	currentWorkOn: string;
 	phoneNumber: string;
 	email: string;
 	lifeStatus: string;
+	wechatId: string;
+	shippingAddress: string;
 }
 
 interface ProfileSectionProps {
@@ -30,6 +42,7 @@ interface ProfileSectionProps {
 	emailError: string | null;
 	savingProfile: boolean;
 	profileLoading: boolean;
+	fieldConfig?: any;
 	onToggleInlineEdit: (show: boolean) => void;
 	onSaveProfile: () => void;
 	onUpdateEditingProfile: (profile: Partial<EditingProfile>) => void;
@@ -46,6 +59,7 @@ export function ProfileSection({
 	emailError,
 	savingProfile,
 	profileLoading,
+	fieldConfig,
 	onToggleInlineEdit,
 	onSaveProfile,
 	onUpdateEditingProfile,
@@ -53,15 +67,36 @@ export function ProfileSection({
 	onEmailChange,
 	onLifeStatusChange,
 }: ProfileSectionProps) {
-	const hasSavedBio = userProfile?.bio?.trim();
-	const hasEditingBio = editingProfile.bio.trim();
+	const resolvedFieldConfig = resolveRegistrationFieldConfig(fieldConfig);
+	const isFieldEnabled = (key: keyof typeof resolvedFieldConfig.fields) =>
+		resolvedFieldConfig.fields[key]?.enabled;
+	const isFieldRequired = (key: keyof typeof resolvedFieldConfig.fields) =>
+		resolvedFieldConfig.fields[key]?.required;
+	const requiredFields = registrationFieldKeys.filter(
+		(key) => isFieldEnabled(key) && isFieldRequired(key),
+	);
 
+	// Check if userProfile is null before accessing it
 	if (!userProfile || profileLoading) {
 		return null;
 	}
 
+	const hasCompleteProfile = requiredFields.every((key) => {
+		const value = (
+			userProfile as unknown as Record<string, string | null | undefined>
+		)[key];
+		if (typeof value === "string") {
+			const trimmed = value.trim();
+			if (key === "bio") {
+				return trimmed.length >= BIO_MIN;
+			}
+			return trimmed.length > 0;
+		}
+		return Boolean(value);
+	});
+
 	// For users with complete profile
-	if (hasSavedBio) {
+	if (hasCompleteProfile) {
 		return (
 			<div className="space-y-4">
 				<div className="flex items-center justify-between">
@@ -105,45 +140,58 @@ export function ProfileSection({
 				{!showInlineProfileEdit && (
 					<div className="bg-gray-50 rounded-md p-3">
 						<div className="space-y-2">
-							{userProfile.userRoleString && (
-								<div className="flex items-center gap-2">
-									<span className="text-sm text-muted-foreground">
-										角色：
-									</span>
-									<Badge
-										variant="secondary"
-										className="text-xs"
-									>
-										{userProfile.userRoleString}
-									</Badge>
-								</div>
-							)}
-							{userProfile.currentWorkOn && (
+							{isFieldEnabled("name") && userProfile.name && (
 								<div>
 									<span className="text-sm text-muted-foreground">
-										当前在做：
+										姓名：
 									</span>
 									<span className="text-sm text-gray-700 ml-1">
-										{userProfile.currentWorkOn}
+										{userProfile.name}
 									</span>
 								</div>
 							)}
-							{userProfile.lifeStatus && (
-								<div>
-									<span className="text-sm text-muted-foreground">
-										当前状态：
-									</span>
-									<Badge
-										variant="secondary"
-										className="text-xs ml-1"
-									>
-										{getLifeStatusLabel(
-											userProfile.lifeStatus,
-										)}
-									</Badge>
-								</div>
-							)}
-							{userProfile.bio && (
+							{isFieldEnabled("userRoleString") &&
+								userProfile.userRoleString && (
+									<div className="flex items-center gap-2">
+										<span className="text-sm text-muted-foreground">
+											角色：
+										</span>
+										<Badge
+											variant="secondary"
+											className="text-xs"
+										>
+											{userProfile.userRoleString}
+										</Badge>
+									</div>
+								)}
+							{isFieldEnabled("currentWorkOn") &&
+								userProfile.currentWorkOn && (
+									<div>
+										<span className="text-sm text-muted-foreground">
+											当前在做：
+										</span>
+										<span className="text-sm text-gray-700 ml-1">
+											{userProfile.currentWorkOn}
+										</span>
+									</div>
+								)}
+							{isFieldEnabled("lifeStatus") &&
+								userProfile.lifeStatus && (
+									<div>
+										<span className="text-sm text-muted-foreground">
+											当前状态：
+										</span>
+										<Badge
+											variant="secondary"
+											className="text-xs ml-1"
+										>
+											{getLifeStatusLabel(
+												userProfile.lifeStatus,
+											)}
+										</Badge>
+									</div>
+								)}
+							{isFieldEnabled("bio") && userProfile.bio && (
 								<div>
 									<span className="text-sm text-muted-foreground">
 										简介：
@@ -153,23 +201,36 @@ export function ProfileSection({
 									</p>
 								</div>
 							)}
-							{(() => {
-								const contactInfo = getPreferredContact(
-									userProfile as any,
-								);
-								return contactInfo ? (
+							{isFieldEnabled("shippingAddress") &&
+								userProfile.shippingAddress && (
 									<div>
 										<span className="text-sm text-muted-foreground">
-											联系方式：
+											邮寄地址：
 										</span>
-										<span className="text-sm text-gray-700 ml-1 inline-flex items-center gap-1">
-											<span>{contactInfo.icon}</span>
-											{contactInfo.label}：
-											{contactInfo.value}
-										</span>
+										<p className="text-sm text-gray-700 mt-1 leading-relaxed">
+											{userProfile.shippingAddress}
+										</p>
 									</div>
-								) : null;
-							})()}
+								)}
+							{(isFieldEnabled("phoneNumber") ||
+								isFieldEnabled("email")) &&
+								(() => {
+									const contactInfo = getPreferredContact(
+										userProfile as any,
+									);
+									return contactInfo ? (
+										<div>
+											<span className="text-sm text-muted-foreground">
+												联系方式：
+											</span>
+											<span className="text-sm text-gray-700 ml-1 inline-flex items-center gap-1">
+												<span>{contactInfo.icon}</span>
+												{contactInfo.label}：
+												{contactInfo.value}
+											</span>
+										</div>
+									) : null;
+								})()}
 						</div>
 					</div>
 				)}
@@ -181,6 +242,7 @@ export function ProfileSection({
 						phoneValidation={phoneValidation}
 						emailError={emailError}
 						savingProfile={savingProfile}
+						fieldConfig={resolvedFieldConfig}
 						onUpdateEditingProfile={onUpdateEditingProfile}
 						onPhoneNumberChange={onPhoneNumberChange}
 						onEmailChange={onEmailChange}
@@ -189,6 +251,7 @@ export function ProfileSection({
 						showRequired={true}
 						onCancel={() => {
 							onUpdateEditingProfile({
+								name: userProfile?.name || "",
 								bio: userProfile?.bio || "",
 								userRoleString:
 									userProfile?.userRoleString || "",
@@ -196,6 +259,9 @@ export function ProfileSection({
 								phoneNumber: userProfile?.phoneNumber || "",
 								email: userProfile?.email || "",
 								lifeStatus: userProfile?.lifeStatus || "",
+								wechatId: userProfile?.wechatId || "",
+								shippingAddress:
+									userProfile?.shippingAddress || "",
 							});
 							onToggleInlineEdit(false);
 						}}
@@ -218,6 +284,7 @@ export function ProfileSection({
 				phoneValidation={phoneValidation}
 				emailError={emailError}
 				savingProfile={savingProfile}
+				fieldConfig={resolvedFieldConfig}
 				onUpdateEditingProfile={onUpdateEditingProfile}
 				onPhoneNumberChange={onPhoneNumberChange}
 				onEmailChange={onEmailChange}
@@ -234,6 +301,7 @@ interface ProfileEditFormProps {
 	phoneValidation: PhoneValidationResult;
 	emailError: string | null;
 	savingProfile: boolean;
+	fieldConfig: any;
 	onUpdateEditingProfile: (profile: Partial<EditingProfile>) => void;
 	onPhoneNumberChange: (value: string) => void;
 	onEmailChange: (value: string) => void;
@@ -248,6 +316,7 @@ function ProfileEditForm({
 	phoneValidation,
 	emailError,
 	savingProfile,
+	fieldConfig,
 	onUpdateEditingProfile,
 	onPhoneNumberChange,
 	onEmailChange,
@@ -256,137 +325,240 @@ function ProfileEditForm({
 	onCancel,
 	showRequired = false,
 }: ProfileEditFormProps) {
-	// 字数限制常量
-	const ROLE_MAX = 10;
-	const CURRENT_WORK_MAX = 100;
-	const BIO_MAX = 500;
-	const BIO_MIN = 15;
+	const resolvedFieldConfig = resolveRegistrationFieldConfig(fieldConfig);
+	const isFieldEnabled = (key: keyof typeof resolvedFieldConfig.fields) =>
+		resolvedFieldConfig.fields[key]?.enabled;
+	const isFieldRequired = (key: keyof typeof resolvedFieldConfig.fields) =>
+		resolvedFieldConfig.fields[key]?.required;
+	const requiredFields = registrationFieldKeys.filter(
+		(key) => isFieldEnabled(key) && isFieldRequired(key),
+	);
 
 	// 判断是否超出限制
 	const isRoleExceeded = editingProfile.userRoleString.length > ROLE_MAX;
 	const isCurrentWorkExceeded =
 		editingProfile.currentWorkOn.length > CURRENT_WORK_MAX;
 	const isBioExceeded = editingProfile.bio.length > BIO_MAX;
+	const hasMissingRequired = requiredFields.some((key) => {
+		const value = (
+			editingProfile as unknown as Record<
+				string,
+				string | null | undefined
+			>
+		)[key];
+		if (typeof value === "string") {
+			const trimmed = value.trim();
+			if (key === "bio") {
+				return trimmed.length < BIO_MIN;
+			}
+			return trimmed === "";
+		}
+		return !value;
+	});
 
 	return (
 		<div className="bg-white rounded-md border p-4 space-y-4">
-			<div className="space-y-2">
-				<Label className="text-sm font-medium">
-					个人角色
-					{showRequired && <span className="text-red-500"> *</span>}
-				</Label>
-				<Input
-					value={editingProfile.userRoleString}
-					onChange={(e) =>
-						onUpdateEditingProfile({
-							userRoleString: e.target.value,
-						})
-					}
-					placeholder="例如：前端工程师、产品经理、设计师等"
-					maxLength={ROLE_MAX}
-					className="w-full"
-				/>
-				<div className="flex items-center justify-between">
-					<span className="text-xs text-muted-foreground">
-						您当前的主要职业角色
-					</span>
-					<span
+			{isFieldEnabled("name") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						姓名
+						{(showRequired || isFieldRequired("name")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Input
+						value={editingProfile.name}
+						onChange={(e) =>
+							onUpdateEditingProfile({ name: e.target.value })
+						}
+						placeholder="请输入姓名"
+						className="w-full"
+					/>
+				</div>
+			)}
+
+			{isFieldEnabled("userRoleString") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						个人角色
+						{(showRequired ||
+							isFieldRequired("userRoleString")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Input
+						value={editingProfile.userRoleString}
+						onChange={(e) =>
+							onUpdateEditingProfile({
+								userRoleString: e.target.value,
+							})
+						}
+						placeholder="例如：前端工程师、产品经理、设计师等"
+						maxLength={ROLE_MAX}
+						className="w-full"
+					/>
+					<div className="flex items-center justify-between">
+						<span className="text-xs text-muted-foreground">
+							您当前的主要职业角色
+						</span>
+						<span
+							className={`text-xs ${
+								isRoleExceeded
+									? "text-red-500 font-medium"
+									: "text-muted-foreground"
+							}`}
+						>
+							{editingProfile.userRoleString.length}/{ROLE_MAX}
+						</span>
+					</div>
+				</div>
+			)}
+			{isFieldEnabled("currentWorkOn") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						当前在做
+						{(showRequired || isFieldRequired("currentWorkOn")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Input
+						value={editingProfile.currentWorkOn}
+						onChange={(e) =>
+							onUpdateEditingProfile({
+								currentWorkOn: e.target.value,
+							})
+						}
+						placeholder="例如：做一个AI助手产品、开发社区平台、创业项目等"
+						maxLength={CURRENT_WORK_MAX}
+						className="w-full"
+					/>
+					<div className="flex items-center justify-between">
+						<span className="text-xs text-muted-foreground">
+							您目前正在做的事情，可以是产品、项目、工作或创业等
+						</span>
+						<span
+							className={`text-xs ${
+								isCurrentWorkExceeded
+									? "text-red-500 font-medium"
+									: "text-muted-foreground"
+							}`}
+						>
+							{editingProfile.currentWorkOn.length}/
+							{CURRENT_WORK_MAX}
+						</span>
+					</div>
+				</div>
+			)}
+			{isFieldEnabled("bio") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						个人简介
+						{(showRequired || isFieldRequired("bio")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Textarea
+						value={editingProfile.bio}
+						onChange={(e) =>
+							onUpdateEditingProfile({ bio: e.target.value })
+						}
+						placeholder={
+							showRequired
+								? "请简单介绍您的技能、经验或兴趣，这将帮助活动主办方和其他参与者了解您（不少于15个字）..."
+								: "请简单介绍您的技能、经验或兴趣..."
+						}
+						rows={3}
+						maxLength={BIO_MAX}
+						className="w-full"
+					/>
+					<div
 						className={`text-xs ${
-							isRoleExceeded
-								? "text-red-500 font-medium"
+							(
+								editingProfile.bio.length < BIO_MIN &&
+									(showRequired || isFieldRequired("bio"))
+							) || isBioExceeded
+								? "text-red-500"
 								: "text-muted-foreground"
 						}`}
 					>
-						{editingProfile.userRoleString.length}/{ROLE_MAX}
-					</span>
+						{editingProfile.bio.length}/{BIO_MAX} 字符{" "}
+						{(showRequired || isFieldRequired("bio")) &&
+							editingProfile.bio.length < BIO_MIN &&
+							`（至少需要${BIO_MIN}个字）`}
+					</div>
 				</div>
-			</div>
-			<div className="space-y-2">
-				<Label className="text-sm font-medium">
-					当前在做
-					{showRequired && <span className="text-red-500"> *</span>}
-				</Label>
-				<Input
-					value={editingProfile.currentWorkOn}
-					onChange={(e) =>
-						onUpdateEditingProfile({
-							currentWorkOn: e.target.value,
-						})
-					}
-					placeholder="例如：做一个AI助手产品、开发社区平台、创业项目等"
-					maxLength={CURRENT_WORK_MAX}
-					className="w-full"
-				/>
-				<div className="flex items-center justify-between">
-					<span className="text-xs text-muted-foreground">
-						您目前正在做的事情，可以是产品、项目、工作或创业等
-					</span>
-					<span
-						className={`text-xs ${
-							isCurrentWorkExceeded
-								? "text-red-500 font-medium"
-								: "text-muted-foreground"
-						}`}
-					>
-						{editingProfile.currentWorkOn.length}/{CURRENT_WORK_MAX}
-					</span>
+			)}
+			{isFieldEnabled("lifeStatus") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						当前状态
+						{(showRequired || isFieldRequired("lifeStatus")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<SimpleLifeStatusSelector
+						lifeStatus={editingProfile.lifeStatus}
+						onStatusChange={(status) =>
+							onUpdateEditingProfile({ lifeStatus: status })
+						}
+					/>
 				</div>
-			</div>
-			<div className="space-y-2">
-				<Label className="text-sm font-medium">
-					个人简介
-					{showRequired && <span className="text-red-500"> *</span>}
-				</Label>
-				<Textarea
-					value={editingProfile.bio}
-					onChange={(e) =>
-						onUpdateEditingProfile({ bio: e.target.value })
-					}
-					placeholder={
-						showRequired
-							? "请简单介绍您的技能、经验或兴趣，这将帮助活动主办方和其他参与者了解您（不少于15个字）..."
-							: "请简单介绍您的技能、经验或兴趣..."
-					}
-					rows={3}
-					maxLength={BIO_MAX}
-					className="w-full"
-				/>
-				<div
-					className={`text-xs ${
-						(editingProfile.bio.length < BIO_MIN && showRequired) ||
-						isBioExceeded
-							? "text-red-500"
-							: "text-muted-foreground"
-					}`}
-				>
-					{editingProfile.bio.length}/{BIO_MAX} 字符{" "}
-					{showRequired &&
-						editingProfile.bio.length < BIO_MIN &&
-						`（至少需要${BIO_MIN}个字）`}
-				</div>
-			</div>
-			<div className="space-y-2">
-				<Label className="text-sm font-medium">
-					当前状态
-					{showRequired && <span className="text-red-500"> *</span>}
-				</Label>
-				<SimpleLifeStatusSelector
-					lifeStatus={editingProfile.lifeStatus}
-					onStatusChange={(status) =>
-						onUpdateEditingProfile({ lifeStatus: status })
-					}
-				/>
-			</div>
+			)}
 
 			{/* Contact Information */}
-			<ContactInfoForm
-				phoneNumber={editingProfile.phoneNumber}
-				email={editingProfile.email}
-				emailError={emailError}
-				onPhoneNumberChange={onPhoneNumberChange}
-				onEmailChange={onEmailChange}
-				phoneValidation={phoneValidation}
-			/>
+			{(isFieldEnabled("phoneNumber") || isFieldEnabled("email")) && (
+				<ContactInfoForm
+					phoneNumber={editingProfile.phoneNumber}
+					email={editingProfile.email}
+					emailError={emailError}
+					onPhoneNumberChange={onPhoneNumberChange}
+					onEmailChange={onEmailChange}
+					phoneValidation={phoneValidation}
+					fieldConfig={resolvedFieldConfig}
+					showRequired={showRequired}
+				/>
+			)}
+
+			{isFieldEnabled("wechatId") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						微信号
+						{(showRequired || isFieldRequired("wechatId")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Input
+						value={editingProfile.wechatId}
+						onChange={(e) =>
+							onUpdateEditingProfile({ wechatId: e.target.value })
+						}
+						placeholder="请输入微信号"
+						className="w-full"
+					/>
+				</div>
+			)}
+
+			{isFieldEnabled("shippingAddress") && (
+				<div className="space-y-2">
+					<Label className="text-sm font-medium">
+						邮寄地址
+						{(showRequired ||
+							isFieldRequired("shippingAddress")) && (
+							<span className="text-red-500"> *</span>
+						)}
+					</Label>
+					<Textarea
+						value={editingProfile.shippingAddress}
+						onChange={(e) =>
+							onUpdateEditingProfile({
+								shippingAddress: e.target.value,
+							})
+						}
+						placeholder="如需寄送物料，请填写完整的邮寄地址"
+						rows={2}
+					/>
+				</div>
+			)}
 
 			{onCancel ? (
 				<div className="flex justify-end gap-2">
@@ -403,17 +575,7 @@ function ProfileEditForm({
 						type="button"
 						size="sm"
 						onClick={onSave}
-						disabled={
-							savingProfile ||
-							(showRequired &&
-								(!editingProfile.bio.trim() ||
-									editingProfile.bio.length < 15 ||
-									!editingProfile.userRoleString.trim() ||
-									!editingProfile.currentWorkOn.trim() ||
-									!editingProfile.lifeStatus.trim() ||
-									!editingProfile.phoneNumber.trim() ||
-									!editingProfile.email.trim()))
-						}
+						disabled={savingProfile || hasMissingRequired}
 					>
 						{savingProfile ? "保存中..." : "保存更新"}
 					</Button>

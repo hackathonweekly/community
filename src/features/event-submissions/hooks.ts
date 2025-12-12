@@ -10,6 +10,7 @@ import {
 	searchParticipants,
 	unvoteSubmission,
 	updateSubmission,
+	updateSubmissionVoteCount,
 	voteSubmission,
 } from "./api";
 import type {
@@ -51,6 +52,7 @@ export function useEventSubmissions(
 		sort?: string;
 		order?: "asc" | "desc";
 		includeVotes?: boolean;
+		includePrivateFields?: boolean;
 		enabled?: boolean;
 		refetchInterval?: number | false;
 	},
@@ -66,6 +68,7 @@ export function useEventSubmissions(
 				sort: options?.sort,
 				order: options?.order,
 				includeVotes: options?.includeVotes,
+				includePrivateFields: options?.includePrivateFields,
 			}),
 		enabled: Boolean(eventId && (options?.enabled ?? true)),
 		refetchInterval: options?.refetchInterval,
@@ -109,6 +112,17 @@ export function useDeleteSubmission(submissionId: string, eventId: string) {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: () => deleteSubmission(submissionId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: submissionKeys.all });
+		},
+	});
+}
+
+export function useAdjustSubmissionVotes(submissionId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (voteCount: number) =>
+			updateSubmissionVoteCount(submissionId, voteCount),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: submissionKeys.all });
 		},

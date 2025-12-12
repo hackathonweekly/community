@@ -773,6 +773,7 @@ model Event {
   registrationSuccessImage String?    // Image shown after successful registration
   registrationPendingInfo String?     // Information shown during approval process
   registrationPendingImage String?    // Image shown during approval process
+  registrationFieldConfig Json?       // Registration field configuration (template + required fields)
   
   // Display settings
   coverImage      String?     // Cover image
@@ -797,8 +798,8 @@ model Event {
 
   // Hackathon control switches
   registrationOpen      Boolean     @default(true)   // Is registration open
-  submissionsOpen       Boolean     @default(false)  // Is project submission open
-  votingOpen            Boolean     @default(false)  // Is voting open
+  submissionsOpen       Boolean     @default(true)  // Is project submission open
+  votingOpen            Boolean     @default(true)  // Is voting open
 
   // Hackathon public display controls
   // Whether to show vote counts and live standings on the public submissions gallery
@@ -806,7 +807,10 @@ model Event {
 
   // Feedback configuration
   feedbackConfig Json?                    // Custom feedback questions configuration (JSON format)
-  
+
+  // Submission form configuration
+  submissionFormConfig Json?              // Custom submission form fields configuration (JSON format)
+
   // Statistics
   viewCount       Int         @default(0) // View count
   

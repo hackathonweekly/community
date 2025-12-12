@@ -29,6 +29,10 @@ export function TabBar() {
 	const params = useParams();
 	const locale = (params.locale as string) || "zh";
 	const { user } = useSession();
+	const localePrefix = `/${locale}`;
+	const pathWithoutLocale = pathname.startsWith(localePrefix)
+		? pathname.slice(localePrefix.length) || "/"
+		: pathname;
 
 	// 检测是否在微信浏览器中
 	const [isWeChat, setIsWeChat] = useState(false);
@@ -40,11 +44,16 @@ export function TabBar() {
 	}, []);
 
 	// 如果是用户个人主页，隐藏 TabBar
-	const isUserProfilePage = pathname.startsWith("/u/");
+	const isUserProfilePage = pathWithoutLocale.startsWith("/u/");
 	// 如果是活动详情页面，隐藏 TabBar 以提供沉浸式体验
 	const isEventDetailPage =
-		pathname.startsWith("/events/") && pathname !== "/events";
-	if (isUserProfilePage || isEventDetailPage) {
+		pathWithoutLocale.startsWith("/events/") &&
+		pathWithoutLocale !== "/events";
+	const isEventNewDetailPage =
+		pathWithoutLocale.startsWith("/eventsnew/") &&
+		pathWithoutLocale !== "/eventsnew";
+
+	if (isUserProfilePage || isEventDetailPage || isEventNewDetailPage) {
 		return null;
 	}
 
@@ -79,9 +88,9 @@ export function TabBar() {
 
 	const isTabActive = (href: string) => {
 		if (href === "/") {
-			return pathname === "/";
+			return pathWithoutLocale === "/";
 		}
-		return pathname.startsWith(href);
+		return pathWithoutLocale.startsWith(href);
 	};
 
 	return (

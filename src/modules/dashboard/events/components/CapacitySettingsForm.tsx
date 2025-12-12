@@ -1,10 +1,3 @@
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
 	FormControl,
@@ -25,17 +18,17 @@ interface CapacitySettingsFormProps {
 
 export function CapacitySettingsForm({ control }: CapacitySettingsFormProps) {
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<UsersIcon className="w-5 h-5" />
-					容量和审核设置
-				</CardTitle>
-				<CardDescription>
-					设置活动的参与人数限制和报名审核要求
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-6">
+		<div className="border rounded-lg bg-background shadow-sm">
+			<div className="flex items-center gap-2 border-b px-4 py-3 md:px-6">
+				<UsersIcon className="w-5 h-5" />
+				<div>
+					<h3 className="text-base font-semibold">容量和审核设置</h3>
+					<p className="text-sm text-muted-foreground">
+						设置参与人数限制和报名审核要求
+					</p>
+				</div>
+			</div>
+			<div className="space-y-6 px-4 py-4 md:px-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<FormField
 						control={control}
@@ -158,7 +151,7 @@ export function CapacitySettingsForm({ control }: CapacitySettingsFormProps) {
 						</FormItem>
 					)}
 				/>
-			</CardContent>
-		</Card>
+			</div>
+		</div>
 	);
 }

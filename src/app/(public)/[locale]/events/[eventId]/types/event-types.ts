@@ -6,7 +6,6 @@ export interface HackathonConfig {
 	settings: {
 		maxTeamSize: number;
 		allowSolo: boolean;
-		requireProject: boolean;
 	};
 	voting: {
 		allowPublicVoting: boolean;

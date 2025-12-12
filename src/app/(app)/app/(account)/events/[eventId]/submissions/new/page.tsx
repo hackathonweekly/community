@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/database";
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
 
 interface PageProps {
 	params: Promise<{ eventId: string }>;
@@ -16,18 +16,22 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 		notFound();
 	}
 
+	// Parse submissionFormConfig from event
+	const submissionFormConfig =
+		event.submissionFormConfig as SubmissionFormConfig | null;
+
 	return (
-		<div className="container mx-auto max-w-4xl py-10">
-			<div className="flex items-center justify-between mb-6">
-				<div>
-					<p className="text-sm text-muted-foreground">提交作品</p>
-					<h1 className="text-2xl font-semibold">{event.title}</h1>
-				</div>
-				<Button variant="ghost" asChild>
-					<Link href={`/events/${eventId}`}>返回活动主页</Link>
-				</Button>
-			</div>
-			<EventSubmissionForm eventId={eventId} eventTitle={event.title} />
-		</div>
+		<SubmissionPageShell
+			eyebrow="提交作品"
+			title={event.title}
+			backHref={`/events/${eventId}`}
+			backLabel="返回活动主页"
+		>
+			<EventSubmissionForm
+				eventId={eventId}
+				eventTitle={event.title}
+				submissionFormConfig={submissionFormConfig}
+			/>
+		</SubmissionPageShell>
 	);
 }

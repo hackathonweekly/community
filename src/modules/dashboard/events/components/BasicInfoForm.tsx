@@ -1,13 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import {
 	FormControl,
 	FormDescription,
@@ -29,11 +30,13 @@ import { Separator } from "@/components/ui/separator";
 import { TiptapRichEditor } from "@/components/ui/tiptap-rich-editor";
 import {
 	ArrowPathIcon,
+	ArrowsPointingOutIcon,
 	CalendarIcon,
 	ClockIcon,
 	MapPinIcon,
+	UsersIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { calculateEndTime } from "../utils/date-utils";
 import type { EventFormData } from "./types";
@@ -72,6 +75,8 @@ export function BasicInfoForm({
 	const isExternalEvent = watch("isExternalEvent");
 	const startTime = watch("startTime");
 	const endTime = watch("endTime");
+	const [isRichContentDialogOpen, setIsRichContentDialogOpen] =
+		useState(false);
 
 	// 跟踪用户是否手动修改过结束时间
 	const userModifiedEndTime = useRef(false);
@@ -105,17 +110,17 @@ export function BasicInfoForm({
 	}, [startTime, setValue, isEdit]);
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2">
-					<CalendarIcon className="w-5 h-5" />
-					基本信息
-				</CardTitle>
-				<CardDescription>
-					填写活动的基础信息、时间和地点
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-6">
+		<div className="border rounded-lg shadow-sm">
+			<div className="flex items-center gap-2 border-b px-4 py-3 md:px-6">
+				<CalendarIcon className="w-5 h-5" />
+				<div>
+					<h3 className="text-base font-semibold">基本信息</h3>
+					<p className="text-sm text-muted-foreground">
+						填写活动的基础信息、时间和地点
+					</p>
+				</div>
+			</div>
+			<div className="space-y-6 px-4 py-4 md:px-6">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<FormField
 						control={control}
@@ -362,27 +367,78 @@ export function BasicInfoForm({
 				<FormField
 					control={control}
 					name="richContent"
-					render={({ field }) => (
-						<FormItem>
-							<FormLabel>活动详情 *</FormLabel>
-							<FormControl>
-								<TiptapRichEditor
-									value={field.value}
-									onChange={(html, images) => {
-										field.onChange(html);
-										// 同时更新图片数组字段
-										setValue("contentImages", images);
-									}}
-									placeholder="详细描述你的活动内容、流程、亮点、参与须知等... 支持插入图片、格式化文本"
-									height={350}
-								/>
-							</FormControl>
-							<FormDescription>
-								支持富文本格式、图片上传。可拖拽图片或点击工具栏上传按钮插入图片。
-							</FormDescription>
-							<FormMessage />
-						</FormItem>
-					)}
+					render={({ field }) => {
+						const handleRichContentChange = (
+							html: string,
+							images: string[],
+						) => {
+							field.onChange(html);
+							// 同时更新图片数组字段
+							setValue("contentImages", images);
+						};
+
+						return (
+							<FormItem>
+								<div className="flex items-center justify-between gap-2">
+									<FormLabel className="mb-0">
+										活动详情 *
+									</FormLabel>
+									<Dialog
+										open={isRichContentDialogOpen}
+										onOpenChange={
+											setIsRichContentDialogOpen
+										}
+									>
+										<DialogTrigger asChild>
+											<Button
+												type="button"
+												variant="ghost"
+												size="sm"
+												className="shrink-0 px-2 h-9"
+											>
+												<ArrowsPointingOutIcon className="w-4 h-4" />
+												<span className="hidden sm:inline">
+													弹窗编辑
+												</span>
+											</Button>
+										</DialogTrigger>
+										<DialogContent className="max-w-5xl w-[min(100vw-2rem,1100px)] max-h-[85vh] overflow-y-auto">
+											<DialogHeader>
+												<DialogTitle className="flex items-center gap-2">
+													<ArrowsPointingOutIcon className="w-5 h-5" />
+													活动详情
+												</DialogTitle>
+												<DialogDescription>
+													在更大的编辑区域中编写活动详情，保存后同步到表单
+												</DialogDescription>
+											</DialogHeader>
+											<TiptapRichEditor
+												value={field.value}
+												onChange={
+													handleRichContentChange
+												}
+												placeholder="详细描述你的活动内容、流程、亮点、参与须知等... 支持插入图片、格式化文本"
+												height={520}
+											/>
+										</DialogContent>
+									</Dialog>
+								</div>
+
+								<FormControl>
+									<TiptapRichEditor
+										value={field.value}
+										onChange={handleRichContentChange}
+										placeholder="详细描述你的活动内容、流程、亮点、参与须知等... 支持插入图片、格式化文本"
+										height={350}
+									/>
+								</FormControl>
+								<FormDescription>
+									支持富文本格式、图片上传。可拖拽图片或点击工具栏上传按钮插入图片。
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						);
+					}}
 				/>
 
 				<FormField
@@ -522,7 +578,85 @@ export function BasicInfoForm({
 						/>
 					)}
 				</div>
-			</CardContent>
-		</Card>
+
+				<div className="space-y-4">
+					<Separator />
+					<div className="flex items-center gap-2">
+						<UsersIcon className="w-4 h-4 text-muted-foreground" />
+						<h3 className="text-sm font-medium">报名与人数限制</h3>
+					</div>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<FormField
+							control={control}
+							name="maxAttendees"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>最大参与人数</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											min="1"
+											placeholder="不限制请留空"
+											{...field}
+										/>
+									</FormControl>
+									<FormDescription>
+										设置后将限制总报名人数（包括所有票种）
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={control}
+							name="registrationDeadline"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>报名截止时间</FormLabel>
+									<FormControl>
+										<Input
+											type="datetime-local"
+											{...field}
+										/>
+									</FormControl>
+									<FormDescription>
+										不设置则到活动开始前都可报名
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					</div>
+
+					<FormField
+						control={control}
+						name="requireApproval"
+						render={({ field }) => (
+							<FormItem>
+								<div className="flex items-center space-x-3">
+									<FormControl>
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={field.onChange}
+											className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+										/>
+									</FormControl>
+									<div className="space-y-1">
+										<FormLabel className="text-sm font-medium cursor-pointer">
+											需要审核报名
+										</FormLabel>
+										<FormDescription className="text-xs">
+											开启后，报名者需要等待组织者审核通过才能参加活动
+										</FormDescription>
+									</div>
+								</div>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
+			</div>
+		</div>
 	);
 }

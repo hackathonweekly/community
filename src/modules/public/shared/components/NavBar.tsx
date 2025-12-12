@@ -49,6 +49,7 @@ export function NavBar() {
 	// Hide NavBar for immersive detail pages
 	const shouldHideNavBar =
 		localePathname.startsWith("/events/") ||
+		localePathname.startsWith("/eventsnew/") ||
 		localePathname.startsWith("/projects/") ||
 		localePathname.startsWith("/u/");
 

@@ -1,6 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/database";
-import { config } from "@/config";
+import { SubmissionsDashboard } from "@/modules/dashboard/events/components/submissions/SubmissionsDashboard";
 
 interface PageProps {
 	params: Promise<{ eventId: string }>;
@@ -14,5 +14,19 @@ export default async function EventSubmissionsPage({ params }: PageProps) {
 		notFound();
 	}
 
-	redirect(`/${config.i18n.defaultLocale}/events/${eventId}/submissions`);
+	const now = new Date();
+	const startTime = new Date(event.startTime);
+	const endTime = new Date(event.endTime);
+	const isEventStarted = now >= startTime;
+	const isEventEnded = now >= endTime || event.status === "COMPLETED";
+	const isSubmissionOpen =
+		(event.submissionsOpen ?? true) && isEventStarted && !isEventEnded;
+
+	return (
+		<SubmissionsDashboard
+			eventId={eventId}
+			eventTitle={event.title}
+			isSubmissionOpen={isSubmissionOpen}
+		/>
+	);
 }

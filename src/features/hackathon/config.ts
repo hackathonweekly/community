@@ -25,7 +25,6 @@ export type HackathonStage = z.infer<typeof HackathonStageEnum>;
 export const HackathonSettingsSchema = z.object({
 	maxTeamSize: z.number().int().min(1).max(20).default(5),
 	allowSolo: z.boolean().default(true),
-	requireProject: z.boolean().default(false),
 });
 
 export const HackathonVotingSchema = z.object({
@@ -92,7 +91,6 @@ export interface HackathonResources {
 export const DEFAULT_HACKATHON_SETTINGS: HackathonSettings = {
 	maxTeamSize: 5,
 	allowSolo: true,
-	requireProject: false,
 };
 
 export const DEFAULT_HACKATHON_VOTING: HackathonVoting = {
@@ -170,9 +168,10 @@ export function withHackathonConfigDefaults(
 ): NormalizedHackathonConfig {
 	const base = config ?? {};
 
+	const { maxTeamSize, allowSolo } = base.settings ?? {};
 	const settings: HackathonSettings = {
-		...DEFAULT_HACKATHON_SETTINGS,
-		...(base.settings ?? {}),
+		maxTeamSize: maxTeamSize ?? DEFAULT_HACKATHON_SETTINGS.maxTeamSize,
+		allowSolo: allowSolo ?? DEFAULT_HACKATHON_SETTINGS.allowSolo,
 	};
 
 	const voting: HackathonVoting = {

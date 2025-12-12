@@ -7,11 +7,12 @@ import {
 	Edit,
 	Heart,
 	Loader2,
-	Target,
 	Trophy,
 	UserRound,
 	Play,
 	Music2,
+	LayoutGrid,
+	List,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -27,6 +28,15 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import {
 	useEventSubmissions,
@@ -36,6 +46,7 @@ import {
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { cn } from "@/lib/utils";
+import { SubmissionsActionButton } from "./SubmissionsActionButton";
 // Removed fallback caption track for media preview per product decision
 
 interface EventSubmissionsGalleryProps {
@@ -49,6 +60,8 @@ interface EventSubmissionsGalleryProps {
 	showVotesOnGallery?: boolean;
 	// Whether submissions are currently open for this event
 	isSubmissionOpen?: boolean;
+	// Whether to show the inline submission CTA within the gallery header
+	showInlineSubmissionCta?: boolean;
 }
 
 // Available sort options
@@ -60,12 +73,6 @@ const ALL_SORT_OPTIONS = [
 	{ value: "name:asc", label: "名称 (A-Z)" },
 ];
 
-const statusBadgeMap: Record<string, string> = {
-	APPROVED: "bg-emerald-100 text-emerald-700",
-	AWARDED: "bg-purple-100 text-purple-700",
-	UNDER_REVIEW: "bg-amber-100 text-amber-700",
-};
-
 export function EventSubmissionsGallery({
 	eventId,
 	locale,
@@ -73,6 +80,7 @@ export function EventSubmissionsGallery({
 	isVotingOpen = false,
 	showVotesOnGallery = true,
 	isSubmissionOpen = false,
+	showInlineSubmissionCta = true,
 }: EventSubmissionsGalleryProps) {
 	// Default to earliest submission order (Oldest -> Newest)
 	const [sortValue, setSortValue] = useState("createdAt:asc");
@@ -80,6 +88,8 @@ export function EventSubmissionsGallery({
 
 	// 筛选状态
 	const [filter, setFilter] = useState<"all" | "mine" | "voted">("all");
+	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
 	// Only show vote visuals when voting is open, not showing final results, and gallery display is enabled
 	// This creates a fun "live" feel without revealing final ranks
@@ -128,17 +138,6 @@ export function EventSubmissionsGallery({
 		() => new Set(data?.userVotes ?? []),
 		[data?.userVotes],
 	);
-	const mySubmission = useMemo(
-		() =>
-			user
-				? submissions.find(
-						(submission) =>
-							submission.teamLeader?.id === user.id ||
-							submission.submitter?.id === user.id,
-					) || null
-				: null,
-		[submissions, user],
-	);
 
 	// 筛选逻辑
 	const filteredSubmissions = useMemo(() => {
@@ -160,9 +159,7 @@ export function EventSubmissionsGallery({
 		return submissions;
 	}, [submissions, filter, user, votedIds]);
 
-	// Top 3 Logic
-	const top3Submissions = useMemo(() => {
-		// Only show leaderboard when votes are visible
+	const leaderboardSubmissions = useMemo(() => {
 		if (!canShowVotes) return [];
 
 		const getSubmissionTime = (submission: EventSubmission) => {
@@ -175,16 +172,13 @@ export function EventSubmissionsGallery({
 			return Number.isNaN(time) ? 0 : time;
 		};
 
-		return [...submissions]
-			.sort((a, b) => {
-				// Sort by votes desc
-				const voteDiff = b.voteCount - a.voteCount;
-				if (voteDiff !== 0) return voteDiff;
-				// Fallback: earlier submission wins when votes tie (align with awards ceremony)
-				return getSubmissionTime(a) - getSubmissionTime(b);
-			})
-			.slice(0, 3)
-			.filter((s) => s.voteCount > 0); // Optional: only show if they have votes
+		return [...submissions].sort((a, b) => {
+			// Sort by votes desc
+			const voteDiff = b.voteCount - a.voteCount;
+			if (voteDiff !== 0) return voteDiff;
+			// Fallback: earlier submission wins when votes tie
+			return getSubmissionTime(a) - getSubmissionTime(b);
+		});
 	}, [submissions, canShowVotes]);
 
 	const scrollToSubmission = (id: string) => {
@@ -299,196 +293,205 @@ export function EventSubmissionsGallery({
 		);
 	};
 
-	const renderLeaderboard = () => {
-		if (top3Submissions.length === 0) return null;
-
-		return (
-			<Card className="sticky top-24 w-full border-amber-200 bg-amber-50/50 dark:border-amber-900/50 dark:bg-amber-950/10">
-				<CardContent className="p-4 space-y-4">
-					<div className="flex items-center gap-2 border-b border-amber-200 pb-3 dark:border-amber-900/50">
-						<Trophy className="h-5 w-5 text-amber-500" />
-						<h3 className="font-semibold text-amber-900 dark:text-amber-100">
-							实时战况
-						</h3>
-						{isVotingOpen && (
-							<span className="ml-auto flex h-2 w-2 relative">
-								<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-								<span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-							</span>
-						)}
-					</div>
-
-					<div className="space-y-3">
-						{top3Submissions.map((submission, index) => {
-							const isFirst = index === 0;
-							const isSecond = index === 1;
-							const isThird = index === 2;
-
-							return (
-								<div
-									key={submission.id}
-									className={cn(
-										"group relative flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/60 dark:hover:bg-black/20 cursor-pointer",
-										isFirst &&
-											"bg-amber-100/50 dark:bg-amber-900/20",
-									)}
-									onClick={() =>
-										scrollToSubmission(submission.id)
-									}
-								>
-									<div
-										className={cn(
-											"flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold text-sm",
-											isFirst
-												? "bg-amber-400 text-white ring-2 ring-amber-200"
-												: isSecond
-													? "bg-slate-300 text-slate-600"
-													: isThird
-														? "bg-orange-300 text-orange-700"
-														: "bg-muted text-muted-foreground",
-										)}
-									>
-										{index + 1}
-									</div>
-
-									<div className="min-w-0 flex-1">
-										<p className="truncate text-sm font-medium">
-											{submission.name}
-										</p>
-										<div className="flex items-center gap-2 text-xs text-muted-foreground">
-											<div className="flex items-center gap-1">
-												<Avatar className="h-3 w-3">
-													<AvatarImage
-														src={
-															submission
-																.teamLeader
-																?.avatar ??
-															undefined
-														}
-													/>
-													<AvatarFallback className="text-[8px]">
-														{submission.teamLeader?.name?.[0]?.toUpperCase()}
-													</AvatarFallback>
-												</Avatar>
-												<span className="truncate max-w-[80px]">
-													{submission.teamLeader
-														?.name ?? "Unknown"}
-												</span>
-											</div>
-										</div>
-									</div>
-
-									<div className="text-right">
-										<span className="text-lg font-bold text-rose-600 dark:text-rose-400">
-											{submission.voteCount}
-										</span>
-										<p className="text-[10px] text-muted-foreground">
-											票
-										</p>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-
-					{top3Submissions.length < 3 && (
-						<p className="text-center text-xs text-muted-foreground py-2">
-							虚位以待...
-						</p>
-					)}
-				</CardContent>
-			</Card>
+	const getPreviewData = (submission: EventSubmission) => {
+		const firstVideo = submission.attachments?.find(
+			(att) => att.fileType === "video",
 		);
+		const firstAudio = submission.attachments?.find(
+			(att) => att.fileType === "audio",
+		);
+		const firstImage = submission.attachments?.find(
+			(att) => att.fileType === "image",
+		);
+
+		const previewImage =
+			submission.coverImage || firstImage?.fileUrl || null;
+		const mediaBadge = firstVideo ? "video" : firstAudio ? "audio" : null;
+
+		return { previewImage, mediaBadge };
 	};
 
 	return (
 		<div className="space-y-6">
-			<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-				<div>
-					<h2 className="text-2xl font-semibold">作品展示与投票</h2>
-					{isVotingOpen ? (
-						user ? (
+			<div className="space-y-3">
+				<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+					<div className="min-w-0">
+						<h2 className="text-2xl font-semibold">
+							作品展示与投票
+						</h2>
+						{isVotingOpen ? (
+							user ? (
+								<p className="text-sm text-muted-foreground">
+									你还有 {remainingVotes ?? 3} 票
+								</p>
+							) : (
+								<p className="text-sm text-muted-foreground">
+									登录后即可拥有 3 票并参与投票
+								</p>
+							)
+						) : showResults ? (
 							<p className="text-sm text-muted-foreground">
-								你还有 {remainingVotes ?? 3} 票
+								投票已结束，查看最终结果
 							</p>
 						) : (
 							<p className="text-sm text-muted-foreground">
-								登录后即可拥有 3 票并参与投票
+								尚未开放投票，尽请期待
 							</p>
-						)
-					) : showResults ? (
-						<p className="text-sm text-muted-foreground">
-							投票已结束，查看最终结果
-						</p>
-					) : (
-						<p className="text-sm text-muted-foreground">
-							尚未开放投票，尽请期待
-						</p>
+						)}
+					</div>
+
+					{showInlineSubmissionCta && (
+						<SubmissionsActionButton
+							eventId={eventId}
+							locale={locale}
+							isSubmissionOpen={isSubmissionOpen}
+							size="sm"
+							className="w-full sm:w-auto md:hidden"
+						/>
 					)}
 				</div>
-				<div className="flex flex-wrap items-center gap-3 md:justify-end">
-					{isSubmissionOpen &&
-						(user ? (
-							<Button asChild className="gap-2">
-								<Link
-									href={
-										mySubmission
-											? `/app/events/${eventId}/submissions/${mySubmission.id}/edit`
-											: `/app/events/${eventId}/submissions/new`
-									}
-								>
-									<Target className="h-4 w-4" />
-									{mySubmission ? "编辑我的作品" : "提交作品"}
-								</Link>
-							</Button>
-						) : (
-							<Button
-								className="gap-2"
-								onClick={() =>
-									handleRequireAuth(
-										`/app/events/${eventId}/submissions/new`,
-									)
-								}
+
+				<div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+					{user && (
+						<ToggleGroup
+							type="single"
+							variant="outline"
+							size="lg"
+							value={filter}
+							onValueChange={(value) => {
+								if (value) setFilter(value as typeof filter);
+							}}
+							className="w-full md:w-auto"
+						>
+							<ToggleGroupItem value="all">全部</ToggleGroupItem>
+							<ToggleGroupItem value="mine">
+								我的作品
+							</ToggleGroupItem>
+							<ToggleGroupItem value="voted">
+								已投票
+							</ToggleGroupItem>
+						</ToggleGroup>
+					)}
+
+					<div className="flex flex-wrap items-center gap-2 md:justify-end">
+						<ToggleGroup
+							type="single"
+							variant="outline"
+							size="sm"
+							value={viewMode}
+							onValueChange={(value) => {
+								if (value)
+									setViewMode(value as typeof viewMode);
+							}}
+						>
+							<ToggleGroupItem value="grid" aria-label="网格模式">
+								<LayoutGrid className="h-4 w-4" />
+							</ToggleGroupItem>
+							<ToggleGroupItem value="list" aria-label="列表模式">
+								<List className="h-4 w-4" />
+							</ToggleGroupItem>
+						</ToggleGroup>
+
+						{canShowVotes && (
+							<Dialog
+								open={isLeaderboardOpen}
+								onOpenChange={setIsLeaderboardOpen}
 							>
-								<Target className="h-4 w-4" />
-								提交作品
-							</Button>
-						))}
-					<div className="flex items-center gap-3">
-						{/* 筛选按钮组 */}
-						{user && (
-							<div className="flex items-center gap-2 border rounded-lg p-1">
-								<Button
-									variant={
-										filter === "all" ? "default" : "ghost"
-									}
-									size="sm"
-									onClick={() => setFilter("all")}
-								>
-									全部
-								</Button>
-								<Button
-									variant={
-										filter === "mine" ? "default" : "ghost"
-									}
-									size="sm"
-									onClick={() => setFilter("mine")}
-								>
-									我的作品
-								</Button>
-								<Button
-									variant={
-										filter === "voted" ? "default" : "ghost"
-									}
-									size="sm"
-									onClick={() => setFilter("voted")}
-								>
-									已投票
-								</Button>
-							</div>
+								<DialogTrigger asChild>
+									<Button
+										variant="outline"
+										size="sm"
+										className="gap-1"
+									>
+										<Trophy className="h-4 w-4" />
+										排行榜
+									</Button>
+								</DialogTrigger>
+								<DialogContent className="sm:max-w-md">
+									<DialogHeader>
+										<DialogTitle>
+											{showResults
+												? "最终榜单"
+												: "实时榜单"}
+										</DialogTitle>
+										<DialogDescription>
+											点击作品可定位到列表中的对应卡片。
+										</DialogDescription>
+									</DialogHeader>
+
+									<div className="max-h-[60vh] overflow-auto pr-1 space-y-2">
+										{leaderboardSubmissions.length === 0 ? (
+											<p className="text-sm text-muted-foreground">
+												暂无榜单数据
+											</p>
+										) : (
+											leaderboardSubmissions
+												.slice(0, 10)
+												.map((submission, index) => (
+													<button
+														key={submission.id}
+														type="button"
+														className="w-full rounded-lg border p-2 text-left transition-colors hover:bg-muted/40"
+														onClick={() => {
+															setIsLeaderboardOpen(
+																false,
+															);
+															scrollToSubmission(
+																submission.id,
+															);
+														}}
+													>
+														<div className="flex items-center gap-3">
+															<div
+																className={cn(
+																	"flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+																	index === 0
+																		? "bg-amber-400 text-white"
+																		: index ===
+																				1
+																			? "bg-slate-300 text-slate-700"
+																			: index ===
+																					2
+																				? "bg-orange-300 text-orange-800"
+																				: "bg-muted text-muted-foreground",
+																)}
+															>
+																{index + 1}
+															</div>
+															<div className="min-w-0 flex-1">
+																<p className="truncate text-sm font-medium">
+																	{
+																		submission.name
+																	}
+																</p>
+																<p className="truncate text-xs text-muted-foreground">
+																	{submission
+																		.teamLeader
+																		?.name ??
+																		"-"}
+																</p>
+															</div>
+															<div className="text-right">
+																<p className="text-sm font-semibold text-rose-600">
+																	{
+																		submission.voteCount
+																	}
+																</p>
+																<p className="text-[10px] text-muted-foreground">
+																	票
+																</p>
+															</div>
+														</div>
+													</button>
+												))
+										)}
+									</div>
+								</DialogContent>
+							</Dialog>
 						)}
+
 						<Select value={sortValue} onValueChange={setSortValue}>
-							<SelectTrigger className="w-[140px] md:w-[200px]">
+							<SelectTrigger className="w-full sm:w-[160px] md:w-[220px]">
 								<SelectValue placeholder="排序方式" />
 							</SelectTrigger>
 							<SelectContent>
@@ -505,92 +508,83 @@ export function EventSubmissionsGallery({
 					</div>
 				</div>
 			</div>
+			{isLoading ? (
+				viewMode === "grid" ? (
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<Skeleton key={index} className="h-72 w-full" />
+						))}
+					</div>
+				) : (
+					<div className="space-y-3">
+						{Array.from({ length: 6 }).map((_, index) => (
+							<Skeleton key={index} className="h-24 w-full" />
+						))}
+					</div>
+				)
+			) : filteredSubmissions.length === 0 ? (
+				<Card>
+					<CardContent className="py-12 text-center text-muted-foreground">
+						<p>
+							{filter === "all"
+								? "还没有作品提交，快来成为第一个吧！"
+								: filter === "mine"
+									? "你还没有提交作品"
+									: "你还没有投票"}
+						</p>
+					</CardContent>
+				</Card>
+			) : (
+				<div
+					className={cn(
+						viewMode === "grid"
+							? "grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+							: "space-y-3",
+					)}
+				>
+					{filteredSubmissions.map((submission) => {
+						const { previewImage, mediaBadge } =
+							getPreviewData(submission);
+						const isMine =
+							user &&
+							(submission.teamLeader?.id === user.id ||
+								submission.teamMembers?.some(
+									(m) => m.id === user.id,
+								));
 
-			<div className="flex flex-col lg:flex-row gap-6 relative items-start">
-				<div className="flex-1 min-w-0 space-y-6">
-					{isLoading ? (
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-							{Array.from({ length: 6 }).map((_, index) => (
-								<Skeleton key={index} className="h-72 w-full" />
-							))}
-						</div>
-					) : filteredSubmissions.length === 0 ? (
-						<Card>
-							<CardContent className="py-12 text-center text-muted-foreground">
-								<p>
-									{filter === "all"
-										? "还没有作品提交，快来成为第一个吧！"
-										: filter === "mine"
-											? "你还没有提交作品"
-											: "你还没有投票"}
-								</p>
-							</CardContent>
-						</Card>
-					) : (
-						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-							{filteredSubmissions.map((submission, index) => (
+						if (viewMode === "list") {
+							return (
 								<Card
 									key={submission.id}
 									id={`submission-${submission.id}`}
-									className="flex flex-col overflow-hidden scroll-mt-24 transition-all duration-300"
+									className="group overflow-hidden scroll-mt-24 transition-all duration-300"
 								>
-									{(() => {
-										// Build a lightweight preview to avoid downloading full media in the gallery
-										const firstVideo =
-											submission.attachments?.find(
-												(att) =>
-													att.fileType === "video",
-											);
-										const firstAudio =
-											submission.attachments?.find(
-												(att) =>
-													att.fileType === "audio",
-											);
-										const firstImage =
-											submission.attachments?.find(
-												(att) =>
-													att.fileType === "image",
-											);
-										const previewImage =
-											submission.coverImage ??
-											firstImage?.fileUrl;
-										// Avoid eager media loading in gallery; show a lightweight preview instead
-										const mediaBadge = firstVideo
-											? "video"
-											: firstAudio
-												? "audio"
-												: null;
-
-										return (
+									<CardContent className="p-4">
+										<div className="flex gap-4">
 											<Link
 												href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
-												className="h-52 md:h-40 bg-muted overflow-hidden block group-hover:opacity-90 transition-opacity relative"
+												className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-muted"
 											>
 												{previewImage ? (
 													<img
 														src={previewImage}
 														alt={submission.name}
 														loading="lazy"
-														className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+														className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 													/>
 												) : (
-													<div className="w-full h-full flex items-center justify-center text-sm text-muted-foreground bg-gradient-to-br from-slate-100 to-slate-200">
-														{mediaBadge === "video"
-															? "视频作品，点击查看"
-															: mediaBadge ===
-																	"audio"
-																? "音频作品，点击查看"
-																: "暂无封面"}
+													<div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+														暂无封面
 													</div>
 												)}
 
 												{mediaBadge && (
-													<div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
+													<div className="absolute left-1 top-1 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-medium text-white">
 														{mediaBadge ===
 														"video" ? (
-															<Play className="h-3.5 w-3.5" />
+															<Play className="h-3 w-3" />
 														) : (
-															<Music2 className="h-3.5 w-3.5" />
+															<Music2 className="h-3 w-3" />
 														)}
 														<span>
 															{mediaBadge ===
@@ -601,164 +595,346 @@ export function EventSubmissionsGallery({
 													</div>
 												)}
 											</Link>
-										);
-									})()}
-									<CardContent className="flex flex-col flex-1 space-y-4 p-5 md:p-4">
-										<div className="flex items-start justify-between gap-3">
-											<div className="flex-1 min-w-0 space-y-1">
-												<div className="flex items-center gap-2 flex-wrap">
-													<h3 className="font-semibold text-lg md:text-lg line-clamp-1 tracking-tight">
-														{submission.name}
-													</h3>
-													{/* 我的作品标识 */}
-													{user &&
-														(submission.teamLeader
-															?.id === user.id ||
-															submission.teamMembers?.some(
-																(m) =>
-																	m.id ===
-																	user.id,
-															)) && (
-															<Badge
-																variant="secondary"
-																className="text-[10px] h-5 px-1.5 font-normal"
-															>
-																我的作品
-															</Badge>
-														)}
-													{/* 已投票标识 */}
-													{user &&
-														votedIds.has(
-															submission.id,
-														) && (
-															<Badge
-																variant="outline"
-																className="text-[10px] h-5 px-1.5 text-rose-500 border-rose-300 font-normal"
-															>
-																已投票
-															</Badge>
-														)}
-												</div>
-												<p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
-													<Avatar className="h-4 w-4">
-														<AvatarImage
-															src={
-																submission
-																	.teamLeader
-																	?.avatar ??
-																undefined
-															}
-														/>
-														<AvatarFallback className="text-[8px]">
-															{submission.teamLeader?.name?.[0]?.toUpperCase()}
-														</AvatarFallback>
-													</Avatar>
-													<span>
-														{submission.teamLeader
-															?.name ?? "-"}
-													</span>
-												</p>
-											</div>
-											{showResults &&
-												submission.rank &&
-												submission.rank <= 3 && (
-													<Badge
-														variant="secondary"
-														className="flex items-center gap-1 shrink-0 h-7 px-2 bg-amber-100 text-amber-700 border-amber-200"
-													>
-														<Trophy
-															className={cn(
-																"h-3.5 w-3.5",
-																submission.rank ===
-																	1 &&
-																	"text-amber-600",
-															)}
-														/>
-														<span className="font-semibold">
-															#{submission.rank}
-														</span>
-													</Badge>
-												)}
-										</div>
-										<p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed">
-											{submission.tagline ||
-												submission.description ||
-												"暂未填写简介"}
-										</p>
-										<div className="flex items-center justify-between text-sm pt-2">
-											<div className="flex items-center gap-1">
-												{canShowVotes ? (
-													<div
-														className="flex items-center gap-1"
-														title={
-															showResults
-																? "最终票数"
-																: "实时热度"
-														}
-													>
-														<Heart
-															className={cn(
-																"h-4 w-4 transition-colors",
-																submission.voteCount >
-																	0
-																	? "text-rose-500 fill-rose-500"
-																	: "text-muted-foreground",
-															)}
-														/>
-														<span
-															className={cn(
-																"font-medium",
-																showLiveVoteVisuals &&
-																	"text-rose-600",
-															)}
-														>
-															{
-																submission.voteCount
-															}
-														</span>
-													</div>
-												) : (
-													// Keep layout stable when votes are hidden
-													<span className="invisible inline-flex items-center gap-1">
-														<Heart className="h-4 w-4" />
-														0
-													</span>
-												)}
-											</div>
-											<div className="flex items-center gap-1 text-muted-foreground">
-												<UserRound className="h-4 w-4" />
-												<span>
-													{submission.teamSize} 人团队
-												</span>
-											</div>
-										</div>
 
-										<div className="flex items-center justify-between gap-2">
-											<Button
-												variant="link"
-												asChild
-												className="px-0"
-											>
-												<Link
-													href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
-												>
-													查看详情
-												</Link>
-											</Button>
-											{renderVoteButton(submission)}
+											<div className="min-w-0 flex-1 space-y-2">
+												<div className="flex items-start justify-between gap-3">
+													<div className="min-w-0 space-y-1">
+														<div className="flex items-center gap-2 flex-wrap">
+															<Link
+																href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
+																className="line-clamp-1 font-semibold leading-tight hover:underline"
+															>
+																{
+																	submission.name
+																}
+															</Link>
+															{isMine && (
+																<Badge
+																	variant="secondary"
+																	className="text-[10px] h-5 px-1.5 font-normal"
+																>
+																	我的作品
+																</Badge>
+															)}
+															{user &&
+																votedIds.has(
+																	submission.id,
+																) && (
+																	<Badge
+																		variant="outline"
+																		className="text-[10px] h-5 px-1.5 text-rose-500 border-rose-300 font-normal"
+																	>
+																		已投票
+																	</Badge>
+																)}
+															{showResults &&
+																submission.rank &&
+																submission.rank <=
+																	3 && (
+																	<Badge
+																		variant="secondary"
+																		className="flex items-center gap-1 shrink-0 h-5 px-1.5 bg-amber-100 text-amber-700 border-amber-200 text-[10px]"
+																	>
+																		<Trophy
+																			className={cn(
+																				"h-3 w-3",
+																				submission.rank ===
+																					1 &&
+																					"text-amber-600",
+																			)}
+																		/>
+																		<span className="font-semibold">
+																			#
+																			{
+																				submission.rank
+																			}
+																		</span>
+																	</Badge>
+																)}
+														</div>
+
+														<p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+															<Avatar className="h-4 w-4">
+																<AvatarImage
+																	src={
+																		submission
+																			.teamLeader
+																			?.avatar ??
+																		undefined
+																	}
+																/>
+																<AvatarFallback className="text-[8px]">
+																	{submission.teamLeader?.name?.[0]?.toUpperCase()}
+																</AvatarFallback>
+															</Avatar>
+															<span>
+																{submission
+																	.teamLeader
+																	?.name ??
+																	"-"}
+															</span>
+														</p>
+													</div>
+
+													<div className="shrink-0 text-right">
+														{canShowVotes ? (
+															<div
+																className="inline-flex items-center gap-1 text-sm"
+																title={
+																	showResults
+																		? "最终票数"
+																		: "实时热度"
+																}
+															>
+																<Heart
+																	className={cn(
+																		"h-4 w-4 transition-colors",
+																		submission.voteCount >
+																			0
+																			? "text-rose-500 fill-rose-500"
+																			: "text-muted-foreground",
+																	)}
+																/>
+																<span
+																	className={cn(
+																		"font-medium",
+																		showLiveVoteVisuals &&
+																			"text-rose-600",
+																	)}
+																>
+																	{
+																		submission.voteCount
+																	}
+																</span>
+															</div>
+														) : (
+															<span className="invisible inline-flex items-center gap-1">
+																<Heart className="h-4 w-4" />
+																0
+															</span>
+														)}
+														<div className="mt-1 flex items-center justify-end gap-1 text-xs text-muted-foreground">
+															<UserRound className="h-3.5 w-3.5" />
+															<span>
+																{
+																	submission.teamSize
+																}{" "}
+																人团队
+															</span>
+														</div>
+													</div>
+												</div>
+
+												<p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed">
+													{submission.tagline ||
+														submission.description ||
+														"暂未填写简介"}
+												</p>
+
+												<div className="flex items-center justify-between gap-2">
+													<Button
+														variant="link"
+														asChild
+														className="px-0"
+													>
+														<Link
+															href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
+														>
+															查看详情
+														</Link>
+													</Button>
+													{renderVoteButton(
+														submission,
+													)}
+												</div>
+											</div>
 										</div>
 									</CardContent>
 								</Card>
-							))}
-						</div>
-					)}
-				</div>
+							);
+						}
 
-				{/* 右侧实时战况 (仅在大屏显示) */}
-				<div className="hidden lg:block w-[280px] xl:w-[320px] shrink-0">
-					{renderLeaderboard()}
+						return (
+							<Card
+								key={submission.id}
+								id={`submission-${submission.id}`}
+								className="group flex flex-col overflow-hidden scroll-mt-24 transition-all duration-300"
+							>
+								<Link
+									href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
+									className="relative block h-52 bg-muted overflow-hidden transition-opacity group-hover:opacity-90 sm:h-44"
+								>
+									{previewImage ? (
+										<img
+											src={previewImage}
+											alt={submission.name}
+											loading="lazy"
+											className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+										/>
+									) : (
+										<div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground bg-gradient-to-br from-slate-100 to-slate-200">
+											{mediaBadge === "video"
+												? "视频作品，点击查看"
+												: mediaBadge === "audio"
+													? "音频作品，点击查看"
+													: "暂无封面"}
+										</div>
+									)}
+
+									{mediaBadge && (
+										<div className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[11px] font-medium text-white">
+											{mediaBadge === "video" ? (
+												<Play className="h-3.5 w-3.5" />
+											) : (
+												<Music2 className="h-3.5 w-3.5" />
+											)}
+											<span>
+												{mediaBadge === "video"
+													? "视频"
+													: "音频"}
+											</span>
+										</div>
+									)}
+								</Link>
+
+								<CardContent className="flex flex-col flex-1 space-y-4 p-5 md:p-4">
+									<div className="flex items-start justify-between gap-3">
+										<div className="flex-1 min-w-0 space-y-1">
+											<div className="flex items-center gap-2 flex-wrap">
+												<h3 className="font-semibold text-lg md:text-lg line-clamp-1 tracking-tight">
+													{submission.name}
+												</h3>
+												{isMine && (
+													<Badge
+														variant="secondary"
+														className="text-[10px] h-5 px-1.5 font-normal"
+													>
+														我的作品
+													</Badge>
+												)}
+												{user &&
+													votedIds.has(
+														submission.id,
+													) && (
+														<Badge
+															variant="outline"
+															className="text-[10px] h-5 px-1.5 text-rose-500 border-rose-300 font-normal"
+														>
+															已投票
+														</Badge>
+													)}
+											</div>
+											<p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+												<Avatar className="h-4 w-4">
+													<AvatarImage
+														src={
+															submission
+																.teamLeader
+																?.avatar ??
+															undefined
+														}
+													/>
+													<AvatarFallback className="text-[8px]">
+														{submission.teamLeader?.name?.[0]?.toUpperCase()}
+													</AvatarFallback>
+												</Avatar>
+												<span>
+													{submission.teamLeader
+														?.name ?? "-"}
+												</span>
+											</p>
+										</div>
+										{showResults &&
+											submission.rank &&
+											submission.rank <= 3 && (
+												<Badge
+													variant="secondary"
+													className="flex items-center gap-1 shrink-0 h-7 px-2 bg-amber-100 text-amber-700 border-amber-200"
+												>
+													<Trophy
+														className={cn(
+															"h-3.5 w-3.5",
+															submission.rank ===
+																1 &&
+																"text-amber-600",
+														)}
+													/>
+													<span className="font-semibold">
+														#{submission.rank}
+													</span>
+												</Badge>
+											)}
+									</div>
+									<p className="text-sm text-muted-foreground/80 line-clamp-2 leading-relaxed">
+										{submission.tagline ||
+											submission.description ||
+											"暂未填写简介"}
+									</p>
+									<div className="flex items-center justify-between text-sm pt-2">
+										<div className="flex items-center gap-1">
+											{canShowVotes ? (
+												<div
+													className="flex items-center gap-1"
+													title={
+														showResults
+															? "最终票数"
+															: "实时热度"
+													}
+												>
+													<Heart
+														className={cn(
+															"h-4 w-4 transition-colors",
+															submission.voteCount >
+																0
+																? "text-rose-500 fill-rose-500"
+																: "text-muted-foreground",
+														)}
+													/>
+													<span
+														className={cn(
+															"font-medium",
+															showLiveVoteVisuals &&
+																"text-rose-600",
+														)}
+													>
+														{submission.voteCount}
+													</span>
+												</div>
+											) : (
+												<span className="invisible inline-flex items-center gap-1">
+													<Heart className="h-4 w-4" />
+													0
+												</span>
+											)}
+										</div>
+										<div className="flex items-center gap-1 text-muted-foreground">
+											<UserRound className="h-4 w-4" />
+											<span>
+												{submission.teamSize} 人团队
+											</span>
+										</div>
+									</div>
+
+									<div className="flex items-center justify-between gap-2">
+										<Button
+											variant="link"
+											asChild
+											className="px-0"
+										>
+											<Link
+												href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
+											>
+												查看详情
+											</Link>
+										</Button>
+										{renderVoteButton(submission)}
+									</div>
+								</CardContent>
+							</Card>
+						);
+					})}
 				</div>
-			</div>
+			)}
 		</div>
 	);
 }

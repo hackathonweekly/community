@@ -255,11 +255,11 @@ export function MobileEventBottomActions({
 						{/* 主按钮 - 根据状态显示不同内容 */}
 						{shouldShowImportantInfo &&
 						existingRegistration?.status === "APPROVED" ? (
-							// 已报名且成功：显示提交/修改作品按钮（黑客松场景优先）
+							// 已报名且成功：显示提交作品或我的作品按钮
 							<Button
 								onClick={() => {
 									const route = hasUserSubmitted
-										? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}`
+										? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}/edit`
 										: `/app/events/${event.id}/submissions/new`;
 									router.push(route);
 								}}
@@ -267,7 +267,7 @@ export function MobileEventBottomActions({
 								size="lg"
 							>
 								{hasUserSubmitted
-									? "✏️ 修改作品"
+									? "📝 我的作品"
 									: "📤 提交作品"}
 							</Button>
 						) : shouldShowImportantInfo ? (
@@ -283,13 +283,13 @@ export function MobileEventBottomActions({
 							// 其他情况：显示报名/查看二维码按钮
 							<Button
 								onClick={() => {
-									// 如果已报名成功，默认行为是提交/修改作品
+									// 如果已报名成功，默认行为是提交作品或我的作品
 									if (
 										existingRegistration?.status ===
 										"APPROVED"
 									) {
 										const route = hasUserSubmitted
-											? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}`
+											? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}/edit`
 											: `/app/events/${event.id}/submissions/new`;
 										router.push(route);
 										return;
@@ -317,7 +317,7 @@ export function MobileEventBottomActions({
 							>
 								{existingRegistration?.status === "APPROVED"
 									? hasUserSubmitted
-										? "✏️ 修改作品"
+										? "📝 我的作品"
 										: "📤 提交作品"
 									: getRegisterButtonText()}
 							</Button>

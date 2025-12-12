@@ -68,6 +68,8 @@ export function SubmissionDetail({
 		Boolean(user) &&
 		(submission.teamLeader?.id === user.id ||
 			submission.teamMembers?.some((m) => m.id === user.id));
+	const hasMedia =
+		submission.attachments.length > 0 || Boolean(submission.coverImage);
 
 	const handleRequireAuth = () => {
 		const redirectTo = encodeURIComponent(
@@ -203,8 +205,19 @@ export function SubmissionDetail({
 						{renderVoteButton()}
 					</div>
 
-					{submission.attachments.length > 0 && (
+					{hasMedia ? (
 						<div className="grid gap-4 sm:grid-cols-2">
+							{submission.attachments.length === 0 &&
+								submission.coverImage && (
+									<div className="rounded-lg border overflow-hidden">
+										<img
+											src={submission.coverImage}
+											alt={submission.name}
+											className="w-full h-56 object-cover"
+										/>
+									</div>
+								)}
+
 							{submission.attachments.map((attachment) => {
 								const fallbackCaptionSrc =
 									createFallbackCaptionSrc(
@@ -285,6 +298,10 @@ export function SubmissionDetail({
 									</div>
 								);
 							})}
+						</div>
+					) : (
+						<div className="rounded-lg border bg-muted/30 py-10 text-center text-sm text-muted-foreground">
+							暂无截图或演示素材
 						</div>
 					)}
 

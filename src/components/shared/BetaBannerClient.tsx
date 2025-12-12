@@ -6,6 +6,7 @@ import {
 	BannerTitle,
 } from "@/components/ui/shadcn-io/banner";
 import { useBannerStore } from "@/lib/stores/banner-store";
+import { useLocalePathname } from "@i18n/routing";
 import { useEffect } from "react";
 
 interface BetaBannerClientProps {
@@ -21,6 +22,7 @@ export function BetaBannerClient({
 	message,
 	contentSignature,
 }: BetaBannerClientProps) {
+	const localePathname = useLocalePathname();
 	const {
 		isBetaBannerVisible,
 		isHydrated,
@@ -29,6 +31,7 @@ export function BetaBannerClient({
 		contentHash,
 		setContentHash,
 	} = useBannerStore();
+	const isEventsNewDetailPage = localePathname.startsWith("/eventsnew/");
 
 	useEffect(() => {
 		if (!isHydrated) {
@@ -63,6 +66,11 @@ export function BetaBannerClient({
 		setContentHash,
 		showBetaBanner,
 	]);
+
+	// 沉浸式 /eventsnew 详情页不展示 BetaBanner，避免覆盖内容
+	if (isEventsNewDetailPage) {
+		return null;
+	}
 
 	if (!enabled || !label || !message || !isHydrated || !isBetaBannerVisible) {
 		return null;

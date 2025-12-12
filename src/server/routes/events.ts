@@ -7,6 +7,10 @@ import { NotificationService } from "@/features/notifications/service";
 import { RestrictedAction, canUserDoAction } from "@/features/permissions";
 import { auth } from "@/lib/auth";
 import {
+	resolveRegistrationFieldConfig,
+	type RegistrationFieldConfig,
+} from "@/lib/events/registration-fields";
+import {
 	ContentType,
 	createContentValidator,
 	ensureImageSafe,
@@ -46,6 +50,90 @@ import statusRouter from "./events/status";
 import { eventTicketTypesRouter } from "./events/ticket-types";
 import volunteerAdminRouter from "./events/volunteer-admin";
 import volunteersRouter from "./events/volunteers";
+
+const registrationFieldSwitchSchema = z.object({
+	enabled: z.boolean().optional(),
+	required: z.boolean().optional(),
+});
+
+const registrationFieldConfigSchema = z
+	.object({
+		template: z.enum(["FULL", "MINIMAL", "CUSTOM"]).optional(),
+		fields: z
+			.object({
+				name: registrationFieldSwitchSchema.optional(),
+				userRoleString: registrationFieldSwitchSchema.optional(),
+				currentWorkOn: registrationFieldSwitchSchema.optional(),
+				lifeStatus: registrationFieldSwitchSchema.optional(),
+				bio: registrationFieldSwitchSchema.optional(),
+				phoneNumber: registrationFieldSwitchSchema.optional(),
+				email: registrationFieldSwitchSchema.optional(),
+				wechatId: registrationFieldSwitchSchema.optional(),
+				shippingAddress: registrationFieldSwitchSchema.optional(),
+			})
+			.optional(),
+	})
+	.optional()
+	.transform((val) =>
+		resolveRegistrationFieldConfig(
+			val as Partial<RegistrationFieldConfig> | null | undefined,
+		),
+	);
+
+const registrationFieldConfigUpdateSchema = z
+	.object({
+		template: z.enum(["FULL", "MINIMAL", "CUSTOM"]).optional(),
+		fields: z
+			.object({
+				name: registrationFieldSwitchSchema.optional(),
+				userRoleString: registrationFieldSwitchSchema.optional(),
+				currentWorkOn: registrationFieldSwitchSchema.optional(),
+				lifeStatus: registrationFieldSwitchSchema.optional(),
+				bio: registrationFieldSwitchSchema.optional(),
+				phoneNumber: registrationFieldSwitchSchema.optional(),
+				email: registrationFieldSwitchSchema.optional(),
+				wechatId: registrationFieldSwitchSchema.optional(),
+				shippingAddress: registrationFieldSwitchSchema.optional(),
+			})
+			.optional(),
+	})
+	.optional()
+	.transform((val) =>
+		val
+			? resolveRegistrationFieldConfig(
+					val as Partial<RegistrationFieldConfig> | null | undefined,
+				)
+			: undefined,
+	);
+
+const submissionFormFieldSchema = z.object({
+	key: z.string(),
+	label: z.string(),
+	type: z.enum([
+		"text",
+		"textarea",
+		"url",
+		"phone",
+		"email",
+		"image",
+		"file",
+		"select",
+		"radio",
+		"checkbox",
+	]),
+	required: z.boolean(),
+	placeholder: z.string().optional(),
+	description: z.string().optional(),
+	options: z.array(z.string()).optional(),
+	order: z.number(),
+});
+
+const submissionFormConfigSchema = z
+	.object({
+		fields: z.array(submissionFormFieldSchema),
+	})
+	.nullable()
+	.optional();
 
 const validateEventContent = createContentValidator({
 	title: { type: ContentType.EVENT_TITLE, skipIfEmpty: false },
@@ -430,6 +518,8 @@ const eventSchema = z
 		paymentQRCode: z.string().optional(),
 		paymentNote: z.string().optional(),
 		hackathonConfig: HackathonConfigSchema.optional(),
+		registrationFieldConfig: registrationFieldConfigSchema,
+		submissionFormConfig: submissionFormConfigSchema,
 	})
 	.refine(
 		(data) => {
@@ -692,6 +782,8 @@ const updateEventSchema = z.object({
 			}),
 		)
 		.optional(),
+	registrationFieldConfig: registrationFieldConfigUpdateSchema,
+	submissionFormConfig: submissionFormConfigSchema,
 });
 
 const getEventsSchema = z.object({
@@ -1030,7 +1122,12 @@ app.post("/", async (c) => {
 					: data.organizationId,
 		};
 
-		const { hackathonConfig, ...restEventData } = cleanedData;
+		const {
+			hackathonConfig,
+			submissionFormConfig,
+			registrationFieldConfig,
+			...restEventData
+		} = cleanedData;
 
 		// If organizationId is provided, verify user has access to create events for this organization
 		if (restEventData.organizationId) {
@@ -1055,10 +1152,17 @@ app.post("/", async (c) => {
 						changedBy: session.user.id,
 					})
 				: undefined;
+		const normalizedSubmissionFormConfig =
+			restEventData.type === "HACKATHON"
+				? (submissionFormConfig as unknown as Prisma.InputJsonValue | null)
+				: undefined;
 
 		const event = await createEvent({
 			...restEventData,
 			organizerId: session.user.id,
+			registrationFieldConfig:
+				registrationFieldConfig as unknown as Prisma.InputJsonValue,
+			submissionFormConfig: normalizedSubmissionFormConfig,
 			hackathonConfig:
 				restEventData.type === "HACKATHON" && normalizedHackathonConfig
 					? (normalizedHackathonConfig as unknown as Prisma.InputJsonValue)
@@ -1351,7 +1455,8 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 				data.organizationId === "" ? null : data.organizationId,
 		};
 
-		const { hackathonConfig, ...restUpdateData } = cleanedData;
+		const { hackathonConfig, submissionFormConfig, ...restUpdateData } =
+			cleanedData;
 
 		const imageFieldsForUpdate: Array<{
 			value?: string;
@@ -1447,6 +1552,15 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 		}
 
 		const targetType = restUpdateData.type ?? existingEvent.type;
+		const typeChangedToHackathon =
+			existingEvent.type !== "HACKATHON" && targetType === "HACKATHON";
+		const hackathonControlDefaults = typeChangedToHackathon
+			? {
+					// When switching an existing event into hackathon mode, default submissions/voting to open
+					submissionsOpen: true,
+					votingOpen: true,
+				}
+			: undefined;
 		const normalizedHackathonConfig =
 			hackathonConfig !== undefined
 				? targetType === "HACKATHON"
@@ -1455,14 +1569,28 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 						})
 					: null
 				: undefined;
+		const normalizedSubmissionFormConfig =
+			submissionFormConfig !== undefined
+				? targetType === "HACKATHON"
+					? (submissionFormConfig as unknown as Prisma.InputJsonValue | null)
+					: null
+				: undefined;
 
 		const updatedEvent = await updateEvent(id, {
 			...restUpdateData,
+			...(restUpdateData.registrationFieldConfig !== undefined && {
+				registrationFieldConfig:
+					restUpdateData.registrationFieldConfig as unknown as Prisma.InputJsonValue,
+			}),
+			...(hackathonControlDefaults ?? {}),
 			...(normalizedHackathonConfig !== undefined && {
 				hackathonConfig:
 					normalizedHackathonConfig === null
 						? null
 						: (normalizedHackathonConfig as unknown as Prisma.InputJsonValue),
+			}),
+			...(normalizedSubmissionFormConfig !== undefined && {
+				submissionFormConfig: normalizedSubmissionFormConfig,
 			}),
 		});
 

@@ -75,6 +75,10 @@ export async function createEvent(data: {
 	registrationOpen?: boolean;
 	submissionsOpen?: boolean;
 	votingOpen?: boolean;
+	// Registration field config
+	registrationFieldConfig?: Prisma.InputJsonValue;
+	// Submission form config
+	submissionFormConfig?: Prisma.InputJsonValue | null;
 }) {
 	const {
 		questions,
@@ -98,6 +102,8 @@ export async function createEvent(data: {
 		registrationOpen,
 		submissionsOpen,
 		votingOpen,
+		registrationFieldConfig,
+		submissionFormConfig,
 		...eventData
 	} = data; // 默认为 PUBLISHED，但可以被覆盖
 
@@ -123,6 +129,8 @@ export async function createEvent(data: {
 			registrationPendingInfo,
 			registrationPendingImage,
 			hackathonConfig,
+			registrationFieldConfig,
+			submissionFormConfig,
 			// 默认开启黑客松提交流程与投票（可在管理页关闭）
 			registrationOpen: registrationOpen ?? true,
 			submissionsOpen: hackathonControls.submissionsOpen,
@@ -679,6 +687,11 @@ export async function updateEvent(
 			description?: string;
 			requireApproval?: boolean;
 		}[];
+		// Hackathon control switches
+		registrationOpen: boolean;
+		submissionsOpen: boolean;
+		votingOpen: boolean;
+		showVotesOnGallery: boolean;
 		questions: {
 			question: string;
 			description?: string;
@@ -687,6 +700,8 @@ export async function updateEvent(
 			options?: string[];
 			order?: number;
 		}[];
+		registrationFieldConfig: Prisma.InputJsonValue;
+		submissionFormConfig: Prisma.InputJsonValue | null;
 	}>,
 ) {
 	const {
@@ -702,6 +717,8 @@ export async function updateEvent(
 		paymentQRCode,
 		paymentNote,
 		hackathonConfig,
+		registrationFieldConfig,
+		submissionFormConfig,
 		...eventData
 	} = data;
 
@@ -712,6 +729,12 @@ export async function updateEvent(
 			organizationId,
 		}),
 		...(hackathonConfig !== undefined && { hackathonConfig }),
+		...(registrationFieldConfig !== undefined && {
+			registrationFieldConfig,
+		}),
+		...(submissionFormConfig !== undefined && {
+			submissionFormConfig,
+		}),
 	};
 
 	// Prepare Building Public config data

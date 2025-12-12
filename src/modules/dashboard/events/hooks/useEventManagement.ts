@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 
 interface Event {
 	id: string;
@@ -26,6 +27,7 @@ interface Event {
 	registrationDeadline?: string;
 	requireApproval: boolean;
 	requireProjectSubmission?: boolean;
+	submissionFormConfig?: SubmissionFormConfig | null;
 	createdAt: string;
 	buildingConfig?: {
 		id: string;

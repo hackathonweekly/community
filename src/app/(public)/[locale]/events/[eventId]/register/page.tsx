@@ -34,6 +34,7 @@ export default async function EventRegistrationRoute({
 		registrationSuccessImage: event.registrationSuccessImage || undefined,
 		registrationPendingInfo: event.registrationPendingInfo || undefined,
 		registrationPendingImage: event.registrationPendingImage || undefined,
+		registrationFieldConfig: event.registrationFieldConfig || undefined,
 		coverImage: event.coverImage || undefined,
 		maxAttendees: event.maxAttendees || undefined,
 		registrationDeadline: event.registrationDeadline?.toISOString(),

@@ -399,7 +399,6 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 								onShowSuccessInfo={openSuccessInfo}
 								onShowShare={openShareModal}
 								hasSubmittedFeedback={hasSubmittedFeedback}
-								canManageEvent={event.isEventAdmin}
 							/>
 						);
 					case "BUILDING_PUBLIC":

@@ -28,10 +28,10 @@ export interface TicketType {
 }
 
 export interface UserProfile {
+	name?: string;
 	bio?: string;
 	userRoleString?: string;
 	currentWorkOn?: string;
-	name?: string;
 	preferredContact?: string;
 	phoneNumber?: string;
 	wechatId?: string;
@@ -40,6 +40,7 @@ export interface UserProfile {
 	showWechat?: boolean;
 	showEmail?: boolean;
 	lifeStatus?: string;
+	shippingAddress?: string;
 }
 
 export interface Event {
@@ -50,4 +51,5 @@ export interface Event {
 	shortDescription?: string | null;
 	questions: Question[];
 	ticketTypes: TicketType[];
+	registrationFieldConfig?: any;
 }

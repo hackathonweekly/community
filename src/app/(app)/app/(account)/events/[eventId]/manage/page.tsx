@@ -18,6 +18,7 @@ import { QRScanner } from "@/modules/dashboard/events/components/QRScanner";
 import { SaveTemplateModal } from "@/modules/dashboard/events/components/SaveTemplateModal";
 import { VolunteerManagement } from "@/modules/dashboard/events/components/VolunteerManagement";
 import { EventInvitesTab } from "@/modules/dashboard/events/components/EventInvitesTab";
+import { EventSubmissionsManager } from "@/modules/dashboard/events/components/submissions/EventSubmissionsManager";
 import { useEventManagement } from "@/modules/dashboard/events/hooks/useEventManagement";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -115,7 +116,7 @@ export default function EventManagePage() {
 
 				<Tabs value={activeTab} onValueChange={setActiveTab}>
 					<div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:pb-0">
-						<TabsList className="w-max h-auto flex-nowrap gap-2 px-1 md:w-full md:grid md:grid-cols-7 md:gap-0 md:px-0">
+						<TabsList className="w-max h-auto flex-nowrap gap-2 px-1 md:w-full md:grid md:grid-cols-9 md:gap-0 md:px-0">
 							<TabsTrigger
 								value="overview"
 								className={tabTriggerClass}
@@ -168,6 +169,18 @@ export default function EventManagePage() {
 									<span className="hidden md:inline">
 										黑客松管理 (
 										{event._count?.hackathonProjects || 0})
+									</span>
+								</TabsTrigger>
+							)}
+							{(event.requireProjectSubmission ||
+								event.type === "HACKATHON") && (
+								<TabsTrigger
+									value="submissions"
+									className={tabTriggerClass}
+								>
+									<span className="md:hidden">作品</span>
+									<span className="hidden md:inline">
+										作品管理
 									</span>
 								</TabsTrigger>
 							)}
@@ -269,6 +282,22 @@ export default function EventManagePage() {
 							<HackathonManagement
 								eventId={eventId}
 								event={event}
+							/>
+						</TabsContent>
+					)}
+
+					{(event.requireProjectSubmission ||
+						event.type === "HACKATHON") && (
+						<TabsContent
+							value="submissions"
+							className="mt-2 md:mt-6"
+						>
+							<EventSubmissionsManager
+								eventId={eventId}
+								eventTitle={event.title}
+								submissionFormConfig={
+									event.submissionFormConfig
+								}
 							/>
 						</TabsContent>
 					)}

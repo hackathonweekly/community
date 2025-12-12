@@ -2,14 +2,16 @@
 
 import { Form } from "@/components/ui/form";
 import { getRandomTemplate } from "@/config/image-templates";
+import { DEFAULT_HACKATHON_SETTINGS } from "@/features/hackathon/config";
+import { getPresetRegistrationFieldConfig } from "@/lib/events/registration-fields";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
+import { toast } from "sonner";
+import { getDefaultEventTimes } from "../utils/date-utils";
 import { BasicInfoForm } from "./BasicInfoForm";
 import { BuildingPublicSettings } from "./BuildingPublicSettings";
-import { HackathonSettings } from "./HackathonSettings";
-import { CapacitySettingsForm } from "./CapacitySettingsForm";
 import { FormActions } from "./FormActions";
 import { OptionalConfigSection } from "./OptionalConfigSection";
 import {
@@ -18,8 +20,6 @@ import {
 	type VolunteerRole,
 	eventSchema,
 } from "./types";
-import { getDefaultEventTimes } from "../utils/date-utils";
-import { toast } from "sonner";
 
 interface EventCreateFormProps {
 	organizations?: Organization[];
@@ -124,12 +124,13 @@ export function EventCreateForm({
 			requireProjectSubmission: false,
 			// 数字名片公开确认
 			askDigitalCardConsent: false,
+			// 报名字段配置
+			registrationFieldConfig: getPresetRegistrationFieldConfig("FULL"),
 			// Hackathon 默认值
 			hackathonConfig: {
 				settings: {
 					maxTeamSize: 5,
 					allowSolo: true,
-					requireProject: false,
 				},
 				voting: {
 					allowPublicVoting: true,
@@ -212,6 +213,9 @@ export function EventCreateForm({
 				volunteerContactInfo: template.volunteerContactInfo || "",
 				volunteerWechatQrCode: template.volunteerWechatQrCode || "",
 				organizerContact: template.organizerContact || "",
+				registrationFieldConfig:
+					template.registrationFieldConfig ||
+					getPresetRegistrationFieldConfig("FULL"),
 				// Building Public 字段
 				minCheckIns: template.minCheckIns || 7,
 				depositAmount: template.depositAmount || 0,
@@ -230,7 +234,6 @@ export function EventCreateForm({
 					settings: {
 						maxTeamSize: 5,
 						allowSolo: true,
-						requireProject: false,
 					},
 					voting: {
 						allowPublicVoting: true,
@@ -317,6 +320,22 @@ export function EventCreateForm({
 		// The server expects ISO strings, and assumes they are UTC if provided.
 		// By creating a Date object in the browser, we capture the user's local timezone offset,
 		// and toISOString() converts that specific moment to UTC.
+		const sanitizedHackathonConfig =
+			formData.type === "HACKATHON" && formData.hackathonConfig
+				? {
+						...formData.hackathonConfig,
+						settings: {
+							maxTeamSize:
+								formData.hackathonConfig.settings
+									?.maxTeamSize ??
+								DEFAULT_HACKATHON_SETTINGS.maxTeamSize,
+							allowSolo:
+								formData.hackathonConfig.settings?.allowSolo ??
+								DEFAULT_HACKATHON_SETTINGS.allowSolo,
+						},
+					}
+				: undefined;
+
 		const submissionData = {
 			...formData,
 			// Map location to appropriate fields based on whether it's external event
@@ -349,6 +368,7 @@ export function EventCreateForm({
 				formData.coverImage && formData.coverImage.trim() !== ""
 					? formData.coverImage
 					: undefined,
+			registrationFieldConfig: formData.registrationFieldConfig,
 			// Add registration success fields
 			registrationSuccessInfo:
 				formData.registrationSuccessInfo || undefined,
@@ -408,10 +428,9 @@ export function EventCreateForm({
 			// 数字名片公开确认
 			askDigitalCardConsent: formData.askDigitalCardConsent,
 			// Hackathon configuration
-			hackathonConfig:
-				formData.type === "HACKATHON"
-					? formData.hackathonConfig
-					: undefined,
+			hackathonConfig: sanitizedHackathonConfig,
+			// Submission form configuration (available for all event types)
+			submissionFormConfig: formData.submissionFormConfig || undefined,
 		};
 
 		onSubmit(submissionData, status);
@@ -453,17 +472,6 @@ export function EventCreateForm({
 						/>
 					)}
 
-					{/* Hackathon Settings */}
-					{isHackathon && (
-						<HackathonSettings
-							control={form.control}
-							watch={form.watch}
-						/>
-					)}
-
-					{/* Capacity and Registration Settings */}
-					<CapacitySettingsForm control={form.control} />
-
 					{/* Optional Configuration */}
 					<OptionalConfigSection
 						control={form.control}
@@ -473,16 +481,18 @@ export function EventCreateForm({
 					/>
 
 					{/* Submit Buttons */}
-					<FormActions
-						onSubmit={onSubmit}
-						onSaveAsTemplate={onSaveAsTemplate}
-						handleSubmit={form.handleSubmit}
-						handleFormSubmit={handleFormSubmit}
-						isLoading={isLoading}
-						isEdit={isEdit}
-						isEditMode={isEditMode}
-						hideTemplateAction={hideTemplateAction}
-					/>
+					<div className="sticky bottom-0 z-10 pb-2 pt-4 border-t">
+						<FormActions
+							onSubmit={onSubmit}
+							onSaveAsTemplate={onSaveAsTemplate}
+							handleSubmit={form.handleSubmit}
+							handleFormSubmit={handleFormSubmit}
+							isLoading={isLoading}
+							isEdit={isEdit}
+							isEditMode={isEditMode}
+							hideTemplateAction={hideTemplateAction}
+						/>
+					</div>
 				</form>
 			</Form>
 		</div>

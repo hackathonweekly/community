@@ -68,7 +68,12 @@ const jsonHeaders = {
 
 export async function getEventSubmissions(
 	eventId: string,
-	params?: { sort?: string; order?: "asc" | "desc"; includeVotes?: boolean },
+	params?: {
+		sort?: string;
+		order?: "asc" | "desc";
+		includeVotes?: boolean;
+		includePrivateFields?: boolean;
+	},
 ): Promise<SubmissionListResponse> {
 	const searchParams = new URLSearchParams();
 	if (params?.sort) {
@@ -79,6 +84,12 @@ export async function getEventSubmissions(
 	}
 	if (params?.includeVotes) {
 		searchParams.set("includeVotes", String(params.includeVotes));
+	}
+	if (params?.includePrivateFields) {
+		searchParams.set(
+			"includePrivateFields",
+			String(params.includePrivateFields),
+		);
 	}
 	const query = searchParams.toString();
 
@@ -152,6 +163,22 @@ export async function unvoteSubmission(
 		credentials: "include",
 	});
 	return handleResponse<SubmissionVoteResponse>(response);
+}
+
+export async function updateSubmissionVoteCount(
+	submissionId: string,
+	voteCount: number,
+): Promise<EventSubmission> {
+	const response = await fetch(
+		`/api/submissions/${submissionId}/vote-adjustment`,
+		{
+			method: "PATCH",
+			headers: jsonHeaders,
+			credentials: "include",
+			body: JSON.stringify({ voteCount }),
+		},
+	);
+	return handleResponse<EventSubmission>(response);
 }
 
 export async function getVoteStats(eventId: string): Promise<VoteStatsSummary> {

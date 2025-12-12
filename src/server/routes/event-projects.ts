@@ -71,6 +71,10 @@ const userSummarySelect = {
 	email: true,
 	bio: true,
 	userRoleString: true,
+	phoneNumber: true,
+	wechatId: true,
+	region: true,
+	currentWorkOn: true,
 };
 
 const submissionInclude = {
@@ -98,12 +102,7 @@ const submissionInclude = {
 		},
 	},
 	user: {
-		select: {
-			id: true,
-			name: true,
-			image: true,
-			username: true,
-		},
+		select: userSummarySelect,
 	},
 	event: {
 		select: {
@@ -142,6 +141,8 @@ const app = new Hono()
 		const eventId = c.req.param("eventId");
 		const sort = (c.req.query("sort") || "voteCount").toLowerCase();
 		const order = c.req.query("order") === "asc" ? "asc" : "desc";
+		const includePrivateFieldsRequested =
+			c.req.query("includePrivateFields") === "true";
 		const session = await getSession(c);
 
 		const submissions = await db.eventProjectSubmission.findMany({
@@ -161,6 +162,7 @@ const app = new Hono()
 
 		let userVotes: string[] = [];
 		let remainingVotes: number | null = null;
+		let canAccessPrivateFields = false;
 
 		if (session) {
 			const votes = await db.projectVote.findMany({
@@ -176,6 +178,13 @@ const app = new Hono()
 				.map((vote) => map.get(vote.projectId))
 				.filter((value): value is string => Boolean(value));
 			remainingVotes = Math.max(0, MAX_VOTES_PER_USER - votes.length);
+
+			if (includePrivateFieldsRequested && submissions.length > 0) {
+				canAccessPrivateFields = await canAdministerEvent(
+					submissions[0].event,
+					session.user.id,
+				);
+			}
 		}
 
 		const payload = sorted.map((submission, index) =>
@@ -186,6 +195,7 @@ const app = new Hono()
 							? index + 1
 							: index + 1
 						: undefined,
+				includePrivateFields: canAccessPrivateFields,
 			}),
 		);
 
@@ -501,6 +511,76 @@ const app = new Hono()
 		},
 	)
 
+	// Admin vote adjustment (organizers/admins)
+	.patch(
+		"/submissions/:submissionId/vote-adjustment",
+		zValidator(
+			"json",
+			z.object({
+				voteCount: z.number().int().min(0).max(1_000_000),
+			}),
+		),
+		async (c) => {
+			const session = await requireSession(c);
+			const submissionId = c.req.param("submissionId");
+			const { voteCount } = c.req.valid("json");
+			const submission = await fetchSubmissionByIdOrThrow(submissionId);
+
+			const canAdjust = await canAdministerEvent(
+				submission.event,
+				session.user.id,
+			);
+
+			if (!canAdjust) {
+				throw new HTTPException(403, {
+					message:
+						"You don't have permission to adjust votes for this submission",
+				});
+			}
+
+			const baseVotes = await db.projectVote.count({
+				where: {
+					projectId: submission.projectId,
+					eventId: submission.eventId,
+				},
+			});
+
+			const manualVoteAdjustment = Math.max(0, voteCount) - baseVotes;
+
+			const existingCustomFields =
+				submission.project.customFields &&
+				typeof submission.project.customFields === "object" &&
+				!Array.isArray(submission.project.customFields)
+					? (submission.project.customFields as Record<
+							string,
+							unknown
+						>)
+					: {};
+
+			const nextCustomFields: Record<string, unknown> = {
+				...existingCustomFields,
+			};
+
+			if (manualVoteAdjustment === 0) {
+				delete nextCustomFields.manualVoteAdjustment;
+			} else {
+				nextCustomFields.manualVoteAdjustment = manualVoteAdjustment;
+			}
+
+			await db.project.update({
+				where: { id: submission.projectId },
+				data: { customFields: nextCustomFields },
+			});
+
+			const updated = await fetchSubmissionByIdOrThrow(submissionId);
+			return c.json({
+				success: true,
+				data: serializeSubmission(updated),
+				message: "Vote count adjusted successfully",
+			});
+		},
+	)
+
 	// Delete submission
 	.delete("/submissions/:submissionId", async (c) => {
 		const session = await requireSession(c);
@@ -597,7 +677,7 @@ const app = new Hono()
 			id: submission.id,
 			projectId: submission.projectId,
 			name: submission.project.title,
-			voteCount: submission.project._count.votes,
+			voteCount: getVoteStats(submission).voteCount,
 			rank: index + 1,
 		}));
 
@@ -805,6 +885,39 @@ async function fetchSubmissionByIdOrThrow(id: string) {
 	return submission;
 }
 
+function getManualVoteAdjustment(submission: SubmissionWithRelations) {
+	const customFields = submission.project.customFields;
+	if (
+		customFields &&
+		typeof customFields === "object" &&
+		!Array.isArray(customFields)
+	) {
+		const rawAdjustment = (customFields as Record<string, unknown>)
+			.manualVoteAdjustment;
+		if (
+			typeof rawAdjustment === "number" &&
+			Number.isFinite(rawAdjustment)
+		) {
+			return rawAdjustment;
+		}
+		if (typeof rawAdjustment === "string" && rawAdjustment.trim()) {
+			const parsed = Number(rawAdjustment);
+			if (Number.isFinite(parsed)) return parsed;
+		}
+	}
+	return 0;
+}
+
+function getVoteStats(submission: SubmissionWithRelations) {
+	const manualVoteAdjustment = getManualVoteAdjustment(submission);
+	const baseVoteCount = submission.project._count.votes;
+	const voteCount = Math.max(
+		0,
+		Math.round(baseVoteCount + manualVoteAdjustment),
+	);
+	return { manualVoteAdjustment, baseVoteCount, voteCount };
+}
+
 function sortSubmissions(
 	submissions: SubmissionWithRelations[],
 	sort: string,
@@ -824,7 +937,9 @@ function sortSubmissions(
 					: b.project.title.localeCompare(a.project.title);
 			}
 			default: {
-				const diff = a.project._count.votes - b.project._count.votes;
+				const aVotes = getVoteStats(a).voteCount;
+				const bVotes = getVoteStats(b).voteCount;
+				const diff = aVotes - bVotes;
 				return order === "asc" ? diff : -diff;
 			}
 		}
@@ -833,13 +948,14 @@ function sortSubmissions(
 
 function serializeSubmission(
 	submission: SubmissionWithRelations,
-	options: { rank?: number } = {},
+	options: { rank?: number; includePrivateFields?: boolean } = {},
 ) {
 	const leader = submission.project.user;
 	const uniqueMembers = new Map(
 		submission.project.members.map((member) => [member.userId, member]),
 	);
 	uniqueMembers.delete(leader.id);
+	const includePrivateFields = options.includePrivateFields === true;
 
 	// Ensure attachment URLs are absolute and point to the configured public endpoint
 	const resolvePublicUrl = (url: string | null | undefined) => {
@@ -869,6 +985,13 @@ function serializeSubmission(
 			?.fileUrl ||
 		submission.project.screenshots?.[0] ||
 		null;
+	const customFields =
+		includePrivateFields &&
+		submission.project.customFields &&
+		typeof submission.project.customFields === "object" &&
+		!Array.isArray(submission.project.customFields)
+			? (submission.project.customFields as Record<string, unknown>)
+			: null;
 
 	return {
 		id: submission.id,
@@ -881,7 +1004,8 @@ function serializeSubmission(
 		demoUrl: submission.project.url,
 		communityUseAuthorization: submission.project.communityUseAuth,
 		status: submission.status,
-		voteCount: submission.project._count.votes,
+		customFields,
+		...getVoteStats(submission),
 		rank: options.rank ?? null,
 		submittedAt: submission.submittedAt,
 		updatedAt: submission.updatedAt,
@@ -894,6 +1018,14 @@ function serializeSubmission(
 					avatar: leader.image,
 					username: leader.username,
 					bio: leader.bio,
+					...(includePrivateFields && {
+						email: leader.email,
+						phoneNumber: leader.phoneNumber,
+						wechatId: leader.wechatId,
+						region: leader.region,
+						userRoleString: leader.userRoleString,
+						currentWorkOn: leader.currentWorkOn,
+					}),
 					role: "LEADER",
 				}
 			: null,
@@ -903,10 +1035,31 @@ function serializeSubmission(
 			avatar: member.user.image,
 			username: member.user.username,
 			bio: member.user.bio,
+			...(includePrivateFields && {
+				email: member.user.email,
+				phoneNumber: member.user.phoneNumber,
+				wechatId: member.user.wechatId,
+				region: member.user.region,
+				userRoleString: member.user.userRoleString,
+				currentWorkOn: member.user.currentWorkOn,
+			}),
 			role: member.role,
 		})),
 		teamSize: 1 + uniqueMembers.size,
-		submitter: submission.user,
+		submitter: {
+			id: submission.user.id,
+			name: submission.user.name,
+			image: submission.user.image,
+			username: submission.user.username,
+			...(includePrivateFields && {
+				email: submission.user.email,
+				phoneNumber: submission.user.phoneNumber,
+				wechatId: submission.user.wechatId,
+				region: submission.user.region,
+				userRoleString: submission.user.userRoleString,
+				currentWorkOn: submission.user.currentWorkOn,
+			}),
+		},
 		event: {
 			id: submission.event.id,
 			title: submission.event.title,
@@ -1039,11 +1192,15 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 		},
 	});
 
-	const voteCount = await db.projectVote.count({
+	const baseVoteCount = await db.projectVote.count({
 		where: {
 			projectId: submission.projectId,
 		},
 	});
+	const voteCount = Math.max(
+		0,
+		Math.round(baseVoteCount + getManualVoteAdjustment(submission)),
+	);
 
 	return {
 		success: true,
@@ -1085,9 +1242,13 @@ async function revokeVote(submission: SubmissionWithRelations, userId: string) {
 		where: { id: existingVote.id },
 	});
 
-	const voteCount = await db.projectVote.count({
+	const baseVoteCount = await db.projectVote.count({
 		where: { projectId: submission.projectId },
 	});
+	const voteCount = Math.max(
+		0,
+		Math.round(baseVoteCount + getManualVoteAdjustment(submission)),
+	);
 
 	const remainingVotes = await db.projectVote.count({
 		where: { eventId: submission.eventId, userId },

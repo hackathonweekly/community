@@ -43,7 +43,7 @@ export function TicketSelection({
 		}
 
 		const hasSelectedTicket = availableTicketTypes.some(
-			(ticket) => ticket.id === selectedTicketType,
+			(ticket) => ticket && ticket.id === selectedTicketType,
 		);
 
 		if (!hasSelectedTicket && selectedTicketType) {
@@ -68,70 +68,74 @@ export function TicketSelection({
 					onValueChange={onTicketTypeChange}
 					className="space-y-3"
 				>
-					{availableTicketTypes.map((ticket) => (
-						<div
-							key={ticket.id}
-							className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50"
-						>
-							<RadioGroupItem
-								value={ticket.id}
-								id={`ticket-${ticket.id}`}
-								className="mt-1"
-							/>
-							<div className="flex-1">
-								<Label
-									htmlFor={`ticket-${ticket.id}`}
-									className="cursor-pointer"
-								>
-									<div className="font-medium">
-										{ticket.name} -{" "}
-										{formatPrice(ticket.price)}
-									</div>
-									{ticket.description && (
-										<div className="text-sm text-muted-foreground mt-1">
-											{ticket.description}
+					{availableTicketTypes
+						.filter((ticket) => ticket)
+						.map((ticket) => (
+							<div
+								key={ticket.id}
+								className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50"
+							>
+								<RadioGroupItem
+									value={ticket.id}
+									id={`ticket-${ticket.id}`}
+									className="mt-1"
+								/>
+								<div className="flex-1">
+									<Label
+										htmlFor={`ticket-${ticket.id}`}
+										className="cursor-pointer"
+									>
+										<div className="font-medium">
+											{ticket.name} -{" "}
+											{formatPrice(ticket.price)}
 										</div>
-									)}
-									{ticket.maxQuantity && (
-										<div className="text-xs text-muted-foreground mt-1">
-											{t("remaining", {
-												count:
-													ticket.maxQuantity -
-													ticket.currentQuantity,
-											})}
-										</div>
-									)}
-								</Label>
+										{ticket.description && (
+											<div className="text-sm text-muted-foreground mt-1">
+												{ticket.description}
+											</div>
+										)}
+										{ticket.maxQuantity && (
+											<div className="text-xs text-muted-foreground mt-1">
+												{t("remaining", {
+													count:
+														ticket.maxQuantity -
+														ticket.currentQuantity,
+												})}
+											</div>
+										)}
+									</Label>
+								</div>
 							</div>
-						</div>
-					))}
+						))}
 				</RadioGroup>
 			) : (
 				<div className="space-y-1 rounded-lg border bg-muted/30 p-4">
-					{availableTicketTypes.map((ticket) => (
-						<div key={ticket.id}>
-							<div className="text-sm text-muted-foreground">
-								{t("ticketType")}
-							</div>
-							<div className="text-base font-semibold">
-								{ticket.name} - {formatPrice(ticket.price)}
-							</div>
-							{ticket.description && (
+					{availableTicketTypes
+						.filter((ticket) => ticket)
+						.map((ticket) => (
+							<div key={ticket.id}>
 								<div className="text-sm text-muted-foreground">
-									{ticket.description}
+									{t("ticketType")}
 								</div>
-							)}
-							{ticket.maxQuantity && (
-								<div className="text-xs text-muted-foreground">
-									{t("remaining", {
-										count:
-											ticket.maxQuantity -
-											ticket.currentQuantity,
-									})}
+								<div className="text-base font-semibold">
+									{ticket.name} - {formatPrice(ticket.price)}
 								</div>
-							)}
-						</div>
-					))}
+								{ticket.description && (
+									<div className="text-sm text-muted-foreground">
+										{ticket.description}
+									</div>
+								)}
+								{ticket.maxQuantity && (
+									<div className="text-xs text-muted-foreground">
+										{t("remaining", {
+											count:
+												ticket.maxQuantity -
+												ticket.currentQuantity,
+										})}
+									</div>
+								)}
+							</div>
+						))}
 				</div>
 			)}
 		</div>

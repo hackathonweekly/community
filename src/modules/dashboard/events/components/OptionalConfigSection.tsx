@@ -1,25 +1,41 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import type { FeedbackConfig } from "@/lib/database/prisma/types/feedback";
 import {
+	getPresetRegistrationFieldConfig,
+	registrationFieldKeys,
+} from "@/lib/events/registration-fields";
+import {
+	ChatBubbleBottomCenterTextIcon,
 	CheckCircleIcon,
 	ClockIcon,
+	CodeBracketSquareIcon,
 	GlobeAltIcon as GlobeIcon,
 	QuestionMarkCircleIcon,
 	UserGroupIcon,
 	UsersIcon,
-	ChatBubbleBottomCenterTextIcon,
 } from "@heroicons/react/24/outline";
-import type { Control, UseFormWatch, UseFormSetValue } from "react-hook-form";
+import { useState } from "react";
+import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import {
 	AdvancedSettingsModal,
 	AdvancedSettingsSummary,
 } from "./AdvancedSettingsModal";
-import { QuestionsModal, QuestionsSummary } from "./QuestionsModal";
+import {
+	FeedbackConfigModal,
+	FeedbackConfigSummary,
+} from "./FeedbackConfigModal";
+import { HackathonSettings } from "./HackathonSettings";
+import { QuestionsModal } from "./QuestionsModal";
 import {
 	RegistrationPendingModal,
 	RegistrationPendingSummary,
@@ -29,18 +45,14 @@ import {
 	RegistrationSuccessSummary,
 } from "./RegistrationSuccessModal";
 import { TicketTypesModal, TicketTypesSummary } from "./TicketTypesModal";
+import { VolunteerModal, VolunteerSummary } from "./VolunteerModal";
 import type {
 	EventFormData,
-	VolunteerRole,
-	TicketType,
 	Question,
+	TicketType,
+	VolunteerRole,
 } from "./types";
-import { VolunteerModal, VolunteerSummary } from "./VolunteerModal";
-import {
-	FeedbackConfigModal,
-	FeedbackConfigSummary,
-} from "./FeedbackConfigModal";
-import type { FeedbackConfig } from "@/lib/database/prisma/types/feedback";
+import type { RegistrationFieldConfig } from "./types";
 
 interface OptionalConfigSectionProps {
 	control: Control<EventFormData>;
@@ -56,128 +68,324 @@ export function OptionalConfigSection({
 	volunteerRoles,
 }: OptionalConfigSectionProps) {
 	const requireApproval = watch("requireApproval");
+	const questions = (watch("questions") || []) as Question[];
+	const eventType = watch("type");
+	const requireProjectSubmission = watch("requireProjectSubmission");
+	const askDigitalCardConsent = watch("askDigitalCardConsent");
+	const registrationFieldConfig =
+		(watch("registrationFieldConfig") as RegistrationFieldConfig) ||
+		getPresetRegistrationFieldConfig("FULL");
+
+	const fieldLabels: Record<string, string> = {
+		name: "姓名",
+		userRoleString: "个人角色",
+		currentWorkOn: "当前在做",
+		lifeStatus: "当前状态",
+		bio: "个人简介",
+		phoneNumber: "手机号",
+		email: "邮箱",
+		wechatId: "微信号",
+		shippingAddress: "邮寄地址",
+	};
+
+	const applyTemplate = (template: "FULL" | "MINIMAL") => {
+		setValue(
+			"registrationFieldConfig",
+			getPresetRegistrationFieldConfig(template),
+			{ shouldDirty: true, shouldTouch: true },
+		);
+	};
+
+	const toggleField = (
+		key: keyof RegistrationFieldConfig["fields"],
+		type: "enabled" | "required",
+	) => {
+		const current = registrationFieldConfig.fields[key];
+		const nextEnabled =
+			type === "enabled" ? !current.enabled : current.enabled || true;
+		const nextRequired =
+			type === "required" ? !current.required : current.required;
+
+		const normalized = {
+			enabled: nextRequired ? true : nextEnabled,
+			required: nextRequired,
+		};
+
+		setValue(`registrationFieldConfig.fields.${key}` as any, normalized, {
+			shouldDirty: true,
+			shouldTouch: true,
+		});
+	};
+
+	const enabledFieldsCount = registrationFieldKeys.filter(
+		(key) => registrationFieldConfig.fields[key].enabled,
+	).length;
+	const requiredFieldsCount = registrationFieldKeys.filter(
+		(key) => registrationFieldConfig.fields[key].required,
+	).length;
+	const questionCount = questions.length;
+	const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false);
+	const rowClassName = "flex items-start justify-between gap-3 px-4 py-3 ";
 
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>可选配置</CardTitle>
-				<CardDescription>
-					根据需要配置票种、报名问题、志愿者招募和其他高级设置
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div className="grid grid-cols-1 gap-1">
-					{/* 票种设置 */}
+		<div className="border rounded-lg shadow-sm">
+			<div className="flex items-start justify-between p-4 border-b">
+				<div>
+					<h3 className="text-base font-semibold">可选配置</h3>
+					<p className="text-sm text-muted-foreground">
+						根据需要配置票种、报名问题、志愿者招募和其他高级设置
+					</p>
+				</div>
+			</div>
+
+			<div className="divide-y">
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<QuestionMarkCircleIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">报名信息与问题</p>
+							<p className="text-sm text-muted-foreground">
+								字段 {enabledFieldsCount} 展示 /{" "}
+								{requiredFieldsCount} 必填 · 问题{" "}
+								{questionCount} 个
+							</p>
+						</div>
+					</div>
+					<div className="flex items-center gap-2">
+						<Dialog
+							open={registrationDialogOpen}
+							onOpenChange={setRegistrationDialogOpen}
+						>
+							<DialogTrigger asChild>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									className="shrink-0"
+								>
+									编辑字段
+								</Button>
+							</DialogTrigger>
+							<DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+								<DialogHeader>
+									<DialogTitle className="flex items-center gap-2">
+										<QuestionMarkCircleIcon className="w-5 h-5" />
+										报名字段设置
+									</DialogTitle>
+									<DialogDescription>
+										选择需要收集的报名信息字段，并设置是否必填
+									</DialogDescription>
+								</DialogHeader>
+								<div className="space-y-3">
+									<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded-md border px-3 py-2">
+										<p className="text-sm text-muted-foreground">
+											一键切换字段模板
+										</p>
+										<div className="flex gap-2">
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													applyTemplate("FULL")
+												}
+											>
+												默认（全填）
+											</Button>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													applyTemplate("MINIMAL")
+												}
+											>
+												极简（姓名+手机号）
+											</Button>
+										</div>
+									</div>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+										{registrationFieldKeys.map((key) => {
+											const field =
+												registrationFieldConfig.fields[
+													key
+												];
+											return (
+												<div
+													key={key}
+													className="flex items-center justify-between rounded-md border px-3 py-2"
+												>
+													<div className="space-y-1">
+														<div className="text-sm font-medium">
+															{fieldLabels[key] ||
+																key}
+														</div>
+														<div className="text-xs text-muted-foreground">
+															{field.required
+																? "必填"
+																: field.enabled
+																	? "选填"
+																	: "不展示"}
+														</div>
+													</div>
+													<div className="flex items-center gap-3">
+														<div className="flex items-center gap-1">
+															<span className="text-xs text-muted-foreground">
+																展示
+															</span>
+															<Switch
+																checked={
+																	field.enabled
+																}
+																onCheckedChange={() =>
+																	toggleField(
+																		key,
+																		"enabled",
+																	)
+																}
+																aria-label={`切换${fieldLabels[key]}展示`}
+															/>
+														</div>
+														<div className="flex items-center gap-1">
+															<span className="text-xs text-muted-foreground">
+																必填
+															</span>
+															<Switch
+																checked={
+																	field.required
+																}
+																onCheckedChange={() =>
+																	toggleField(
+																		key,
+																		"required",
+																	)
+																}
+																aria-label={`切换${fieldLabels[key]}必填`}
+															/>
+														</div>
+													</div>
+												</div>
+											);
+										})}
+									</div>
+								</div>
+							</DialogContent>
+						</Dialog>
+						<QuestionsModal control={control} questions={questions}>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="shrink-0"
+							>
+								编辑问题
+							</Button>
+						</QuestionsModal>
+					</div>
+				</div>
+
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<UsersIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">票种设置</p>
+							<TicketTypesSummary
+								ticketTypes={
+									(watch("ticketTypes") || []) as TicketType[]
+								}
+							/>
+						</div>
+					</div>
 					<TicketTypesModal
 						control={control}
 						ticketTypes={
 							(watch("ticketTypes") || []) as TicketType[]
 						}
 					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<UsersIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											设置票种
-										</h4>
-										<TicketTypesSummary
-											ticketTypes={
-												(watch("ticketTypes") ||
-													[]) as TicketType[]
-											}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
+							编辑
+						</Button>
 					</TicketTypesModal>
+				</div>
 
-					{/* 报名问题 */}
-					<QuestionsModal
-						control={control}
-						questions={(watch("questions") || []) as Question[]}
-					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<QuestionMarkCircleIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											添加报名问题
-										</h4>
-										<QuestionsSummary
-											questions={
-												(watch("questions") ||
-													[]) as Question[]
-											}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					</QuestionsModal>
-
-					{/* 审核中提示 - 仅在开启审核时显示 */}
-					{requireApproval && (
+				{requireApproval && (
+					<div className={rowClassName}>
+						<div className="flex items-start gap-3 min-w-0">
+							<ClockIcon className="w-4 h-4 text-amber-600 flex-shrink-0" />
+							<div>
+								<p className="font-medium">审核中提示</p>
+								<RegistrationPendingSummary
+									pendingInfo={watch(
+										"registrationPendingInfo",
+									)}
+									pendingImage={watch(
+										"registrationPendingImage",
+									)}
+								/>
+							</div>
+						</div>
 						<RegistrationPendingModal
 							control={control}
 							pendingInfo={watch("registrationPendingInfo")}
 							pendingImage={watch("registrationPendingImage")}
 						>
-							<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-								<CardContent className="p-3">
-									<div className="flex items-center gap-2">
-										<ClockIcon className="w-4 h-4 text-amber-600 flex-shrink-0" />
-										<div className="flex-1 min-w-0">
-											<h4 className="font-medium text-sm leading-tight">
-												审核中提示设置
-											</h4>
-											<RegistrationPendingSummary
-												pendingInfo={watch(
-													"registrationPendingInfo",
-												)}
-												pendingImage={watch(
-													"registrationPendingImage",
-												)}
-											/>
-										</div>
-									</div>
-								</CardContent>
-							</Card>
+							<Button
+								type="button"
+								size="sm"
+								variant="outline"
+								className="shrink-0"
+							>
+								编辑
+							</Button>
 						</RegistrationPendingModal>
-					)}
+					</div>
+				)}
 
-					{/* 报名成功提示 */}
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<CheckCircleIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">报名成功提示</p>
+							<RegistrationSuccessSummary
+								successInfo={watch("registrationSuccessInfo")}
+								successImage={watch("registrationSuccessImage")}
+							/>
+						</div>
+					</div>
 					<RegistrationSuccessModal
 						control={control}
 						successInfo={watch("registrationSuccessInfo")}
 						successImage={watch("registrationSuccessImage")}
 					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<CheckCircleIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											报名成功提示
-										</h4>
-										<RegistrationSuccessSummary
-											successInfo={watch(
-												"registrationSuccessInfo",
-											)}
-											successImage={watch(
-												"registrationSuccessImage",
-											)}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
+							编辑
+						</Button>
 					</RegistrationSuccessModal>
+				</div>
 
-					{/* 志愿者招募 */}
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<UserGroupIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">招募志愿者</p>
+							<VolunteerSummary
+								volunteerRoleData={
+									watch("volunteerRoles") || []
+								}
+								volunteerRoles={volunteerRoles}
+							/>
+						</div>
+					</div>
 					<VolunteerModal
 						control={control}
 						volunteerRoles={volunteerRoles}
@@ -185,27 +393,32 @@ export function OptionalConfigSection({
 						globalContactInfo={watch("volunteerContactInfo")}
 						globalWechatQrCode={watch("volunteerWechatQrCode")}
 					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<UserGroupIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											招募志愿者
-										</h4>
-										<VolunteerSummary
-											volunteerRoleData={
-												watch("volunteerRoles") || []
-											}
-											volunteerRoles={volunteerRoles}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
+							编辑
+						</Button>
 					</VolunteerModal>
+				</div>
 
-					{/* 反馈配置 */}
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">活动反馈</p>
+							<FeedbackConfigSummary
+								feedbackConfig={
+									watch("feedbackConfig") as
+										| FeedbackConfig
+										| null
+										| undefined
+								}
+							/>
+						</div>
+					</div>
 					<FeedbackConfigModal
 						control={control}
 						setValue={setValue}
@@ -216,29 +429,31 @@ export function OptionalConfigSection({
 								| undefined
 						}
 					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<ChatBubbleBottomCenterTextIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											配置活动反馈
-										</h4>
-										<FeedbackConfigSummary
-											feedbackConfig={
-												watch("feedbackConfig") as
-													| FeedbackConfig
-													| null
-													| undefined
-											}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
+							编辑
+						</Button>
 					</FeedbackConfigModal>
+				</div>
 
-					{/* 高级设置 */}
+				<div className={rowClassName}>
+					<div className="flex items-start gap-3 min-w-0">
+						<GlobeIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+						<div>
+							<p className="font-medium">更多设置</p>
+							<AdvancedSettingsSummary
+								tags={watch("tags") || []}
+								requireProjectSubmission={
+									requireProjectSubmission
+								}
+								askDigitalCardConsent={askDigitalCardConsent}
+							/>
+						</div>
+					</div>
 					<AdvancedSettingsModal
 						control={control}
 						form={{
@@ -248,24 +463,67 @@ export function OptionalConfigSection({
 						}}
 						tags={watch("tags") || []}
 					>
-						<Card className="cursor-pointer hover:bg-gray-50 transition-colors border-dashed">
-							<CardContent className="p-3">
-								<div className="flex items-center gap-2">
-									<GlobeIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-									<div className="flex-1 min-w-0">
-										<h4 className="font-medium text-sm leading-tight">
-											更多设置
-										</h4>
-										<AdvancedSettingsSummary
-											tags={watch("tags") || []}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							className="shrink-0"
+						>
+							编辑
+						</Button>
 					</AdvancedSettingsModal>
 				</div>
-			</CardContent>
-		</Card>
+
+				{eventType === "HACKATHON" && (
+					<div className={rowClassName}>
+						<div className="flex items-start gap-3 min-w-0">
+							<CodeBracketSquareIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+							<div>
+								<div className="flex items-center gap-2">
+									<p className="font-medium">黑客松设置</p>
+									<Badge
+										variant="secondary"
+										className="bg-purple-100 text-purple-800 text-xs"
+									>
+										Beta功能
+									</Badge>
+								</div>
+								<p className="text-sm text-muted-foreground">
+									团队规模、评审与作品提交配置
+								</p>
+							</div>
+						</div>
+						<Dialog>
+							<DialogTrigger asChild>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									className="shrink-0"
+								>
+									编辑
+								</Button>
+							</DialogTrigger>
+							<DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+								<DialogHeader>
+									<DialogTitle className="flex items-center gap-2">
+										<CodeBracketSquareIcon className="w-5 h-5" />
+										黑客松设置
+									</DialogTitle>
+									<DialogDescription>
+										配置团队、投票与作品提交表单
+									</DialogDescription>
+								</DialogHeader>
+								<HackathonSettings
+									control={control}
+									watch={watch}
+									setValue={setValue}
+								/>
+							</DialogContent>
+						</Dialog>
+					</div>
+				)}
+			</div>
+		</div>
 	);
 }

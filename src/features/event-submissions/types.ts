@@ -23,6 +23,12 @@ export type SubmissionTeamMember = {
 	avatar?: string | null;
 	username?: string | null;
 	bio?: string | null;
+	email?: string | null;
+	phoneNumber?: string | null;
+	wechatId?: string | null;
+	region?: string | null;
+	userRoleString?: string | null;
+	currentWorkOn?: string | null;
 	role: string;
 };
 
@@ -31,6 +37,12 @@ export type SubmissionSubmitter = {
 	name: string;
 	image?: string | null;
 	username?: string | null;
+	email?: string | null;
+	phoneNumber?: string | null;
+	wechatId?: string | null;
+	region?: string | null;
+	userRoleString?: string | null;
+	currentWorkOn?: string | null;
 };
 
 export type SubmissionEventSummary = {
@@ -65,6 +77,8 @@ export interface EventSubmission {
 	communityUseAuthorization: boolean;
 	status: string;
 	voteCount: number;
+	baseVoteCount?: number;
+	manualVoteAdjustment?: number;
 	rank?: number | null;
 	submittedAt?: string | null;
 	updatedAt?: string | null;
@@ -76,6 +90,7 @@ export interface EventSubmission {
 	submitter: SubmissionSubmitter;
 	event: SubmissionEventSummary;
 	awards?: SubmissionAward[];
+	customFields?: Record<string, unknown> | null;
 }
 
 export interface SubmissionListResponse {
@@ -100,7 +115,8 @@ export interface SubmissionFormValues {
 	teamMemberIds: string[];
 	attachments: SubmissionAttachmentInput[];
 	communityUseAuthorization: boolean;
-	customFields?: Record<string, unknown> | null;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	customFields?: Record<string, any>;
 }
 
 export interface VoteStatsSummary {
@@ -125,4 +141,32 @@ export interface UserSearchResult {
 	bio?: string | null;
 	userRoleString?: string | null;
 	isParticipant?: boolean;
+}
+
+// Submission form configuration types
+export type SubmissionFieldType =
+	| "text"
+	| "textarea"
+	| "url"
+	| "phone"
+	| "email"
+	| "image"
+	| "file"
+	| "select"
+	| "radio"
+	| "checkbox";
+
+export interface SubmissionFormField {
+	key: string;
+	label: string;
+	type: SubmissionFieldType;
+	required: boolean;
+	placeholder?: string;
+	description?: string;
+	options?: string[];
+	order: number;
+}
+
+export interface SubmissionFormConfig {
+	fields: SubmissionFormField[];
 }

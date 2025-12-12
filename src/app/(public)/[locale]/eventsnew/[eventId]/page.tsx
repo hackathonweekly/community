@@ -1,63 +1,42 @@
-import { getEventById } from "@/lib/database";
-import { auth } from "@/lib/auth";
 import { canManageEvent } from "@/features/permissions";
+import { auth } from "@/lib/auth";
+import { getEventById } from "@/lib/database";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { EventDetailsWrapper } from "./EventDetailsWrapper";
-import { EventPageWrapper as NewEventPageWrapper } from "@/app/(public)/[locale]/eventsnew/[eventId]/EventPageWrapper";
+import { EventPageWrapper } from "./EventPageWrapper";
 
-// 禁用缓存，确保活动信息（尤其是时间）始终是最新的
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-interface EventDetailsPageProps {
-	params: {
-		eventId: string;
-		locale: string;
-	};
+interface PageProps {
+	params: Promise<{ locale: string; eventId: string }>;
 }
 
 export async function generateMetadata({
 	params,
-}: EventDetailsPageProps): Promise<Metadata> {
-	const { eventId, locale } = await params;
+}: PageProps): Promise<Metadata> {
+	const { eventId } = await params;
 	const event = await getEventById(eventId);
 
 	if (!event) {
 		return {
-			title: "Event Not Found",
-			description: "The requested event could not be found.",
+			title: "活动不存在",
+			description: "未找到该活动",
 		};
 	}
 
-	// 检查活动是否结束（双重判断）
 	const isEventEnded =
 		new Date() >= new Date(event.endTime) || event.status === "COMPLETED";
-	const isZh = locale?.startsWith("zh");
-
-	// 根据活动状态动态调整标题
-	const getTitle = () => {
-		if (isZh) {
-			return isEventEnded
-				? `活动回顾：${event.title}`
-				: `社区活动：${event.title}`;
-		}
-		return `${event.title} | HackathonWeekly Events`;
-	};
-
-	const title = getTitle();
-	const ogTitle = isZh
-		? isEventEnded
-			? `活动回顾：${event.title}`
-			: `${event.title}`
-		: event.title;
+	const title = isEventEnded
+		? `活动回顾：${event.title}`
+		: `社区活动：${event.title}`;
 
 	return {
 		title,
 		description:
 			event.shortDescription?.slice(0, 160) || "No description available",
 		openGraph: {
-			title: ogTitle,
+			title,
 			description:
 				event.shortDescription?.slice(0, 160) ||
 				"No description available",
@@ -66,7 +45,7 @@ export async function generateMetadata({
 		},
 		twitter: {
 			card: "summary_large_image",
-			title: ogTitle,
+			title,
 			description:
 				event.shortDescription?.slice(0, 160) ||
 				"No description available",
@@ -75,9 +54,7 @@ export async function generateMetadata({
 	};
 }
 
-export default async function EventDetailsPage({
-	params,
-}: EventDetailsPageProps) {
+export default async function EventPage({ params }: PageProps) {
 	const { eventId, locale } = await params;
 	const event = await getEventById(eventId);
 
@@ -96,11 +73,9 @@ export default async function EventDetailsPage({
 			isEventAdmin = await canManageEvent(eventId, session.user.id);
 		}
 	} catch (adminCheckError) {
-		// Log error but don't fail the request
 		console.error("Error checking admin status:", adminCheckError);
 	}
 
-	// Convert Date objects to strings for client component
 	const serializedEvent = {
 		...event,
 		isEventAdmin,
@@ -196,9 +171,9 @@ export default async function EventDetailsPage({
 		})),
 		volunteerRoles: event.volunteerRoles?.map((eventVolunteerRole) => ({
 			...eventVolunteerRole,
-			isRequired: false, // Default to false since we removed this field
-			sopUrl: undefined, // Removed field, set to undefined
-			wechatQrCode: undefined, // Moved to global level, set to undefined
+			isRequired: false,
+			sopUrl: undefined,
+			wechatQrCode: undefined,
 			description: eventVolunteerRole.description || undefined,
 			volunteerRole: {
 				...eventVolunteerRole.volunteerRole,
@@ -227,15 +202,5 @@ export default async function EventDetailsPage({
 		})),
 	};
 
-	// es 路径使用新版 UI，其他语言保持旧版
-	if (locale === "es") {
-		return (
-			<NewEventPageWrapper
-				initialEvent={serializedEvent}
-				locale={locale}
-			/>
-		);
-	}
-
-	return <EventDetailsWrapper initialEvent={serializedEvent} />;
+	return <EventPageWrapper initialEvent={serializedEvent} locale={locale} />;
 }
