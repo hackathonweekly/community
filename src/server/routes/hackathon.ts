@@ -303,6 +303,8 @@ const app = new Hono()
 						type: true,
 						hackathonConfig: true,
 						organizerId: true,
+						organizationId: true,
+						votingOpen: true,
 					},
 				});
 

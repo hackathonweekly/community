@@ -5,7 +5,8 @@ export const getEventTypeLabels = (t: any): Record<string, string> => ({
 });
 
 export const formatTimezoneDisplay = (timezone?: string) => {
-	if (!timezone) return undefined;
+	if (!timezone || timezone === "Asia/Shanghai" || timezone === "GMT+8")
+		return undefined;
 	try {
 		const parts = new Intl.DateTimeFormat("en", {
 			timeZone: timezone,

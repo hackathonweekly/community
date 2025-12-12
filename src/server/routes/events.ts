@@ -1463,8 +1463,12 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 				data.organizationId === "" ? null : data.organizationId,
 		};
 
-		const { hackathonConfig, submissionFormConfig, ...restUpdateData } =
-			cleanedData;
+		const {
+			hackathonConfig,
+			submissionFormConfig,
+			registrationFieldConfig,
+			...restUpdateData
+		} = cleanedData;
 
 		const imageFieldsForUpdate: Array<{
 			value?: string;
@@ -1586,9 +1590,9 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 
 		const updatedEvent = await updateEvent(id, {
 			...restUpdateData,
-			...(restUpdateData.registrationFieldConfig !== undefined && {
+			...(registrationFieldConfig !== undefined && {
 				registrationFieldConfig:
-					restUpdateData.registrationFieldConfig as unknown as Prisma.InputJsonValue,
+					registrationFieldConfig as unknown as Prisma.InputJsonValue,
 			}),
 			...(hackathonControlDefaults ?? {}),
 			...(normalizedHackathonConfig !== undefined && {

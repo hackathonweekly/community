@@ -892,6 +892,7 @@
 			"title": "核心价值观"
 		},
 		"events": {
+			"copyLink": "复制链接",
 			"hackathonManagement": {
 				"stage": {
 					"currentStageLabel": "当前阶段：{stage}",

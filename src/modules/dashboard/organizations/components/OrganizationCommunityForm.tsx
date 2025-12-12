@@ -260,10 +260,12 @@ export function OrganizationCommunityForm() {
 									placeholder="添加自定义标签..."
 									value={newTag}
 									onChange={(e) => setNewTag(e.target.value)}
-									onKeyPress={(e) =>
-										e.key === "Enter" &&
-										(e.preventDefault(), addCustomTag())
-									}
+									onKeyPress={(e) => {
+										if (e.key === "Enter") {
+											e.preventDefault();
+											addCustomTag();
+										}
+									}}
 									className="flex-1"
 								/>
 								<Button

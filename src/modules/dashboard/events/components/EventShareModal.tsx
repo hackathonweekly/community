@@ -8,17 +8,20 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import { useEventPosterGenerator } from "@/modules/public/events/components/event-poster-generator";
 import {
-	ClipboardDocumentIcon,
-	LinkIcon,
 	ArrowDownTrayIcon,
+	ChevronLeftIcon,
+	ClipboardDocumentIcon,
+	DocumentTextIcon,
+	LinkIcon,
 	PhotoIcon,
+	QrCodeIcon,
 } from "@heroicons/react/24/outline";
 import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
-import { useEffect, useRef, useState } from "react";
-import { useEventPosterGenerator } from "@/modules/public/events/components/event-poster-generator";
 
 interface EventShareModalProps {
 	isOpen: boolean;
@@ -36,6 +39,8 @@ interface EventShareModalProps {
 	};
 }
 
+type ShareView = "menu" | "qr" | "link" | "text";
+
 export function EventShareModal({
 	isOpen,
 	onClose,
@@ -46,12 +51,29 @@ export function EventShareModal({
 	const t = useTranslations("events");
 	const locale = useLocale();
 	const qrRef = useRef<HTMLDivElement>(null);
+	const [view, setView] = useState<ShareView>("menu");
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
 	const [inviteLoading, setInviteLoading] = useState(false);
 	const [inviteError, setInviteError] = useState<string | null>(null);
-	const generatePoster = useEventPosterGenerator(eventId, eventTitle, event, {
-		inviteCode: inviteCode ?? undefined,
-	});
+	const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
+
+	const posterGenerator = useEventPosterGenerator(
+		eventId,
+		eventTitle,
+		event,
+		{
+			inviteCode: inviteCode ?? undefined,
+		},
+	);
+
+	const handleGeneratePoster = async () => {
+		try {
+			setIsGeneratingPoster(true);
+			await posterGenerator();
+		} finally {
+			setIsGeneratingPoster(false);
+		}
+	};
 
 	const origin = typeof window !== "undefined" ? window.location.origin : "";
 	const baseEventUrl = origin
@@ -60,6 +82,12 @@ export function EventShareModal({
 	const shareUrl = inviteCode
 		? `${baseEventUrl}?invite=${inviteCode}`
 		: baseEventUrl;
+
+	useEffect(() => {
+		if (isOpen) {
+			setView("menu");
+		}
+	}, [isOpen]);
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -190,95 +218,158 @@ export function EventShareModal({
 		return `🎉 ${eventTitle}\n\n⏰ 时间：${timeStr}\n${locationStr ? `📍 ${locationStr}\n` : ""}\n🔗 报名链接：${shareUrl}`;
 	};
 
+	const renderMenu = () => (
+		<div className="grid grid-cols-2 gap-4 py-4 sm:grid-cols-4">
+			<button
+				onClick={() => setView("qr")}
+				className="flex flex-col items-center gap-3 p-4 rounded-xl border border-dashed hover:border-solid hover:border-indigo-500 hover:bg-slate-50 transition-all"
+			>
+				<div className="p-3 bg-blue-50 text-blue-600 rounded-full">
+					<QrCodeIcon className="w-6 h-6" />
+				</div>
+				<span className="text-sm font-medium text-slate-700">
+					二维码
+				</span>
+			</button>
+
+			<button
+				onClick={() => setView("link")}
+				className="flex flex-col items-center gap-3 p-4 rounded-xl border border-dashed hover:border-solid hover:border-indigo-500 hover:bg-slate-50 transition-all"
+			>
+				<div className="p-3 bg-green-50 text-green-600 rounded-full">
+					<LinkIcon className="w-6 h-6" />
+				</div>
+				<span className="text-sm font-medium text-slate-700">
+					复制链接
+				</span>
+			</button>
+
+			<button
+				onClick={() => setView("text")}
+				className="flex flex-col items-center gap-3 p-4 rounded-xl border border-dashed hover:border-solid hover:border-indigo-500 hover:bg-slate-50 transition-all"
+			>
+				<div className="p-3 bg-purple-50 text-purple-600 rounded-full">
+					<DocumentTextIcon className="w-6 h-6" />
+				</div>
+				<span className="text-sm font-medium text-slate-700">
+					复制文案
+				</span>
+			</button>
+
+			<button
+				onClick={handleGeneratePoster}
+				disabled={isGeneratingPoster}
+				className="flex flex-col items-center gap-3 p-4 rounded-xl border border-dashed hover:border-solid hover:border-indigo-500 hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				<div className="p-3 bg-orange-50 text-orange-600 rounded-full">
+					<PhotoIcon className="w-6 h-6" />
+				</div>
+				<span className="text-sm font-medium text-slate-700">
+					{isGeneratingPoster ? "生成中..." : "生成海报"}
+				</span>
+			</button>
+		</div>
+	);
+
+	const renderQRView = () => (
+		<div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in-95 duration-200">
+			<div className="text-sm font-medium text-center text-muted-foreground">
+				{inviteLoading ? t("invite.generating") : t("scanQRToShare")}
+			</div>
+			{inviteError && (
+				<div className="text-xs text-red-500 text-center max-w-sm">
+					{inviteError}
+				</div>
+			)}
+			<div
+				ref={qrRef}
+				className="bg-white p-4 rounded-xl border shadow-sm"
+			>
+				<QRCode
+					value={shareUrl}
+					size={Math.min(200, window.innerWidth - 160)}
+					className="max-w-full h-auto"
+				/>
+			</div>
+			<Button
+				variant="outline"
+				onClick={downloadQRCode}
+				className="flex items-center gap-2"
+			>
+				<ArrowDownTrayIcon className="w-4 h-4" />
+				{t("downloadQRCode")}
+			</Button>
+		</div>
+	);
+
+	const renderLinkView = () => (
+		<div className="space-y-4 animate-in slide-in-from-right-4 duration-200">
+			<div className="p-4 bg-slate-50 rounded-lg border break-all text-sm text-slate-600 font-mono">
+				{shareUrl}
+			</div>
+			<Button
+				onClick={() => copyToClipboard(shareUrl)}
+				className="w-full flex items-center gap-2"
+			>
+				<LinkIcon className="w-4 h-4" />
+				{t("copyLink")}
+			</Button>
+		</div>
+	);
+
+	const renderTextView = () => (
+		<div className="space-y-4 animate-in slide-in-from-right-4 duration-200">
+			<div className="p-4 bg-slate-50 rounded-lg border text-sm text-slate-600 min-h-[150px] whitespace-pre-wrap">
+				{generateShareText()}
+			</div>
+			{inviteCode && (
+				<div className="text-xs text-muted-foreground">
+					{t("invite.codeLabel", { code: inviteCode })}
+				</div>
+			)}
+			<Button
+				onClick={() => copyToClipboard(generateShareText())}
+				className="w-full flex items-center gap-2"
+			>
+				<ClipboardDocumentIcon className="w-4 h-4" />
+				{t("copyShareText")}
+			</Button>
+		</div>
+	);
+
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="max-w-[min(512px,95vw)] mx-auto">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
-						<LinkIcon className="w-5 h-5" />
-						{t("shareEvent")}
-					</DialogTitle>
-					<DialogDescription>
-						{t("shareEventDescription")}
-					</DialogDescription>
+			<DialogContent className="max-w-[min(512px,95vw)] mx-auto p-6">
+				<DialogHeader className="space-y-3">
+					<div className="flex items-center gap-2 relative">
+						{view !== "menu" && (
+							<button
+								onClick={() => setView("menu")}
+								className="absolute -left-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
+								aria-label="Back"
+							>
+								<ChevronLeftIcon className="w-5 h-5 text-slate-500" />
+							</button>
+						)}
+						<DialogTitle className={view !== "menu" ? "pl-8" : ""}>
+							{view === "menu" && t("shareEvent")}
+							{view === "qr" && "活动二维码"}
+							{view === "link" && "活动链接"}
+							{view === "text" && "分享文案"}
+						</DialogTitle>
+					</div>
+					{view === "menu" && (
+						<DialogDescription>
+							{t("shareEventDescription")}
+						</DialogDescription>
+					)}
 				</DialogHeader>
 
-				<div className="space-y-6 py-4">
-					{/* QR Code */}
-					<div className="flex flex-col items-center space-y-4">
-						<div className="text-sm font-medium text-center">
-							{inviteLoading
-								? t("invite.generating")
-								: t("scanQRToShare")}
-						</div>
-						{inviteError && (
-							<div className="text-xs text-red-500 text-center max-w-sm">
-								{inviteError}
-							</div>
-						)}
-						<div
-							ref={qrRef}
-							className="bg-white p-4 rounded-lg border"
-						>
-							<QRCode
-								value={shareUrl}
-								size={Math.min(200, window.innerWidth - 160)}
-								className="max-w-full h-auto"
-							/>
-						</div>
-						<div className="flex gap-2">
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={downloadQRCode}
-								className="flex items-center gap-2"
-							>
-								<ArrowDownTrayIcon className="w-4 h-4" />
-								{t("downloadQRCode")}
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={generatePoster}
-								className="flex items-center gap-2"
-							>
-								<PhotoIcon className="w-4 h-4" />
-								{t("generatePoster")}
-							</Button>
-						</div>
-					</div>
-
-					{/* Share Text */}
-					<div className="space-y-2">
-						<div className="text-sm font-medium">
-							{t("shareText")}
-						</div>
-						<div className="space-y-2">
-							<textarea
-								value={generateShareText()}
-								readOnly
-								rows={6}
-								className="w-full p-3 text-sm border rounded-md resize-none bg-gray-50"
-							/>
-							{inviteCode && (
-								<div className="text-xs text-muted-foreground">
-									{t("invite.codeLabel", {
-										code: inviteCode,
-									})}
-								</div>
-							)}
-							<Button
-								size="sm"
-								onClick={() =>
-									copyToClipboard(generateShareText())
-								}
-								className="flex items-center gap-2 w-full"
-							>
-								<ClipboardDocumentIcon className="w-4 h-4" />
-								{t("copyShareText")}
-							</Button>
-						</div>
-					</div>
+				<div className="py-2">
+					{view === "menu" && renderMenu()}
+					{view === "qr" && renderQRView()}
+					{view === "link" && renderLinkView()}
+					{view === "text" && renderTextView()}
 				</div>
 			</DialogContent>
 		</Dialog>

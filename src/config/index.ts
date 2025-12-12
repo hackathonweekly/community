@@ -66,6 +66,8 @@ export const config = {
 		enablePasskeys: true,
 		// 支持传统密码登录
 		enablePasswordLogin: true,
+		// 支持手机号登录
+		enablePhoneLogin: true,
 		// 允许用户启用双因素认证
 		enableTwoFactor: true,
 		// 手机验证相关设置

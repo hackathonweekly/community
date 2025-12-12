@@ -50,6 +50,7 @@ export function SubmissionDetail({
 	showResults = false,
 }: SubmissionDetailProps) {
 	const { user } = useSession();
+	const userId = user?.id;
 	const router = useRouter();
 	const pathname = usePathname();
 	const voteMutation = useVoteSubmission(submission.eventId);
@@ -62,12 +63,12 @@ export function SubmissionDetail({
 	const userVotes = new Set(data?.userVotes ?? []);
 	const hasVoted = userVotes.has(submission.id);
 	const remainingVotes = data?.remainingVotes ?? (user ? 3 : null);
-	const isLeader = user && submission.teamLeader?.id === user.id;
+	const isLeader = Boolean(userId) && submission.teamLeader?.id === userId;
 	// Block voting if current user is part of the team (leader or member)
 	const isOwnTeam =
-		Boolean(user) &&
-		(submission.teamLeader?.id === user.id ||
-			submission.teamMembers?.some((m) => m.id === user.id));
+		Boolean(userId) &&
+		(submission.teamLeader?.id === userId ||
+			submission.teamMembers?.some((m) => m.id === userId));
 	const hasMedia =
 		submission.attachments.length > 0 || Boolean(submission.coverImage);
 

@@ -1,21 +1,28 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import type { Prisma } from "@prisma/client";
+import type {
+	Prisma,
+	RegistrationStatus,
+	SubmissionStatus,
+	Project,
+} from "@prisma/client";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { HTTPException } from "hono/http-exception";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
-import { withHackathonConfigDefaults } from "@/features/hackathon/config";
 import { config } from "@/config";
-import type { HackathonStage } from "@/features/hackathon/config";
 
-const ACTIVE_REGISTRATION_STATUSES = ["APPROVED", "PENDING"] as const;
-const PUBLIC_SUBMISSION_STATUSES = [
+const ACTIVE_REGISTRATION_STATUSES: RegistrationStatus[] = [
+	"APPROVED",
+	"PENDING",
+];
+const PUBLIC_SUBMISSION_STATUSES: SubmissionStatus[] = [
 	"SUBMITTED",
 	"UNDER_REVIEW",
 	"APPROVED",
 	"AWARDED",
-] as const;
+];
 const MAX_TEAM_MEMBERS = 10;
 const MAX_VOTES_PER_USER = 3;
 const MAX_FILE_SIZE = Number(process.env.MAX_FILE_SIZE ?? 209_715_200);
@@ -81,7 +88,7 @@ const submissionInclude = {
 	project: {
 		include: {
 			attachments: {
-				orderBy: { order: "asc" },
+				orderBy: { order: "asc" as const },
 			},
 			members: {
 				include: {
@@ -129,7 +136,7 @@ const submissionInclude = {
 			award: true,
 		},
 	},
-};
+} satisfies Prisma.EventProjectSubmissionInclude;
 
 type SubmissionWithRelations = Prisma.EventProjectSubmissionGetPayload<{
 	include: typeof submissionInclude;
@@ -416,7 +423,7 @@ const app = new Hono()
 					projectData.customFields = payload.customFields;
 				}
 				if (payload.teamLeaderId) {
-					projectData.userId = nextLeaderId;
+					projectData.user = { connect: { id: nextLeaderId } };
 				}
 
 				if (Object.keys(projectData).length > 0) {
@@ -558,14 +565,17 @@ const app = new Hono()
 					: {};
 
 			const nextCustomFields: Record<string, unknown> = {
-				...existingCustomFields,
+				...(manualVoteAdjustment === 0
+					? Object.fromEntries(
+							Object.entries(existingCustomFields).filter(
+								([key]) => key !== "manualVoteAdjustment",
+							),
+						)
+					: {
+							...existingCustomFields,
+							manualVoteAdjustment,
+						}),
 			};
-
-			if (manualVoteAdjustment === 0) {
-				delete nextCustomFields.manualVoteAdjustment;
-			} else {
-				nextCustomFields.manualVoteAdjustment = manualVoteAdjustment;
-			}
 
 			await db.project.update({
 				where: { id: submission.projectId },
@@ -618,7 +628,9 @@ const app = new Hono()
 
 		const voteResult = await castVote(submission, session.user.id);
 		if (voteResult.error) {
-			return c.json(voteResult, voteResult.status);
+			return c.json(voteResult, {
+				status: voteResult.status as ContentfulStatusCode,
+			});
 		}
 
 		return c.json({
@@ -635,7 +647,9 @@ const app = new Hono()
 
 		const revokeResult = await revokeVote(submission, session.user.id);
 		if (revokeResult.error) {
-			return c.json(revokeResult, revokeResult.status);
+			return c.json(revokeResult, {
+				status: revokeResult.status as ContentfulStatusCode,
+			});
 		}
 
 		return c.json({
@@ -718,8 +732,8 @@ const app = new Hono()
 					OR: buildUserSearchFilters(query),
 				},
 				select: userSummarySelect,
-				orderBy: { name: "asc" },
-				ake: 20,
+				orderBy: { name: "asc" as const },
+				take: 20,
 			});
 		} else {
 			const registrations = await db.eventRegistration.findMany({
@@ -736,7 +750,7 @@ const app = new Hono()
 						select: userSummarySelect,
 					},
 				},
-				orderBy: { registeredAt: "asc" },
+				orderBy: { registeredAt: "asc" as const },
 				take: 20,
 			});
 			users = registrations.map((registration) => registration.user);
@@ -861,7 +875,7 @@ async function replaceAttachments(
 	});
 }
 
-function buildProjectSnapshot(project: Prisma.Project) {
+function buildProjectSnapshot(project: Project) {
 	return {
 		id: project.id,
 		title: project.title,
@@ -1265,11 +1279,11 @@ function isEventVotingClosed(event: SubmissionWithRelations["event"]) {
 	return Boolean(event.endTime && new Date() > new Date(event.endTime));
 }
 
-function buildUserSearchFilters(query: string) {
+function buildUserSearchFilters(query: string): Prisma.UserWhereInput[] {
 	return [
-		{ name: { contains: query, mode: "insensitive" } },
-		{ email: { contains: query, mode: "insensitive" } },
-		{ username: { contains: query, mode: "insensitive" } },
+		{ name: { contains: query, mode: "insensitive" as const } },
+		{ email: { contains: query, mode: "insensitive" as const } },
+		{ username: { contains: query, mode: "insensitive" as const } },
 	];
 }
 

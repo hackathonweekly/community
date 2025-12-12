@@ -845,6 +845,7 @@
 			"title": "Core Values"
 		},
 		"events": {
+			"copyLink": "Copy Link",
 			"hackathonManagement": {
 				"stage": {
 					"currentStageLabel": "Current Stage: {stage}",

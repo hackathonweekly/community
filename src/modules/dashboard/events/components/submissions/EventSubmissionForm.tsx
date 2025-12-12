@@ -18,7 +18,6 @@ import {
 import {
 	Form,
 	FormControl,
-	FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -31,10 +30,7 @@ import {
 	useCreateSubmission,
 	useUpdateSubmission,
 } from "@/features/event-submissions/hooks";
-import {
-	submissionFormSchema,
-	type SubmissionFormSchema,
-} from "@/features/event-submissions/schema";
+import { submissionFormSchema } from "@/features/event-submissions/schema";
 import type {
 	EventSubmission,
 	SubmissionFormValues,

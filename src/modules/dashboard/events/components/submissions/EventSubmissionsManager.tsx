@@ -548,7 +548,7 @@ function normalizeCustomFields(customFields: EventSubmission["customFields"]) {
 	return customFields as Record<string, unknown>;
 }
 
-function formatCustomFieldValue(value: unknown) {
+function formatCustomFieldValue(value: unknown): string {
 	if (value === null || value === undefined) return "";
 	if (Array.isArray(value)) {
 		return value.map((item) => formatCustomFieldValue(item)).join("、");
@@ -566,7 +566,7 @@ function formatCustomFieldValue(value: unknown) {
 	return String(value);
 }
 
-function formatCsvValue(value: unknown) {
+function formatCsvValue(value: unknown): string {
 	const asString = value === null || value === undefined ? "" : String(value);
 	const escaped = asString.replace(/"/g, '""');
 	return `"${escaped}"`;

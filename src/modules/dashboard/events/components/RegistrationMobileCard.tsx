@@ -39,7 +39,7 @@ interface RegistrationMobileCardProps {
 	onUpdateStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
 	allRegistrations?: EventRegistration[];
-	currentIndex?: number;
+	currentIndex?: number | null;
 	onNavigate?: (direction: "prev" | "next") => void;
 	setCurrentIndex?: (index: number | null) => void;
 }
@@ -70,7 +70,7 @@ export function RegistrationMobileCard({
 	onUpdateStatus,
 	onCancelRegistration,
 	allRegistrations,
-	currentIndex,
+	currentIndex = null,
 	onNavigate,
 	setCurrentIndex,
 }: RegistrationMobileCardProps) {

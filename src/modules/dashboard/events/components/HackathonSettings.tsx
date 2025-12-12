@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Code, Users, Trophy, Settings, FileText } from "lucide-react";
+import { Code, Users, Trophy, FileText } from "lucide-react";
 import type { Control, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import type { EventFormData } from "./types";
 import { SubmissionFormConfigEditor } from "./SubmissionFormConfigEditor";

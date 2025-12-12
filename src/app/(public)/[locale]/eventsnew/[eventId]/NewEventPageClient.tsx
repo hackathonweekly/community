@@ -24,6 +24,7 @@ import ContactOrganizerDialog from "@/modules/public/events/components/ContactOr
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 import { RegistrationSuccessModal } from "@/modules/public/events/components/registration-success-modal";
 
+import { Hero } from "./components/Hero";
 import { AnchorNav } from "./components/common/AnchorNav";
 import { MobileCTA } from "./components/common/MobileCTA";
 import { AlbumSection } from "./components/sections/AlbumSection";
@@ -34,7 +35,6 @@ import { IntroSection } from "./components/sections/IntroSection";
 import { ParticipantsSection } from "./components/sections/ParticipantsSection";
 import { VolunteersSection } from "./components/sections/VolunteersSection";
 import { WorksSection } from "./components/sections/WorksSection";
-import { Hero } from "./components/Hero";
 import type { EventData } from "./components/types";
 
 type NewEventClientProps = {
@@ -377,38 +377,6 @@ export function NewEventPageClient({
 		user,
 	]);
 
-	const enabledAnchors = [
-		{ id: "intro", label: "介绍" },
-		{
-			id: "awards",
-			label: "奖项",
-			show:
-				Boolean(event.hackathonConfig?.awards?.length) ||
-				Boolean(event.hackathonConfig?.resources),
-		},
-		{
-			id: "works",
-			label: "作品",
-			show: true,
-		},
-		{
-			id: "participants",
-			label: "报名者",
-			show: true,
-		},
-		{ id: "album", label: "相册", show: photos.length > 0 },
-		{
-			id: "volunteers",
-			label: "志愿者",
-			show:
-				Boolean(event.volunteerRoles?.length) ||
-				Boolean(event.organizerContact),
-		},
-		{ id: "feedback", label: "反馈", show: true },
-	]
-		.filter((anchor) => anchor.show ?? true)
-		.map(({ id, label }) => ({ id, label }));
-
 	const awards = event.hackathonConfig?.awards || [];
 
 	const resourcesGroups = event.hackathonConfig?.resources
@@ -428,10 +396,7 @@ export function NewEventPageClient({
 			].filter((group) => group.items.length > 0)
 		: [];
 
-	const participantsLocale = locale || "zh";
 	const volunteerRoles = event.volunteerRoles ?? [];
-	const hasVolunteerSection =
-		volunteerRoles.length > 0 || Boolean(event.organizerContact);
 	const volunteerStatuses = useMemo(
 		() =>
 			volunteerRoles.reduce<Record<string, string | null>>(
@@ -447,6 +412,43 @@ export function NewEventPageClient({
 			),
 		[volunteerRoles, user?.id],
 	);
+
+	const enabledAnchors = [
+		{ id: "intro", label: "介绍" },
+		{
+			id: "awards",
+			label: "奖项",
+			show: awards.length > 0 || resourcesGroups.length > 0,
+		},
+		{
+			id: "works",
+			label: "作品",
+			show: true,
+		},
+		{
+			id: "participants",
+			label: "报名者",
+			show: true,
+		},
+		{ id: "album", label: "相册", show: photos.length > 0 },
+		{
+			id: "volunteers",
+			label: "志愿者",
+			show:
+				volunteerRoles.length > 0 ||
+				Boolean(event.volunteerContactInfo) ||
+				Boolean(event.volunteerWechatQrCode),
+		},
+		{ id: "feedback", label: "反馈", show: true },
+	]
+		.filter((anchor) => anchor.show ?? true)
+		.map(({ id, label }) => ({ id, label }));
+
+	const participantsLocale = locale || "zh";
+	const hasVolunteerSection =
+		volunteerRoles.length > 0 ||
+		Boolean(event.volunteerContactInfo) ||
+		Boolean(event.volunteerWechatQrCode);
 
 	const canCancel =
 		!!existingRegistration &&

@@ -30,6 +30,7 @@ export interface EventDetailsProps {
 		id: string;
 		title: string;
 		description: string;
+		shortDescription?: string;
 		richContent?: string;
 		type: string;
 		status: string;
@@ -55,6 +56,8 @@ export interface EventDetailsProps {
 		viewCount: number;
 		createdAt: string;
 		isEventAdmin?: boolean;
+		registrationOpen?: boolean;
+		submissionsOpen?: boolean;
 		buildingConfig?: BuildingConfig;
 		hackathonConfig?: HackathonConfig;
 		organizer: {

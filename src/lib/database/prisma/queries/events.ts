@@ -33,6 +33,7 @@ export async function createEvent(data: {
 	registrationPendingInfo?: string;
 	registrationPendingImage?: string;
 	questions?: {
+		id?: string;
 		question: string;
 		description?: string;
 		type: "TEXT" | "TEXTAREA" | "SELECT" | "CHECKBOX" | "RADIO";
@@ -693,6 +694,7 @@ export async function updateEvent(
 		votingOpen: boolean;
 		showVotesOnGallery: boolean;
 		questions: {
+			id?: string;
 			question: string;
 			description?: string;
 			type: "TEXT" | "TEXTAREA" | "SELECT" | "CHECKBOX" | "RADIO";

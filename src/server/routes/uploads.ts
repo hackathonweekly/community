@@ -186,7 +186,7 @@ const buildPublicUrl = (path: string, signedUrl?: string): string => {
 };
 
 // Check user permission for bucket access
-function hasAccessToBucket(bucket: string, user: Session["user"]): boolean {
+function hasAccessToBucket(bucket: string, user?: Session["user"]): boolean {
 	// Public bucket access rules
 	if (bucket === config.storage.bucketNames.public) {
 		// All authenticated users can upload to public bucket
@@ -325,7 +325,7 @@ export const uploadsRouter = new Hono<{
 				console.error("User lacks bucket access:", {
 					requestedBucket: bucket,
 					resolvedBucket,
-					userId: user.id,
+					userId: user?.id,
 				});
 				throw new HTTPException(403, {
 					message: "Insufficient permissions for this bucket",
@@ -384,13 +384,28 @@ export const uploadsRouter = new Hono<{
 			const formData = await c.req.formData();
 			const file = formData.get("file") as File | null;
 			const bucket = formData.get("bucket") as string | null;
-			const resolvedBucket = bucket ? resolveBucketName(bucket) : null;
 			const path = formData.get("path") as string | null;
 			const contentType = formData.get("contentType") as
 				| string
 				| null
 				| undefined;
 			const user = c.get("user");
+
+			if (!file) {
+				throw new HTTPException(400, { message: "File is required" });
+			}
+
+			if (!bucket) {
+				throw new HTTPException(400, { message: "Bucket is required" });
+			}
+
+			if (!path) {
+				throw new HTTPException(400, {
+					message: "File path is required",
+				});
+			}
+
+			const resolvedBucket = resolveBucketName(bucket);
 
 			if (!validateFilePath(path)) {
 				throw new HTTPException(400, { message: "Invalid file path" });

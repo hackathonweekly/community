@@ -1,6 +1,7 @@
 import { createModuleLogger } from "@/lib/logs";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
+import { resolver } from "hono-openapi/zod";
 import { z } from "zod";
 
 const logger = createModuleLogger("version");
@@ -8,8 +9,12 @@ const logger = createModuleLogger("version");
 // 尝试获取 git tag 版本号
 function getVersionFromGit(): string | null {
 	try {
-		// 使用 Bun 的 Shell API 执行 git 命令
-		const result = Bun.spawnSync({
+		// 使用 Bun 的 Shell API 执行 git 命令（在非 Bun 环境下回退为 null）
+		const bun = (globalThis as any).Bun;
+		const spawnSync = bun?.spawnSync as ((options: any) => any) | undefined;
+		if (!spawnSync) return null;
+
+		const result = spawnSync({
 			cmd: ["git", "describe", "--tags", "--abbrev=0"],
 			stdout: "pipe",
 			stderr: "pipe",
@@ -61,26 +66,30 @@ export const versionRouter = new Hono().get(
 				description: "Version information",
 				content: {
 					"application/json": {
-						schema: z.object({
-							version: z.string().describe("应用版本"),
-							buildTime: z.string().describe("构建时间"),
-							nodeVersion: z.string().describe("Node.js版本"),
-							gitCommit: z
-								.string()
-								.optional()
-								.describe("Git提交哈希"),
-							environment: z.string().describe("环境"),
-							imageModeration: z
-								.object({
-									lastModified: z
-										.string()
-										.describe("图片审核功能最后修改时间"),
-									version: z
-										.string()
-										.describe("图片审核修复版本"),
-								})
-								.describe("图片审核功能版本信息"),
-						}),
+						schema: resolver(
+							z.object({
+								version: z.string().describe("应用版本"),
+								buildTime: z.string().describe("构建时间"),
+								nodeVersion: z.string().describe("Node.js版本"),
+								gitCommit: z
+									.string()
+									.optional()
+									.describe("Git提交哈希"),
+								environment: z.string().describe("环境"),
+								imageModeration: z
+									.object({
+										lastModified: z
+											.string()
+											.describe(
+												"图片审核功能最后修改时间",
+											),
+										version: z
+											.string()
+											.describe("图片审核修复版本"),
+									})
+									.describe("图片审核功能版本信息"),
+							}),
+						),
 					},
 				},
 			},

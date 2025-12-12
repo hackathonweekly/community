@@ -1,17 +1,16 @@
 "use client";
 
 import { format } from "date-fns";
-import { Bookmark, CalendarDays, Heart, MapPin, Share2 } from "lucide-react";
+import { CalendarDays, MapPin, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ManagementButton } from "@/app/(public)/[locale]/events/[eventId]/components/ManagementButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 import { HeroMeta } from "./common/HeroMeta";
-import { getEventTypeLabels, formatTimezoneDisplay } from "./utils";
 import type { EventData } from "./types";
+import { formatTimezoneDisplay, getEventTypeLabels } from "./utils";
 
 interface HeroProps {
 	event: EventData;
@@ -86,7 +85,7 @@ export function Hero({
 				<h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">
 					{event.title}
 				</h1>
-				<div className="flex flex-wrap gap-2 text-sm text-white/90">
+				<div className="flex flex-col items-start gap-2 text-sm text-white/90">
 					<HeroMeta
 						icon={CalendarDays}
 						primary={`${format(new Date(event.startTime), "M月d日 HH:mm")} - ${format(new Date(event.endTime), "M月d日 HH:mm")}`}
@@ -142,7 +141,7 @@ export function Hero({
 						<Share2 className="h-4 w-4 mr-2" />
 						分享
 					</Button>
-					<div className="flex items-center gap-2">
+					{/* <div className="flex items-center gap-2">
 						<Button
 							variant="ghost"
 							size="icon"
@@ -182,7 +181,7 @@ export function Hero({
 								)}
 							/>
 						</Button>
-					</div>
+					</div> */}
 				</div>
 			</div>
 		</div>

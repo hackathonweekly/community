@@ -511,8 +511,7 @@ export function EventRegistrationForm({
 	// Get available ticket types
 	const availableTicketTypes = event.ticketTypes.filter(
 		(ticket) =>
-			ticket &&
-			ticket.isActive &&
+			ticket?.isActive &&
 			(!ticket.maxQuantity ||
 				ticket.currentQuantity < ticket.maxQuantity),
 	);

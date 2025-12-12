@@ -23,6 +23,7 @@ export type Config = {
 		enableSocialLogin: boolean;
 		enablePasskeys: boolean;
 		enablePasswordLogin: boolean;
+		enablePhoneLogin?: boolean;
 		enableTwoFactor: boolean;
 		requirePhoneVerification: boolean;
 		allowSkipPhoneVerification: boolean;

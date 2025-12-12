@@ -119,6 +119,7 @@ export function EventSubmissionsGallery({
 
 	const isVisible = usePageVisibility();
 	const { user } = useSession();
+	const userId = user?.id;
 	const pathname = usePathname();
 	const router = useRouter();
 
@@ -146,9 +147,9 @@ export function EventSubmissionsGallery({
 		if (filter === "mine") {
 			return submissions.filter(
 				(s) =>
-					user &&
-					(s.teamLeader?.id === user.id ||
-						s.teamMembers?.some((m) => m.id === user.id)),
+					userId &&
+					(s.teamLeader?.id === userId ||
+						s.teamMembers?.some((m) => m.id === userId)),
 			);
 		}
 
@@ -157,7 +158,7 @@ export function EventSubmissionsGallery({
 		}
 
 		return submissions;
-	}, [submissions, filter, user, votedIds]);
+	}, [submissions, filter, userId, votedIds]);
 
 	const leaderboardSubmissions = useMemo(() => {
 		if (!canShowVotes) return [];
@@ -227,11 +228,12 @@ export function EventSubmissionsGallery({
 
 	const renderVoteButton = (submission: EventSubmission) => {
 		const hasVoted = votedIds.has(submission.id);
+		const userId = user?.id;
 		// Disable voting for anyone on the submission's team (leader or members)
 		const isOwnTeam =
-			Boolean(user) &&
-			(submission.teamLeader?.id === user.id ||
-				submission.teamMembers?.some((m) => m.id === user.id));
+			Boolean(userId) &&
+			(submission.teamLeader?.id === userId ||
+				submission.teamMembers?.some((m) => m.id === userId));
 		const noVotesLeft = remainingVotes !== null && remainingVotes <= 0;
 
 		// 投票未开放时禁用所有投票按钮
@@ -245,7 +247,11 @@ export function EventSubmissionsGallery({
 
 		if (!user) {
 			return (
-				<Button variant="outline" size="sm" onClick={handleRequireAuth}>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={() => handleRequireAuth()}
+				>
 					登录后投票
 				</Button>
 			);
@@ -546,10 +552,10 @@ export function EventSubmissionsGallery({
 						const { previewImage, mediaBadge } =
 							getPreviewData(submission);
 						const isMine =
-							user &&
-							(submission.teamLeader?.id === user.id ||
+							userId &&
+							(submission.teamLeader?.id === userId ||
 								submission.teamMembers?.some(
-									(m) => m.id === user.id,
+									(m) => m.id === userId,
 								));
 
 						if (viewMode === "list") {

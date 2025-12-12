@@ -17,7 +17,6 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,9 +96,9 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 
 	// Start countdown
 	const handleStart = () => {
-		const h = parseInt(hours) || 0;
-		const m = parseInt(minutes) || 0;
-		const s = parseInt(seconds) || 0;
+		const h = Number.parseInt(hours) || 0;
+		const m = Number.parseInt(minutes) || 0;
+		const s = Number.parseInt(seconds) || 0;
 
 		if (h === 0 && m === 0 && s === 0) {
 			return;
