@@ -1,28 +1,28 @@
 "use client";
 
+import {
+	File as FileIcon,
+	Image as ImageIcon,
+	MoveDown,
+	MoveUp,
+	Music2,
+	Trash2,
+	Upload,
+	Video,
+} from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { v4 as uuid } from "uuid";
 import { toast } from "sonner";
-import {
-	Image as ImageIcon,
-	Video,
-	Music2,
-	File as FileIcon,
-	Upload,
-	Trash2,
-	MoveUp,
-	MoveDown,
-} from "lucide-react";
+import { v4 as uuid } from "uuid";
 
-import { config } from "@/config";
-import { buildPublicUrl } from "@/lib/uploads/client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+import { Progress } from "@/components/ui/progress";
+import { config } from "@/config";
 import type { SubmissionAttachmentInput } from "@/features/event-submissions/types";
+import { buildPublicUrl } from "@/lib/uploads/client";
+import { cn } from "@/lib/utils";
 
 const MAX_ATTACHMENT_SIZE = 200 * 1024 * 1024; // 200MB
 const MAX_ATTACHMENTS = 20;
@@ -373,11 +373,11 @@ export function AttachmentUploader({
 	};
 
 	return (
-		<div className="space-y-4">
+		<div className="space-y-3">
 			<div
 				{...getRootProps({
 					className: cn(
-						"border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition",
+						"border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition",
 						isDragging
 							? "border-primary bg-primary/5"
 							: "border-muted-foreground/30 hover:border-primary/60",
@@ -387,107 +387,103 @@ export function AttachmentUploader({
 				<input {...getInputProps()} />
 				<div className="flex flex-col items-center justify-center space-y-2">
 					<div className="rounded-full bg-primary/10 p-2">
-						<Upload className="h-5 w-5 text-primary" />
+						<Upload className="h-4 w-4 text-primary" />
 					</div>
-					<p className="text-sm font-medium">
-						拖拽或点击上传附件（支持图片、视频、音频等）
-					</p>
+					<p className="text-sm font-medium">拖拽或点击上传附件</p>
 					<p className="text-xs text-muted-foreground">
-						单个文件 ≤ 200MB，最多 {MAX_ATTACHMENTS} 个
+						≤ 200MB，最多 {MAX_ATTACHMENTS} 个
 					</p>
 				</div>
 			</div>
 
-			<div className="grid gap-4">
+			<div className="grid gap-3">
 				{attachments.length === 0 && (
 					<p className="text-sm text-muted-foreground">
 						暂未上传任何附件
 					</p>
 				)}
 				{attachments.map((attachment, index) => (
-					<Card key={attachment.tempId}>
-						<CardContent className="p-4">
-							<div className="flex items-start justify-between gap-4">
-								<div className="flex items-start gap-3">
-									<div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
-										{getFileIcon(attachment.fileType)}
-									</div>
-									<div>
-										<p className="font-medium text-sm">
-											{attachment.fileName}
-										</p>
-										<div className="flex items-center gap-2 text-xs text-muted-foreground">
-											<span>
-												{(
-													attachment.fileSize /
-													(1024 * 1024)
-												).toFixed(2)}{" "}
-												MB
-											</span>
-											<Badge variant="secondary">
-												{attachment.fileType}
-											</Badge>
-										</div>
-										{attachment.uploading && (
-											<div className="mt-2">
-												<Progress
-													value={
-														attachment.uploadProgress ??
-														0
-													}
-												/>
-												<p className="text-xs text-muted-foreground mt-1">
-													正在上传{" "}
-													{attachment.uploadProgress ??
-														0}
-													%
-												</p>
-											</div>
-										)}
-									</div>
+					<div
+						key={attachment.tempId}
+						className="rounded-lg border p-3 bg-muted/30"
+					>
+						<div className="flex items-start justify-between gap-4">
+							<div className="flex items-start gap-3 min-w-0 flex-1">
+								<div className="w-10 h-10 rounded bg-muted flex items-center justify-center shrink-0">
+									{getFileIcon(attachment.fileType)}
 								</div>
-								<div className="flex items-center gap-2">
-									<Button
-										variant="ghost"
-										size="icon"
-										disabled={index === 0}
-										onClick={() =>
-											moveAttachment(
-												attachment.tempId,
-												"up",
-											)
-										}
+								<div className="min-w-0 flex-1">
+									<p
+										className="font-medium text-sm truncate"
+										title={attachment.fileName}
 									>
-										<MoveUp className="h-4 w-4" />
-									</Button>
-									<Button
-										variant="ghost"
-										size="icon"
-										disabled={
-											index === attachments.length - 1
-										}
-										onClick={() =>
-											moveAttachment(
-												attachment.tempId,
-												"down",
-											)
-										}
-									>
-										<MoveDown className="h-4 w-4" />
-									</Button>
-									<Button
-										variant="ghost"
-										size="icon"
-										onClick={() =>
-											removeAttachment(attachment.tempId)
-										}
-									>
-										<Trash2 className="h-4 w-4" />
-									</Button>
+										{attachment.fileName}
+									</p>
+									<div className="flex items-center gap-2 text-xs text-muted-foreground">
+										<span>
+											{(
+												attachment.fileSize /
+												(1024 * 1024)
+											).toFixed(2)}{" "}
+											MB
+										</span>
+										<Badge variant="secondary">
+											{attachment.fileType}
+										</Badge>
+									</div>
+									{attachment.uploading && (
+										<div className="mt-2">
+											<Progress
+												value={
+													attachment.uploadProgress ??
+													0
+												}
+											/>
+											<p className="text-xs text-muted-foreground mt-1">
+												正在上传{" "}
+												{attachment.uploadProgress ?? 0}
+												%
+											</p>
+										</div>
+									)}
 								</div>
 							</div>
-						</CardContent>
-					</Card>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="ghost"
+									size="icon"
+									disabled={index === 0}
+									onClick={() =>
+										moveAttachment(attachment.tempId, "up")
+									}
+								>
+									<MoveUp className="h-4 w-4" />
+								</Button>
+								<Button
+									variant="ghost"
+									size="icon"
+									disabled={index === attachments.length - 1}
+									onClick={() =>
+										moveAttachment(
+											attachment.tempId,
+											"down",
+										)
+									}
+								>
+									<MoveDown className="h-4 w-4" />
+								</Button>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() =>
+										removeAttachment(attachment.tempId)
+									}
+								>
+									<Trash2 className="h-4 w-4" />
+								</Button>
+							</div>
+						</div>
+					</div>
 				))}
 			</div>
 		</div>

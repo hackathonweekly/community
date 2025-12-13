@@ -501,8 +501,8 @@ const app = new Hono()
 					});
 
 				if (updatedSubmission) {
-					const judgeWeight = votingConfig.judgeWeight || 0.7;
-					const publicWeight = votingConfig.publicWeight || 0.3;
+					const judgeWeight = votingConfig.judgeWeight ?? 0;
+					const publicWeight = votingConfig.publicWeight ?? 1;
 
 					let finalScore = null;
 					if (

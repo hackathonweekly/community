@@ -605,122 +605,64 @@ export function HackathonManagement({
 							<CardTitle>投票规则</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-4">
-							<div className="grid grid-cols-2 gap-6">
-								<div className="space-y-4">
-									<div className="flex items-center justify-between">
-										<Label htmlFor="allowPublicVoting">
-											开启公众投票
-										</Label>
-										<Switch
-											id="allowPublicVoting"
-											checked={
-												config.voting.allowPublicVoting
-											}
-											onCheckedChange={(checked) =>
-												setConfig((prev) => ({
-													...prev,
-													voting: {
-														...prev.voting,
-														allowPublicVoting:
-															checked,
-													},
-												}))
-											}
-										/>
-									</div>
-									<div className="flex items-center justify-between">
-										<Label htmlFor="enableJudgeVoting">
-											开启专家评审
-										</Label>
-										<Switch
-											id="enableJudgeVoting"
-											checked={
-												config.voting.enableJudgeVoting
-											}
-											onCheckedChange={(checked) =>
-												setConfig((prev) => ({
-													...prev,
-													voting: {
-														...prev.voting,
-														enableJudgeVoting:
-															checked,
-													},
-												}))
-											}
-										/>
-									</div>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								<div className="flex items-center justify-between">
+									<Label htmlFor="allowPublicVoting">
+										开启公众投票
+									</Label>
+									<Switch
+										id="allowPublicVoting"
+										checked={
+											config.voting.allowPublicVoting
+										}
+										onCheckedChange={(checked) =>
+											setConfig((prev) => ({
+												...prev,
+												voting: {
+													...prev.voting,
+													allowPublicVoting: checked,
+												},
+											}))
+										}
+									/>
 								</div>
-								<div className="space-y-4">
-									<div>
-										<Label htmlFor="judgeWeight">
-											专家投票权重
-										</Label>
-										<Input
-											id="judgeWeight"
-											type="number"
-											min="0"
-											max="1"
-											step="0.1"
-											value={config.voting.judgeWeight}
-											onChange={(e) =>
-												setConfig((prev) => ({
-													...prev,
-													voting: {
-														...prev.voting,
-														judgeWeight:
-															Number.parseFloat(
-																e.target.value,
-															) || 0.7,
-														publicWeight:
-															1 -
-															(Number.parseFloat(
-																e.target.value,
-															) || 0.7),
-													},
-												}))
-											}
-										/>
-									</div>
-									<div>
-										<Label htmlFor="publicVotingScope">
-											公众投票范围
-										</Label>
-										<Select
-											value={
-												config.voting.publicVotingScope
-											}
-											onValueChange={(
-												value:
-													| "ALL"
-													| "REGISTERED"
-													| "PARTICIPANTS",
-											) =>
-												setConfig((prev) => ({
-													...prev,
-													voting: {
-														...prev.voting,
-														publicVotingScope:
-															value as HackathonVoting["publicVotingScope"],
-													},
-												}))
-											}
-										>
-											<SelectTrigger>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="ALL">
-													所有用户
-												</SelectItem>
-												<SelectItem value="REGISTERED">
-													已注册用户
-												</SelectItem>
-												<SelectItem value="PARTICIPANTS">
-													参赛者
-												</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
+								<div>
+									<Label htmlFor="publicVotingScope">
+										公众投票范围
+									</Label>
+									<Select
+										value={config.voting.publicVotingScope}
+										onValueChange={(
+											value:
+												| "ALL"
+												| "REGISTERED"
+												| "PARTICIPANTS",
+										) =>
+											setConfig((prev) => ({
+												...prev,
+												voting: {
+													...prev.voting,
+													publicVotingScope:
+														value as HackathonVoting["publicVotingScope"],
+												},
+											}))
+										}
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="ALL">
+												所有用户
+											</SelectItem>
+											<SelectItem value="REGISTERED">
+												已注册用户
+											</SelectItem>
+											<SelectItem value="PARTICIPANTS">
+												参赛者
+											</SelectItem>
+										</SelectContent>
+									</Select>
 								</div>
 							</div>
 						</CardContent>

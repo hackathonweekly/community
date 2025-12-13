@@ -117,7 +117,7 @@ export function HackathonContent({
 
 	// 根据是否已提交作品，决定跳转URL
 	const privateSubmissionUrl = userSubmission
-		? `/app/events/${event.id}/submissions/${userSubmission.id}/edit`
+		? `/app/events/${event.id}/submissions`
 		: `/app/events/${event.id}/submissions/new`;
 
 	// Check if user is registered
@@ -171,7 +171,7 @@ export function HackathonContent({
 					<Button asChild className="gap-2">
 						<Link href={privateSubmissionUrl}>
 							<Target className="w-4 h-4" />
-							{userSubmission ? "我的作品" : "提交作品"}
+							{userSubmission ? "修改作品" : "提交作品"}
 						</Link>
 					</Button>
 				)}

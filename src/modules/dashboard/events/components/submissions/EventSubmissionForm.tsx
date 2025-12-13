@@ -33,9 +33,9 @@ import {
 import { submissionFormSchema } from "@/features/event-submissions/schema";
 import type {
 	EventSubmission,
+	SubmissionFormConfig,
 	SubmissionFormValues,
 	UserSearchResult,
-	SubmissionFormConfig,
 } from "@/features/event-submissions/types";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
@@ -45,8 +45,8 @@ import {
 	type AttachmentDraft,
 	AttachmentUploader,
 } from "./AttachmentUploader";
-import { TeamSection } from "./TeamSection";
 import { DynamicFormField } from "./DynamicFormField";
+import { TeamSection } from "./TeamSection";
 
 interface EventSubmissionFormProps {
 	eventId: string;
@@ -63,8 +63,8 @@ interface SubmissionDraftPayload extends Record<string, unknown> {
 	attachments: AttachmentDraft[];
 }
 
-const COMPACT_CARD_HEADER = "gap-1.5 p-5 pb-3";
-const COMPACT_CARD_CONTENT = "p-5 pt-0 space-y-3";
+const COMPACT_CARD_HEADER = "gap-1 px-4 py-3";
+const COMPACT_CARD_CONTENT = "px-4 pb-4 pt-0 space-y-3";
 
 export function EventSubmissionForm({
 	eventId,
@@ -366,7 +366,7 @@ export function EventSubmissionForm({
 		: [];
 
 	return (
-		<div className="space-y-5">
+		<div className="space-y-4">
 			<div>
 				<p className="text-muted-foreground">
 					请填写作品信息，系统将自动保存草稿。
@@ -381,7 +381,7 @@ export function EventSubmissionForm({
 
 			<Form {...form}>
 				<form
-					className="space-y-5"
+					className="space-y-4"
 					onSubmit={(e) => e.preventDefault()}
 				>
 					{/* 基础信息 */}
@@ -393,48 +393,50 @@ export function EventSubmissionForm({
 							</CardDescription>
 						</CardHeader>
 						<CardContent className={COMPACT_CARD_CONTENT}>
-							<FormField
-								control={form.control}
-								name="name"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											作品名称{" "}
-											<span className="text-red-500">
-												*
-											</span>
-										</FormLabel>
-										<FormControl>
-											<Input
-												placeholder="输入作品名称"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-							<FormField
-								control={form.control}
-								name="tagline"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											一句话介绍（至少 10 个字）{" "}
-											<span className="text-red-500">
-												*
-											</span>
-										</FormLabel>
-										<FormControl>
-											<Input
-												placeholder="> 10 个字，请直接说明作品核心价值"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<FormField
+									control={form.control}
+									name="name"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												作品名称{" "}
+												<span className="text-red-500">
+													*
+												</span>
+											</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="输入作品名称"
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+								<FormField
+									control={form.control}
+									name="tagline"
+									render={({ field }) => (
+										<FormItem>
+											<FormLabel>
+												一句话介绍{" "}
+												<span className="text-red-500">
+													*
+												</span>
+											</FormLabel>
+											<FormControl>
+												<Input
+													placeholder="> 10 个字，概括核心价值"
+													{...field}
+												/>
+											</FormControl>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							</div>
 							<FormField
 								control={form.control}
 								name="demoUrl"
@@ -468,14 +470,16 @@ export function EventSubmissionForm({
 											</span>
 										</FormLabel>
 										<FormControl>
-											<TiptapRichEditor
-												value={field.value}
-												onChange={(html) =>
-													field.onChange(html)
-												}
-												placeholder="详细介绍你的作品、灵感和实现方式"
-												height={200}
-											/>
+											<div className="min-h-[150px]">
+												<TiptapRichEditor
+													value={field.value}
+													onChange={(html) =>
+														field.onChange(html)
+													}
+													placeholder="详细介绍你的作品、灵感和实现方式"
+													height={150}
+												/>
+											</div>
 										</FormControl>
 										<FormMessage />
 									</FormItem>
@@ -589,7 +593,7 @@ export function EventSubmissionForm({
 												>
 													<label
 														className={cn(
-															"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
+															"flex items-center space-x-2 rounded-lg border p-3 cursor-pointer",
 															field.value &&
 																"border-primary bg-primary/5",
 														)}
@@ -606,7 +610,7 @@ export function EventSubmissionForm({
 													</label>
 													<label
 														className={cn(
-															"flex items-center space-x-2 rounded-lg border p-4 cursor-pointer",
+															"flex items-center space-x-2 rounded-lg border p-3 cursor-pointer",
 															!field.value &&
 																"border-primary bg-primary/5",
 														)}

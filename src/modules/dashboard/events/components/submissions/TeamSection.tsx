@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Crown, Users } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
 import type { UserSearchResult } from "@/features/event-submissions/types";
 import { UserSearchCombobox } from "./UserSearchCombobox";
 
@@ -61,56 +61,50 @@ export function TeamSection({
 	const leaderAvatarFallback = leader?.name?.slice(0, 2) ?? "?";
 
 	return (
-		<div className="space-y-6">
-			<Card>
-				<CardContent className="p-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-					<div className="flex items-center gap-3">
-						<div className="rounded-full bg-primary/10 p-2">
-							<Crown className="h-5 w-5 text-primary" />
-						</div>
-						<div>
-							<p className="text-sm text-muted-foreground">
-								队长
-							</p>
-							<div className="flex items-center gap-2 mt-1">
-								<Avatar className="h-10 w-10">
-									<AvatarImage
-										src={leader?.image ?? undefined}
-									/>
-									<AvatarFallback>
-										{leaderAvatarFallback}
-									</AvatarFallback>
-								</Avatar>
-								<div>
-									<p className="font-medium">
-										{leader?.name ?? "未选择"}
+		<div className="space-y-4">
+			<div className="rounded-lg border p-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between bg-muted/30">
+				<div className="flex items-center gap-3">
+					<div className="rounded-full bg-primary/10 p-2">
+						<Crown className="h-4 w-4 text-primary" />
+					</div>
+					<div>
+						<p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+							队长
+						</p>
+						<div className="flex items-center gap-2 mt-1">
+							<Avatar className="h-8 w-8">
+								<AvatarImage src={leader?.image ?? undefined} />
+								<AvatarFallback>
+									{leaderAvatarFallback}
+								</AvatarFallback>
+							</Avatar>
+							<div>
+								<p className="text-sm font-medium">
+									{leader?.name ?? "未选择"}
+								</p>
+								{leader?.username && (
+									<p className="text-xs text-muted-foreground">
+										@{leader.username}
 									</p>
-									{leader?.username && (
-										<p className="text-xs text-muted-foreground">
-											@{leader.username}
-										</p>
-									)}
-								</div>
+								)}
 							</div>
 						</div>
 					</div>
-					<div className="flex gap-2">
-						<UserSearchCombobox
-							eventId={eventId}
-							scope="event"
-							excludeIds={[
-								leader?.id ?? "",
-								...members.map((m) => m.id),
-							]}
-							onSelect={onLeaderChange}
-							triggerLabel={
-								leaderLocked ? "队长已锁定" : "更换队长"
-							}
-							disabled={leaderLocked}
-						/>
-					</div>
-				</CardContent>
-			</Card>
+				</div>
+				<div className="flex gap-2">
+					<UserSearchCombobox
+						eventId={eventId}
+						scope="event"
+						excludeIds={[
+							leader?.id ?? "",
+							...members.map((m) => m.id),
+						]}
+						onSelect={onLeaderChange}
+						triggerLabel={leaderLocked ? "队长已锁定" : "更换队长"}
+						disabled={leaderLocked}
+					/>
+				</div>
+			</div>
 
 			<div className="space-y-3">
 				<div className="flex items-center justify-between">

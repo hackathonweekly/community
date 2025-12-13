@@ -3,10 +3,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BuildingPublicManagement } from "@/modules/dashboard/events/components/BuildingPublicManagement";
-import { HackathonManagement } from "@/modules/dashboard/events/components/HackathonManagement";
 import { EventAdminManager } from "@/modules/dashboard/events/components/EventAdminManager";
 import { EventCheckIn } from "@/modules/dashboard/events/components/EventCheckIn";
 import { EventFeedback } from "@/modules/dashboard/events/components/EventFeedback";
+import { EventInvitesTab } from "@/modules/dashboard/events/components/EventInvitesTab";
 import { EventManageHeader } from "@/modules/dashboard/events/components/EventManageHeader";
 import { EventOverviewTab } from "@/modules/dashboard/events/components/EventOverviewTab";
 import { EventQRGeneratorModal } from "@/modules/dashboard/events/components/EventQRGeneratorModal";
@@ -14,15 +14,15 @@ import { EventQuickStats } from "@/modules/dashboard/events/components/EventQuic
 import { EventRegistrationsTab } from "@/modules/dashboard/events/components/EventRegistrationsTab";
 import { EventShareModal } from "@/modules/dashboard/events/components/EventShareModal";
 import { EventStatusBanner } from "@/modules/dashboard/events/components/EventStatusBanner";
+import { HackathonManagement } from "@/modules/dashboard/events/components/HackathonManagement";
 import { QRScanner } from "@/modules/dashboard/events/components/QRScanner";
 import { SaveTemplateModal } from "@/modules/dashboard/events/components/SaveTemplateModal";
 import { VolunteerManagement } from "@/modules/dashboard/events/components/VolunteerManagement";
-import { EventInvitesTab } from "@/modules/dashboard/events/components/EventInvitesTab";
 import { EventSubmissionsManager } from "@/modules/dashboard/events/components/submissions/EventSubmissionsManager";
 import { useEventManagement } from "@/modules/dashboard/events/hooks/useEventManagement";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function EventManagePage() {
 	const t = useTranslations("events.manage");
@@ -54,6 +54,16 @@ export default function EventManagePage() {
 	const [isEventQRGeneratorOpen, setIsEventQRGeneratorOpen] = useState(false);
 	const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 	const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
+
+	// 初始化：根据 URL hash 设置当前 Tab，便于通过链接直接定位
+	useEffect(() => {
+		if (!event) return;
+		if (typeof window === "undefined") return;
+		const hash = window.location.hash.replace("#", "");
+		if (hash) {
+			setActiveTab(hash);
+		}
+	}, [event, setActiveTab]);
 
 	if (loading) {
 		return (
@@ -114,7 +124,16 @@ export default function EventManagePage() {
 					pendingCount={pendingCount}
 				/>
 
-				<Tabs value={activeTab} onValueChange={setActiveTab}>
+				{/* 根据 URL hash 初始化 Tab，并在切换时写入 hash 以便分享链接直接定位 */}
+				<Tabs
+					value={activeTab}
+					onValueChange={(value) => {
+						setActiveTab(value);
+						if (typeof window !== "undefined") {
+							window.history.replaceState(null, "", `#${value}`);
+						}
+					}}
+				>
 					<div className="-mx-1 overflow-x-auto pb-2 md:mx-0 md:pb-0">
 						<TabsList className="w-max h-auto flex-nowrap gap-2 px-1 md:w-full md:grid md:grid-cols-9 md:gap-0 md:px-0">
 							<TabsTrigger

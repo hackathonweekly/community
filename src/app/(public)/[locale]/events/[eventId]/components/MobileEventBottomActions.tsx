@@ -186,10 +186,10 @@ export function MobileEventBottomActions({
 
 	const moreActions = [
 		{
-			key: "share",
-			label: "分享活动",
-			icon: <ShareIcon className="h-5 w-5" />,
-			onClick: () => handleShare(),
+			key: "photos",
+			label: "现场相册",
+			icon: <PhotoIcon className="h-5 w-5" />,
+			onClick: () => handleOpenAlbum(),
 		},
 		onShowQRGenerator && existingRegistration?.status === "APPROVED"
 			? {
@@ -241,25 +241,36 @@ export function MobileEventBottomActions({
 			>
 				<div className="max-w-md mx-auto">
 					<div className="flex items-center gap-3">
-						{/* 相册按钮 */}
+						{/* 更多操作按钮 - 放在最左边 */}
 						<Button
 							variant="outline"
 							size="icon"
-							onClick={handleOpenAlbum}
+							onClick={() => setIsActionsSheetOpen(true)}
 							className="flex-shrink-0 h-11 w-11"
-							title="相册"
+							title="更多操作"
 						>
-							<PhotoIcon className="h-5 w-5" />
+							<EllipsisHorizontalIcon className="h-5 w-5" />
 						</Button>
 
-						{/* 主按钮 - 根据状态显示不同内容 */}
+						{/* 分享按钮 - 放在中间 */}
+						<Button
+							variant="outline"
+							size="icon"
+							onClick={handleShare}
+							className="flex-shrink-0 h-11 w-11"
+							title="分享"
+						>
+							<ShareIcon className="h-5 w-5" />
+						</Button>
+
+						{/* 主按钮 - 放在最右边，根据状态显示不同内容 */}
 						{shouldShowImportantInfo &&
 						existingRegistration?.status === "APPROVED" ? (
-							// 已报名且成功：显示提交作品或我的作品按钮
+							// 已报名且成功：显示提交/修改作品按钮
 							<Button
 								onClick={() => {
 									const route = hasUserSubmitted
-										? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}/edit`
+										? `/app/events/${event.id}/submissions`
 										: `/app/events/${event.id}/submissions/new`;
 									router.push(route);
 								}}
@@ -267,7 +278,7 @@ export function MobileEventBottomActions({
 								size="lg"
 							>
 								{hasUserSubmitted
-									? "📝 我的作品"
+									? "📝 修改作品"
 									: "📤 提交作品"}
 							</Button>
 						) : shouldShowImportantInfo ? (
@@ -280,7 +291,7 @@ export function MobileEventBottomActions({
 								<span className="mr-1">📋</span> 查看重要信息
 							</Button>
 						) : (
-							// 其他情况：显示报名/查看二维码按钮
+							// 其他情况：显示报名/查看二维码/提交/修改作品按钮
 							<Button
 								onClick={() => {
 									// 如果已报名成功，默认行为是提交作品或我的作品
@@ -289,7 +300,7 @@ export function MobileEventBottomActions({
 										"APPROVED"
 									) {
 										const route = hasUserSubmitted
-											? `/app/events/${event.id}/submissions/${userSubmittedProject?.id}/edit`
+											? `/app/events/${event.id}/submissions`
 											: `/app/events/${event.id}/submissions/new`;
 										router.push(route);
 										return;
@@ -317,22 +328,13 @@ export function MobileEventBottomActions({
 							>
 								{existingRegistration?.status === "APPROVED"
 									? hasUserSubmitted
-										? "📝 我的作品"
+										? "📝 修改作品"
 										: "📤 提交作品"
 									: getRegisterButtonText()}
 							</Button>
 						)}
 
-						{/* 更多操作按钮 */}
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={() => setIsActionsSheetOpen(true)}
-							className="flex-shrink-0 h-11 w-11"
-							title="更多操作"
-						>
-							<EllipsisHorizontalIcon className="h-5 w-5" />
-						</Button>
+						{/* 右侧占位以保持布局一致（可选） */}
 					</div>
 				</div>
 			</div>

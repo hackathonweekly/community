@@ -198,6 +198,8 @@ export function EventSubmissionsManager({
 			"团队人数",
 			"提交时间",
 			"Demo URL",
+			"附件链接",
+			"图片链接",
 			...sortedCustomFields.map((field) => field.label),
 			...(!sortedCustomFields.length && hasCustomFieldData
 				? ["自定义问卷"]
@@ -214,6 +216,17 @@ export function EventSubmissionsManager({
 				!sortedCustomFields.length && hasCustomFieldData
 					? [formatCustomFieldValue(customFields ?? "")]
 					: [];
+
+			// 附件与图片链接（使用绝对可访问链接）
+			const allAttachmentUrls = (submission.attachments || [])
+				.map((a) => a.fileUrl)
+				.filter(Boolean)
+				.join(" | ");
+			const imageAttachmentUrls = (submission.attachments || [])
+				.filter((a) => a.fileType === "image")
+				.map((a) => a.fileUrl)
+				.filter(Boolean)
+				.join(" | ");
 
 			return [
 				submission.id,
@@ -234,6 +247,8 @@ export function EventSubmissionsManager({
 					? new Date(submission.submittedAt).toISOString()
 					: "",
 				submission.demoUrl || "",
+				allAttachmentUrls,
+				imageAttachmentUrls,
 				...customFieldValues,
 				...rawCustomFieldValues,
 			];

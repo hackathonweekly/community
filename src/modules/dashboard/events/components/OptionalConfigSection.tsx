@@ -45,7 +45,9 @@ import {
 	RegistrationSuccessSummary,
 } from "./RegistrationSuccessModal";
 import { TicketTypesModal, TicketTypesSummary } from "./TicketTypesModal";
+import { SubmissionFormConfigSection } from "./SubmissionFormConfigSection";
 import { VolunteerModal, VolunteerSummary } from "./VolunteerModal";
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 import type {
 	EventFormData,
 	Question,
@@ -474,6 +476,21 @@ export function OptionalConfigSection({
 					</AdvancedSettingsModal>
 				</div>
 
+				<SubmissionFormConfigSection
+					submissionFormConfig={
+						(watch(
+							"submissionFormConfig",
+						) as SubmissionFormConfig | null) ?? null
+					}
+					onChange={(config) =>
+						setValue("submissionFormConfig", config, {
+							shouldDirty: true,
+							shouldTouch: true,
+						})
+					}
+					requireProjectSubmission={requireProjectSubmission}
+				/>
+
 				{eventType === "HACKATHON" && (
 					<div className={rowClassName}>
 						<div className="flex items-start gap-3 min-w-0">
@@ -489,7 +506,7 @@ export function OptionalConfigSection({
 									</Badge>
 								</div>
 								<p className="text-sm text-muted-foreground">
-									团队规模、评审与作品提交配置
+									团队规模与评审配置
 								</p>
 							</div>
 						</div>
@@ -511,13 +528,12 @@ export function OptionalConfigSection({
 										黑客松设置
 									</DialogTitle>
 									<DialogDescription>
-										配置团队、投票与作品提交表单
+										配置团队与投票规则
 									</DialogDescription>
 								</DialogHeader>
 								<HackathonSettings
 									control={control}
 									watch={watch}
-									setValue={setValue}
 								/>
 							</DialogContent>
 						</Dialog>

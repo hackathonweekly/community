@@ -807,7 +807,7 @@ async function ensureParticipant(eventId: string, userId: string) {
 		!ACTIVE_REGISTRATION_STATUSES.includes(registration.status as any)
 	) {
 		throw new HTTPException(403, {
-			message: "You must register for this event before submitting",
+			message: "你需要先报名才能提交作品",
 		});
 	}
 	return registration;

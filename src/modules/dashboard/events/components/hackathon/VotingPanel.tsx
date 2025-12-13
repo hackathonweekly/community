@@ -201,8 +201,8 @@ export function VotingPanel({
 									<p className="text-sm text-muted-foreground">
 										{t("hackathon.voting.weight", {
 											weight: Math.round(
-												(votingConfig.judgeWeight ||
-													0.7) * 100,
+												(votingConfig.judgeWeight ??
+													0) * 100,
 											),
 										})}
 									</p>
@@ -220,8 +220,8 @@ export function VotingPanel({
 									<p className="text-sm text-muted-foreground">
 										{t("hackathon.voting.weight", {
 											weight: Math.round(
-												(votingConfig.publicWeight ||
-													0.3) * 100,
+												(votingConfig.publicWeight ??
+													1) * 100,
 											),
 										})}
 									</p>

@@ -1,22 +1,23 @@
 "use client";
 
+import { useEventProjectSubmissions } from "@/app/(public)/[locale]/events/[eventId]/hooks/useEventQueries";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	ChatBubbleLeftEllipsisIcon,
 	LinkIcon as ExternalLinkIcon,
-	ShareIcon,
 	PhotoIcon,
+	ShareIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
+import { Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { VolunteerListModal } from "./VolunteerListModal";
-import { Users } from "lucide-react";
 import { useUnifiedEventRegistration } from "../../../../app/(public)/[locale]/events/[eventId]/hooks/useUnifiedEventRegistration";
+import { VolunteerListModal } from "./VolunteerListModal";
 
 interface EventRegistrationCardProps {
 	event: {
@@ -150,6 +151,25 @@ export function EventRegistrationCard({
 
 	const volunteerStats = getVolunteerStats(event.volunteerRoles);
 
+	// 获取当前活动的作品提交，用于判断用户是否已有提交
+	const { projectSubmissions } = useEventProjectSubmissions(event.id);
+	const getSubmissionOwnerId = (submission?: any) =>
+		submission?.submitter?.id ??
+		submission?.user?.id ??
+		submission?.submitterId ??
+		submission?.userId ??
+		null;
+	const hasUserSubmitted =
+		user && projectSubmissions
+			? projectSubmissions.some(
+					(submission: any) =>
+						getSubmissionOwnerId(submission) === user.id,
+				)
+			: false;
+	const submissionHref = hasUserSubmitted
+		? `/app/events/${event.id}/submissions`
+		: `/app/events/${event.id}/submissions/new`;
+
 	return (
 		<Card className="border-0 shadow-lg bg-white/95 backdrop-blur-sm gap-3">
 			<CardHeader>
@@ -177,16 +197,16 @@ export function EventRegistrationCard({
 							<div className="space-y-3">
 								{existingRegistration.status === "APPROVED" && (
 									<div className="space-y-4">
-										{/* 报名成功后的主要操作按钮 - 提交作品 */}
+										{/* 报名成功后的主要操作按钮 - 提交/修改作品 */}
 										<Button
 											asChild
 											className="w-full font-semibold text-base h-11 shadow-sm"
 											size="lg"
 										>
-											<Link
-												href={`/app/events/${event.id}/submissions/new`}
-											>
-												📤 提交作品
+											<Link href={submissionHref}>
+												{hasUserSubmitted
+													? "📝 修改作品"
+													: "📤 提交作品"}
 											</Link>
 										</Button>
 

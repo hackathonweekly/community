@@ -29,9 +29,9 @@ export const HackathonSettingsSchema = z.object({
 
 export const HackathonVotingSchema = z.object({
 	allowPublicVoting: z.boolean().default(true),
-	enableJudgeVoting: z.boolean().default(true),
-	judgeWeight: z.number().min(0).max(1).default(0.7),
-	publicWeight: z.number().min(0).max(1).default(0.3),
+	enableJudgeVoting: z.boolean().default(false),
+	judgeWeight: z.number().min(0).max(1).default(0),
+	publicWeight: z.number().min(0).max(1).default(1),
 	publicVotingScope: z
 		.enum(["ALL", "REGISTERED", "PARTICIPANTS"])
 		.default("PARTICIPANTS"),
@@ -95,9 +95,9 @@ export const DEFAULT_HACKATHON_SETTINGS: HackathonSettings = {
 
 export const DEFAULT_HACKATHON_VOTING: HackathonVoting = {
 	allowPublicVoting: true,
-	enableJudgeVoting: true,
-	judgeWeight: 0.7,
-	publicWeight: 0.3,
+	enableJudgeVoting: false,
+	judgeWeight: 0,
+	publicWeight: 1,
 	publicVotingScope: "PARTICIPANTS",
 };
 
@@ -178,6 +178,11 @@ export function withHackathonConfigDefaults(
 		...DEFAULT_HACKATHON_VOTING,
 		...(base.voting ?? {}),
 	};
+
+	if (!voting.enableJudgeVoting) {
+		voting.judgeWeight = 0;
+		voting.publicWeight = 1;
+	}
 
 	const awards: HackathonAward[] = Array.isArray(base.awards)
 		? base.awards

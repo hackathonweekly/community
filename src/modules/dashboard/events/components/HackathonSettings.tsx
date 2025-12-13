@@ -18,23 +18,16 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Code, Users, Trophy, FileText } from "lucide-react";
-import type { Control, UseFormWatch, UseFormSetValue } from "react-hook-form";
+import { Code, Users, Trophy } from "lucide-react";
+import type { Control, UseFormWatch } from "react-hook-form";
 import type { EventFormData } from "./types";
-import { SubmissionFormConfigEditor } from "./SubmissionFormConfigEditor";
-import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 
 interface HackathonSettingsProps {
 	control: Control<EventFormData>;
 	watch: UseFormWatch<EventFormData>;
-	setValue: UseFormSetValue<EventFormData>;
 }
 
-export function HackathonSettings({
-	control,
-	watch,
-	setValue,
-}: HackathonSettingsProps) {
+export function HackathonSettings({ control, watch }: HackathonSettingsProps) {
 	const watchedType = watch("type");
 
 	// Only show for hackathon events
@@ -131,141 +124,62 @@ export function HackathonSettings({
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<div className="space-y-4">
-						<FormField
-							control={control}
-							name="hackathonConfig.voting.allowPublicVoting"
-							render={({ field }) => (
-								<FormItem className="flex items-center justify-between">
-									<div className="space-y-0.5">
-										<FormLabel>开启公众投票</FormLabel>
-										<FormDescription>
-											允许观众为参赛作品投票
-										</FormDescription>
-									</div>
-									<FormControl>
-										<Switch
-											checked={field.value ?? true}
-											onCheckedChange={field.onChange}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
-
-						<FormField
-							control={control}
-							name="hackathonConfig.voting.enableJudgeVoting"
-							render={({ field }) => (
-								<FormItem className="flex items-center justify-between">
-									<div className="space-y-0.5">
-										<FormLabel>开启专家评审</FormLabel>
-										<FormDescription>
-											邀请专业评委对作品进行评分
-										</FormDescription>
-									</div>
-									<FormControl>
-										<Switch
-											checked={field.value ?? true}
-											onCheckedChange={field.onChange}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
-					</div>
-
-					<div className="space-y-4">
-						<FormField
-							control={control}
-							name="hackathonConfig.voting.judgeWeight"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>专家评审权重</FormLabel>
-									<FormControl>
-										<Input
-											type="number"
-											min="0"
-											max="1"
-											step="0.1"
-											placeholder="0.7"
-											value={field.value ?? 0.7}
-											onChange={(e) =>
-												field.onChange(
-													Number.parseFloat(
-														e.target.value,
-													) || 0.7,
-												)
-											}
-										/>
-									</FormControl>
+					<FormField
+						control={control}
+						name="hackathonConfig.voting.allowPublicVoting"
+						render={({ field }) => (
+							<FormItem className="flex items-center justify-between">
+								<div className="space-y-0.5">
+									<FormLabel>开启公众投票</FormLabel>
 									<FormDescription>
-										专家投票在最终评分中的权重比例 (0-1)
+										允许观众为参赛作品投票
 									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+								</div>
+								<FormControl>
+									<Switch
+										checked={field.value ?? true}
+										onCheckedChange={field.onChange}
+									/>
+								</FormControl>
+							</FormItem>
+						)}
+					/>
 
-						<FormField
-							control={control}
-							name="hackathonConfig.voting.publicVotingScope"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>公众投票范围</FormLabel>
-									<Select
-										onValueChange={field.onChange}
-										value={field.value ?? "PARTICIPANTS"}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="选择投票范围" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											<SelectItem value="ALL">
-												所有用户
-											</SelectItem>
-											<SelectItem value="REGISTERED">
-												已注册用户
-											</SelectItem>
-											<SelectItem value="PARTICIPANTS">
-												参赛者
-											</SelectItem>
-										</SelectContent>
-									</Select>
-									<FormDescription>
-										哪些用户可以参与公众投票
-									</FormDescription>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
-					</div>
+					<FormField
+						control={control}
+						name="hackathonConfig.voting.publicVotingScope"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>公众投票范围</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									value={field.value ?? "PARTICIPANTS"}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue placeholder="选择投票范围" />
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										<SelectItem value="ALL">
+											所有用户
+										</SelectItem>
+										<SelectItem value="REGISTERED">
+											已注册用户
+										</SelectItem>
+										<SelectItem value="PARTICIPANTS">
+											参赛者
+										</SelectItem>
+									</SelectContent>
+								</Select>
+								<FormDescription>
+									哪些用户可以参与公众投票
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
 				</div>
-			</div>
-
-			<Separator />
-
-			{/* 作品提交表单配置 */}
-			<div className="space-y-4">
-				<div className="flex items-center gap-2">
-					<FileText className="w-4 h-4 text-muted-foreground" />
-					<h3 className="text-sm font-medium">作品提交表单配置</h3>
-				</div>
-				<p className="text-sm text-muted-foreground">
-					配置参赛者提交作品时需要填写的额外字段，如智能体链接、演示视频等。
-				</p>
-				<SubmissionFormConfigEditor
-					value={
-						watch(
-							"submissionFormConfig",
-						) as SubmissionFormConfig | null
-					}
-					onChange={(config) =>
-						setValue("submissionFormConfig", config)
-					}
-				/>
 			</div>
 		</div>
 	);

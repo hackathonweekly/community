@@ -478,9 +478,9 @@ export default function EventEditPage() {
 			},
 			voting: event.hackathonConfig?.voting ?? {
 				allowPublicVoting: true,
-				enableJudgeVoting: true,
-				judgeWeight: 0.7,
-				publicWeight: 0.3,
+				enableJudgeVoting: false,
+				judgeWeight: 0,
+				publicWeight: 1,
 				publicVotingScope: "PARTICIPANTS" as const,
 			},
 		},

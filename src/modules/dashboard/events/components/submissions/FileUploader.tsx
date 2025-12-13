@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { FileUp, X, Loader2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { config } from "@/config";
+import { uploadWithSignedUrlFallback } from "@/lib/uploads/client";
 
 interface FileUploaderProps {
 	eventId: string;
@@ -22,6 +23,21 @@ export function FileUploader({
 }: FileUploaderProps) {
 	const [isUploading, setIsUploading] = useState(false);
 	const [fileName, setFileName] = useState<string>("");
+	const bucket = config.storage.bucketNames.public;
+
+	const buildFilePath = useCallback(
+		(file: File) => {
+			const ext = (() => {
+				const dot = file.name.lastIndexOf(".");
+				return dot >= 0 ? file.name.slice(dot).toLowerCase() : "";
+			})();
+			const unique = `${eventId}-${Date.now()}-${Math.random()
+				.toString(36)
+				.slice(2, 8)}`;
+			return `events/${eventId}/custom-fields/${unique}${ext}`;
+		},
+		[eventId],
+	);
 
 	const handleFileChange = useCallback(
 		async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,34 +52,28 @@ export function FileUploader({
 
 			setIsUploading(true);
 			try {
-				const formData = new FormData();
-				formData.append("file", file);
-				formData.append("eventId", eventId);
-
-				const response = await fetch("/api/upload", {
-					method: "POST",
-					body: formData,
+				const fileUrl = await uploadWithSignedUrlFallback({
+					file,
+					bucket,
+					path: buildFilePath(file),
+					contentType: file.type || undefined,
+					publicEndpoint: config.storage.endpoints.public,
 				});
-
-				if (!response.ok) {
-					throw new Error("上传失败");
-				}
-
-				const data = await response.json();
-				const fileUrl = data.url.startsWith("http")
-					? data.url
-					: `${config.storage.endpoints.public}/${data.url}`;
 				onChange(fileUrl);
 				setFileName(file.name);
 				toast.success("文件上传成功");
 			} catch (error) {
 				console.error("Upload error:", error);
-				toast.error("文件上传失败，请重试");
+				toast.error(
+					error instanceof Error
+						? error.message
+						: "文件上传失败，请重试",
+				);
 			} finally {
 				setIsUploading(false);
 			}
 		},
-		[eventId, onChange],
+		[bucket, buildFilePath, onChange],
 	);
 
 	const handleRemove = useCallback(() => {
