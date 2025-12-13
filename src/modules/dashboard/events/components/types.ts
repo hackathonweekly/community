@@ -200,6 +200,8 @@ export const eventSchema = z
 								"checkbox",
 							]),
 							required: z.boolean(),
+							enabled: z.boolean().default(true),
+							publicVisible: z.boolean().default(true),
 							placeholder: z.string().optional(),
 							description: z.string().optional(),
 							options: z.array(z.string()).optional(),

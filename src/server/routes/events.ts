@@ -7,10 +7,6 @@ import { NotificationService } from "@/features/notifications/service";
 import { RestrictedAction, canUserDoAction } from "@/features/permissions";
 import { auth } from "@/lib/auth";
 import {
-	resolveRegistrationFieldConfig,
-	type RegistrationFieldConfig,
-} from "@/lib/events/registration-fields";
-import {
 	ContentType,
 	createContentValidator,
 	ensureImageSafe,
@@ -26,6 +22,10 @@ import {
 	updateEvent,
 } from "@/lib/database";
 import { db } from "@/lib/database/prisma";
+import {
+	type RegistrationFieldConfig,
+	resolveRegistrationFieldConfig,
+} from "@/lib/events/registration-fields";
 import type { Locale } from "@/lib/i18n";
 import { isSendableEmail } from "@/lib/mail/address";
 import {
@@ -122,6 +122,8 @@ const submissionFormFieldSchema = z.object({
 		"checkbox",
 	]),
 	required: z.boolean(),
+	enabled: z.boolean().default(true),
+	publicVisible: z.boolean().default(true),
 	placeholder: z.string().optional(),
 	description: z.string().optional(),
 	options: z.array(z.string()).optional(),

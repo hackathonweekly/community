@@ -138,21 +138,6 @@ export function RegistrationSuccessModal({
 					isPendingState ? "bg-yellow-50" : "bg-blue-50"
 				}`}
 			>
-				{/* 图片 */}
-				{displayImage?.trim() && (
-					<div className="flex justify-center">
-						<img
-							src={displayImage}
-							alt={
-								isPendingState
-									? "审核中信息图片"
-									: "重要信息图片"
-							}
-							className="max-w-full h-auto rounded-lg shadow-sm border"
-							style={{ maxHeight: "250px" }}
-						/>
-					</div>
-				)}
 				{/* 文字信息 */}
 				{displayInfo?.trim() ? (
 					<div className="text-xs sm:text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -172,6 +157,21 @@ export function RegistrationSuccessModal({
 								<p>📧 如有问题请联系主办方</p>
 							</>
 						)}
+					</div>
+				)}
+				{/* 图片 */}
+				{displayImage?.trim() && (
+					<div className="flex justify-center">
+						<img
+							src={displayImage}
+							alt={
+								isPendingState
+									? "审核中信息图片"
+									: "重要信息图片"
+							}
+							className="max-w-full h-auto rounded-lg shadow-sm border"
+							style={{ maxHeight: "250px" }}
+						/>
 					</div>
 				)}
 			</div>

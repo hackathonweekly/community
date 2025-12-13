@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import {
 	ArrowLeft,
 	CalendarClock,
@@ -9,8 +7,12 @@ import {
 	Loader2,
 	ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -19,15 +21,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
-import type { EventSubmission } from "@/features/event-submissions/types";
 import {
 	useEventSubmissions,
-	useVoteSubmission,
 	useUnvoteSubmission,
+	useVoteSubmission,
 } from "@/features/event-submissions/hooks";
+import type { EventSubmission } from "@/features/event-submissions/types";
+import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { createFallbackCaptionSrc } from "./utils";
 
 interface SubmissionDetailProps {
@@ -71,6 +71,10 @@ export function SubmissionDetail({
 			submission.teamMembers?.some((m) => m.id === userId));
 	const hasMedia =
 		submission.attachments.length > 0 || Boolean(submission.coverImage);
+	const customFieldAnswers = (submission.customFieldAnswers ?? [])
+		.filter((field) => field.enabled !== false)
+		.slice()
+		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
 	const handleRequireAuth = () => {
 		const redirectTo = encodeURIComponent(
@@ -143,6 +147,80 @@ export function SubmissionDetail({
 				)}
 			</Button>
 		);
+	};
+
+	const renderCustomFieldValue = (
+		answer: (typeof customFieldAnswers)[number],
+	) => {
+		const value = answer.value;
+
+		if (value === null || value === undefined || value === "") {
+			return <span className="text-muted-foreground">未填写</span>;
+		}
+
+		if (Array.isArray(value)) {
+			return value.length ? value.join("、") : "未填写";
+		}
+
+		if (answer.type === "url" && typeof value === "string") {
+			return (
+				<Link
+					href={value}
+					target="_blank"
+					rel="noreferrer"
+					className="underline break-all"
+				>
+					{value}
+				</Link>
+			);
+		}
+
+		if (answer.type === "image" && typeof value === "string") {
+			return (
+				<div className="space-y-2">
+					<img
+						src={value}
+						alt={answer.label}
+						className="h-32 w-full rounded-md object-cover"
+					/>
+					<Link
+						href={value}
+						target="_blank"
+						rel="noreferrer"
+						className="text-xs underline"
+					>
+						查看原图
+					</Link>
+				</div>
+			);
+		}
+
+		if (answer.type === "file" && typeof value === "string") {
+			return (
+				<Link
+					href={value}
+					target="_blank"
+					rel="noreferrer"
+					className="underline break-all"
+				>
+					下载文件
+				</Link>
+			);
+		}
+
+		if (typeof value === "boolean") {
+			return value ? "是" : "否";
+		}
+
+		if (typeof value === "object") {
+			try {
+				return JSON.stringify(value);
+			} catch {
+				return String(value);
+			}
+		}
+
+		return String(value);
 	};
 
 	return (
@@ -316,6 +394,42 @@ export function SubmissionDetail({
 							}}
 						/>
 					</div>
+
+					{customFieldAnswers.length > 0 && (
+						<div className="space-y-3">
+							<h3 className="text-lg font-semibold">补充信息</h3>
+							<div className="grid gap-3 md:grid-cols-2">
+								{customFieldAnswers.map((answer) => (
+									<div
+										key={answer.key}
+										className="rounded-lg border p-3 space-y-2"
+									>
+										<div className="flex items-center justify-between gap-2">
+											<p className="text-sm font-medium">
+												{answer.label}
+												{answer.required && (
+													<span className="text-red-500 ml-1">
+														*
+													</span>
+												)}
+											</p>
+											{answer.publicVisible === false && (
+												<Badge
+													variant="outline"
+													className="text-xs"
+												>
+													仅管理员
+												</Badge>
+											)}
+										</div>
+										<div className="text-sm text-muted-foreground break-words">
+											{renderCustomFieldValue(answer)}
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					)}
 
 					<div className="grid gap-4 md:grid-cols-2">
 						<Card>

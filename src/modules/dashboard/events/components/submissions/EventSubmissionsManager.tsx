@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useLocale } from "next-intl";
-import { useMemo, useState } from "react";
 import {
 	FileDown,
 	Pencil,
@@ -10,8 +7,21 @@ import {
 	SlidersHorizontal,
 	Trash2,
 } from "lucide-react";
+import { useLocale } from "next-intl";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,16 +38,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import {
 	Select,
@@ -46,6 +46,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Table,
 	TableBody,
@@ -54,7 +55,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
 	useAdjustSubmissionVotes,
 	useDeleteSubmission,
@@ -117,9 +117,9 @@ export function EventSubmissionsManager({
 	const sortedCustomFields = useMemo(
 		() =>
 			submissionFormConfig?.fields
-				? [...submissionFormConfig.fields].sort(
-						(a, b) => a.order - b.order,
-					)
+				? [...submissionFormConfig.fields]
+						.filter((field) => field.enabled !== false)
+						.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 				: [],
 		[submissionFormConfig],
 	);

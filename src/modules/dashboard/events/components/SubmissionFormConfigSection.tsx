@@ -9,8 +9,8 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { FileText } from "lucide-react";
 import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import { FileText } from "lucide-react";
 import { SubmissionFormConfigEditor } from "./SubmissionFormConfigEditor";
 
 interface SubmissionFormConfigSectionProps {
@@ -28,7 +28,21 @@ function SubmissionFormConfigSummary({
 	submissionFormConfig,
 	requireProjectSubmission,
 }: SubmissionFormConfigSummaryProps) {
-	const fieldsCount = submissionFormConfig?.fields?.length ?? 0;
+	const normalizedFields =
+		submissionFormConfig?.fields?.map((field) => ({
+			...field,
+			enabled: field.enabled ?? true,
+			publicVisible: field.publicVisible ?? true,
+		})) ?? [];
+	const enabledFieldsCount = normalizedFields.filter(
+		(field) => field.enabled !== false,
+	).length;
+	const requiredFieldsCount = normalizedFields.filter(
+		(field) => field.enabled !== false && field.required,
+	).length;
+	const publicFieldsCount = normalizedFields.filter(
+		(field) => field.enabled !== false && field.publicVisible !== false,
+	).length;
 	const attachmentsEnabled =
 		submissionFormConfig?.settings?.attachmentsEnabled ?? true;
 	const authorizationEnabled =
@@ -36,7 +50,9 @@ function SubmissionFormConfigSummary({
 		true;
 
 	const fieldText =
-		fieldsCount > 0 ? `自定义字段 ${fieldsCount} 个` : "使用默认字段";
+		enabledFieldsCount > 0
+			? `字段 ${enabledFieldsCount} 个（必填 ${requiredFieldsCount} · 公开 ${publicFieldsCount}）`
+			: "使用默认字段";
 	const attachmentText = attachmentsEnabled ? "附件上传开启" : "附件上传关闭";
 	const authorizationText = authorizationEnabled
 		? "含宣传授权确认"

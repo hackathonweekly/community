@@ -1,17 +1,17 @@
-import { Hono } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-import type {
-	Prisma,
-	RegistrationStatus,
-	SubmissionStatus,
-	Project,
-} from "@prisma/client";
-import type { ContentfulStatusCode } from "hono/utils/http-status";
-import { HTTPException } from "hono/http-exception";
+import { config } from "@/config";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
-import { config } from "@/config";
+import { zValidator } from "@hono/zod-validator";
+import type {
+	Prisma,
+	Project,
+	RegistrationStatus,
+	SubmissionStatus,
+} from "@prisma/client";
+import { Hono } from "hono";
+import { HTTPException } from "hono/http-exception";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { z } from "zod";
 
 const ACTIVE_REGISTRATION_STATUSES: RegistrationStatus[] = [
 	"APPROVED",
@@ -122,6 +122,7 @@ const submissionInclude = {
 			type: true,
 			hackathonConfig: true,
 			projectSubmissionDeadline: true,
+			submissionFormConfig: true,
 		},
 	},
 	reviewer: {
@@ -221,9 +222,14 @@ const app = new Hono()
 	.get("/submissions/:submissionId", async (c) => {
 		const submissionId = c.req.param("submissionId");
 		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+		const session = await getSession(c);
+		const includePrivateFields =
+			session && (await canManageSubmission(submission, session.user.id));
 		return c.json({
 			success: true,
-			data: serializeSubmission(submission),
+			data: serializeSubmission(submission, {
+				includePrivateFields: Boolean(includePrivateFields),
+			}),
 		});
 	})
 
@@ -960,6 +966,65 @@ function sortSubmissions(
 	});
 }
 
+type SubmissionFieldConfig = {
+	key: string;
+	label: string;
+	type: string;
+	required?: boolean;
+	enabled?: boolean;
+	publicVisible?: boolean;
+	order?: number;
+	description?: string;
+};
+
+function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
+	if (!config || typeof config !== "object" || Array.isArray(config)) {
+		return [];
+	}
+	const fields = (config as any).fields;
+	if (!Array.isArray(fields)) return [];
+
+	return fields
+		.map((field, index) => {
+			if (!field || typeof field !== "object") return null;
+			const safeField = field as Record<string, unknown>;
+			const key = typeof safeField.key === "string" ? safeField.key : "";
+			const label =
+				typeof safeField.label === "string" ? safeField.label : "";
+			const order =
+				typeof safeField.order === "number" ? safeField.order : index;
+
+			if (!key || !label) return null;
+
+			return {
+				key,
+				label,
+				type:
+					typeof safeField.type === "string"
+						? safeField.type
+						: "text",
+				required: Boolean(safeField.required),
+				description:
+					typeof safeField.description === "string"
+						? safeField.description
+						: undefined,
+				enabled:
+					safeField.enabled === undefined
+						? true
+						: Boolean(safeField.enabled),
+				publicVisible:
+					safeField.publicVisible === undefined
+						? true
+						: Boolean(safeField.publicVisible),
+				order,
+			};
+		})
+		.filter((field): field is SubmissionFieldConfig =>
+			Boolean(field?.key && field.label),
+		)
+		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
 function serializeSubmission(
 	submission: SubmissionWithRelations,
 	options: { rank?: number; includePrivateFields?: boolean } = {},
@@ -999,13 +1064,49 @@ function serializeSubmission(
 			?.fileUrl ||
 		submission.project.screenshots?.[0] ||
 		null;
-	const customFields =
-		includePrivateFields &&
+	const hasCustomFieldsObject =
 		submission.project.customFields &&
 		typeof submission.project.customFields === "object" &&
-		!Array.isArray(submission.project.customFields)
-			? (submission.project.customFields as Record<string, unknown>)
-			: null;
+		!Array.isArray(submission.project.customFields);
+	const rawCustomFields = hasCustomFieldsObject
+		? (submission.project.customFields as Record<string, unknown>)
+		: null;
+	const normalizedFieldConfigs = normalizeSubmissionFields(
+		submission.event.submissionFormConfig,
+	);
+	const enabledFieldConfigs = normalizedFieldConfigs.filter(
+		(field) => field.enabled !== false,
+	);
+	const visibleFieldConfigs = enabledFieldConfigs.filter(
+		(field) => includePrivateFields || field.publicVisible !== false,
+	);
+
+	const visibleCustomFieldAnswers = rawCustomFields
+		? visibleFieldConfigs
+				.map((field) => ({
+					...field,
+					required: Boolean(field.required),
+					enabled: field.enabled !== false,
+					publicVisible: field.publicVisible !== false,
+					value: rawCustomFields[field.key],
+				}))
+				.filter(
+					(answer) =>
+						answer.value !== undefined && answer.value !== null,
+				)
+		: [];
+
+	const customFields =
+		includePrivateFields && rawCustomFields
+			? rawCustomFields
+			: visibleCustomFieldAnswers.length > 0
+				? Object.fromEntries(
+						visibleCustomFieldAnswers.map((answer) => [
+							answer.key,
+							answer.value,
+						]),
+					)
+				: null;
 
 	return {
 		id: submission.id,
@@ -1018,6 +1119,7 @@ function serializeSubmission(
 		demoUrl: submission.project.url,
 		communityUseAuthorization: submission.project.communityUseAuth,
 		status: submission.status,
+		customFieldAnswers: visibleCustomFieldAnswers,
 		customFields,
 		...getVoteStats(submission),
 		rank: options.rank ?? null,

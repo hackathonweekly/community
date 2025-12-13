@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -267,32 +267,74 @@ export function EventSubmissionForm({
 		);
 	}, [attachments, form]);
 
-	const normalizePayload = (): SubmissionFormValues => ({
-		...form.getValues(),
-		description: form.getValues("description") || undefined,
-		demoUrl: form.getValues("demoUrl") || undefined,
-		teamLeaderId: leader?.id,
-		teamMemberIds: members.map((member) => member.id),
-		attachments: attachments
-			.filter((attachment) => !attachment.uploading && attachment.fileUrl)
-			.map(
-				({
-					fileName,
-					fileUrl,
-					fileType,
-					mimeType,
-					fileSize,
-					order,
-				}) => ({
-					fileName,
-					fileUrl,
-					fileType,
-					mimeType,
-					fileSize,
-					order,
-				}),
-			),
-	});
+	const customFieldConfigs = useMemo(
+		() =>
+			(submissionFormConfig?.fields ?? []).map((field, index) => ({
+				...field,
+				enabled: field.enabled ?? true,
+				publicVisible: field.publicVisible ?? true,
+				order: typeof field.order === "number" ? field.order : index,
+			})),
+		[submissionFormConfig],
+	);
+
+	const activeCustomFields = useMemo(
+		() =>
+			customFieldConfigs
+				.filter((field) => field.enabled !== false)
+				.slice()
+				.sort((a, b) => a.order - b.order),
+		[customFieldConfigs],
+	);
+
+	const normalizePayload = (): SubmissionFormValues => {
+		const { customFields: rawCustomFields, ...restValues } =
+			form.getValues();
+		const customFieldValues =
+			(rawCustomFields as Record<string, unknown>) || {};
+		const customFieldEntries = activeCustomFields.map((field) => [
+			field.key,
+			customFieldValues[field.key],
+		]);
+		const filteredCustomFieldEntries = customFieldEntries.filter(
+			([, value]) => value !== undefined,
+		);
+		const normalizedCustomFields =
+			filteredCustomFieldEntries.length > 0 ||
+			activeCustomFields.length > 0
+				? Object.fromEntries(filteredCustomFieldEntries)
+				: undefined;
+
+		return {
+			...restValues,
+			description: restValues.description || undefined,
+			demoUrl: restValues.demoUrl || undefined,
+			teamLeaderId: leader?.id,
+			teamMemberIds: members.map((member) => member.id),
+			attachments: attachments
+				.filter(
+					(attachment) => !attachment.uploading && attachment.fileUrl,
+				)
+				.map(
+					({
+						fileName,
+						fileUrl,
+						fileType,
+						mimeType,
+						fileSize,
+						order,
+					}) => ({
+						fileName,
+						fileUrl,
+						fileType,
+						mimeType,
+						fileSize,
+						order,
+					}),
+				),
+			customFields: normalizedCustomFields,
+		};
+	};
 
 	const hasUploadingAttachment =
 		attachmentsEnabled &&
@@ -318,9 +360,9 @@ export function EventSubmissionForm({
 		}
 
 		// Validate required custom fields
-		if (submissionFormConfig?.fields) {
+		if (activeCustomFields.length > 0) {
 			const customFields = form.getValues("customFields") || {};
-			for (const field of submissionFormConfig.fields) {
+			for (const field of activeCustomFields) {
 				if (field.required) {
 					const value = customFields[field.key];
 					if (
@@ -359,11 +401,6 @@ export function EventSubmissionForm({
 			toast.error(errorMessage);
 		}
 	};
-
-	// Sort custom fields by order
-	const sortedCustomFields = submissionFormConfig?.fields
-		? [...submissionFormConfig.fields].sort((a, b) => a.order - b.order)
-		: [];
 
 	return (
 		<div className="space-y-4">
@@ -489,7 +526,7 @@ export function EventSubmissionForm({
 					</Card>
 
 					{/* 自定义字段 */}
-					{sortedCustomFields.length > 0 && (
+					{activeCustomFields.length > 0 && (
 						<Card>
 							<CardHeader className={COMPACT_CARD_HEADER}>
 								<CardTitle>补充信息</CardTitle>
@@ -498,7 +535,7 @@ export function EventSubmissionForm({
 								</CardDescription>
 							</CardHeader>
 							<CardContent className={COMPACT_CARD_CONTENT}>
-								{sortedCustomFields.map((customField) => (
+								{activeCustomFields.map((customField) => (
 									<DynamicFormField
 										key={customField.key}
 										field={customField}

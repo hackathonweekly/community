@@ -90,6 +90,7 @@ export interface EventSubmission {
 	submitter: SubmissionSubmitter;
 	event: SubmissionEventSummary;
 	awards?: SubmissionAward[];
+	customFieldAnswers?: SubmissionCustomFieldAnswer[];
 	customFields?: Record<string, unknown> | null;
 }
 
@@ -117,6 +118,19 @@ export interface SubmissionFormValues {
 	communityUseAuthorization: boolean;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	customFields?: Record<string, any>;
+}
+
+export interface SubmissionCustomFieldAnswer {
+	key: string;
+	label: string;
+	type: SubmissionFieldType;
+	required: boolean;
+	enabled: boolean;
+	publicVisible: boolean;
+	order: number;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	value: any;
+	description?: string;
 }
 
 export interface VoteStatsSummary {
@@ -161,6 +175,8 @@ export interface SubmissionFormField {
 	label: string;
 	type: SubmissionFieldType;
 	required: boolean;
+	enabled?: boolean;
+	publicVisible?: boolean;
 	placeholder?: string;
 	description?: string;
 	options?: string[];

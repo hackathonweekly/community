@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+	registrationFieldKeys,
+	resolveRegistrationFieldConfig,
+} from "@/lib/events/registration-fields";
 import { getPreferredContact } from "@/lib/utils/contact";
 import { getLifeStatusLabel } from "@/lib/utils/life-status";
 import type { PhoneValidationResult } from "@/lib/utils/phone-validation";
@@ -12,10 +16,6 @@ import { SimpleLifeStatusSelector } from "@/modules/dashboard/profile/components
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { ContactInfoForm } from "./ContactInfoForm";
 import type { UserProfile } from "./types";
-import {
-	resolveRegistrationFieldConfig,
-	registrationFieldKeys,
-} from "@/lib/events/registration-fields";
 
 const ROLE_MAX = 10;
 const CURRENT_WORK_MAX = 100;
@@ -113,24 +113,7 @@ export function ProfileSection({
 								size="sm"
 								onClick={() => onToggleInlineEdit(true)}
 							>
-								快速编辑
-							</Button>
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								asChild
-								className="text-xs text-muted-foreground hover:text-foreground"
-							>
-								<a
-									href="/app/profile#essential-info"
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-1"
-								>
-									完整编辑
-									<ArrowTopRightOnSquareIcon className="w-3 h-3" />
-								</a>
+								编辑
 							</Button>
 						</div>
 					)}

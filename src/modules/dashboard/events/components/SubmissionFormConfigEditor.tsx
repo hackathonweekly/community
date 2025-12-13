@@ -1,16 +1,12 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+	Accordion,
+	AccordionContent,
+	AccordionItem,
+	AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Card,
 	CardContent,
@@ -18,27 +14,33 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-	Accordion,
-	AccordionContent,
-	AccordionItem,
-	AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-	Plus,
-	Trash2,
-	GripVertical,
-	ChevronUp,
-	ChevronDown,
-	ImagePlus,
-	Video,
-	Code,
-} from "lucide-react";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import type {
+	SubmissionFieldType,
 	SubmissionFormConfig,
 	SubmissionFormField,
-	SubmissionFieldType,
 } from "@/features/event-submissions/types";
+import { cn } from "@/lib/utils";
+import {
+	ChevronDown,
+	ChevronUp,
+	Code,
+	GripVertical,
+	ImagePlus,
+	Plus,
+	Trash2,
+	Video,
+} from "lucide-react";
 
 interface SubmissionFormConfigEditorProps {
 	value: SubmissionFormConfig | null;
@@ -62,6 +64,8 @@ const DEFAULT_FIELD: Omit<SubmissionFormField, "key" | "order"> = {
 	label: "",
 	type: "text",
 	required: false,
+	enabled: true,
+	publicVisible: true,
 	placeholder: "",
 	description: "",
 };
@@ -80,6 +84,8 @@ const PRESET_FIELDS: Record<
 		label: "团队照片",
 		type: "image",
 		required: false,
+		enabled: true,
+		publicVisible: true,
 		placeholder: "上传团队合照",
 		description: "请上传团队合照，用于活动宣传展示",
 	},
@@ -87,6 +93,8 @@ const PRESET_FIELDS: Record<
 		label: "演示视频",
 		type: "url",
 		required: false,
+		enabled: true,
+		publicVisible: true,
 		placeholder: "https://",
 		description: "请提供作品演示视频链接（如 B站、YouTube 等）",
 	},
@@ -94,6 +102,8 @@ const PRESET_FIELDS: Record<
 		label: "源代码链接",
 		type: "url",
 		required: false,
+		enabled: true,
+		publicVisible: true,
 		placeholder: "https://github.com/...",
 		description: "请提供项目的 GitHub 或其他代码托管平台链接",
 	},
@@ -103,7 +113,15 @@ export function SubmissionFormConfigEditor({
 	value,
 	onChange,
 }: SubmissionFormConfigEditorProps) {
-	const fields = value?.fields || [];
+	const fields =
+		value?.fields
+			?.map((field, index) => ({
+				...field,
+				enabled: field.enabled ?? true,
+				publicVisible: field.publicVisible ?? true,
+				order: typeof field.order === "number" ? field.order : index,
+			}))
+			.sort((a, b) => a.order - b.order) ?? [];
 	const settings = {
 		...DEFAULT_SETTINGS,
 		...(value?.settings ?? {}),
@@ -303,30 +321,189 @@ export function SubmissionFormConfigEditor({
 								value={field.key}
 								className="border rounded-lg px-4"
 							>
-								<AccordionTrigger className="hover:no-underline">
-									<div className="flex items-center gap-2 flex-1">
-										<GripVertical className="h-4 w-4 text-muted-foreground" />
-										<span className="font-medium">
-											{field.label || "未命名字段"}
-										</span>
-										<span className="text-xs text-muted-foreground">
-											(
-											{
-												FIELD_TYPES.find(
-													(t) =>
-														t.value === field.type,
-												)?.label
-											}
-											)
-										</span>
-										{field.required && (
-											<span className="text-xs text-red-500">
-												必填
+								<AccordionTrigger className="hover:no-underline py-3">
+									<div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+										<div className="flex min-w-0 items-center gap-2">
+											<GripVertical className="h-4 w-4 text-muted-foreground" />
+											<div className="min-w-0">
+												<p
+													className={cn(
+														"font-medium truncate",
+														field.enabled ===
+															false &&
+															"text-muted-foreground line-through",
+													)}
+												>
+													{field.label ||
+														"未命名字段"}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{
+														FIELD_TYPES.find(
+															(t) =>
+																t.value ===
+																field.type,
+														)?.label
+													}
+												</p>
+											</div>
+										</div>
+										<div className="flex flex-wrap items-center gap-2">
+											<Badge
+												variant={
+													field.enabled === false
+														? "secondary"
+														: "outline"
+												}
+											>
+												{field.enabled === false
+													? "已停用"
+													: "启用"}
+											</Badge>
+											<Badge
+												variant={
+													field.required
+														? "default"
+														: "secondary"
+												}
+											>
+												{field.required
+													? "必填"
+													: "选填"}
+											</Badge>
+											<Badge
+												variant={
+													field.publicVisible ===
+													false
+														? "secondary"
+														: "outline"
+												}
+											>
+												{field.publicVisible === false
+													? "仅管理员"
+													: "公开显示"}
+											</Badge>
+											<span className="text-[11px] text-muted-foreground">
+												#{index + 1}
 											</span>
-										)}
+										</div>
 									</div>
 								</AccordionTrigger>
-								<AccordionContent className="space-y-4 pt-4">
+								<AccordionContent className="space-y-4 pt-3">
+									<div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/50 px-3 py-2">
+										<div className="flex flex-wrap items-center gap-4">
+											<div className="flex items-center gap-2">
+												<Switch
+													id={`enabled-${field.key}`}
+													checked={
+														field.enabled !== false
+													}
+													onCheckedChange={(
+														checked,
+													) =>
+														updateField(index, {
+															enabled: checked,
+															required: checked
+																? field.required
+																: false,
+														})
+													}
+												/>
+												<Label
+													htmlFor={`enabled-${field.key}`}
+													className="text-sm"
+												>
+													启用
+												</Label>
+											</div>
+											<div className="flex items-center gap-2">
+												<Switch
+													id={`required-${field.key}`}
+													checked={field.required}
+													disabled={
+														field.enabled === false
+													}
+													onCheckedChange={(
+														checked,
+													) =>
+														updateField(index, {
+															required: checked,
+														})
+													}
+												/>
+												<Label
+													htmlFor={`required-${field.key}`}
+													className="text-sm"
+												>
+													必填
+												</Label>
+											</div>
+											<div className="flex items-center gap-2">
+												<Switch
+													id={`public-${field.key}`}
+													checked={
+														field.publicVisible !==
+														false
+													}
+													onCheckedChange={(
+														checked,
+													) =>
+														updateField(index, {
+															publicVisible:
+																checked,
+														})
+													}
+												/>
+												<Label
+													htmlFor={`public-${field.key}`}
+													className="text-sm"
+												>
+													公开显示
+												</Label>
+											</div>
+										</div>
+										<div className="flex items-center gap-1">
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												onClick={() =>
+													moveField(index, "up")
+												}
+												disabled={index === 0}
+												title="上移"
+											>
+												<ChevronUp className="h-4 w-4" />
+											</Button>
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												onClick={() =>
+													moveField(index, "down")
+												}
+												disabled={
+													index === fields.length - 1
+												}
+												title="下移"
+											>
+												<ChevronDown className="h-4 w-4" />
+											</Button>
+											<Button
+												type="button"
+												variant="ghost"
+												size="icon"
+												onClick={() =>
+													removeField(index)
+												}
+												className="text-destructive hover:text-destructive"
+												title="删除字段"
+											>
+												<Trash2 className="h-4 w-4" />
+											</Button>
+										</div>
+									</div>
+
 									<div className="grid grid-cols-2 gap-4">
 										<div className="space-y-2">
 											<Label>字段标识 (key)</Label>
@@ -477,63 +654,6 @@ export function SubmissionFormConfigEditor({
 											</div>
 										</div>
 									)}
-
-									<div className="flex items-center justify-between">
-										<div className="flex items-center space-x-2">
-											<Switch
-												id={`required-${field.key}`}
-												checked={field.required}
-												onCheckedChange={(checked) =>
-													updateField(index, {
-														required: checked,
-													})
-												}
-											/>
-											<Label
-												htmlFor={`required-${field.key}`}
-											>
-												必填
-											</Label>
-										</div>
-
-										<div className="flex items-center gap-2">
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												onClick={() =>
-													moveField(index, "up")
-												}
-												disabled={index === 0}
-											>
-												<ChevronUp className="h-4 w-4" />
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												onClick={() =>
-													moveField(index, "down")
-												}
-												disabled={
-													index === fields.length - 1
-												}
-											>
-												<ChevronDown className="h-4 w-4" />
-											</Button>
-											<Button
-												type="button"
-												variant="ghost"
-												size="icon"
-												onClick={() =>
-													removeField(index)
-												}
-												className="text-destructive hover:text-destructive"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</div>
 								</AccordionContent>
 							</AccordionItem>
 						))}

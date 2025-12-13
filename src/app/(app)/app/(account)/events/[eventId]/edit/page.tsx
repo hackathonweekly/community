@@ -99,6 +99,8 @@ interface Event {
 				| "radio"
 				| "checkbox";
 			required: boolean;
+			enabled?: boolean;
+			publicVisible?: boolean;
 			placeholder?: string;
 			description?: string;
 			options?: string[];
