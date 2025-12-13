@@ -976,7 +976,9 @@ type SubmissionFieldConfig = {
 	enabled: boolean;
 	publicVisible: boolean;
 	order: number;
-	description: string | undefined;
+	description?: string;
+	options?: string[];
+	placeholder?: string;
 };
 
 function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
@@ -986,24 +988,39 @@ function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
 	const fields = (config as any).fields;
 	if (!Array.isArray(fields)) return [];
 
-	const normalized: SubmissionFieldConfig[] = [];
+	const normalizedFields: SubmissionFieldConfig[] = [];
 
 	fields.forEach((field, index) => {
 		if (!field || typeof field !== "object") return;
+
 		const safeField = field as Record<string, unknown>;
 		const key = typeof safeField.key === "string" ? safeField.key : "";
 		const label =
 			typeof safeField.label === "string" ? safeField.label : "";
-		const order =
-			typeof safeField.order === "number" ? safeField.order : index;
-
 		if (!key || !label) return;
 
-		normalized.push({
+		const order =
+			typeof safeField.order === "number" ? safeField.order : index;
+		const options =
+			Array.isArray(safeField.options) &&
+			(safeField.options as unknown[]).length > 0
+				? (safeField.options as unknown[])
+						.map((option) =>
+							typeof option === "string"
+								? option
+								: String(option),
+						)
+						.filter((option) => option.trim() !== "")
+				: undefined;
+
+		normalizedFields.push({
 			key,
 			label,
 			type: typeof safeField.type === "string" ? safeField.type : "text",
-			required: Boolean(safeField.required),
+			required:
+				safeField.required === undefined
+					? false
+					: Boolean(safeField.required),
 			description:
 				typeof safeField.description === "string"
 					? safeField.description
@@ -1016,11 +1033,16 @@ function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
 				safeField.publicVisible === undefined
 					? true
 					: Boolean(safeField.publicVisible),
+			placeholder:
+				typeof safeField.placeholder === "string"
+					? safeField.placeholder
+					: undefined,
+			options,
 			order,
 		});
 	});
 
-	return normalized.sort((a, b) => a.order - b.order);
+	return normalizedFields.sort((a, b) => a.order - b.order);
 }
 
 function serializeSubmission(

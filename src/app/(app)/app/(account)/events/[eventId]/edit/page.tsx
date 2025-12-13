@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 import {
 	Dialog,
 	DialogContent,
@@ -15,10 +16,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EventCreateForm } from "@/modules/dashboard/events/components/EventCreateForm";
 import type { EventFormData } from "@/modules/dashboard/events/components/types";
-import type { SubmissionFormConfig } from "@/features/event-submissions/types";
-import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
 import { extractErrorMessage as extractTemplateErrorMessage } from "@/modules/dashboard/events/utils/template-helpers";
 import { formatForDatetimeLocal } from "@/modules/dashboard/events/utils/date-utils";
+import { normalizeSubmissionFormConfig } from "@/modules/dashboard/events/utils/submission-form";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { useUserOrganizations } from "@/modules/dashboard/organizations/hooks/use-user-organizations";
 import { TrashIcon } from "@heroicons/react/24/outline";
@@ -457,7 +457,8 @@ export default function EventEditPage() {
 		hackathonConfig: {
 			...(event.hackathonConfig ?? {}),
 			settings: {
-				maxTeamSize: event.hackathonConfig?.settings?.maxTeamSize ?? 5,
+				maxTeamSize:
+					event.hackathonConfig?.settings?.maxTeamSize ?? 5,
 				allowSolo: event.hackathonConfig?.settings?.allowSolo ?? true,
 			},
 			voting: event.hackathonConfig?.voting ?? {

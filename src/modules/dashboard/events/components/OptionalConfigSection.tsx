@@ -55,6 +55,7 @@ import type {
 	VolunteerRole,
 } from "./types";
 import type { RegistrationFieldConfig } from "./types";
+import { normalizeSubmissionFormConfig } from "../utils/submission-form";
 
 interface OptionalConfigSectionProps {
 	control: Control<EventFormData>;
@@ -483,10 +484,14 @@ export function OptionalConfigSection({
 						) as SubmissionFormConfig | null) ?? null
 					}
 					onChange={(config) =>
-						setValue("submissionFormConfig", config, {
-							shouldDirty: true,
-							shouldTouch: true,
-						})
+						setValue(
+							"submissionFormConfig",
+							normalizeSubmissionFormConfig(config),
+							{
+								shouldDirty: true,
+								shouldTouch: true,
+							},
+						)
 					}
 					requireProjectSubmission={requireProjectSubmission}
 				/>
