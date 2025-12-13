@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useMemo, useState } from "react";
-import { FileDown, RefreshCw, SlidersHorizontal, Trash2 } from "lucide-react";
+import {
+	FileDown,
+	Pencil,
+	RefreshCw,
+	SlidersHorizontal,
+	Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -417,6 +423,18 @@ export function EventSubmissionsManager({
 													href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
 												>
 													查看
+												</Link>
+											</Button>
+											<Button
+												size="sm"
+												variant="secondary"
+												asChild
+											>
+												<Link
+													href={`/app/events/${submission.eventId}/submissions/${submission.id}/edit`}
+												>
+													<Pencil className="mr-1 h-4 w-4" />
+													编辑
 												</Link>
 											</Button>
 											<Button

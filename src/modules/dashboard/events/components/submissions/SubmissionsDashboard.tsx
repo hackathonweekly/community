@@ -167,6 +167,7 @@ export function SubmissionsDashboard({
 	eventTitle,
 	isSubmissionOpen = false,
 }: SubmissionsDashboardProps) {
+	const locale = useLocale();
 	const { user } = useSession();
 	const { data, isLoading } = useEventSubmissions(eventId, {
 		includeVotes: true,
@@ -193,17 +194,30 @@ export function SubmissionsDashboard({
 							: "提交已结束，你仍可以查看和管理你已提交的作品。"}
 					</p>
 				</div>
-				{isSubmissionOpen ? (
-					<Button asChild>
-						<Link href={`/app/events/${eventId}/submissions/new`}>
-							提交新作品
+				<div className="flex flex-col gap-2 md:flex-row md:items-center">
+					<Button variant="secondary" asChild>
+						<Link href={`/${locale}/events/${eventId}/submissions`}>
+							作品广场
 						</Link>
 					</Button>
-				) : (
-					<Button variant="outline" disabled title="作品提交已结束">
-						提交已结束
-					</Button>
-				)}
+					{isSubmissionOpen ? (
+						<Button asChild>
+							<Link
+								href={`/app/events/${eventId}/submissions/new`}
+							>
+								提交新作品
+							</Link>
+						</Button>
+					) : (
+						<Button
+							variant="outline"
+							disabled
+							title="作品提交已结束"
+						>
+							提交已结束
+						</Button>
+					)}
+				</div>
 			</div>
 
 			{isLoading ? (

@@ -67,7 +67,7 @@ export function Hero({
 			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
 			<div className="relative container max-w-6xl py-12 space-y-4">
 				{isEventAdmin ? (
-					<div className="absolute right-4 top-4 sm:right-6 sm:top-6">
+					<div className="absolute right-4 top-4 sm:right-6 sm:top-6 flex flex-col items-end gap-2">
 						<ManagementButton
 							eventId={eventId || event.id}
 							isEventAdmin
@@ -75,6 +75,18 @@ export function Hero({
 							size="sm"
 							className="bg-white/90 text-indigo-700 border-white/70 hover:bg-white shadow-sm"
 						/>
+						<Button
+							asChild
+							variant="secondary"
+							size="sm"
+							className="bg-white/80 text-indigo-700 border-white/70 hover:bg-white shadow-sm"
+						>
+							<a
+								href={`/${locale}/events/${eventId || event.id}/awards-ceremony`}
+							>
+								颁奖墙
+							</a>
+						</Button>
 					</div>
 				) : null}
 				<div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm">

@@ -7,13 +7,16 @@ import {
 	EventRegistrationCard,
 	EventRegistrationModal,
 } from "@/modules/public/events/components";
-import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, type ReactNode } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
+import { Trophy } from "lucide-react";
 
 // Local page components
 import { BackToEventsLink } from "./BackToEventsLink";
@@ -196,6 +199,9 @@ export function EventLayout({
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
+	const locale = useLocale();
+	const isEventAdmin = Boolean(event.isEventAdmin);
+	const awardsCeremonyUrl = `/${locale}/events/${event.id}/awards-ceremony`;
 	const [showQRGenerator, setShowQRGenerator] = useState(false);
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showSuccessInfo, setShowSuccessInfo] = useState(false);
@@ -495,12 +501,32 @@ export function EventLayout({
 
 			{/* Header */}
 			{showBackToEvents && (
-				<div className="flex items-center justify-between">
+				<div className="flex flex-wrap items-center justify-between gap-3">
 					<BackToEventsLink label={t("events.backToEventsList")} />
-					<ManagementButton
-						eventId={event.id}
-						isEventAdmin={event.isEventAdmin || false}
-					/>
+					{isEventAdmin ? (
+						<div className="flex items-center gap-2">
+							<Button
+								asChild
+								variant="secondary"
+								size="sm"
+								className="gap-1"
+							>
+								<Link href={awardsCeremonyUrl}>
+									<Trophy className="h-4 w-4" />
+									{t("events.awardsWall")}
+								</Link>
+							</Button>
+							<ManagementButton
+								eventId={event.id}
+								isEventAdmin={isEventAdmin}
+							/>
+						</div>
+					) : (
+						<ManagementButton
+							eventId={event.id}
+							isEventAdmin={isEventAdmin}
+						/>
+					)}
 				</div>
 			)}
 

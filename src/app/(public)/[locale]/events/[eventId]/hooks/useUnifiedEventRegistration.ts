@@ -122,6 +122,14 @@ export function useUnifiedEventRegistration({
 			window.open(event.externalUrl, "_blank", "noopener noreferrer");
 			return;
 		}
+
+		if (!user) {
+			router.push(
+				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
+			);
+			return;
+		}
+
 		if (existingRegistration?.status === "APPROVED") {
 			// 显示签到二维码的逻辑需要父组件处理
 			return "SHOW_QR_CODE";

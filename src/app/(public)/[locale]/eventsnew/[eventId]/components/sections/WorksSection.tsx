@@ -55,6 +55,10 @@ export function WorksSection({
 				submission.submitter?.id === userId,
 		) || null;
 
+	const submissionHref = userSubmission
+		? `/app/events/${eventId}/submissions`
+		: `/app/events/${eventId}/submissions/new`;
+
 	return (
 		<SectionCard
 			id="works"
@@ -90,9 +94,7 @@ export function WorksSection({
 			)}
 			<div className="flex flex-wrap gap-2">
 				<Button variant="outline" asChild className="gap-2">
-					<a href={`/${locale}/events/${eventId}/submissions`}>
-						提交/修改作品
-					</a>
+					<a href={submissionHref}>提交/修改作品</a>
 				</Button>
 				{userSubmission ? (
 					<Badge variant="secondary">已提交作品</Badge>

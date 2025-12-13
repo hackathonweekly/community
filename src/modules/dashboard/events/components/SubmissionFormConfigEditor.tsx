@@ -30,6 +30,9 @@ import {
 	GripVertical,
 	ChevronUp,
 	ChevronDown,
+	ImagePlus,
+	Video,
+	Code,
 } from "lucide-react";
 import type {
 	SubmissionFormConfig,
@@ -66,6 +69,34 @@ const DEFAULT_FIELD: Omit<SubmissionFormField, "key" | "order"> = {
 const DEFAULT_SETTINGS = {
 	attachmentsEnabled: true,
 	communityUseAuthorizationEnabled: true,
+};
+
+// 预设字段模板
+const PRESET_FIELDS: Record<
+	string,
+	Omit<SubmissionFormField, "key" | "order">
+> = {
+	teamPhoto: {
+		label: "团队照片",
+		type: "image",
+		required: false,
+		placeholder: "上传团队合照",
+		description: "请上传团队合照，用于活动宣传展示",
+	},
+	demoVideo: {
+		label: "演示视频",
+		type: "url",
+		required: false,
+		placeholder: "https://",
+		description: "请提供作品演示视频链接（如 B站、YouTube 等）",
+	},
+	sourceCode: {
+		label: "源代码链接",
+		type: "url",
+		required: false,
+		placeholder: "https://github.com/...",
+		description: "请提供项目的 GitHub 或其他代码托管平台链接",
+	},
 };
 
 export function SubmissionFormConfigEditor({
@@ -106,6 +137,23 @@ export function SubmissionFormConfigEditor({
 		const newField: SubmissionFormField = {
 			...DEFAULT_FIELD,
 			key: `field_${Date.now()}`,
+			order: fields.length,
+		};
+		updateConfig([...fields, newField]);
+	};
+
+	const addPresetField = (presetKey: string) => {
+		const preset = PRESET_FIELDS[presetKey];
+		if (!preset) return;
+
+		// Check if field with same key already exists
+		if (fields.some((f) => f.key === presetKey)) {
+			return; // Already exists
+		}
+
+		const newField: SubmissionFormField = {
+			...preset,
+			key: presetKey,
 			order: fields.length,
 		};
 		updateConfig([...fields, newField]);
@@ -491,6 +539,47 @@ export function SubmissionFormConfigEditor({
 						))}
 					</Accordion>
 				)}
+
+				{/* 快捷添加预设字段 */}
+				<div className="space-y-2">
+					<p className="text-sm text-muted-foreground">
+						快速添加常用字段：
+					</p>
+					<div className="flex flex-wrap gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => addPresetField("teamPhoto")}
+							disabled={fields.some((f) => f.key === "teamPhoto")}
+						>
+							<ImagePlus className="h-4 w-4 mr-2" />
+							团队照片
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => addPresetField("demoVideo")}
+							disabled={fields.some((f) => f.key === "demoVideo")}
+						>
+							<Video className="h-4 w-4 mr-2" />
+							演示视频
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => addPresetField("sourceCode")}
+							disabled={fields.some(
+								(f) => f.key === "sourceCode",
+							)}
+						>
+							<Code className="h-4 w-4 mr-2" />
+							源代码链接
+						</Button>
+					</div>
+				</div>
 
 				<Button
 					type="button"

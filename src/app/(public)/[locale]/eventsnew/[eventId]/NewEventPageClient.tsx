@@ -4,7 +4,7 @@ import { useSession } from "@dashboard/auth/hooks/use-session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type MouseEvent } from "react";
 import { toast } from "sonner";
 
 import { eventKeys } from "@/app/(public)/[locale]/events/[eventId]/hooks/useEventQueries";
@@ -232,7 +232,16 @@ export function NewEventPageClient({
 		});
 	};
 
-	const handleRegister = (openModal?: () => void) => {
+	const handleRegister = (
+		openModalOrEvent?:
+			| (() => void)
+			| MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
+	) => {
+		const openModal =
+			typeof openModalOrEvent === "function"
+				? openModalOrEvent
+				: undefined;
+
 		const searchString = searchParams.toString();
 		const targetPath = searchString
 			? `${pathname}?${searchString}`
