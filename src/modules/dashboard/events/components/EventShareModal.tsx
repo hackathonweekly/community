@@ -312,7 +312,7 @@ export function EventShareModal({
 				className="w-full flex items-center gap-2"
 			>
 				<LinkIcon className="w-4 h-4" />
-				{t("copyLink")}
+				复制链接
 			</Button>
 		</div>
 	);

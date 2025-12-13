@@ -274,7 +274,7 @@ export function EventInvitesTab({ eventId }: EventInvitesTabProps) {
 								className="flex items-center gap-1"
 							>
 								<CopyIcon className="w-4 h-4" />
-								{t("copyLink")}
+								复制链接
 							</Button>
 							<Button
 								variant="ghost"
@@ -494,7 +494,7 @@ export function EventInvitesTab({ eventId }: EventInvitesTabProps) {
 							className="flex items-center gap-1"
 						>
 							<CopyIcon className="w-4 h-4" />
-							{t("copyLink")}
+							复制链接
 						</Button>
 						<Button
 							onClick={() => void handleDownloadQr()}
