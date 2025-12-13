@@ -56,6 +56,23 @@ const getFileCategory = (mimeType?: string, fallback?: string) => {
 	return "file";
 };
 
+// 在移动端对超长文件名进行中间省略显示，保留扩展名
+function truncateFileNameMiddle(name: string, max = 40) {
+	if (!name) return "";
+	if (name.length <= max) return name;
+	const dot = name.lastIndexOf(".");
+	const hasExt = dot > 0 && dot < name.length - 1;
+	const ext = hasExt ? name.slice(dot) : "";
+	const base = hasExt ? name.slice(0, dot) : name;
+	const reserve = Math.max(
+		6,
+		Math.min(12, Math.floor((max - ext.length - 1) / 2)),
+	);
+	const head = base.slice(0, reserve);
+	const tail = base.slice(-reserve);
+	return `${head}…${tail}${ext}`;
+}
+
 // 生成后端安全文件名：hash(种子+原名+大小+类型)+时间戳+原始扩展名
 // - 仅用于存储路径，界面始终显示原始文件名
 async function generateServerFileName(
@@ -417,7 +434,10 @@ export function AttachmentUploader({
 										className="font-medium text-sm truncate"
 										title={attachment.fileName}
 									>
-										{attachment.fileName}
+										{truncateFileNameMiddle(
+											attachment.fileName,
+											32,
+										)}
 									</p>
 									<div className="flex items-center gap-2 text-xs text-muted-foreground">
 										<span>

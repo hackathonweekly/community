@@ -15,6 +15,22 @@ interface FileUploaderProps {
 	placeholder?: string;
 }
 
+function truncateFileNameMiddle(name: string, max = 32) {
+	if (!name) return "";
+	if (name.length <= max) return name;
+	const dot = name.lastIndexOf(".");
+	const hasExt = dot > 0 && dot < name.length - 1;
+	const ext = hasExt ? name.slice(dot) : "";
+	const base = hasExt ? name.slice(0, dot) : name;
+	const reserve = Math.max(
+		6,
+		Math.min(12, Math.floor((max - ext.length - 1) / 2)),
+	);
+	const head = base.slice(0, reserve);
+	const tail = base.slice(-reserve);
+	return `${head}…${tail}${ext}`;
+}
+
 export function FileUploader({
 	eventId,
 	value,
@@ -85,8 +101,13 @@ export function FileUploader({
 		return (
 			<div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/30">
 				<FileText className="h-5 w-5 text-muted-foreground" />
-				<span className="flex-1 text-sm truncate">
-					{fileName || "已上传文件"}
+				<span
+					className="flex-1 text-sm truncate"
+					title={fileName || "已上传文件"}
+				>
+					{fileName
+						? truncateFileNameMiddle(fileName, 28)
+						: "已上传文件"}
 				</span>
 				<Button
 					type="button"
