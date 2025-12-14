@@ -47,6 +47,7 @@ import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { SubmissionsActionButton } from "./SubmissionsActionButton";
+import { useEventRegistrationStatus } from "./useEventRegistrationStatus";
 // Removed fallback caption track for media preview per product decision
 
 interface EventSubmissionsGalleryProps {
@@ -122,6 +123,10 @@ export function EventSubmissionsGallery({
 	const userId = user?.id;
 	const pathname = usePathname();
 	const router = useRouter();
+	const registerHref = `/${locale}/events/${eventId}/register`;
+	const { data: registration, isLoading: isRegistrationLoading } =
+		useEventRegistrationStatus(eventId, userId);
+	const isRegistrationApproved = registration?.status === "APPROVED";
 
 	const { data, isLoading } = useEventSubmissions(eventId, {
 		sort: sortBy,
@@ -159,6 +164,12 @@ export function EventSubmissionsGallery({
 
 		return submissions;
 	}, [submissions, filter, userId, votedIds]);
+	const shouldShowRegistrationNotice = Boolean(
+		user &&
+			filter !== "all" &&
+			!isRegistrationApproved &&
+			!isRegistrationLoading,
+	);
 
 	const leaderboardSubmissions = useMemo(() => {
 		if (!canShowVotes) return [];
@@ -514,7 +525,16 @@ export function EventSubmissionsGallery({
 					</div>
 				</div>
 			</div>
-			{isLoading ? (
+			{shouldShowRegistrationNotice ? (
+				<div className="rounded-2xl border border-dashed p-8 text-center space-y-4">
+					<p className="text-base font-semibold">
+						您还未报名参与该活动
+					</p>
+					<Button asChild size="lg" className="w-full sm:w-auto">
+						<Link href={registerHref}>立即报名</Link>
+					</Button>
+				</div>
+			) : isLoading ? (
 				viewMode === "grid" ? (
 					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 						{Array.from({ length: 6 }).map((_, index) => (
