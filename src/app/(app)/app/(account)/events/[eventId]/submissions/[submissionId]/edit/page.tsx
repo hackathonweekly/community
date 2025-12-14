@@ -5,10 +5,8 @@ import { config } from "@/config";
 import { getEventById } from "@/lib/database";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
 import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
-import type {
-	EventSubmission,
-	SubmissionFormConfig,
-} from "@/features/event-submissions/types";
+import type { EventSubmission } from "@/features/event-submissions/types";
+import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
 
 interface PageProps {
 	params: Promise<{ eventId: string; submissionId: string }>;
@@ -55,8 +53,9 @@ export default async function EditSubmissionPage({ params }: PageProps) {
 		notFound();
 	}
 
-	const submissionFormConfig = (event.submissionFormConfig ??
-		null) as SubmissionFormConfig | null;
+	const submissionFormConfig = normalizeSubmissionFormConfig(
+		event.submissionFormConfig ?? null,
+	);
 
 	return (
 		<SubmissionPageShell

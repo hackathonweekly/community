@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
 import { ensureActiveEventRegistration } from "@/features/event-submissions/server/ensure-active-registration";
 import { getEventById } from "@/lib/database";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
@@ -22,8 +22,9 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 	});
 
 	// Parse submissionFormConfig from event
-	const submissionFormConfig =
-		event.submissionFormConfig as SubmissionFormConfig | null;
+	const submissionFormConfig = normalizeSubmissionFormConfig(
+		event.submissionFormConfig ?? null,
+	);
 
 	return (
 		<SubmissionPageShell

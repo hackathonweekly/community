@@ -15,6 +15,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { EventCreateForm } from "@/modules/dashboard/events/components/EventCreateForm";
 import type { EventFormData } from "@/modules/dashboard/events/components/types";
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
 import { extractErrorMessage as extractTemplateErrorMessage } from "@/modules/dashboard/events/utils/template-helpers";
 import { formatForDatetimeLocal } from "@/modules/dashboard/events/utils/date-utils";
 import { useSession } from "@dashboard/auth/hooks/use-session";
@@ -83,30 +85,7 @@ interface Event {
 		};
 	};
 	// 作品提交表单配置
-	submissionFormConfig?: {
-		fields: Array<{
-			key: string;
-			label: string;
-			type:
-				| "text"
-				| "textarea"
-				| "url"
-				| "phone"
-				| "email"
-				| "image"
-				| "file"
-				| "select"
-				| "radio"
-				| "checkbox";
-			required: boolean;
-			enabled?: boolean;
-			publicVisible?: boolean;
-			placeholder?: string;
-			description?: string;
-			options?: string[];
-			order: number;
-		}>;
-	} | null;
+	submissionFormConfig?: SubmissionFormConfig | null;
 	volunteerContactInfo?: string;
 	volunteerWechatQrCode?: string;
 	organizerContact?: string;
@@ -409,6 +388,9 @@ export default function EventEditPage() {
 			: event.address || "";
 
 	const organizationIdValue = event.organizationId ?? "none";
+	const normalizedSubmissionFormConfig = normalizeSubmissionFormConfig(
+		event.submissionFormConfig ?? null,
+	);
 
 	const formDefaultValues = {
 		title: event.title,
@@ -487,7 +469,7 @@ export default function EventEditPage() {
 			},
 		},
 		// 作品提交表单配置
-		submissionFormConfig: event.submissionFormConfig || null,
+		submissionFormConfig: normalizedSubmissionFormConfig,
 	};
 
 	return (

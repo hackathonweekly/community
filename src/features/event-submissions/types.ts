@@ -175,8 +175,8 @@ export interface SubmissionFormField {
 	label: string;
 	type: SubmissionFieldType;
 	required: boolean;
-	enabled?: boolean;
-	publicVisible?: boolean;
+	enabled: boolean;
+	publicVisible: boolean;
 	placeholder?: string;
 	description?: string;
 	options?: string[];

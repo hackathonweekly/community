@@ -16,7 +16,7 @@ import {
 	EventHero,
 	EventInfoCard,
 } from "@/modules/public/events/components";
-import { BookOpen, Code, LayoutGrid, Target, Trophy } from "lucide-react";
+import { BookOpen, Code, LayoutGrid, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

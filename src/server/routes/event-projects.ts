@@ -972,11 +972,11 @@ type SubmissionFieldConfig = {
 	key: string;
 	label: string;
 	type: string;
-	required?: boolean;
-	enabled?: boolean;
-	publicVisible?: boolean;
-	order?: number;
-	description?: string;
+	required: boolean;
+	enabled: boolean;
+	publicVisible: boolean;
+	order: number;
+	description: string | undefined;
 };
 
 function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
@@ -986,45 +986,41 @@ function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
 	const fields = (config as any).fields;
 	if (!Array.isArray(fields)) return [];
 
-	return fields
-		.map((field, index) => {
-			if (!field || typeof field !== "object") return null;
-			const safeField = field as Record<string, unknown>;
-			const key = typeof safeField.key === "string" ? safeField.key : "";
-			const label =
-				typeof safeField.label === "string" ? safeField.label : "";
-			const order =
-				typeof safeField.order === "number" ? safeField.order : index;
+	const normalized: SubmissionFieldConfig[] = [];
 
-			if (!key || !label) return null;
+	fields.forEach((field, index) => {
+		if (!field || typeof field !== "object") return;
+		const safeField = field as Record<string, unknown>;
+		const key = typeof safeField.key === "string" ? safeField.key : "";
+		const label =
+			typeof safeField.label === "string" ? safeField.label : "";
+		const order =
+			typeof safeField.order === "number" ? safeField.order : index;
 
-			return {
-				key,
-				label,
-				type:
-					typeof safeField.type === "string"
-						? safeField.type
-						: "text",
-				required: Boolean(safeField.required),
-				description:
-					typeof safeField.description === "string"
-						? safeField.description
-						: undefined,
-				enabled:
-					safeField.enabled === undefined
-						? true
-						: Boolean(safeField.enabled),
-				publicVisible:
-					safeField.publicVisible === undefined
-						? true
-						: Boolean(safeField.publicVisible),
-				order,
-			};
-		})
-		.filter((field): field is SubmissionFieldConfig =>
-			Boolean(field && field.key && field.label),
-		)
-		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+		if (!key || !label) return;
+
+		normalized.push({
+			key,
+			label,
+			type: typeof safeField.type === "string" ? safeField.type : "text",
+			required: Boolean(safeField.required),
+			description:
+				typeof safeField.description === "string"
+					? safeField.description
+					: undefined,
+			enabled:
+				safeField.enabled === undefined
+					? true
+					: Boolean(safeField.enabled),
+			publicVisible:
+				safeField.publicVisible === undefined
+					? true
+					: Boolean(safeField.publicVisible),
+			order,
+		});
+	});
+
+	return normalized.sort((a, b) => a.order - b.order);
 }
 
 function serializeSubmission(

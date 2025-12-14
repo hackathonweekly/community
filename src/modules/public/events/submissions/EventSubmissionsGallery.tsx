@@ -93,6 +93,9 @@ export function EventSubmissionsGallery({
 	const [filter, setFilter] = useState<"all" | "mine" | "voted">("all");
 	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+	const [pendingVoteSubmissionId, setPendingVoteSubmissionId] = useState<
+		string | null
+	>(null);
 
 	// Only show vote visuals when voting is open, not showing final results, and gallery display is enabled
 	// This creates a fun "live" feel without revealing final ranks
@@ -229,10 +232,13 @@ export function EventSubmissionsGallery({
 			return;
 		}
 		try {
+			setPendingVoteSubmissionId(submission.id);
 			await voteMutation.mutateAsync(submission.id);
 			toast.success("投票成功");
 		} catch (error) {
 			toast.error(error instanceof Error ? error.message : "投票失败");
+		} finally {
+			setPendingVoteSubmissionId(null);
 		}
 	};
 
@@ -309,7 +315,8 @@ export function EventSubmissionsGallery({
 				disabled={noVotesLeft || voteMutation.isPending}
 				onClick={() => handleVote(submission)}
 			>
-				{voteMutation.isPending ? (
+				{voteMutation.isPending &&
+				pendingVoteSubmissionId === submission.id ? (
 					<Loader2 className="h-4 w-4 animate-spin" />
 				) : (
 					"投票"
