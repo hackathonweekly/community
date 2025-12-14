@@ -170,6 +170,64 @@ export function EventSubmissionsManager({
 		}
 	};
 
+	const renderActionButtons = (
+		submission: EventSubmission,
+		options?: { isMobile?: boolean },
+	) => {
+		const containerClasses = options?.isMobile
+			? "flex flex-col gap-2"
+			: "flex flex-wrap justify-end gap-2";
+		const buttonClasses = options?.isMobile ? "w-full" : undefined;
+
+		return (
+			<div className={containerClasses}>
+				<Button
+					size="sm"
+					variant="outline"
+					asChild
+					className={buttonClasses}
+				>
+					<Link
+						href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
+					>
+						查看
+					</Link>
+				</Button>
+				<Button
+					size="sm"
+					variant="secondary"
+					asChild
+					className={buttonClasses}
+				>
+					<Link
+						href={`/app/events/${submission.eventId}/submissions/${submission.id}/edit`}
+					>
+						<Pencil className="mr-1 h-4 w-4" />
+						编辑
+					</Link>
+				</Button>
+				<Button
+					size="sm"
+					variant="secondary"
+					className={buttonClasses}
+					onClick={() => handleOpenAdjust(submission)}
+				>
+					<SlidersHorizontal className="mr-1 h-4 w-4" />
+					调整票数
+				</Button>
+				<Button
+					size="sm"
+					variant="ghost"
+					className={`text-destructive hover:text-destructive ${buttonClasses ?? ""}`}
+					onClick={() => setSubmissionToDelete(submission)}
+				>
+					<Trash2 className="mr-1 h-4 w-4" />
+					删除
+				</Button>
+			</div>
+		);
+	};
+
 	const handleExport = () => {
 		if (!submissions.length) {
 			toast.info("暂无作品可导出");
@@ -320,7 +378,7 @@ export function EventSubmissionsManager({
 						value={statusFilter}
 						onValueChange={setStatusFilter}
 					>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-full md:w-[180px]">
 							<SelectValue placeholder="按状态筛选" />
 						</SelectTrigger>
 						<SelectContent>
@@ -353,134 +411,186 @@ export function EventSubmissionsManager({
 						<p className="mt-1">有人提交后会显示在这里。</p>
 					</div>
 				) : (
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead className="w-[22%]">作品</TableHead>
-								<TableHead>状态</TableHead>
-								<TableHead>票数</TableHead>
-								<TableHead>提交人</TableHead>
-								<TableHead className="hidden md:table-cell">
-									提交时间
-								</TableHead>
-								<TableHead className="text-right">
-									操作
-								</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
+					<>
+						<div className="space-y-4 md:hidden">
 							{filteredSubmissions.map((submission) => (
-								<TableRow key={submission.id}>
-									<TableCell className="space-y-1">
-										<div className="font-semibold">
-											{submission.name}
-										</div>
-										<div className="text-xs text-muted-foreground">
+								<div
+									key={submission.id}
+									className="rounded-lg border p-4 shadow-sm"
+								>
+									<div className="flex items-start justify-between gap-3">
+										<div className="flex-1">
+											<p className="text-base font-semibold">
+												{submission.name}
+											</p>
 											{submission.tagline ||
-												submission.description}
+											submission.description ? (
+												<p className="mt-1 text-xs text-muted-foreground line-clamp-2">
+													{submission.tagline ||
+														submission.description}
+												</p>
+											) : null}
 										</div>
-									</TableCell>
-									<TableCell>
-										<Badge variant="outline">
+										<Badge
+											variant="outline"
+											className="flex-shrink-0"
+										>
 											{STATUS_LABELS[submission.status] ??
 												submission.status}
 										</Badge>
-									</TableCell>
-									<TableCell>
-										<div className="font-semibold">
-											{submission.voteCount ?? 0}
+									</div>
+
+									<div className="mt-4 space-y-3 text-sm">
+										<div>
+											<p className="text-xs text-muted-foreground">
+												票数
+											</p>
+											<p className="font-semibold">
+												{submission.voteCount ?? 0}
+											</p>
+											<p className="text-xs text-muted-foreground">
+												基础{" "}
+												{submission.baseVoteCount ?? 0}
+												{submission.manualVoteAdjustment
+													? ` / 手动 ${
+															submission.manualVoteAdjustment >
+															0
+																? `+${submission.manualVoteAdjustment}`
+																: submission.manualVoteAdjustment
+														}`
+													: ""}
+											</p>
 										</div>
-										<div className="text-xs text-muted-foreground">
-											基础 {submission.baseVoteCount ?? 0}
-											{submission.manualVoteAdjustment ? (
-												<>
-													{" "}
-													/ 手动{" "}
-													{submission.manualVoteAdjustment >
-													0
-														? `+${submission.manualVoteAdjustment}`
-														: submission.manualVoteAdjustment}
-												</>
-											) : null}
-										</div>
-									</TableCell>
-									<TableCell>
-										<div className="flex flex-col text-sm">
-											<span className="font-medium">
+										<div>
+											<p className="text-xs text-muted-foreground">
+												提交人
+											</p>
+											<p className="font-medium">
 												{submission.teamLeader?.name ||
 													submission.submitter
 														?.name ||
 													"-"}
-											</span>
+											</p>
 											{submission.teamSize ? (
-												<span className="text-muted-foreground">
+												<p className="text-xs text-muted-foreground">
 													团队人数：
 													{submission.teamSize}
-												</span>
+												</p>
 											) : null}
 										</div>
-									</TableCell>
-									<TableCell className="hidden text-sm text-muted-foreground md:table-cell">
-										{submission.submittedAt
-											? new Date(
+										<div>
+											<p className="text-xs text-muted-foreground">
+												提交时间
+											</p>
+											<p>
+												{formatSubmissionDate(
 													submission.submittedAt,
-												).toLocaleString()
-											: "-"}
-									</TableCell>
-									<TableCell className="text-right">
-										<div className="flex flex-wrap justify-end gap-2">
-											<Button
-												size="sm"
-												variant="outline"
-												asChild
-											>
-												<Link
-													href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
-												>
-													查看
-												</Link>
-											</Button>
-											<Button
-												size="sm"
-												variant="secondary"
-												asChild
-											>
-												<Link
-													href={`/app/events/${submission.eventId}/submissions/${submission.id}/edit`}
-												>
-													<Pencil className="mr-1 h-4 w-4" />
-													编辑
-												</Link>
-											</Button>
-											<Button
-												size="sm"
-												variant="secondary"
-												onClick={() =>
-													handleOpenAdjust(submission)
-												}
-											>
-												<SlidersHorizontal className="mr-1 h-4 w-4" />
-												调整票数
-											</Button>
-											<Button
-												size="sm"
-												variant="ghost"
-												className="text-destructive hover:text-destructive"
-												onClick={() =>
-													setSubmissionToDelete(
-														submission,
-													)
-												}
-											>
-												<Trash2 className="mr-1 h-4 w-4" />
-												删除
-											</Button>
+												)}
+											</p>
 										</div>
-									</TableCell>
-								</TableRow>
+									</div>
+
+									<div className="mt-4">
+										{renderActionButtons(submission, {
+											isMobile: true,
+										})}
+									</div>
+								</div>
 							))}
-						</TableBody>
-					</Table>
+						</div>
+
+						<div className="hidden md:block">
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead className="w-[22%]">
+											作品
+										</TableHead>
+										<TableHead>状态</TableHead>
+										<TableHead>票数</TableHead>
+										<TableHead>提交人</TableHead>
+										<TableHead className="hidden md:table-cell">
+											提交时间
+										</TableHead>
+										<TableHead className="text-right">
+											操作
+										</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{filteredSubmissions.map((submission) => (
+										<TableRow key={submission.id}>
+											<TableCell className="space-y-1">
+												<div className="font-semibold">
+													{submission.name}
+												</div>
+												<div className="text-xs text-muted-foreground">
+													{submission.tagline ||
+														submission.description}
+												</div>
+											</TableCell>
+											<TableCell>
+												<Badge variant="outline">
+													{STATUS_LABELS[
+														submission.status
+													] ?? submission.status}
+												</Badge>
+											</TableCell>
+											<TableCell>
+												<div className="font-semibold">
+													{submission.voteCount ?? 0}
+												</div>
+												<div className="text-xs text-muted-foreground">
+													基础{" "}
+													{submission.baseVoteCount ??
+														0}
+													{submission.manualVoteAdjustment ? (
+														<>
+															{" "}
+															/ 手动{" "}
+															{submission.manualVoteAdjustment >
+															0
+																? `+${submission.manualVoteAdjustment}`
+																: submission.manualVoteAdjustment}
+														</>
+													) : null}
+												</div>
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-col text-sm">
+													<span className="font-medium">
+														{submission.teamLeader
+															?.name ||
+															submission.submitter
+																?.name ||
+															"-"}
+													</span>
+													{submission.teamSize ? (
+														<span className="text-muted-foreground">
+															团队人数：
+															{
+																submission.teamSize
+															}
+														</span>
+													) : null}
+												</div>
+											</TableCell>
+											<TableCell className="hidden text-sm text-muted-foreground md:table-cell">
+												{formatSubmissionDate(
+													submission.submittedAt,
+												)}
+											</TableCell>
+											<TableCell className="text-right">
+												{renderActionButtons(
+													submission,
+												)}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</>
 				)}
 			</CardContent>
 
@@ -568,6 +678,11 @@ export function EventSubmissionsManager({
 			</AlertDialog>
 		</Card>
 	);
+}
+
+function formatSubmissionDate(date?: string | null) {
+	if (!date) return "-";
+	return new Date(date).toLocaleString();
 }
 
 function normalizeCustomFields(customFields: EventSubmission["customFields"]) {
