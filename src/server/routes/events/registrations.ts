@@ -341,6 +341,7 @@ app.delete("/:eventId/register", async (c) => {
 		}
 
 		await deleteEventRegistration(eventId, session.user.id);
+		await clearEventVotesForUser(eventId, session.user.id);
 
 		return c.json({
 			success: true,
@@ -539,6 +540,8 @@ app.delete(
 					reviewNote: `报名被取消：${reason}`,
 				},
 			);
+
+			await clearEventVotesForUser(eventId, userId);
 
 			// 发送取消通知给用户
 			try {
@@ -1154,3 +1157,12 @@ app.get("/:eventId/registration", async (c) => {
 });
 
 export default app;
+
+async function clearEventVotesForUser(eventId: string, userId: string) {
+	await db.projectVote.deleteMany({
+		where: {
+			eventId,
+			userId,
+		},
+	});
+}

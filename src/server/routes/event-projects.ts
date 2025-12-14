@@ -151,6 +151,16 @@ const app = new Hono()
 				status: {
 					in: PUBLIC_SUBMISSION_STATUSES,
 				},
+				user: {
+					eventRegistrations: {
+						some: {
+							eventId,
+							status: {
+								in: ACTIVE_REGISTRATION_STATUSES,
+							},
+						},
+					},
+				},
 			},
 			include: submissionInclude,
 		});

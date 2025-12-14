@@ -1,3 +1,4 @@
+import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import { db } from "@/lib/database";
 import type {
 	EventStatus,
@@ -2119,7 +2120,7 @@ export async function getEventProjectSubmissions(eventId: string) {
 					some: {
 						eventId,
 						status: {
-							in: ["APPROVED", "PENDING"], // Active registration statuses
+							in: ACTIVE_REGISTRATION_STATUSES, // Active registration statuses
 						},
 					},
 				},

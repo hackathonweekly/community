@@ -42,6 +42,8 @@ import {
 	useUnvoteSubmission,
 	useVoteSubmission,
 } from "@/features/event-submissions/hooks";
+import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
+import type { RegistrationStatus } from "@prisma/client";
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { cn } from "@/lib/utils";
@@ -126,6 +128,12 @@ export function EventSubmissionsGallery({
 	const registerHref = `/${locale}/events/${eventId}/register`;
 	const { data: registration, isLoading: isRegistrationLoading } =
 		useEventRegistrationStatus(eventId, userId);
+	const hasActiveRegistration = Boolean(
+		registration?.status &&
+			ACTIVE_REGISTRATION_STATUSES.includes(
+				registration.status as RegistrationStatus,
+			),
+	);
 	const isRegistrationApproved = registration?.status === "APPROVED";
 
 	const { data, isLoading } = useEventSubmissions(eventId, {
@@ -338,9 +346,19 @@ export function EventSubmissionsGallery({
 						</h2>
 						{isVotingOpen ? (
 							user ? (
-								<p className="text-sm text-muted-foreground">
-									你还有 {remainingVotes ?? 3} 票
-								</p>
+								hasActiveRegistration ? (
+									<p className="text-sm text-muted-foreground">
+										你还有 {remainingVotes ?? 3} 票
+									</p>
+								) : isRegistrationLoading ? (
+									<p className="text-sm text-muted-foreground">
+										正在确认您的报名状态…
+									</p>
+								) : (
+									<p className="text-sm text-muted-foreground">
+										报名活动后即可拥有 3 票并参与投票
+									</p>
+								)
 							) : (
 								<p className="text-sm text-muted-foreground">
 									登录后即可拥有 3 票并参与投票

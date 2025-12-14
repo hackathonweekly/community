@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Target } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
+import { useEventRegistrationStatus } from "./useEventRegistrationStatus";
 
 interface SubmissionsActionButtonProps {
 	eventId: string;
@@ -23,10 +23,6 @@ interface SubmissionsActionButtonProps {
 		| "link";
 }
 
-type EventRegistration = {
-	status?: string | null;
-} | null;
-
 export function SubmissionsActionButton({
 	eventId,
 	locale,
@@ -42,26 +38,10 @@ export function SubmissionsActionButton({
 	const registerHref = `/${locale}/events/${eventId}/register`;
 	const computedVariant = variant ?? "default";
 
-	const { data: registration } = useQuery<EventRegistration>({
-		queryKey: ["event-registration-status", eventId, user?.id],
-		enabled: Boolean(user?.id),
-		staleTime: 60 * 1000,
-		queryFn: async () => {
-			const response = await fetch(
-				`/api/events/${eventId}/registration`,
-				{
-					credentials: "include",
-				},
-			);
-
-			if (!response.ok) {
-				return null;
-			}
-
-			const result = await response.json();
-			return (result?.data as EventRegistration) ?? null;
-		},
-	});
+	const { data: registration } = useEventRegistrationStatus(
+		eventId,
+		user?.id,
+	);
 
 	const isRegistrationApproved = registration?.status === "APPROVED";
 	const actionHref = isRegistrationApproved ? manageHref : registerHref;

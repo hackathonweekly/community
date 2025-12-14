@@ -8,6 +8,7 @@ import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
 } from "@/features/hackathon/config";
+import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 
 const app = new Hono()
 	// 获取黑客松配置
@@ -180,6 +181,16 @@ const app = new Hono()
 				where: {
 					eventId,
 					status: { in: ["APPROVED", "AWARDED"] },
+					user: {
+						eventRegistrations: {
+							some: {
+								eventId,
+								status: {
+									in: ACTIVE_REGISTRATION_STATUSES,
+								},
+							},
+						},
+					},
 				},
 				include: {
 					project: {
