@@ -1,22 +1,14 @@
 import { config } from "@/config";
+import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
 import { zValidator } from "@hono/zod-validator";
-import type {
-	Prisma,
-	Project,
-	RegistrationStatus,
-	SubmissionStatus,
-} from "@prisma/client";
+import type { Prisma, Project, SubmissionStatus } from "@prisma/client";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 
-const ACTIVE_REGISTRATION_STATUSES: RegistrationStatus[] = [
-	"APPROVED",
-	"PENDING",
-];
 const PUBLIC_SUBMISSION_STATUSES: SubmissionStatus[] = [
 	"SUBMITTED",
 	"UNDER_REVIEW",
@@ -813,7 +805,7 @@ async function ensureParticipant(eventId: string, userId: string) {
 		!ACTIVE_REGISTRATION_STATUSES.includes(registration.status as any)
 	) {
 		throw new HTTPException(403, {
-			message: "你需要先报名才能提交作品",
+			message: "您需要先报名才能投票",
 		});
 	}
 	return registration;
@@ -1020,7 +1012,7 @@ function normalizeSubmissionFields(config: unknown): SubmissionFieldConfig[] {
 			};
 		})
 		.filter((field): field is SubmissionFieldConfig =>
-			Boolean(field?.key && field.label),
+			Boolean(field && field.key && field.label),
 		)
 		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import { getEventById } from "@/lib/database";
 import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import { ensureActiveEventRegistration } from "@/features/event-submissions/server/ensure-active-registration";
+import { getEventById } from "@/lib/database";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
 import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
 
@@ -15,6 +16,10 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 	if (!event) {
 		notFound();
 	}
+
+	await ensureActiveEventRegistration(eventId, {
+		returnTo: `/app/events/${eventId}/submissions/new`,
+	});
 
 	// Parse submissionFormConfig from event
 	const submissionFormConfig =

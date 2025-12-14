@@ -167,14 +167,14 @@ export function HackathonContent({
 					</Button>
 				</Link>
 
-				{isSubmissionOpen && (
+				{/* {isSubmissionOpen && (
 					<Button asChild className="gap-2">
 						<Link href={privateSubmissionUrl}>
 							<Target className="w-4 h-4" />
 							{userSubmission ? "修改作品" : "提交作品"}
 						</Link>
 					</Button>
-				)}
+				)} */}
 			</div>
 
 			{/* Main Content Section */}

@@ -184,7 +184,9 @@ export function MobileEventBottomActions({
 		disabled?: boolean;
 	};
 
-	const moreActions = [
+	const shouldLimitActionsToContact = !existingRegistration;
+
+	const availableActions = [
 		{
 			key: "photos",
 			label: "现场相册",
@@ -226,6 +228,10 @@ export function MobileEventBottomActions({
 				}
 			: null,
 	].filter(Boolean) as MoreAction[];
+
+	const moreActions = shouldLimitActionsToContact
+		? availableActions.filter((action) => action.key === "contact")
+		: availableActions;
 
 	return (
 		<>

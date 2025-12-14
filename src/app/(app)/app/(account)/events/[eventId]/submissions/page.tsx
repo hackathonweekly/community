@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/database";
+import { ensureActiveEventRegistration } from "@/features/event-submissions/server/ensure-active-registration";
 import { SubmissionsDashboard } from "@/modules/dashboard/events/components/submissions/SubmissionsDashboard";
 
 interface PageProps {
@@ -13,6 +14,10 @@ export default async function EventSubmissionsPage({ params }: PageProps) {
 	if (!event) {
 		notFound();
 	}
+
+	await ensureActiveEventRegistration(eventId, {
+		returnTo: `/app/events/${eventId}/submissions`,
+	});
 
 	const now = new Date();
 	const startTime = new Date(event.startTime);
