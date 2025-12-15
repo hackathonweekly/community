@@ -25,6 +25,7 @@ import { useEffect, useMemo } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 
 const formSchema = z.object({
 	username: z
@@ -36,7 +37,10 @@ const formSchema = z.object({
 			"用户名只能包含字母、数字和下划线，且不能以下划线开头或结尾",
 		)
 		.optional(),
-	userRoleString: z.string().min(1, "请选择或输入您的主要角色"),
+	userRoleString: z
+		.string()
+		.min(1, "请选择或输入您的主要角色")
+		.max(PROFILE_LIMITS.userRoleStringMax, "个人角色不能超过7个字"),
 	bio: z.string().max(200, "个人简介不能超过200字").optional(),
 });
 

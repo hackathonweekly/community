@@ -27,6 +27,7 @@ import { UserRoleInput } from "@dashboard/profile/components/UserRoleInput";
 import { SimpleLifeStatusSelector } from "@dashboard/profile/components/SimpleLifeStatusSelector";
 import { cn } from "@/lib/utils";
 import { ArrowLeftIcon, Loader2, ShieldCheck, UserCheck } from "lucide-react";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 
 const profileSchema = z.object({
 	email: z.string().trim().min(1, "请输入邮箱").email("请输入有效的邮箱地址"),
@@ -39,7 +40,7 @@ const profileSchema = z.object({
 		.string()
 		.trim()
 		.min(1, "请填写您的主要角色")
-		.max(50, "角色描述不能超过50字"),
+		.max(PROFILE_LIMITS.userRoleStringMax, "个人角色不能超过7个字"),
 	bio: z
 		.string()
 		.trim()
@@ -49,7 +50,7 @@ const profileSchema = z.object({
 		.string()
 		.trim()
 		.min(1, "请填写当前在做的事情")
-		.max(120, "当前在做的内容不能超过120字"),
+		.max(PROFILE_LIMITS.currentWorkOnMax, "个人状态不能超过10个字"),
 	lifeStatus: z
 		.string()
 		.trim()
@@ -441,7 +442,10 @@ export function InvitationProfileCompletionForm({
 												<Textarea
 													{...field}
 													className="min-h-[90px]"
-													placeholder="分享一下你最近专注的项目或计划..."
+													placeholder="例如：在做AI产品"
+													maxLength={
+														PROFILE_LIMITS.currentWorkOnMax
+													}
 												/>
 											</FormControl>
 											<FormMessage />

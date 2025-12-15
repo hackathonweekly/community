@@ -5,6 +5,7 @@ import { getOrganizationList, getSession } from "@dashboard/auth/lib/server";
 import { ActiveOrganizationProvider } from "@dashboard/organizations/components/ActiveOrganizationProvider";
 import { organizationListQueryKey } from "@dashboard/organizations/lib/api";
 import { ConfirmationAlertProvider } from "@dashboard/shared/components/ConfirmationAlertProvider";
+import { PhoneBindingPrompt } from "@/components/shared/PhoneBindingPrompt";
 import { getServerQueryClient } from "@/lib/server";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import type { PropsWithChildren } from "react";
@@ -34,6 +35,7 @@ export default async function Layout({ children }: PropsWithChildren) {
 			<SessionProvider initialSession={session}>
 				<ActiveOrganizationProvider>
 					<ConfirmationAlertProvider>
+						<PhoneBindingPrompt />
 						{/* Add bottom padding for mobile tabbar spacing */}
 						<div className="pb-20 md:pb-8">{children}</div>
 					</ConfirmationAlertProvider>

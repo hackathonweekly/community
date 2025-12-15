@@ -6,6 +6,7 @@ import { SessionProvider } from "@dashboard/auth/components/SessionProvider";
 import { getSession } from "@dashboard/auth/lib/server";
 import { BetaBanner } from "@/components/shared/BetaBanner";
 import { CustomerServiceWidget } from "@/components/shared/CustomerServiceWidget";
+import { PhoneBindingPrompt } from "@/components/shared/PhoneBindingPrompt";
 import { Providers } from "@/components/shared/Providers";
 import { RootProvider as FumadocsRootProvider } from "fumadocs-ui/provider";
 import { NextIntlClientProvider } from "next-intl";
@@ -56,6 +57,7 @@ export default async function MarketingLayout({
 					<SessionProvider initialSession={session}>
 						<BetaBanner locale={locale} />
 						<NavBar />
+						<PhoneBindingPrompt />
 						<DynamicLayoutWrapper>{children}</DynamicLayoutWrapper>
 						<ConditionalFooter locale={locale} />
 						<TabBar />

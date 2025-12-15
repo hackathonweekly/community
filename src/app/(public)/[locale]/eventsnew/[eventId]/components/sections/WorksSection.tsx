@@ -71,7 +71,7 @@ export function WorksSection({
 	locale: string;
 	eventId: string;
 	userId?: string;
-	onRequireLogin?: () => void;
+	onRequireLogin?: (redirectTo?: string) => void;
 }) {
 	const works: Work[] = projectSubmissions.map((submission) => {
 		const project = submission.project;
@@ -110,27 +110,19 @@ export function WorksSection({
 		: `/app/events/${eventId}/submissions/new`;
 
 	const handleViewAll = () => {
-		if (!userId) {
-			onRequireLogin?.();
-			return;
-		}
-		window.location.href = `/${locale}/events/${eventId}/submissions`;
+		window.location.assign(`/${locale}/events/${eventId}/submissions`);
 	};
 
 	const handleSubmit = () => {
 		if (!userId) {
-			onRequireLogin?.();
+			onRequireLogin?.(submissionHref);
 			return;
 		}
-		window.location.href = submissionHref;
+		window.location.assign(submissionHref);
 	};
 
 	const handleCardClick = (href?: string) => {
 		if (!href) return;
-		if (!userId) {
-			onRequireLogin?.();
-			return;
-		}
 		window.open(href, "_blank");
 	};
 

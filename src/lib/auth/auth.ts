@@ -60,13 +60,21 @@ export const auth = betterAuth({
 			const user = await db.user.findUnique({
 				where: { id: context.user?.id || context.userId },
 				select: {
+					createdAt: true,
 					phoneNumber: true,
 					phoneNumberVerified: true,
 				},
 			});
 
-			// 如果未绑定手机号或手机号未验证，引导到绑定页面
-			if (!user?.phoneNumber || !user?.phoneNumberVerified) {
+			const isNewlyRegistered =
+				user?.createdAt &&
+				Date.now() - user.createdAt.getTime() < 10 * 60 * 1000;
+
+			// 首次注册（或刚注册不久）的微信用户：优先引导到绑定页面（允许跳过）
+			if (
+				isNewlyRegistered &&
+				(!user?.phoneNumber || !user?.phoneNumberVerified)
+			) {
 				const bindPhoneUrl = redirectTo
 					? `/auth/bind-phone?redirectTo=${encodeURIComponent(redirectTo)}`
 					: "/auth/bind-phone";

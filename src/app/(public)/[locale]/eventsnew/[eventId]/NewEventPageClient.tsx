@@ -239,8 +239,8 @@ export function NewEventPageClient({
 		return searchString ? `${pathname}?${searchString}` : pathname;
 	};
 
-	const redirectToLogin = () => {
-		const targetPath = buildRedirectTarget();
+	const redirectToLogin = (redirectTo?: string) => {
+		const targetPath = redirectTo ?? buildRedirectTarget();
 		router.push(`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`);
 	};
 
@@ -264,9 +264,7 @@ export function NewEventPageClient({
 			return;
 		}
 		if (!user) {
-			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`,
-			);
+			redirectToLogin(targetPath);
 			return;
 		}
 		if (isEventEnded) {
@@ -312,9 +310,7 @@ export function NewEventPageClient({
 			const targetPath = searchString
 				? `${pathname}?${searchString}`
 				: pathname;
-			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`,
-			);
+			redirectToLogin(targetPath);
 			return;
 		}
 		volunteerApply(eventVolunteerRoleId, {
@@ -329,9 +325,7 @@ export function NewEventPageClient({
 		wouldRecommend: boolean;
 	}) => {
 		if (!user) {
-			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
-			);
+			redirectToLogin();
 			return;
 		}
 
@@ -461,7 +455,7 @@ export function NewEventPageClient({
 				Boolean(event.volunteerContactInfo) ||
 				Boolean(event.volunteerWechatQrCode),
 		},
-		{ id: "feedback", label: "反馈", show: true },
+		{ id: "feedback", label: "反馈", show: !event.isExternalEvent },
 	]
 		.filter((anchor) => anchor.show ?? true)
 		.map(({ id, label }) => ({ id, label }));
@@ -477,16 +471,14 @@ export function NewEventPageClient({
 			existingRegistration.status,
 		);
 
-	const canContactOrganizer = Boolean(
-		event.organizerContact && !event.isExternalEvent,
-	);
-	const canShowFeedback = true;
+	const canContactOrganizer =
+		!event.isExternalEvent &&
+		Boolean(event.organizerContact || event.organizer?.email);
+	const canShowFeedback = !event.isExternalEvent;
 
 	const handleBookmark = () => {
 		if (!user) {
-			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
-			);
+			redirectToLogin();
 			return;
 		}
 		toggleBookmark();
@@ -494,12 +486,37 @@ export function NewEventPageClient({
 
 	const handleLike = () => {
 		if (!user) {
-			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
-			);
+			redirectToLogin();
 			return;
 		}
 		toggleLike();
+	};
+
+	const handleOpenContact = () => {
+		if (!canContactOrganizer) return;
+		setIsContactDialogOpen(true);
+	};
+
+	const handleOpenFeedback = () => {
+		if (!canShowFeedback) return;
+		if (!loaded) return;
+
+		if (!user) {
+			toast.error("请先登录再提交反馈", {
+				action: {
+					label: "去登录",
+					onClick: () => redirectToLogin(),
+				},
+			});
+			return;
+		}
+
+		if (existingRegistration?.status !== "APPROVED") {
+			toast.error("报名通过后才可提交反馈");
+			return;
+		}
+
+		setIsFeedbackDialogOpen(true);
 	};
 
 	return (
@@ -539,8 +556,10 @@ export function NewEventPageClient({
 						onShowQR={() => setShowQRGenerator(true)}
 						onShowShare={() => setShowShareModal(true)}
 						onShowSuccessInfo={() => setShowSuccessInfo(true)}
-						onContact={() => setIsContactDialogOpen(true)}
-						onFeedback={() => setIsFeedbackDialogOpen(true)}
+						onContact={handleOpenContact}
+						onFeedback={handleOpenFeedback}
+						canContact={canContactOrganizer}
+						canFeedback={canShowFeedback}
 						canCancel={canCancel}
 						registrationDisabledReason={registrationDisabledReason}
 						isEventEnded={isEventEnded}
@@ -574,7 +593,7 @@ export function NewEventPageClient({
 						event={event}
 						currentUserId={user?.id}
 						projectSubmissions={projectSubmissions}
-						onRequireLogin={redirectToLogin}
+						onRequireLogin={() => redirectToLogin()}
 						isDialogOpen={showParticipantsDialog}
 						onDialogChange={setShowParticipantsDialog}
 					/>
@@ -596,29 +615,37 @@ export function NewEventPageClient({
 						/>
 					) : null}
 
-					<FeedbackSection
-						onContact={() => setIsContactDialogOpen(true)}
-						onFeedback={() => setIsFeedbackDialogOpen(true)}
-						onShare={() => setShowShareModal(true)}
-					/>
+					{canContactOrganizer || canShowFeedback ? (
+						<FeedbackSection
+							onContact={handleOpenContact}
+							onFeedback={handleOpenFeedback}
+							canContact={canContactOrganizer}
+							canFeedback={canShowFeedback}
+							onShare={() => setShowShareModal(true)}
+						/>
+					) : null}
 				</div>
 			</div>
 
 			<MobileCTA
 				locale={locale}
 				eventId={event.id}
+				isEventAdmin={event.isEventAdmin}
 				registerLabel={registerLabel}
 				onRegister={() =>
 					handleRegister(() => setShowRegistrationForm(true))
 				}
 				onCancel={handleCancelRegistration}
 				onShare={() => setShowShareModal(true)}
-				onFeedback={() => setIsFeedbackDialogOpen(true)}
-				onContact={() => setIsContactDialogOpen(true)}
+				onFeedback={handleOpenFeedback}
+				onContact={handleOpenContact}
 				onShowQR={() => setShowQRGenerator(true)}
 				canCancel={canCancel}
 				hasPhotos={photos.length > 0}
 				registerDisabled={registerDisabled}
+				canShowQr={existingRegistration?.status === "APPROVED"}
+				canContact={canContactOrganizer}
+				canFeedback={canShowFeedback}
 			/>
 
 			{showShareModal && (
@@ -680,7 +707,7 @@ export function NewEventPageClient({
 				/>
 			)}
 
-			{!event.isExternalEvent && (
+			{canContactOrganizer && (
 				<ContactOrganizerDialog
 					open={isContactDialogOpen}
 					onOpenChange={setIsContactDialogOpen}

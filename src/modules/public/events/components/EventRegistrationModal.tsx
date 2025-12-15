@@ -17,6 +17,7 @@ import {
 	type PhoneValidationResult,
 } from "@/lib/utils/phone-validation";
 import { resolveRegistrationFieldConfig } from "@/lib/events/registration-fields";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -351,12 +352,15 @@ export function EventRegistrationModal({
 
 		setSavingProfile(true);
 		try {
-			const payload: Record<string, unknown> = {
-				bio: editingProfile.bio,
-				userRoleString: editingProfile.userRoleString,
-				currentWorkOn: editingProfile.currentWorkOn,
-				lifeStatus: editingProfile.lifeStatus,
-			};
+			const payload: Record<string, unknown> = {};
+
+			if (isFieldEnabled("bio")) payload.bio = editingProfile.bio;
+			if (isFieldEnabled("userRoleString"))
+				payload.userRoleString = editingProfile.userRoleString;
+			if (isFieldEnabled("currentWorkOn"))
+				payload.currentWorkOn = editingProfile.currentWorkOn;
+			if (isFieldEnabled("lifeStatus"))
+				payload.lifeStatus = editingProfile.lifeStatus;
 
 			if (isFieldEnabled("name") || nameToSave) {
 				payload.name = nameToSave;
@@ -607,6 +611,22 @@ export function EventRegistrationModal({
 			}
 			if (key === "bio" && value.length < 15) {
 				toast.error(t("toasts.bioTooShort"));
+				setShowInlineProfileEdit(true);
+				return;
+			}
+			if (
+				key === "userRoleString" &&
+				value.length > PROFILE_LIMITS.userRoleStringMax
+			) {
+				toast.error("个人角色不能超过7个字");
+				setShowInlineProfileEdit(true);
+				return;
+			}
+			if (
+				key === "currentWorkOn" &&
+				value.length > PROFILE_LIMITS.currentWorkOnMax
+			) {
+				toast.error("个人状态不能超过10个字");
 				setShowInlineProfileEdit(true);
 				return;
 			}

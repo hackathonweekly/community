@@ -30,6 +30,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 	const router = useRouter();
 	const [locale, setLocale] = useState("");
 	const [eventId, setEventId] = useState("");
+	const [countdownTitle, setCountdownTitle] = useState("倒计时");
 
 	// Countdown state
 	const [deadline, setDeadline] = useState<Date | null>(null);
@@ -49,6 +50,34 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 			setEventId(e);
 		});
 	}, [params]);
+
+	useEffect(() => {
+		if (!eventId) return;
+		try {
+			const savedTitle = localStorage.getItem(
+				`eventCountdownTitle:${eventId}`,
+			);
+			if (savedTitle?.trim()) {
+				setCountdownTitle(savedTitle);
+			}
+		} catch {
+			// ignore
+		}
+	}, [eventId]);
+
+	useEffect(() => {
+		if (!eventId) return;
+		try {
+			const nextTitle = countdownTitle.trim();
+			if (!nextTitle) {
+				localStorage.removeItem(`eventCountdownTitle:${eventId}`);
+				return;
+			}
+			localStorage.setItem(`eventCountdownTitle:${eventId}`, nextTitle);
+		} catch {
+			// ignore
+		}
+	}, [eventId, countdownTitle]);
 
 	// Countdown logic
 	const [timeLeft, setTimeLeft] = useState({
@@ -177,7 +206,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					返回
 				</Button>
 				<h1 className="text-lg font-semibold text-muted-foreground">
-					倒计时大屏
+					{countdownTitle.trim() || "倒计时大屏"}
 				</h1>
 				<div className="w-20" /> {/* Spacer for centering */}
 			</div>
@@ -192,6 +221,9 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 							<h2 className="text-4xl font-bold text-gray-900">
 								设置倒计时时间
 							</h2>
+							<p className="text-2xl font-semibold text-gray-800">
+								{countdownTitle.trim() || "倒计时"}
+							</p>
 							<p className="text-xl text-muted-foreground">
 								点击下方按钮开始设置倒计时
 							</p>
@@ -229,6 +261,10 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 				) : (
 					// Countdown display
 					<div className="text-center space-y-12">
+						<p className="text-4xl font-semibold text-gray-900">
+							{countdownTitle.trim() || "倒计时"}
+						</p>
+
 						{/* Status text */}
 						<div className="space-y-2">
 							<h2
@@ -405,10 +441,72 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					<DialogHeader>
 						<DialogTitle>设置倒计时时间</DialogTitle>
 						<DialogDescription>
-							输入倒计时的小时、分钟和秒数
+							设置倒计时标题与时长
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-6 py-4">
+						<div className="space-y-2">
+							<Label htmlFor="countdown-title">倒计时标题</Label>
+							<Input
+								id="countdown-title"
+								value={countdownTitle}
+								onChange={(e) =>
+									setCountdownTitle(e.target.value)
+								}
+								placeholder="例如：提交作品倒计时"
+							/>
+							<div className="grid grid-cols-3 gap-2">
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("组队倒计时")
+									}
+								>
+									组队倒计时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("提交作品倒计时")
+									}
+								>
+									提交作品
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("投票倒计时")
+									}
+								>
+									投票倒计时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("路演倒计时")
+									}
+								>
+									路演倒计时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("休息倒计时")
+									}
+								>
+									休息倒计时
+								</Button>
+								<Button
+									variant="outline"
+									onClick={() =>
+										setCountdownTitle("开场倒计时")
+									}
+								>
+									开场倒计时
+								</Button>
+							</div>
+						</div>
+
 						<div className="grid grid-cols-3 gap-4">
 							<div className="space-y-2">
 								<Label htmlFor="hours">小时</Label>

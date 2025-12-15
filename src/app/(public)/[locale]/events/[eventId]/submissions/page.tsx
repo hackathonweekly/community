@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { SubmissionsActionButton } from "@/modules/public/events/submissions/SubmissionsActionButton";
+import { ShareSubmissionsDialog } from "@/modules/public/events/submissions/ShareSubmissionsDialog";
 
 interface PageProps {
 	params: Promise<{ locale: string; eventId: string }>;
@@ -58,13 +59,16 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 					</h1>
 				</div>
 
-				<SubmissionsActionButton
-					eventId={eventId}
-					locale={locale}
-					isSubmissionOpen={isSubmissionOpen}
-					size="lg"
-					className="hidden md:inline-flex"
-				/>
+				<div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+					<ShareSubmissionsDialog />
+					<SubmissionsActionButton
+						eventId={eventId}
+						locale={locale}
+						isSubmissionOpen={isSubmissionOpen}
+						size="lg"
+						className="hidden md:inline-flex"
+					/>
+				</div>
 			</div>
 			<EventSubmissionsGallery
 				eventId={eventId}

@@ -378,7 +378,7 @@
 		},
 		"bindPhone": {
 			"title": "Bind Phone Number",
-			"subtitle": "For your account security, please bind your phone number",
+			"subtitle": "To protect your account and enable full features, we recommend binding a phone number. You can skip for now, but some features may be limited.",
 			"phoneNumber": "Phone Number",
 			"phoneInputPlaceholder": "Enter phone number",
 			"sendVerificationCode": "Send Verification Code",
@@ -400,6 +400,13 @@
 				"codeExpiredOrIncorrect": "Verification code is incorrect or expired, please get a new one",
 				"bindingFailed": "Binding failed, please try again"
 			}
+		},
+		"phoneBindingPrompt": {
+			"title": "Bind a phone number",
+			"description": "You signed in with WeChat but haven’t bound a phone number yet.",
+			"note": "Binding helps with account recovery, event updates, and contact/teaming up. Skipping may limit some features.",
+			"skip": "Skip for now",
+			"bindNow": "Bind now"
 		},
 		"resetPassword": {
 			"backToSignin": "Back to signin",

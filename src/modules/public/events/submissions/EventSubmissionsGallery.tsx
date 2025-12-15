@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	Edit,
 	Heart,
+	Image,
 	LayoutGrid,
 	List,
 	Loader2,
@@ -85,17 +86,38 @@ export function EventSubmissionsGallery({
 	isSubmissionOpen = false,
 	showInlineSubmissionCta = true,
 }: EventSubmissionsGalleryProps) {
+	const MAX_VOTES_PER_USER = 3;
+
 	// Default to earliest submission order (Oldest -> Newest)
 	const [sortValue, setSortValue] = useState("createdAt:asc");
 	const [sortBy, sortOrder] = sortValue.split(":");
 
 	// 筛选状态
 	const [filter, setFilter] = useState<"all" | "mine" | "voted">("all");
-	const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+	const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 	const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-	const [pendingVoteSubmissionId, setPendingVoteSubmissionId] = useState<
-		string | null
+	const [pendingSubmissionIds, setPendingSubmissionIds] = useState<
+		Set<string>
+	>(() => new Set());
+	const [remainingVotesOverride, setRemainingVotesOverride] = useState<
+		number | null
 	>(null);
+
+	const markSubmissionPending = (id: string) => {
+		setPendingSubmissionIds((prev) => {
+			const next = new Set(prev);
+			next.add(id);
+			return next;
+		});
+	};
+
+	const clearSubmissionPending = (id: string) => {
+		setPendingSubmissionIds((prev) => {
+			const next = new Set(prev);
+			next.delete(id);
+			return next;
+		});
+	};
 
 	// Only show vote visuals when voting is open, not showing final results, and gallery display is enabled
 	// This creates a fun "live" feel without revealing final ranks
@@ -150,7 +172,19 @@ export function EventSubmissionsGallery({
 	const unvoteMutation = useUnvoteSubmission(eventId);
 
 	const submissions = data?.submissions ?? [];
-	const remainingVotes = data?.remainingVotes ?? null;
+
+	useEffect(() => {
+		if (!user) {
+			setRemainingVotesOverride(null);
+			return;
+		}
+		if (data) {
+			setRemainingVotesOverride(data.remainingVotes ?? null);
+		}
+	}, [data, user]);
+
+	const remainingVotes =
+		remainingVotesOverride ?? data?.remainingVotes ?? null;
 	const votedIds = useMemo(
 		() => new Set(data?.userVotes ?? []),
 		[data?.userVotes],
@@ -220,6 +254,31 @@ export function EventSubmissionsGallery({
 		}
 	};
 
+	const toVotingErrorMessage = (error: unknown) => {
+		if (!(error instanceof Error)) return "操作失败";
+
+		const message = error.message;
+		if (message.includes("used all available votes")) {
+			return `可用票数已用完（每人最多 ${MAX_VOTES_PER_USER} 票），可先取消已投作品后再投`;
+		}
+		if (
+			message.includes("own submission") ||
+			message.includes("own team's submission")
+		) {
+			return "无法给自己的作品投票";
+		}
+		if (message.includes("already voted")) {
+			return "你已经投过该作品了";
+		}
+		if (message.includes("Voting has ended")) {
+			return "投票已结束";
+		}
+		if (message.includes("You have not voted")) {
+			return "你还没有给该作品投票";
+		}
+		return message;
+	};
+
 	const handleRequireAuth = (redirectPath?: string) => {
 		const targetPath = redirectPath || pathname || `/events/${eventId}`;
 		const redirectTo = encodeURIComponent(targetPath);
@@ -231,23 +290,34 @@ export function EventSubmissionsGallery({
 			handleRequireAuth();
 			return;
 		}
+		if (pendingSubmissionIds.has(submission.id)) return;
 		try {
-			setPendingVoteSubmissionId(submission.id);
-			await voteMutation.mutateAsync(submission.id);
-			toast.success("投票成功");
+			markSubmissionPending(submission.id);
+			const result = await voteMutation.mutateAsync(submission.id);
+			setRemainingVotesOverride(result.remainingVotes);
+			toast.success("投票成功", {
+				description: `还剩 ${result.remainingVotes} 票`,
+			});
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "投票失败");
+			toast.error(toVotingErrorMessage(error));
 		} finally {
-			setPendingVoteSubmissionId(null);
+			clearSubmissionPending(submission.id);
 		}
 	};
 
 	const handleUnvote = async (submission: EventSubmission) => {
+		if (pendingSubmissionIds.has(submission.id)) return;
 		try {
-			await unvoteMutation.mutateAsync(submission.id);
-			toast.success("已取消投票");
+			markSubmissionPending(submission.id);
+			const result = await unvoteMutation.mutateAsync(submission.id);
+			setRemainingVotesOverride(result.remainingVotes);
+			toast.success("已取消投票", {
+				description: `还剩 ${result.remainingVotes} 票`,
+			});
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "操作失败");
+			toast.error(toVotingErrorMessage(error));
+		} finally {
+			clearSubmissionPending(submission.id);
 		}
 	};
 
@@ -259,12 +329,20 @@ export function EventSubmissionsGallery({
 			Boolean(userId) &&
 			(submission.teamLeader?.id === userId ||
 				submission.teamMembers?.some((m) => m.id === userId));
-		const noVotesLeft = remainingVotes !== null && remainingVotes <= 0;
+		const noVotesLeft =
+			remainingVotes !== null && remainingVotes <= 0 && !hasVoted;
+		const isPending = pendingSubmissionIds.has(submission.id);
+		const buttonTouchClass = "h-10 px-4 text-sm md:h-8 md:px-3";
 
 		// 投票未开放时禁用所有投票按钮
 		if (!isVotingOpen) {
 			return (
-				<Button variant="outline" size="sm" disabled>
+				<Button
+					variant="outline"
+					size="sm"
+					disabled
+					className={buttonTouchClass}
+				>
 					投票已结束
 				</Button>
 			);
@@ -276,6 +354,7 @@ export function EventSubmissionsGallery({
 					variant="outline"
 					size="sm"
 					onClick={() => handleRequireAuth()}
+					className={buttonTouchClass}
 				>
 					登录后投票
 				</Button>
@@ -284,9 +363,15 @@ export function EventSubmissionsGallery({
 
 		if (isOwnTeam) {
 			return (
-				<Button variant="outline" size="sm" asChild>
+				<Button
+					variant="outline"
+					size="sm"
+					asChild
+					className={buttonTouchClass}
+				>
 					<Link
 						href={`/app/events/${eventId}/submissions/${submission.id}/edit`}
+						title="自己的作品，不能投票"
 					>
 						<Edit className="w-4 h-4 mr-1" />
 						编辑
@@ -301,9 +386,45 @@ export function EventSubmissionsGallery({
 					variant="outline"
 					size="sm"
 					onClick={() => handleUnvote(submission)}
-					className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700"
+					disabled={isPending}
+					className={cn(
+						buttonTouchClass,
+						"text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700",
+					)}
 				>
-					取消投票
+					{isPending ? (
+						<Loader2 className="h-4 w-4 animate-spin" />
+					) : (
+						"取消投票"
+					)}
+				</Button>
+			);
+		}
+
+		if (noVotesLeft) {
+			return (
+				<Button
+					variant="outline"
+					size="sm"
+					aria-disabled
+					disabled={isPending}
+					onClick={() => {
+						if (isPending) return;
+						toast.info("可用票数已用完", {
+							description: `每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`,
+							action: {
+								label: "查看已投",
+								onClick: () => setFilter("voted"),
+							},
+						});
+					}}
+					title={`每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`}
+					className={cn(
+						buttonTouchClass,
+						"opacity-70 cursor-not-allowed",
+					)}
+				>
+					票已用完
 				</Button>
 			);
 		}
@@ -312,11 +433,11 @@ export function EventSubmissionsGallery({
 			<Button
 				variant="default"
 				size="sm"
-				disabled={noVotesLeft || voteMutation.isPending}
+				disabled={isPending}
 				onClick={() => handleVote(submission)}
+				className={buttonTouchClass}
 			>
-				{voteMutation.isPending &&
-				pendingVoteSubmissionId === submission.id ? (
+				{isPending ? (
 					<Loader2 className="h-4 w-4 animate-spin" />
 				) : (
 					"投票"
@@ -354,21 +475,40 @@ export function EventSubmissionsGallery({
 						{isVotingOpen ? (
 							user ? (
 								hasActiveRegistration ? (
-									<p className="text-sm text-muted-foreground">
-										你还有 {remainingVotes ?? 3} 票
-									</p>
+									<div className="space-y-1">
+										<p className="text-sm text-muted-foreground">
+											你还有{" "}
+											<span
+												className={cn(
+													"font-medium",
+													remainingVotes === 0 &&
+														"text-rose-600 font-semibold",
+												)}
+											>
+												{remainingVotes ??
+													MAX_VOTES_PER_USER}
+											</span>{" "}
+											票
+										</p>
+										<p className="text-xs text-muted-foreground">
+											每人最多 {MAX_VOTES_PER_USER}{" "}
+											票，可随时取消已投作品释放票数；不能投自己的作品
+										</p>
+									</div>
 								) : isRegistrationLoading ? (
 									<p className="text-sm text-muted-foreground">
 										正在确认您的报名状态…
 									</p>
 								) : (
 									<p className="text-sm text-muted-foreground">
-										报名活动后即可拥有 3 票并参与投票
+										报名活动后即可拥有 {MAX_VOTES_PER_USER}{" "}
+										票并参与投票
 									</p>
 								)
 							) : (
 								<p className="text-sm text-muted-foreground">
-									登录后即可拥有 3 票并参与投票
+									登录后即可拥有 {MAX_VOTES_PER_USER}{" "}
+									票并参与投票
 								</p>
 							)
 						) : showResults ? (
@@ -624,8 +764,16 @@ export function EventSubmissionsGallery({
 														className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 													/>
 												) : (
-													<div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground text-center p-1 leading-tight">
-														暂无封面
+													<div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-muted-foreground">
+														{mediaBadge ===
+														"video" ? (
+															<Play className="h-5 w-5 opacity-70" />
+														) : mediaBadge ===
+															"audio" ? (
+															<Music2 className="h-5 w-5 opacity-70" />
+														) : (
+															<Image className="h-5 w-5 opacity-70" />
+														)}
 													</div>
 												)}
 
@@ -654,7 +802,15 @@ export function EventSubmissionsGallery({
 															variant="secondary"
 															className="text-[10px] h-5 px-1.5 font-normal"
 														>
-															我的
+															我的作品
+														</Badge>
+													)}
+													{isMine && isVotingOpen && (
+														<Badge
+															variant="outline"
+															className="text-[10px] h-5 px-1.5 font-normal bg-amber-50 text-amber-700 border-amber-200"
+														>
+															不能投自己
 														</Badge>
 													)}
 													{user &&
@@ -764,7 +920,7 @@ export function EventSubmissionsGallery({
 														</span>
 													</div>
 												)}
-												<div className="scale-90 origin-right">
+												<div className="md:scale-90 md:origin-right">
 													{renderVoteButton(
 														submission,
 													)}
@@ -784,7 +940,7 @@ export function EventSubmissionsGallery({
 							>
 								<Link
 									href={`/${locale}/events/${submission.eventId}/submissions/${submission.id}`}
-									className="relative block h-52 bg-muted overflow-hidden transition-opacity group-hover:opacity-90 sm:h-44"
+									className="relative block aspect-[4/3] w-full bg-muted overflow-hidden transition-opacity group-hover:opacity-90"
 								>
 									{previewImage ? (
 										<img
@@ -794,12 +950,26 @@ export function EventSubmissionsGallery({
 											className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
 										/>
 									) : (
-										<div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground bg-gradient-to-br from-slate-100 to-slate-200">
-											{mediaBadge === "video"
-												? "视频作品，点击查看"
-												: mediaBadge === "audio"
-													? "音频作品，点击查看"
-													: "暂无封面"}
+										<div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-100 to-slate-200 text-muted-foreground">
+											<div className="rounded-full bg-white/70 p-2 shadow-sm">
+												{mediaBadge === "video" ? (
+													<Play className="h-5 w-5" />
+												) : mediaBadge === "audio" ? (
+													<Music2 className="h-5 w-5" />
+												) : (
+													<Image className="h-5 w-5" />
+												)}
+											</div>
+											<div className="text-sm font-medium">
+												{mediaBadge === "video"
+													? "视频作品"
+													: mediaBadge === "audio"
+														? "音频作品"
+														: "暂无封面"}
+											</div>
+											<div className="text-xs text-muted-foreground/80">
+												点开查看详情
+											</div>
 										</div>
 									)}
 
@@ -832,6 +1002,14 @@ export function EventSubmissionsGallery({
 														className="text-[10px] h-5 px-1.5 font-normal"
 													>
 														我的作品
+													</Badge>
+												)}
+												{isMine && isVotingOpen && (
+													<Badge
+														variant="outline"
+														className="text-[10px] h-5 px-1.5 font-normal bg-amber-50 text-amber-700 border-amber-200"
+													>
+														不能投自己
 													</Badge>
 												)}
 												{user &&

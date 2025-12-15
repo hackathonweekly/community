@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import type { Control } from "react-hook-form";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 
 interface UserRoleInputProps {
 	control: Control<any>;
@@ -21,16 +22,17 @@ interface UserRoleInputProps {
 
 // 推荐的常见角色
 const RECOMMENDED_ROLES = [
-	"全栈开发工程师",
-	"前端开发工程师",
-	"后端开发工程师",
+	"全栈开发",
+	"前端开发",
+	"后端开发",
 	"产品经理",
-	"UI/UX设计师",
-	"数据分析师",
+	"UI设计师",
+	"UX设计师",
+	"数据分析",
 	"AI工程师",
 	"增长运营",
 	"商务拓展",
-	"内容创作者",
+	"内容创作",
 	"社区运营",
 	"投资人",
 	"创业者",
@@ -61,8 +63,8 @@ export function UserRoleInput({
 						<div className="space-y-3">
 							<Input
 								{...field}
-								placeholder="请输入您的主要角色，如：全栈开发工程师、产品经理..."
-								maxLength={50}
+								placeholder="请输入您的主要角色，如：前端开发、产品经理..."
+								maxLength={PROFILE_LIMITS.userRoleStringMax}
 								onFocus={() => setShowRecommendations(true)}
 							/>
 

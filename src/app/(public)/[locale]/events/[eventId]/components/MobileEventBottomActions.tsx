@@ -40,6 +40,7 @@ interface MobileEventBottomActionsProps {
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;
 		registrationPendingImage?: string;
+		isEventAdmin?: boolean;
 	};
 	user?: { id: string } | null;
 	existingRegistration?: { status: string } | null;
@@ -119,6 +120,14 @@ export function MobileEventBottomActions({
 		router.push(`/${locale}/events/${event.id}/photos`);
 	};
 
+	const handleOpenCountdown = () => {
+		const url = `/${locale}/events/${event.id}/countdown`;
+		const opened = window.open(url, "_blank", "noopener,noreferrer");
+		if (!opened) {
+			router.push(url);
+		}
+	};
+
 	const getSubmissionOwnerId = (submission?: ProjectSubmission) =>
 		submission?.submitter?.id ??
 		submission?.user?.id ??
@@ -185,8 +194,18 @@ export function MobileEventBottomActions({
 	};
 
 	const shouldLimitActionsToContact = !existingRegistration;
+	const canShowCountdownTool =
+		locale.startsWith("zh") && Boolean(event.isEventAdmin);
 
 	const availableActions = [
+		canShowCountdownTool
+			? {
+					key: "countdown",
+					label: "倒计时大屏",
+					icon: <span className="text-lg">⏱️</span>,
+					onClick: handleOpenCountdown,
+				}
+			: null,
 		{
 			key: "photos",
 			label: "现场相册",

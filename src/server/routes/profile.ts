@@ -1,6 +1,7 @@
 import { db } from "@/lib/database";
 import { ContentType, createContentValidator } from "@/lib/content-moderation";
 import { generateUsername, isValidUsername } from "@/lib/utils";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 import { Hono } from "hono";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth";
@@ -34,8 +35,16 @@ const updateProfileSchema = z.object({
 		.optional()
 		.nullable(),
 	gender: z.enum(["MALE", "FEMALE", "OTHER", "NOT_SPECIFIED"]).optional(),
-	userRoleString: z.string().optional().nullable(),
-	currentWorkOn: z.string().optional().nullable(),
+	userRoleString: z
+		.string()
+		.max(PROFILE_LIMITS.userRoleStringMax, "个人角色不能超过7个字")
+		.optional()
+		.nullable(),
+	currentWorkOn: z
+		.string()
+		.max(PROFILE_LIMITS.currentWorkOnMax, "个人状态不能超过10个字")
+		.optional()
+		.nullable(),
 	skills: z.array(z.string()).optional(),
 	whatICanOffer: z.string().optional().nullable(),
 	whatIAmLookingFor: z.string().optional().nullable(),

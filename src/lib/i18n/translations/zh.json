@@ -397,7 +397,7 @@
 		},
 		"bindPhone": {
 			"title": "绑定手机号",
-			"subtitle": "为了您的账户安全，请绑定手机号",
+			"subtitle": "为了保障账号安全，并便于活动通知与组队联系，建议绑定手机号。你也可以暂时跳过，但可能无法体验完整功能。",
 			"phoneNumber": "手机号",
 			"phoneInputPlaceholder": "输入手机号",
 			"sendVerificationCode": "发送验证码",
@@ -419,6 +419,13 @@
 				"codeExpiredOrIncorrect": "验证码错误或已过期，请重新获取",
 				"bindingFailed": "绑定失败，请重试"
 			}
+		},
+		"phoneBindingPrompt": {
+			"title": "绑定手机号，解锁完整功能",
+			"description": "检测到你使用微信登录，但还未绑定手机号。",
+			"note": "绑定手机号可用于找回账号、活动通知与组队联系；跳过后部分功能可能受限。",
+			"skip": "暂时跳过",
+			"bindNow": "去绑定"
 		},
 		"resetPassword": {
 			"backToSignin": "返回登录",

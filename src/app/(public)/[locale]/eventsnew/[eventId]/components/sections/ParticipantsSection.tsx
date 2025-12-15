@@ -23,10 +23,10 @@ export function ParticipantsSection({
 	isDialogOpen,
 	onDialogChange,
 }: ParticipantsSectionProps) {
-	const confirmedRegs = event.registrations.filter(
-		(reg) => reg.status !== "CANCELLED" && reg.status !== "REJECTED",
+	const approvedRegs = event.registrations.filter(
+		(reg) => reg.status === "APPROVED",
 	);
-	const preview = confirmedRegs.slice(0, 6);
+	const preview = approvedRegs.slice(0, 6);
 
 	return (
 		<SectionCard
@@ -78,7 +78,7 @@ export function ParticipantsSection({
 			)}
 
 			<ParticipantAvatars
-				participants={confirmedRegs.map((reg) => ({
+				participants={approvedRegs.map((reg) => ({
 					...reg.user,
 					status: reg.status,
 					registeredAt: reg.registeredAt,
@@ -86,7 +86,7 @@ export function ParticipantsSection({
 						.allowDigitalCardDisplay,
 					user: reg.user,
 				}))}
-				totalCount={event._count?.registrations ?? confirmedRegs.length}
+				totalCount={approvedRegs.length}
 				eventId={event.id}
 				currentUserId={currentUserId}
 				showInterestButtons={Boolean(currentUserId)}

@@ -11,9 +11,18 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
+type MoreAction = {
+	key: string;
+	label: string;
+	onClick: () => void;
+	show?: boolean;
+	disabled?: boolean;
+};
+
 export function MobileCTA({
 	locale,
 	eventId,
+	isEventAdmin,
 	registerLabel,
 	onRegister,
 	onCancel,
@@ -24,9 +33,13 @@ export function MobileCTA({
 	canCancel,
 	hasPhotos,
 	registerDisabled,
+	canShowQr,
+	canContact = true,
+	canFeedback = true,
 }: {
 	locale: string;
 	eventId: string;
+	isEventAdmin?: boolean;
 	registerLabel: string;
 	onRegister: () => void;
 	onCancel: () => void;
@@ -37,15 +50,32 @@ export function MobileCTA({
 	canCancel: boolean;
 	hasPhotos: boolean;
 	registerDisabled?: boolean;
+	canShowQr?: boolean;
+	canContact?: boolean;
+	canFeedback?: boolean;
 }) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
+	const canShowCountdownTool =
+		locale.startsWith("zh") && Boolean(isEventAdmin);
 
-	const moreActions = [
+	const moreActions: MoreAction[] = [
 		canCancel
 			? {
 					key: "cancel",
 					label: "取消报名",
 					onClick: onCancel,
+				}
+			: null,
+		canShowCountdownTool
+			? {
+					key: "countdown",
+					label: "倒计时大屏",
+					onClick: () =>
+						window.open(
+							`/${locale}/events/${eventId}/countdown`,
+							"_blank",
+							"noopener,noreferrer",
+						),
 				}
 			: null,
 		{
@@ -70,24 +100,25 @@ export function MobileCTA({
 			key: "feedback",
 			label: "反馈",
 			onClick: onFeedback,
+			show: canFeedback,
 		},
 		{
 			key: "contact",
 			label: "联系组织者",
 			onClick: onContact,
+			show: canContact,
 		},
-		{
-			key: "qr",
-			label: "签到码",
-			onClick: onShowQR,
-			disabled: !canCancel,
-		},
-	].filter(Boolean) as Array<{
-		key: string;
-		label: string;
-		onClick: () => void;
-		disabled?: boolean;
-	}>;
+		canShowQr
+			? {
+					key: "qr",
+					label: "签到码",
+					onClick: onShowQR,
+					show: true,
+				}
+			: null,
+	]
+		.filter((item): item is MoreAction => Boolean(item))
+		.filter((item) => item.show !== false);
 
 	return (
 		<>

@@ -1,14 +1,20 @@
 "use client";
 
+import type { RegistrationStatus } from "@prisma/client";
 import {
 	ArrowLeft,
 	CalendarClock,
+	ChevronDown,
+	ChevronUp,
+	Copy,
 	Heart,
 	Loader2,
 	ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import QRCode from "react-qr-code";
 import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,12 +28,21 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
+import {
 	useEventSubmissions,
 	useUnvoteSubmission,
 	useVoteSubmission,
 } from "@/features/event-submissions/hooks";
 import type { EventSubmission } from "@/features/event-submissions/types";
+import type { HackathonVoting } from "@/features/hackathon/config";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
+import { ShareSubmissionDialog } from "./ShareSubmissionDialog";
+import { useEventRegistrationStatus } from "./useEventRegistrationStatus";
 import { createFallbackCaptionSrc } from "./utils";
 
 interface SubmissionDetailProps {
@@ -35,6 +50,14 @@ interface SubmissionDetailProps {
 	locale: string;
 	// When true, show final results (exact vote counts)
 	showResults?: boolean;
+	// Whether audience voting is currently open
+	isVotingOpen?: boolean;
+	// Voting configuration for hackathon events
+	votingConfig?: HackathonVoting | null;
+	// Canonical URL for this submission (used in QR code)
+	submissionUrl: string;
+	// Event title for big-screen display
+	eventTitle?: string | null;
 }
 
 const statusLabels: Record<string, string> = {
@@ -44,11 +67,42 @@ const statusLabels: Record<string, string> = {
 	AWARDED: "已获奖",
 };
 
+async function copyText(text: string) {
+	try {
+		await navigator.clipboard.writeText(text);
+		toast.success("链接已复制");
+		return;
+	} catch (error) {
+		console.error("Failed to copy text:", error);
+	}
+
+	const textArea = document.createElement("textarea");
+	textArea.value = text;
+	document.body.appendChild(textArea);
+	textArea.focus();
+	textArea.select();
+	try {
+		document.execCommand("copy");
+		toast.success("链接已复制");
+	} catch (fallbackError) {
+		console.error("Fallback copy failed:", fallbackError);
+		toast.error("复制失败，请手动复制链接");
+	} finally {
+		document.body.removeChild(textArea);
+	}
+}
+
 export function SubmissionDetail({
 	submission,
 	locale,
 	showResults = false,
+	isVotingOpen = true,
+	votingConfig,
+	submissionUrl,
+	eventTitle,
 }: SubmissionDetailProps) {
+	const MAX_VOTES_PER_USER = 3;
+
 	const { user } = useSession();
 	const userId = user?.id;
 	const router = useRouter();
@@ -59,10 +113,51 @@ export function SubmissionDetail({
 		includeVotes: true,
 		enabled: Boolean(user),
 	});
+	const { data: registration, isLoading: isRegistrationLoading } =
+		useEventRegistrationStatus(submission.eventId, userId);
+	const hasActiveRegistration = Boolean(
+		registration?.status &&
+			ACTIVE_REGISTRATION_STATUSES.includes(
+				registration.status as RegistrationStatus,
+			),
+	);
+	const votingScope = votingConfig?.publicVotingScope ?? "PARTICIPANTS";
+	const requiresParticipantRegistration = votingScope === "PARTICIPANTS";
+	const requiresAccountOnly = votingScope === "REGISTERED";
+	const allowPublicVoting = votingConfig?.allowPublicVoting ?? true;
+	const isVotingCurrentlyOpen = Boolean(isVotingOpen);
+	const registerHref = `/${locale}/events/${submission.eventId}/register`;
+	const qrStorageKey = useMemo(
+		() => `submission-qr-collapsed:${submission.eventId}:${submission.id}`,
+		[submission.eventId, submission.id],
+	);
+	const [isQrCollapsed, setIsQrCollapsed] = useState(false);
+
+	useEffect(() => {
+		try {
+			const raw = window.localStorage.getItem(qrStorageKey);
+			if (raw === null) return;
+			setIsQrCollapsed(raw === "1");
+		} catch {
+			// Ignore storage failures
+		}
+	}, [qrStorageKey]);
+
+	useEffect(() => {
+		try {
+			window.localStorage.setItem(
+				qrStorageKey,
+				isQrCollapsed ? "1" : "0",
+			);
+		} catch {
+			// Ignore storage failures
+		}
+	}, [isQrCollapsed, qrStorageKey]);
 
 	const userVotes = new Set(data?.userVotes ?? []);
 	const hasVoted = userVotes.has(submission.id);
-	const remainingVotes = data?.remainingVotes ?? (user ? 3 : null);
+	const remainingVotes =
+		data?.remainingVotes ?? (user ? MAX_VOTES_PER_USER : null);
 	const isLeader = Boolean(userId) && submission.teamLeader?.id === userId;
 	// Block voting if current user is part of the team (leader or member)
 	const isOwnTeam =
@@ -75,6 +170,64 @@ export function SubmissionDetail({
 		.filter((field) => field.enabled !== false)
 		.slice()
 		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+	const votingHint = (() => {
+		if (!isVotingCurrentlyOpen) {
+			return "投票未开放或已结束";
+		}
+		if (!allowPublicVoting) {
+			return "本场活动未开启观众投票";
+		}
+		if (!user) {
+			return requiresParticipantRegistration
+				? "登录并报名活动后即可投票"
+				: requiresAccountOnly
+					? "登录后即可投票"
+					: "登录后即可为作品投票";
+		}
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				return "正在确认您的报名状态…";
+			}
+			if (!hasActiveRegistration) {
+				return "报名活动并通过后即可获得投票资格";
+			}
+		}
+		if (isOwnTeam) {
+			return "无法给自己的作品投票";
+		}
+		if (hasVoted) {
+			return "已投票，可随时取消";
+		}
+		if (remainingVotes !== null) {
+			return `你还有 ${remainingVotes} 票`;
+		}
+		return null;
+	})();
+
+	const toVotingErrorMessage = (error: unknown) => {
+		if (!(error instanceof Error)) return "操作失败";
+
+		const message = error.message;
+		if (message.includes("used all available votes")) {
+			return `可用票数已用完（每人最多 ${MAX_VOTES_PER_USER} 票）`;
+		}
+		if (
+			message.includes("own submission") ||
+			message.includes("own team's submission")
+		) {
+			return "无法给自己的作品投票";
+		}
+		if (message.includes("already voted")) {
+			return "你已经投过该作品了";
+		}
+		if (message.includes("Voting has ended")) {
+			return "投票已结束";
+		}
+		if (message.includes("You have not voted")) {
+			return "你还没有给该作品投票";
+		}
+		return message;
+	};
 
 	const handleRequireAuth = () => {
 		const redirectTo = encodeURIComponent(
@@ -88,34 +241,110 @@ export function SubmissionDetail({
 			handleRequireAuth();
 			return;
 		}
+		if (!isVotingCurrentlyOpen) {
+			toast.info("当前未开放投票");
+			return;
+		}
+		if (!allowPublicVoting) {
+			toast.info("本场活动未开启观众投票");
+			return;
+		}
 		if (isOwnTeam) {
 			toast.info("无法给自己的作品投票");
 			return;
 		}
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				toast.info("正在确认您的报名信息，请稍后再试");
+				return;
+			}
+			if (!hasActiveRegistration) {
+				toast.info("报名活动后才可投票");
+				router.push(registerHref);
+				return;
+			}
+		}
+		const noVotesLeft =
+			remainingVotes !== null && remainingVotes <= 0 && !hasVoted;
+		if (noVotesLeft) {
+			toast.info("可用票数已用完", {
+				description: `每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`,
+			});
+			return;
+		}
 		try {
-			await voteMutation.mutateAsync(submission.id);
-			toast.success("投票成功");
+			const result = await voteMutation.mutateAsync(submission.id);
+			toast.success("投票成功", {
+				description: `还剩 ${result.remainingVotes} 票`,
+			});
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "投票失败");
+			toast.error(toVotingErrorMessage(error));
 		}
 	};
 
 	const handleUnvote = async () => {
+		if (!isVotingCurrentlyOpen) {
+			toast.info("投票未开放");
+			return;
+		}
 		try {
-			await unvoteMutation.mutateAsync(submission.id);
-			toast.success("已取消投票");
+			const result = await unvoteMutation.mutateAsync(submission.id);
+			toast.success("已取消投票", {
+				description: `还剩 ${result.remainingVotes} 票`,
+			});
 		} catch (error) {
-			toast.error(error instanceof Error ? error.message : "操作失败");
+			toast.error(toVotingErrorMessage(error));
 		}
 	};
 
+	const handleCopyLink = async () => {
+		await copyText(submissionUrl);
+	};
+
 	const renderVoteButton = () => {
+		if (!isVotingCurrentlyOpen) {
+			return (
+				<Button variant="outline" disabled>
+					投票未开放
+				</Button>
+			);
+		}
+
+		if (!allowPublicVoting) {
+			return (
+				<Button variant="outline" disabled>
+					观众投票未开放
+				</Button>
+			);
+		}
+
 		if (!user) {
 			return (
 				<Button variant="outline" onClick={handleRequireAuth}>
 					登录后投票
 				</Button>
 			);
+		}
+
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				return (
+					<Button variant="outline" disabled>
+						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+						确认报名中…
+					</Button>
+				);
+			}
+			if (!hasActiveRegistration) {
+				return (
+					<Button
+						variant="outline"
+						onClick={() => router.push(registerHref)}
+					>
+						报名后投票
+					</Button>
+				);
+			}
 		}
 
 		if (isOwnTeam) {
@@ -142,6 +371,8 @@ export function SubmissionDetail({
 			>
 				{voteMutation.isPending ? (
 					<Loader2 className="h-4 w-4 animate-spin" />
+				) : noVotesLeft ? (
+					"票数已用完"
 				) : (
 					"投票"
 				)}
@@ -224,7 +455,7 @@ export function SubmissionDetail({
 	};
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 pb-24 md:pb-0">
 			<div className="flex items-center justify-between">
 				<Button variant="ghost" asChild>
 					<Link
@@ -246,6 +477,11 @@ export function SubmissionDetail({
 
 			<Card>
 				<CardHeader className="space-y-2">
+					{eventTitle && (
+						<p className="text-sm text-muted-foreground">
+							活动：{eventTitle}
+						</p>
+					)}
 					<div className="flex items-center gap-2">
 						<Badge variant="secondary">
 							{statusLabels[submission.status] ??
@@ -267,21 +503,131 @@ export function SubmissionDetail({
 					<CardDescription>{submission.tagline}</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2 text-lg font-semibold">
-							{showResults ? (
-								<>
-									<Heart className="h-5 w-5 text-rose-500" />
-									<span>{submission.voteCount} 票</span>
-								</>
-							) : (
-								// Keep layout stable when votes are hidden
-								<span className="invisible inline-flex items-center gap-2">
-									<Heart className="h-5 w-5" />0 票
-								</span>
+					<div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+						<div className="space-y-2">
+							<div className="flex items-center justify-between gap-3">
+								<div className="flex items-center gap-2 text-lg font-semibold">
+									{showResults ? (
+										<>
+											<Heart className="h-5 w-5 text-rose-500" />
+											<span>
+												{submission.voteCount} 票
+											</span>
+										</>
+									) : (
+										// Keep layout stable when votes are hidden
+										<span className="invisible inline-flex items-center gap-2">
+											<Heart className="h-5 w-5" />0 票
+										</span>
+									)}
+								</div>
+								<div className="hidden md:flex flex-wrap items-center gap-2">
+									{renderVoteButton()}
+									<Button
+										variant="outline"
+										size="icon"
+										onClick={handleCopyLink}
+										aria-label="复制作品链接"
+									>
+										<Copy className="h-4 w-4" />
+									</Button>
+									<ShareSubmissionDialog
+										shareUrl={submissionUrl}
+										submissionName={
+											submission.name ?? "submission"
+										}
+										iconOnly
+										triggerVariant="outline"
+										triggerSize="icon"
+										triggerClassName="shrink-0"
+									/>
+								</div>
+							</div>
+							{votingHint && (
+								<p className="text-sm text-muted-foreground">
+									{votingHint}
+								</p>
 							)}
 						</div>
-						{renderVoteButton()}
+						<div className="hidden lg:block">
+							<Collapsible
+								open={!isQrCollapsed}
+								onOpenChange={(open) => setIsQrCollapsed(!open)}
+								className="rounded-xl border bg-muted/40"
+							>
+								<div className="flex items-center justify-between gap-2 p-4">
+									<div className="min-w-0">
+										<p className="text-sm font-semibold text-foreground">
+											扫码投票
+										</p>
+										<p className="text-xs text-muted-foreground">
+											适合现场大屏展示
+										</p>
+									</div>
+									<div className="flex items-center gap-2">
+										<ShareSubmissionDialog
+											shareUrl={submissionUrl}
+											submissionName={
+												submission.name ?? "submission"
+											}
+											triggerLabel="分享"
+											triggerVariant="ghost"
+											triggerSize="sm"
+											triggerClassName="h-8 px-2"
+										/>
+										<CollapsibleTrigger asChild>
+											<Button
+												variant="ghost"
+												size="icon"
+												aria-label={
+													isQrCollapsed
+														? "展开二维码"
+														: "收起二维码"
+												}
+											>
+												{isQrCollapsed ? (
+													<ChevronDown className="h-4 w-4" />
+												) : (
+													<ChevronUp className="h-4 w-4" />
+												)}
+											</Button>
+										</CollapsibleTrigger>
+									</div>
+								</div>
+								<CollapsibleContent>
+									<div className="px-4 pb-4">
+										<div className="flex items-center gap-3">
+											<div className="rounded-lg border bg-white p-2 shadow-sm">
+												<QRCode
+													value={submissionUrl}
+													size={152}
+													className="h-auto w-[152px]"
+												/>
+											</div>
+											<div className="space-y-2 text-xs text-muted-foreground">
+												<p className="leading-relaxed">
+													手机扫码打开作品详情页后即可投票。
+												</p>
+												<div className="flex items-center gap-2">
+													<Button
+														variant="outline"
+														size="sm"
+														className="h-8 px-2 text-xs"
+														onClick={handleCopyLink}
+													>
+														<Copy className="mr-1 h-3.5 w-3.5" />
+														复制链接
+													</Button>
+												</div>
+												<p className="text-[11px] text-muted-foreground/80">
+													链接默认隐藏，可通过上方按钮复制或分享。
+												</p>
+											</div>
+										</div>
+									</div>
+								</CollapsibleContent>
+							</Collapsible>
+						</div>
 					</div>
 
 					{hasMedia ? (
@@ -508,6 +854,36 @@ export function SubmissionDetail({
 					</div>
 				</CardContent>
 			</Card>
+
+			<div className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t bg-background/80 backdrop-blur">
+				<div className="container mx-auto max-w-4xl px-4 py-3">
+					<div className="flex items-center gap-2">
+						<div className="flex-1 [&>button]:w-full">
+							{renderVoteButton()}
+						</div>
+						<Button
+							variant="outline"
+							size="icon"
+							onClick={handleCopyLink}
+							aria-label="复制作品链接"
+						>
+							<Copy className="h-4 w-4" />
+						</Button>
+						<ShareSubmissionDialog
+							shareUrl={submissionUrl}
+							submissionName={submission.name ?? "submission"}
+							iconOnly
+							triggerVariant="outline"
+							triggerSize="icon"
+						/>
+					</div>
+					{votingHint && (
+						<p className="mt-2 text-xs text-muted-foreground line-clamp-2">
+							{votingHint}
+						</p>
+					)}
+				</div>
+			</div>
 		</div>
 	);
 }

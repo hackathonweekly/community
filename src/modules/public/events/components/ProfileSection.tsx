@@ -12,13 +12,14 @@ import {
 import { getPreferredContact } from "@/lib/utils/contact";
 import { getLifeStatusLabel } from "@/lib/utils/life-status";
 import type { PhoneValidationResult } from "@/lib/utils/phone-validation";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 import { SimpleLifeStatusSelector } from "@/modules/dashboard/profile/components/SimpleLifeStatusSelector";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
 import { ContactInfoForm } from "./ContactInfoForm";
 import type { UserProfile } from "./types";
 
-const ROLE_MAX = 10;
-const CURRENT_WORK_MAX = 100;
+const ROLE_MAX = PROFILE_LIMITS.userRoleStringMax;
+const CURRENT_WORK_MAX = PROFILE_LIMITS.currentWorkOnMax;
 const BIO_MAX = 500;
 const BIO_MIN = 15;
 
@@ -411,13 +412,13 @@ function ProfileEditForm({
 								currentWorkOn: e.target.value,
 							})
 						}
-						placeholder="例如：做一个AI助手产品、开发社区平台、创业项目等"
+						placeholder="例如：在做AI产品"
 						maxLength={CURRENT_WORK_MAX}
 						className="w-full"
 					/>
 					<div className="flex items-center justify-between">
 						<span className="text-xs text-muted-foreground">
-							您目前正在做的事情，可以是产品、项目、工作或创业等
+							一句话描述即可（10字以内）
 						</span>
 						<span
 							className={`text-xs ${

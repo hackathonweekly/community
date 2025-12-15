@@ -39,6 +39,8 @@ import {
 	ImagePlus,
 	Plus,
 	Trash2,
+	Type,
+	Users,
 	Video,
 } from "lucide-react";
 
@@ -80,6 +82,24 @@ const PRESET_FIELDS: Record<
 	string,
 	Omit<SubmissionFormField, "key" | "order">
 > = {
+	teamName: {
+		label: "团队名称",
+		type: "text",
+		required: false,
+		enabled: true,
+		publicVisible: true,
+		placeholder: "如：星火战队",
+		description: "用于团队展示与领奖信息整理（可选）",
+	},
+	teamSlogan: {
+		label: "团队口号",
+		type: "text",
+		required: false,
+		enabled: true,
+		publicVisible: true,
+		placeholder: "如：Build fast, learn faster",
+		description: "一句话介绍你们的团队风格（可选）",
+	},
 	teamPhoto: {
 		label: "团队照片",
 		type: "image",
@@ -666,6 +686,28 @@ export function SubmissionFormConfigEditor({
 						快速添加常用字段：
 					</p>
 					<div className="flex flex-wrap gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => addPresetField("teamName")}
+							disabled={fields.some((f) => f.key === "teamName")}
+						>
+							<Users className="h-4 w-4 mr-2" />
+							团队名称
+						</Button>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() => addPresetField("teamSlogan")}
+							disabled={fields.some(
+								(f) => f.key === "teamSlogan",
+							)}
+						>
+							<Type className="h-4 w-4 mr-2" />
+							团队口号
+						</Button>
 						<Button
 							type="button"
 							variant="outline"

@@ -59,7 +59,7 @@ export const defaultRegistrationFieldConfig: RegistrationFieldConfig = {
 		bio: { enabled: true, required: true },
 		phoneNumber: { enabled: true, required: true },
 		email: { enabled: true, required: true },
-		wechatId: { enabled: false, required: false },
+		wechatId: { enabled: true, required: false },
 		shippingAddress: { enabled: false, required: false },
 	},
 };

@@ -31,6 +31,7 @@ import { SkillsPreview } from "./SkillsPreview";
 import { BasicInfoDialog } from "./BasicInfoDialog";
 import { BasicInfoSection } from "./sections/BasicInfoSection";
 import { SocialAccountsSection } from "./sections/SocialAccountsSection";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 
 // 创建一个更好的URL验证schema
 const urlSchema = z
@@ -69,10 +70,13 @@ const profileFormSchema = z.object({
 	userRoleString: z
 		.string()
 		.min(1, "Please enter your main role")
-		.max(50, "Role must be less than 50 characters"),
+		.max(PROFILE_LIMITS.userRoleStringMax, "Role must be 7 characters max"),
 	currentWorkOn: z
 		.string()
-		.max(200, "Current work must be less than 200 characters")
+		.max(
+			PROFILE_LIMITS.currentWorkOnMax,
+			"Current status must be 10 characters max",
+		)
 		.optional()
 		.or(z.literal("")),
 	githubUrl: urlSchema,

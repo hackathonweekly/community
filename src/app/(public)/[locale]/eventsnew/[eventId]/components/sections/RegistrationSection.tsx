@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarClock, Contact, QrCode, Share2 } from "lucide-react";
+import { CalendarClock, Contact, QrCode, Share2, Timer } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,8 @@ type RegistrationSectionProps = {
 	onShowSuccessInfo?: () => void;
 	onContact?: () => void;
 	onFeedback?: () => void;
+	canContact?: boolean;
+	canFeedback?: boolean;
 	canCancel?: boolean;
 	registrationDisabledReason?: string | null;
 	isEventEnded?: boolean;
@@ -43,12 +45,16 @@ export function RegistrationSection({
 	onShowSuccessInfo,
 	onContact,
 	onFeedback,
+	canContact = true,
+	canFeedback = true,
 	canCancel,
 	registrationDisabledReason,
 	isEventEnded,
 	isRegistrationClosed,
 	isEventFull,
 }: RegistrationSectionProps) {
+	const canShowCountdownTool =
+		locale.startsWith("zh") && Boolean(event.isEventAdmin);
 	const registrationDeadline = event.registrationDeadline
 		? format(new Date(event.registrationDeadline), "M月d日 HH:mm")
 		: null;
@@ -194,13 +200,29 @@ export function RegistrationSection({
 						<Share2 className="mr-2 h-4 w-4" />
 						分享活动
 					</Button>
-					<Button variant="outline" onClick={onContact}>
-						<Contact className="mr-2 h-4 w-4" />
-						联系组织者
-					</Button>
-					<Button variant="outline" onClick={onFeedback}>
-						📝 提交反馈
-					</Button>
+					{canShowCountdownTool ? (
+						<Button variant="outline" asChild>
+							<a
+								href={`/${locale}/events/${event.id}/countdown`}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								<Timer className="mr-2 h-4 w-4" />
+								倒计时大屏
+							</a>
+						</Button>
+					) : null}
+					{canContact ? (
+						<Button variant="outline" onClick={onContact}>
+							<Contact className="mr-2 h-4 w-4" />
+							联系组织者
+						</Button>
+					) : null}
+					{canFeedback ? (
+						<Button variant="outline" onClick={onFeedback}>
+							📝 提交反馈
+						</Button>
+					) : null}
 					<Button variant="outline" asChild>
 						<a href={`/${locale}/events/${event.id}/photos`}>
 							现场相册

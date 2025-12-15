@@ -6,10 +6,14 @@ export function FeedbackSection({
 	onContact,
 	onFeedback,
 	onShare,
+	canContact = true,
+	canFeedback = true,
 }: {
-	onContact: () => void;
-	onFeedback: () => void;
+	onContact?: () => void;
+	onFeedback?: () => void;
 	onShare: () => void;
+	canContact?: boolean;
+	canFeedback?: boolean;
 }) {
 	return (
 		<SectionCard id="feedback" title="反馈与联系">
@@ -17,10 +21,14 @@ export function FeedbackSection({
 				如果有疑问或建议，欢迎联系组织者或直接提交反馈。
 			</p>
 			<div className="flex flex-wrap gap-2">
-				<Button variant="outline" onClick={onContact}>
-					联系组织者
-				</Button>
-				<Button onClick={onFeedback}>提交反馈</Button>
+				{canContact ? (
+					<Button variant="outline" onClick={onContact}>
+						联系组织者
+					</Button>
+				) : null}
+				{canFeedback ? (
+					<Button onClick={onFeedback}>提交反馈</Button>
+				) : null}
 				<Button variant="ghost" onClick={onShare}>
 					分享活动
 				</Button>

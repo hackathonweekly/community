@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
-import { getBaseUrl } from "@/lib/utils";
 import type { EventSubmission } from "@/features/event-submissions/types";
-import { SubmissionDetail } from "@/modules/public/events/submissions/SubmissionDetail";
+import { withHackathonConfigDefaults } from "@/features/hackathon/config";
 import { getEventById } from "@/lib/database";
+import { getBaseUrl } from "@/lib/utils";
+import { SubmissionDetail } from "@/modules/public/events/submissions/SubmissionDetail";
+import { notFound } from "next/navigation";
 
 interface PageProps {
 	params: Promise<{ locale: string; eventId: string; submissionId: string }>;
@@ -36,6 +37,12 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 		event?.type === "HACKATHON"
 			? Boolean((event as any)?.votingOpen)
 			: false;
+	const votingConfig =
+		event?.type === "HACKATHON"
+			? withHackathonConfigDefaults(
+					(event as any)?.hackathonConfig as any,
+				).voting
+			: null;
 
 	// Respect admin toggle: when disabled, hide vote counts on gallery (even after voting ends)
 	const showVotesOnGallery =
@@ -43,13 +50,18 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 			? Boolean((event as any)?.showVotesOnGallery ?? true)
 			: false;
 	const showResults = showVotesOnGallery && !isVotingOpen;
+	const submissionUrl = `${getBaseUrl()}/${locale}/events/${eventId}/submissions/${submissionId}`;
 
 	return (
-		<div className="container mx-auto max-w-4xl py-10">
+		<div className="container mx-auto max-w-6xl py-6 lg:py-8">
 			<SubmissionDetail
 				submission={submission}
 				locale={locale}
+				isVotingOpen={isVotingOpen}
+				votingConfig={votingConfig}
 				showResults={showResults}
+				submissionUrl={submissionUrl}
+				eventTitle={event?.title ?? null}
 			/>
 		</div>
 	);

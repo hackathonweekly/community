@@ -32,14 +32,18 @@ import { User } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { LIFE_STATUS_OPTIONS } from "@/lib/utils/life-status";
+import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 
 const profileCoreSchema = z.object({
 	bio: z.string().max(500, "个人简介不能超过500字").optional(),
 	userRoleString: z
 		.string()
 		.min(1, "请填写您的主要角色")
-		.max(50, "角色描述不能超过50字"),
-	currentWorkOn: z.string().max(200, "当前在做信息不能超过200字").optional(),
+		.max(PROFILE_LIMITS.userRoleStringMax, "个人角色不能超过7个字"),
+	currentWorkOn: z
+		.string()
+		.max(PROFILE_LIMITS.currentWorkOnMax, "个人状态不能超过10个字")
+		.optional(),
 	lifeStatus: z.string().max(20, "当前状态不能超过20字").optional(),
 });
 
@@ -94,8 +98,8 @@ export function ProfileCoreDialog({
 
 	// 字数限制
 	const BIO_MAX = 500;
-	const ROLE_MAX = 50;
-	const CURRENT_WORK_MAX = 200;
+	const ROLE_MAX = PROFILE_LIMITS.userRoleStringMax;
+	const CURRENT_WORK_MAX = PROFILE_LIMITS.currentWorkOnMax;
 
 	// 判断是否超出限制
 	const isBioExceeded = bioValue.length > BIO_MAX;
@@ -163,6 +167,7 @@ export function ProfileCoreDialog({
 											<Input
 												{...field}
 												placeholder="如：前端工程师、产品经理、设计师..."
+												maxLength={ROLE_MAX}
 											/>
 										</FormControl>
 										<div className="flex items-center justify-between">
@@ -231,12 +236,13 @@ export function ProfileCoreDialog({
 									<FormControl>
 										<Input
 											{...field}
-											placeholder="如：正在开发XX产品、在XX公司做前端、创业做AI工具..."
+											placeholder="如：在做AI产品"
+											maxLength={CURRENT_WORK_MAX}
 										/>
 									</FormControl>
 									<div className="flex items-center justify-between">
 										<FormDescription>
-											您目前正在做的事情，可以是产品、项目、工作或创业等
+											一句话描述即可（10字以内）
 										</FormDescription>
 										<span
 											className={`text-sm ${

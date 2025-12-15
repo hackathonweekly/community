@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
-import { Users } from "lucide-react";
+import { Timer, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,6 +33,7 @@ interface EventRegistrationCardProps {
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;
 		registrationPendingImage?: string;
+		isEventAdmin?: boolean;
 		organizerContact?: string;
 		organizer: {
 			id: string;
@@ -125,6 +126,8 @@ export function EventRegistrationCard({
 	const locale = useLocale();
 	const t = useTranslations("events");
 	const router = useRouter();
+	const canShowCountdownTool =
+		locale.startsWith("zh") && Boolean(event.isEventAdmin);
 
 	const [showVolunteerModal, setShowVolunteerModal] = useState(false);
 
@@ -455,6 +458,27 @@ export function EventRegistrationCard({
 							📱 签到二维码
 						</Button>
 					</div>
+
+					{/* 倒计时大屏 - 管理员工具（桌面端） */}
+					{canShowCountdownTool ? (
+						<div className="lg:block hidden">
+							<Button
+								asChild
+								variant="outline"
+								size="sm"
+								className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:border-gray-300 transition-all"
+							>
+								<Link
+									href={`/${locale}/events/${event.id}/countdown`}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									<Timer className="h-4 w-4" />
+									倒计时大屏
+								</Link>
+							</Button>
+						</div>
+					) : null}
 
 					{/* 活动反馈 + 联系组织者 */}
 					<div className="flex gap-2">

@@ -15,28 +15,42 @@ interface PageProps {
 export async function generateMetadata({
 	params,
 }: PageProps): Promise<Metadata> {
-	const { eventId } = await params;
+	const { eventId, locale } = await params;
 	const event = await getEventById(eventId);
 
 	if (!event) {
 		return {
-			title: "活动不存在",
-			description: "未找到该活动",
+			title: "Event Not Found",
+			description: "The requested event could not be found.",
 		};
 	}
 
 	const isEventEnded =
 		new Date() >= new Date(event.endTime) || event.status === "COMPLETED";
-	const title = isEventEnded
-		? `活动回顾：${event.title}`
-		: `社区活动：${event.title}`;
+	const isZh = locale?.startsWith("zh");
+
+	const getTitle = () => {
+		if (isZh) {
+			return isEventEnded
+				? `活动回顾：${event.title}`
+				: `社区活动：${event.title}`;
+		}
+		return `${event.title} | HackathonWeekly Events`;
+	};
+
+	const title = getTitle();
+	const ogTitle = isZh
+		? isEventEnded
+			? `活动回顾：${event.title}`
+			: `${event.title}`
+		: event.title;
 
 	return {
 		title,
 		description:
 			event.shortDescription?.slice(0, 160) || "No description available",
 		openGraph: {
-			title,
+			title: ogTitle,
 			description:
 				event.shortDescription?.slice(0, 160) ||
 				"No description available",
@@ -45,7 +59,7 @@ export async function generateMetadata({
 		},
 		twitter: {
 			card: "summary_large_image",
-			title,
+			title: ogTitle,
 			description:
 				event.shortDescription?.slice(0, 160) ||
 				"No description available",

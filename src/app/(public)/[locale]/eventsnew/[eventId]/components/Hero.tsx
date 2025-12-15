@@ -1,12 +1,13 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarDays, MapPin, Share2 } from "lucide-react";
+import { Bookmark, CalendarDays, Heart, MapPin, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { ManagementButton } from "@/app/(public)/[locale]/events/[eventId]/components/ManagementButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 import { HeroMeta } from "./common/HeroMeta";
 import type { EventData } from "./types";
@@ -131,6 +132,7 @@ export function Hero({
 					<Button
 						variant="secondary"
 						className="h-11 bg-white text-indigo-700 hover:bg-white/90"
+						asChild
 					>
 						<a href={`/${locale}/events/${event.id}/submissions`}>
 							提交/修改作品
@@ -153,7 +155,7 @@ export function Hero({
 						<Share2 className="h-4 w-4 mr-2" />
 						分享
 					</Button>
-					{/* <div className="flex items-center gap-2">
+					<div className="flex items-center gap-2">
 						<Button
 							variant="ghost"
 							size="icon"
@@ -193,7 +195,7 @@ export function Hero({
 								)}
 							/>
 						</Button>
-					</div> */}
+					</div>
 				</div>
 			</div>
 		</div>
