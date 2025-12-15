@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -6,12 +8,16 @@ export function SectionCard({
 	title,
 	ctaLabel,
 	ctaHref,
+	ctaOnClick,
+	ctaDisabled,
 	children,
 }: {
 	id: string;
 	title: string;
 	ctaLabel?: string;
 	ctaHref?: string;
+	ctaOnClick?: () => void;
+	ctaDisabled?: boolean;
 	children: React.ReactNode;
 }) {
 	return (
@@ -23,6 +29,8 @@ export function SectionCard({
 						variant="ghost"
 						size="sm"
 						className="text-primary"
+						disabled={ctaDisabled}
+						onClick={ctaOnClick}
 						asChild={Boolean(ctaHref)}
 					>
 						{ctaHref ? <a href={ctaHref}>{ctaLabel}</a> : ctaLabel}

@@ -33,6 +33,7 @@ import { FeedbackSection } from "./components/sections/FeedbackSection";
 import { HostsSection } from "./components/sections/HostsSection";
 import { IntroSection } from "./components/sections/IntroSection";
 import { ParticipantsSection } from "./components/sections/ParticipantsSection";
+import { RegistrationSection } from "./components/sections/RegistrationSection";
 import { VolunteersSection } from "./components/sections/VolunteersSection";
 import { WorksSection } from "./components/sections/WorksSection";
 import type { EventData } from "./components/types";
@@ -79,6 +80,7 @@ export function NewEventPageClient({
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showSuccessInfo, setShowSuccessInfo] = useState(false);
 	const [showQRGenerator, setShowQRGenerator] = useState(false);
+	const [showParticipantsDialog, setShowParticipantsDialog] = useState(false);
 	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 	const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -230,6 +232,16 @@ export function NewEventPageClient({
 		queryClient.invalidateQueries({
 			queryKey: eventKeys.detail(event.id),
 		});
+	};
+
+	const buildRedirectTarget = () => {
+		const searchString = searchParams.toString();
+		return searchString ? `${pathname}?${searchString}` : pathname;
+	};
+
+	const redirectToLogin = () => {
+		const targetPath = buildRedirectTarget();
+		router.push(`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`);
 	};
 
 	const handleRegister = (
@@ -423,6 +435,7 @@ export function NewEventPageClient({
 	);
 
 	const enabledAnchors = [
+		{ id: "registration", label: "报名" },
 		{ id: "intro", label: "介绍" },
 		{
 			id: "awards",
@@ -453,7 +466,6 @@ export function NewEventPageClient({
 		.filter((anchor) => anchor.show ?? true)
 		.map(({ id, label }) => ({ id, label }));
 
-	const participantsLocale = locale || "zh";
 	const hasVolunteerSection =
 		volunteerRoles.length > 0 ||
 		Boolean(event.volunteerContactInfo) ||
@@ -514,6 +526,28 @@ export function NewEventPageClient({
 
 			<div className="container max-w-6xl py-10 space-y-10">
 				<div className="space-y-8">
+					<RegistrationSection
+						event={event}
+						locale={locale}
+						existingRegistration={existingRegistration}
+						registerLabel={registerLabel}
+						registerDisabled={registerDisabled}
+						onRegister={() =>
+							handleRegister(() => setShowRegistrationForm(true))
+						}
+						onCancel={handleCancelRegistration}
+						onShowQR={() => setShowQRGenerator(true)}
+						onShowShare={() => setShowShareModal(true)}
+						onShowSuccessInfo={() => setShowSuccessInfo(true)}
+						onContact={() => setIsContactDialogOpen(true)}
+						onFeedback={() => setIsFeedbackDialogOpen(true)}
+						canCancel={canCancel}
+						registrationDisabledReason={registrationDisabledReason}
+						isEventEnded={isEventEnded}
+						isRegistrationClosed={isRegistrationClosed}
+						isEventFull={isEventFull}
+					/>
+
 					<IntroSection event={event} />
 
 					<HostsSection
@@ -533,11 +567,16 @@ export function NewEventPageClient({
 						locale={locale}
 						eventId={event.id}
 						userId={user?.id}
+						onRequireLogin={redirectToLogin}
 					/>
 
 					<ParticipantsSection
 						event={event}
-						locale={participantsLocale}
+						currentUserId={user?.id}
+						projectSubmissions={projectSubmissions}
+						onRequireLogin={redirectToLogin}
+						isDialogOpen={showParticipantsDialog}
+						onDialogChange={setShowParticipantsDialog}
 					/>
 
 					{photos.length > 0 ? (

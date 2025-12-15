@@ -43,6 +43,10 @@ interface ParticipantAvatarsProps {
 	currentUserId?: string; // 新增：当前用户ID，用于感兴趣功能
 	showInterestButtons?: boolean; // 新增：是否显示感兴趣按钮
 	projectSubmissions?: ProjectSubmission[]; // 新增：项目提交数据
+	requireAuth?: boolean;
+	onRequireAuth?: () => void;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
 export function ParticipantAvatars({
@@ -52,9 +56,13 @@ export function ParticipantAvatars({
 	currentUserId,
 	showInterestButtons = false,
 	projectSubmissions = [],
+	requireAuth = false,
+	onRequireAuth,
+	open,
+	onOpenChange,
 }: ParticipantAvatarsProps) {
 	const t = useTranslations();
-	const [isDialogOpen, setIsDialogOpen] = useState(false);
+	const [isDialogOpen, setIsDialogOpen] = useState(open ?? false);
 	const [isSlideOpen, setIsSlideOpen] = useState(false);
 	const [isCardGalleryOpen, setIsCardGalleryOpen] = useState(false);
 	const [checkedInUserIds, setCheckedInUserIds] = useState<Set<string>>(
@@ -71,13 +79,27 @@ export function ParticipantAvatars({
 		(reg) => reg.status === "APPROVED",
 	);
 
+	useEffect(() => {
+		if (typeof open === "boolean") {
+			setIsDialogOpen(open);
+		}
+	}, [open]);
+
 	// 重置搜索和分页状态
-	const handleDialogChange = (open: boolean) => {
-		setIsDialogOpen(open);
-		if (open) {
+	const handleDialogChange = (openState: boolean) => {
+		if (openState && requireAuth && !currentUserId) {
+			onRequireAuth?.();
+			onOpenChange?.(false);
+			return;
+		}
+		if (openState) {
 			setSearchTerm(""); // 打开弹窗时重置搜索
 			setCurrentPage(1); // 重置到第一页
 		}
+		if (typeof open !== "boolean") {
+			setIsDialogOpen(openState);
+		}
+		onOpenChange?.(openState);
 	};
 
 	useEffect(() => {
@@ -273,7 +295,7 @@ export function ParticipantAvatars({
 							<DialogHeader>
 								<DialogTitle>
 									{viewType === "participants"
-										? `${t("events.participants")} (${confirmedParticipants.length})`
+										? `${t("events.participants")} (${totalCount || confirmedParticipants.length})`
 										: t("events.participantProjects")}
 								</DialogTitle>
 							</DialogHeader>
@@ -325,7 +347,7 @@ export function ParticipantAvatars({
 															setIsCardGalleryOpen(
 																true,
 															);
-															setIsDialogOpen(
+															handleDialogChange(
 																false,
 															);
 														}}
@@ -340,7 +362,7 @@ export function ParticipantAvatars({
 															setIsSlideOpen(
 																true,
 															);
-															setIsDialogOpen(
+															handleDialogChange(
 																false,
 															);
 														}}
