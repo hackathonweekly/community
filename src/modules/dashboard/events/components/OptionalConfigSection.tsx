@@ -74,6 +74,7 @@ export function OptionalConfigSection({
 	const questions = (watch("questions") || []) as Question[];
 	const eventType = watch("type");
 	const requireProjectSubmission = watch("requireProjectSubmission");
+	const submissionsEnabled = watch("submissionsEnabled");
 	const askDigitalCardConsent = watch("askDigitalCardConsent");
 	const registrationFieldConfig =
 		(watch("registrationFieldConfig") as RegistrationFieldConfig) ||
@@ -453,6 +454,7 @@ export function OptionalConfigSection({
 								requireProjectSubmission={
 									requireProjectSubmission
 								}
+								submissionsEnabled={submissionsEnabled}
 								askDigitalCardConsent={askDigitalCardConsent}
 							/>
 						</div>
@@ -493,7 +495,7 @@ export function OptionalConfigSection({
 							},
 						)
 					}
-					requireProjectSubmission={requireProjectSubmission}
+					submissionsEnabled={submissionsEnabled}
 				/>
 
 				{eventType === "HACKATHON" && (

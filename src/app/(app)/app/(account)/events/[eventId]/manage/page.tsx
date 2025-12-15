@@ -20,6 +20,7 @@ import { SaveTemplateModal } from "@/modules/dashboard/events/components/SaveTem
 import { VolunteerManagement } from "@/modules/dashboard/events/components/VolunteerManagement";
 import { EventSubmissionsManager } from "@/modules/dashboard/events/components/submissions/EventSubmissionsManager";
 import { useEventManagement } from "@/modules/dashboard/events/hooks/useEventManagement";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -191,8 +192,7 @@ export default function EventManagePage() {
 									</span>
 								</TabsTrigger>
 							)}
-							{(event.requireProjectSubmission ||
-								event.type === "HACKATHON") && (
+							{isEventSubmissionsEnabled(event as any) && (
 								<TabsTrigger
 									value="submissions"
 									className={tabTriggerClass}
@@ -305,8 +305,7 @@ export default function EventManagePage() {
 						</TabsContent>
 					)}
 
-					{(event.requireProjectSubmission ||
-						event.type === "HACKATHON") && (
+					{isEventSubmissionsEnabled(event as any) && (
 						<TabsContent
 							value="submissions"
 							className="mt-2 md:mt-6"

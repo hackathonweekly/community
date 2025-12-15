@@ -1,5 +1,6 @@
 import { config } from "@/config";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
 import { zValidator } from "@hono/zod-validator";
@@ -112,6 +113,8 @@ const submissionInclude = {
 			organizerId: true,
 			organizationId: true,
 			type: true,
+			requireProjectSubmission: true,
+			submissionsEnabled: true,
 			hackathonConfig: true,
 			projectSubmissionDeadline: true,
 			submissionFormConfig: true,
@@ -144,6 +147,20 @@ const app = new Hono()
 		const includePrivateFieldsRequested =
 			c.req.query("includePrivateFields") === "true";
 		const session = await getSession(c);
+
+		const event = await db.event.findUnique({
+			where: { id: eventId },
+			select: {
+				id: true,
+				type: true,
+				requireProjectSubmission: true,
+				submissionsEnabled: true,
+			},
+		});
+
+		if (!event || !isEventSubmissionsEnabled(event)) {
+			throw new HTTPException(404, { message: "Event not found" });
+		}
 
 		const submissions = await db.eventProjectSubmission.findMany({
 			where: {
@@ -252,6 +269,8 @@ const app = new Hono()
 						type: true,
 						organizerId: true,
 						organizationId: true,
+						requireProjectSubmission: true,
+						submissionsEnabled: true,
 						projectSubmissionDeadline: true,
 						endTime: true,
 						hackathonConfig: true,
@@ -270,8 +289,15 @@ const app = new Hono()
 				const leaderId = payload.teamLeaderId || session.user.id;
 				await ensureParticipant(eventId, leaderId);
 
-				// Check if submissions are open (for hackathon events)
-				if (event.type === "HACKATHON" && !event.submissionsOpen) {
+				if (!isEventSubmissionsEnabled(event)) {
+					throw new HTTPException(400, {
+						message:
+							"Project submissions are disabled for this event",
+					});
+				}
+
+				// Check if submissions are open
+				if (!event.submissionsOpen) {
 					throw new HTTPException(400, {
 						message: "Project submissions are closed",
 					});
@@ -331,7 +357,9 @@ const app = new Hono()
 							submissionType:
 								event.type === "HACKATHON"
 									? "HACKATHON_PROJECT"
-									: "DEMO_PROJECT",
+									: event.type === "BUILDING_PUBLIC"
+										? "BUILDING_PROJECT"
+										: "DEMO_PROJECT",
 							title: payload.name,
 							description: payload.description || "",
 							demoUrl: payload.demoUrl,
@@ -902,6 +930,9 @@ async function fetchSubmissionByIdOrThrow(id: string) {
 		include: submissionInclude,
 	});
 	if (!submission) {
+		throw new HTTPException(404, { message: "Submission not found" });
+	}
+	if (!isEventSubmissionsEnabled(submission.event)) {
 		throw new HTTPException(404, { message: "Submission not found" });
 	}
 	return submission;

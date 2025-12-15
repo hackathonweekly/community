@@ -19,11 +19,13 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { useUnifiedEventRegistration } from "../hooks/useUnifiedEventRegistration";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface MobileEventBottomActionsProps {
 	event: {
 		id: string;
 		title: string;
+		type?: string;
 		status: string;
 		startTime: string;
 		endTime: string;
@@ -31,6 +33,8 @@ interface MobileEventBottomActionsProps {
 		isExternalEvent: boolean;
 		externalUrl?: string;
 		requireApproval: boolean;
+		requireProjectSubmission?: boolean;
+		submissionsEnabled?: boolean | null;
 		isOnline?: boolean;
 		address?: string;
 		onlineUrl?: string;
@@ -252,6 +256,8 @@ export function MobileEventBottomActions({
 		? availableActions.filter((action) => action.key === "contact")
 		: availableActions;
 
+	const submissionsEnabled = isEventSubmissionsEnabled(event);
+
 	return (
 		<>
 			<div
@@ -291,21 +297,32 @@ export function MobileEventBottomActions({
 						{/* 主按钮 - 放在最右边，根据状态显示不同内容 */}
 						{shouldShowImportantInfo &&
 						existingRegistration?.status === "APPROVED" ? (
-							// 已报名且成功：显示提交/修改作品按钮
-							<Button
-								onClick={() => {
-									const route = hasUserSubmitted
-										? `/app/events/${event.id}/submissions`
-										: `/app/events/${event.id}/submissions/new`;
-									router.push(route);
-								}}
-								className="flex-1 font-medium text-sm h-12 bg-primary hover:bg-primary/90 text-white"
-								size="lg"
-							>
-								{hasUserSubmitted
-									? "📝 修改作品"
-									: "📤 提交作品"}
-							</Button>
+							submissionsEnabled ? (
+								// 已报名且成功：显示提交/修改作品按钮
+								<Button
+									onClick={() => {
+										const route = hasUserSubmitted
+											? `/app/events/${event.id}/submissions`
+											: `/app/events/${event.id}/submissions/new`;
+										router.push(route);
+									}}
+									className="flex-1 font-medium text-sm h-12 bg-primary hover:bg-primary/90 text-white"
+									size="lg"
+								>
+									{hasUserSubmitted
+										? "📝 修改作品"
+										: "📤 提交作品"}
+								</Button>
+							) : (
+								<Button
+									onClick={onShowSuccessInfo}
+									className="flex-1 font-medium text-sm h-12 bg-blue-600 hover:bg-blue-700 text-white"
+									size="lg"
+								>
+									<span className="mr-1">📋</span>{" "}
+									查看重要信息
+								</Button>
+							)
 						) : shouldShowImportantInfo ? (
 							// 报名审核中/等待中且有重要信息：显示查看重要信息
 							<Button
@@ -319,15 +336,21 @@ export function MobileEventBottomActions({
 							// 其他情况：显示报名/查看二维码/提交/修改作品按钮
 							<Button
 								onClick={() => {
-									// 如果已报名成功，默认行为是提交作品或我的作品
 									if (
 										existingRegistration?.status ===
 										"APPROVED"
 									) {
-										const route = hasUserSubmitted
-											? `/app/events/${event.id}/submissions`
-											: `/app/events/${event.id}/submissions/new`;
-										router.push(route);
+										if (submissionsEnabled) {
+											const route = hasUserSubmitted
+												? `/app/events/${event.id}/submissions`
+												: `/app/events/${event.id}/submissions/new`;
+											router.push(route);
+											return;
+										}
+
+										if (onShowQRGenerator) {
+											onShowQRGenerator();
+										}
 										return;
 									}
 
@@ -352,9 +375,11 @@ export function MobileEventBottomActions({
 								size="lg"
 							>
 								{existingRegistration?.status === "APPROVED"
-									? hasUserSubmitted
-										? "📝 修改作品"
-										: "📤 提交作品"
+									? submissionsEnabled
+										? hasUserSubmitted
+											? "📝 修改作品"
+											: "📤 提交作品"
+										: "🎫 查看报名二维码"
 									: getRegisterButtonText()}
 							</Button>
 						)}

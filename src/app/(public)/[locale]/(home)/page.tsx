@@ -9,6 +9,7 @@ import { JoinCommunity } from "@/modules/public/home/components/JoinCommunity";
 import { Partners } from "@/modules/public/home/components/Partners";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
+import { CustomerServiceWidget } from "@/components/shared/CustomerServiceWidget";
 
 export async function generateMetadata({
 	params,
@@ -43,6 +44,7 @@ export default async function Home({
 			<Partners />
 			<FAQ />
 			<JoinCommunity />
+			<CustomerServiceWidget />
 		</>
 	);
 }

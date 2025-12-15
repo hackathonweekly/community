@@ -9,6 +9,7 @@ import {
 	withHackathonConfigDefaults,
 } from "@/features/hackathon/config";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 const app = new Hono()
 	// 获取黑客松配置
@@ -312,6 +313,7 @@ const app = new Hono()
 					select: {
 						id: true,
 						type: true,
+						submissionsEnabled: true,
 						hackathonConfig: true,
 						organizerId: true,
 						organizationId: true,
@@ -320,6 +322,11 @@ const app = new Hono()
 				});
 
 				if (!event || event.type !== "HACKATHON") {
+					throw new HTTPException(404, {
+						message: "Hackathon event not found",
+					});
+				}
+				if (!isEventSubmissionsEnabled(event)) {
 					throw new HTTPException(404, {
 						message: "Hackathon event not found",
 					});

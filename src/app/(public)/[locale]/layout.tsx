@@ -5,7 +5,6 @@ import { TabBar } from "@/modules/public/shared/components/TabBar";
 import { SessionProvider } from "@dashboard/auth/components/SessionProvider";
 import { getSession } from "@dashboard/auth/lib/server";
 import { BetaBanner } from "@/components/shared/BetaBanner";
-import { CustomerServiceWidget } from "@/components/shared/CustomerServiceWidget";
 import { PhoneBindingPrompt } from "@/components/shared/PhoneBindingPrompt";
 import { Providers } from "@/components/shared/Providers";
 import { RootProvider as FumadocsRootProvider } from "fumadocs-ui/provider";
@@ -61,7 +60,6 @@ export default async function MarketingLayout({
 						<DynamicLayoutWrapper>{children}</DynamicLayoutWrapper>
 						<ConditionalFooter locale={locale} />
 						<TabBar />
-						<CustomerServiceWidget />
 					</SessionProvider>
 				</NextIntlClientProvider>
 			</FumadocsRootProvider>

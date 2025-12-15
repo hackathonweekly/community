@@ -3,12 +3,12 @@
 import type { RegistrationStatus } from "@prisma/client";
 import {
 	ArrowLeft,
-	CalendarClock,
-	ChevronDown,
-	ChevronUp,
+	ArrowUpRight,
 	Copy,
 	Heart,
 	Loader2,
+	Play,
+	Presentation,
 	ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,18 +20,8 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Collapsible,
-	CollapsibleContent,
-	CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import {} from "@/components/ui/collapsible";
+import {} from "@/components/ui/dropdown-menu";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import {
 	useEventSubmissions,
@@ -40,6 +30,7 @@ import {
 } from "@/features/event-submissions/hooks";
 import type { EventSubmission } from "@/features/event-submissions/types";
 import type { HackathonVoting } from "@/features/hackathon/config";
+import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { ShareSubmissionDialog } from "./ShareSubmissionDialog";
 import { useEventRegistrationStatus } from "./useEventRegistrationStatus";
@@ -48,15 +39,10 @@ import { createFallbackCaptionSrc } from "./utils";
 interface SubmissionDetailProps {
 	submission: EventSubmission;
 	locale: string;
-	// When true, show final results (exact vote counts)
 	showResults?: boolean;
-	// Whether audience voting is currently open
 	isVotingOpen?: boolean;
-	// Voting configuration for hackathon events
 	votingConfig?: HackathonVoting | null;
-	// Canonical URL for this submission (used in QR code)
 	submissionUrl: string;
-	// Event title for big-screen display
 	eventTitle?: string | null;
 }
 
@@ -159,17 +145,15 @@ export function SubmissionDetail({
 	const remainingVotes =
 		data?.remainingVotes ?? (user ? MAX_VOTES_PER_USER : null);
 	const isLeader = Boolean(userId) && submission.teamLeader?.id === userId;
-	// Block voting if current user is part of the team (leader or member)
 	const isOwnTeam =
 		Boolean(userId) &&
 		(submission.teamLeader?.id === userId ||
 			submission.teamMembers?.some((m) => m.id === userId));
-	const hasMedia =
-		submission.attachments.length > 0 || Boolean(submission.coverImage);
 	const customFieldAnswers = (submission.customFieldAnswers ?? [])
 		.filter((field) => field.enabled !== false)
 		.slice()
 		.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
 	const votingHint = (() => {
 		if (!isVotingCurrentlyOpen) {
 			return "投票未开放或已结束";
@@ -301,587 +285,466 @@ export function SubmissionDetail({
 		await copyText(submissionUrl);
 	};
 
-	const renderVoteButton = () => {
-		if (!isVotingCurrentlyOpen) {
-			return (
-				<Button variant="outline" disabled>
-					投票未开放
-				</Button>
+	const getMedia = () => {
+		// Prefer video over image if available? Or just first attachment.
+		// Logic similar to Slide Deck: Prefer cover image if no attachments, or specific logic.
+		// But in detail page we might want to show EVERYTHING.
+		// For the "Hero" media, let's pick the best one.
+		if (submission.attachments.length > 0) {
+			// Find first video
+			const vid = submission.attachments.find(
+				(a) => a.fileType === "video",
 			);
-		}
+			if (vid)
+				return {
+					type: "video" as const,
+					url: vid.fileUrl,
+					name: vid.fileName,
+				};
 
-		if (!allowPublicVoting) {
-			return (
-				<Button variant="outline" disabled>
-					观众投票未开放
-				</Button>
+			// Find first image
+			const img = submission.attachments.find(
+				(a) => a.fileType === "image",
 			);
+			if (img)
+				return {
+					type: "image" as const,
+					url: img.fileUrl,
+					name: img.fileName,
+				};
 		}
-
-		if (!user) {
-			return (
-				<Button variant="outline" onClick={handleRequireAuth}>
-					登录后投票
-				</Button>
-			);
+		if (submission.coverImage) {
+			return {
+				type: "image" as const,
+				url: submission.coverImage,
+				name: submission.name,
+			};
 		}
-
-		if (requiresParticipantRegistration) {
-			if (isRegistrationLoading) {
-				return (
-					<Button variant="outline" disabled>
-						<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-						确认报名中…
-					</Button>
-				);
-			}
-			if (!hasActiveRegistration) {
-				return (
-					<Button
-						variant="outline"
-						onClick={() => router.push(registerHref)}
-					>
-						报名后投票
-					</Button>
-				);
-			}
-		}
-
-		if (isOwnTeam) {
-			return (
-				<Button variant="outline" disabled>
-					无法投自己
-				</Button>
-			);
-		}
-
-		if (hasVoted) {
-			return (
-				<Button variant="secondary" onClick={handleUnvote}>
-					已投票
-				</Button>
-			);
-		}
-
-		const noVotesLeft = remainingVotes !== null && remainingVotes <= 0;
-		return (
-			<Button
-				onClick={handleVote}
-				disabled={voteMutation.isPending || noVotesLeft}
-			>
-				{voteMutation.isPending ? (
-					<Loader2 className="h-4 w-4 animate-spin" />
-				) : noVotesLeft ? (
-					"票数已用完"
-				) : (
-					"投票"
-				)}
-			</Button>
-		);
+		return null;
 	};
 
-	const renderCustomFieldValue = (
-		answer: (typeof customFieldAnswers)[number],
-	) => {
-		const value = answer.value;
+	const primaryMedia = getMedia();
+	const otherAttachments = submission.attachments.filter(
+		(a) => a.fileUrl !== primaryMedia?.url,
+	);
 
-		if (value === null || value === undefined || value === "") {
-			return <span className="text-muted-foreground">未填写</span>;
-		}
-
-		if (Array.isArray(value)) {
-			return value.length ? value.join("、") : "未填写";
-		}
-
-		if (answer.type === "url" && typeof value === "string") {
-			return (
-				<Link
-					href={value}
-					target="_blank"
-					rel="noreferrer"
-					className="underline break-all"
-				>
-					{value}
-				</Link>
-			);
-		}
-
-		if (answer.type === "image" && typeof value === "string") {
-			return (
-				<div className="space-y-2">
-					<img
-						src={value}
-						alt={answer.label}
-						className="h-32 w-full rounded-md object-cover"
-					/>
-					<Link
-						href={value}
-						target="_blank"
-						rel="noreferrer"
-						className="text-xs underline"
-					>
-						查看原图
-					</Link>
-				</div>
-			);
-		}
-
-		if (answer.type === "file" && typeof value === "string") {
-			return (
-				<Link
-					href={value}
-					target="_blank"
-					rel="noreferrer"
-					className="underline break-all"
-				>
-					下载文件
-				</Link>
-			);
-		}
-
-		if (typeof value === "boolean") {
-			return value ? "是" : "否";
-		}
-
-		if (typeof value === "object") {
-			try {
-				return JSON.stringify(value);
-			} catch {
-				return String(value);
-			}
-		}
-
-		return String(value);
-	};
+	const captionLang = locale === "en" ? "en" : "zh";
+	const captionLabel = locale === "en" ? "Captions" : "字幕";
+	const fallbackCaptionSrc = createFallbackCaptionSrc(
+		submission.tagline ?? submission.name,
+		locale === "en" ? "Video content" : "视频内容",
+	);
 
 	return (
-		<div className="space-y-6 pb-24 md:pb-0">
-			<div className="flex items-center justify-between">
-				<Button variant="ghost" asChild>
-					<Link
-						href={`/${locale}/events/${submission.eventId}/submissions`}
+		<div className="min-h-[calc(100vh-80px)] w-full rounded-3xl overflow-hidden border border-slate-800 bg-slate-950 text-slate-100 shadow-2xl">
+			{/* Background Ambient */}
+			<div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0" />
+
+			<div className="relative z-10 flex flex-col h-full">
+				{/* Header */}
+				<div className="flex items-center justify-between p-4 md:p-6 border-b border-white/5 bg-white/5 backdrop-blur-md">
+					<Button
+						variant="ghost"
+						asChild
+						className="text-slate-300 hover:text-white hover:bg-white/10"
 					>
-						<ArrowLeft className="h-4 w-4 mr-2" /> 返回列表
-					</Link>
-				</Button>
-				{isLeader && (
-					<Button asChild variant="outline">
 						<Link
-							href={`/app/events/${submission.eventId}/submissions/${submission.id}/edit`}
+							href={`/${locale}/events/${submission.eventId}/submissions`}
 						>
-							管理作品
+							<ArrowLeft className="h-4 w-4 mr-2" /> 返回列表
 						</Link>
 					</Button>
-				)}
-			</div>
-
-			<Card>
-				<CardHeader className="space-y-2">
-					{eventTitle && (
-						<p className="text-sm text-muted-foreground">
-							活动：{eventTitle}
-						</p>
-					)}
 					<div className="flex items-center gap-2">
-						<Badge variant="secondary">
-							{statusLabels[submission.status] ??
-								submission.status}
-						</Badge>
-						{submission.communityUseAuthorization && (
-							<Badge
+						{isLeader && (
+							<Button
+								asChild
 								variant="outline"
-								className="flex items-center gap-1"
+								size="sm"
+								className="border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-white"
 							>
-								<ShieldCheck className="h-3 w-3" />
-								已授权宣传
-							</Badge>
+								<Link
+									href={`/app/events/${submission.eventId}/submissions/${submission.id}/edit`}
+								>
+									管理作品
+								</Link>
+							</Button>
 						)}
+						<Button
+							variant="default"
+							className="bg-emerald-600 hover:bg-emerald-500 text-white border-0 shadow-lg shadow-emerald-500/20 hidden md:inline-flex"
+							onClick={() =>
+								router.push(
+									`/${locale}/events/${submission.eventId}/submissions/slides?start=${submission.id}`,
+								)
+							}
+						>
+							<Presentation className="h-4 w-4 mr-2" />
+							全屏投屏模式
+						</Button>
 					</div>
-					<CardTitle className="text-3xl">
-						{submission.name}
-					</CardTitle>
-					<CardDescription>{submission.tagline}</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-						<div className="space-y-2">
-							<div className="flex items-center justify-between gap-3">
-								<div className="flex items-center gap-2 text-lg font-semibold">
-									{showResults ? (
-										<>
-											<Heart className="h-5 w-5 text-rose-500" />
-											<span>
-												{submission.voteCount} 票
-											</span>
-										</>
-									) : (
-										// Keep layout stable when votes are hidden
-										<span className="invisible inline-flex items-center gap-2">
-											<Heart className="h-5 w-5" />0 票
+				</div>
+
+				<div className="flex-1 grid lg:grid-cols-12 min-h-[600px]">
+					{/* Left Column: Info & Details (Scrollable) */}
+					<div className="lg:col-span-4 p-6 md:p-8 lg:p-10 space-y-8 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10 hover:scrollbar-thumb-white/20 border-r border-white/5 bg-slate-950/50">
+						<div className="space-y-6">
+							<div className="space-y-4">
+								<div className="flex flex-wrap items-center gap-2">
+									<Badge
+										variant="secondary"
+										className="bg-white/10 text-slate-200 hover:bg-white/20 border-0"
+									>
+										{statusLabels[submission.status] ??
+											submission.status}
+									</Badge>
+									{showResults && (
+										<Badge
+											variant="outline"
+											className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+										>
+											{submission.voteCount} 票
+										</Badge>
+									)}
+									{submission.communityUseAuthorization && (
+										<Badge
+											variant="outline"
+											className="border-blue-500/30 text-blue-400 bg-blue-500/10 gap-1 pl-1"
+										>
+											<ShieldCheck className="h-3 w-3" />
+											已授权
+										</Badge>
+									)}
+								</div>
+
+								<h1 className="text-3xl md:text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-sm">
+									{submission.name}
+								</h1>
+
+								{submission.tagline && (
+									<p className="text-lg md:text-xl text-slate-400 font-light leading-relaxed">
+										{submission.tagline}
+									</p>
+								)}
+							</div>
+
+							{/* Voting Card */}
+							<div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-5 space-y-4 backdrop-blur-sm shadow-xl">
+								<div className="flex items-center justify-between">
+									<h3 className="text-base font-semibold text-white flex items-center gap-2">
+										<Heart
+											className={cn(
+												"h-5 w-5",
+												hasVoted
+													? "fill-rose-500 text-rose-500"
+													: "text-slate-400",
+											)}
+										/>
+										给作品投票
+									</h3>
+									{votingHint && (
+										<span className="text-xs text-slate-400">
+											{votingHint}
 										</span>
 									)}
 								</div>
-								<div className="hidden md:flex flex-wrap items-center gap-2">
-									{renderVoteButton()}
-									<Button
-										variant="outline"
-										size="icon"
-										onClick={handleCopyLink}
-										aria-label="复制作品链接"
-									>
-										<Copy className="h-4 w-4" />
-									</Button>
-									<ShareSubmissionDialog
-										shareUrl={submissionUrl}
-										submissionName={
-											submission.name ?? "submission"
-										}
-										iconOnly
-										triggerVariant="outline"
-										triggerSize="icon"
-										triggerClassName="shrink-0"
-									/>
+
+								<div className="grid grid-cols-2 gap-3">
+									{!user ? (
+										<Button
+											className="w-full col-span-2"
+											onClick={handleRequireAuth}
+										>
+											登录后投票
+										</Button>
+									) : isVotingCurrentlyOpen &&
+										allowPublicVoting &&
+										!isOwnTeam ? (
+										hasVoted ? (
+											<Button
+												variant="secondary"
+												className="w-full col-span-2 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20"
+												onClick={handleUnvote}
+											>
+												已投票 (点击取消)
+											</Button>
+										) : (
+											<Button
+												className="w-full col-span-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-lg shadow-emerald-900/20 border-0"
+												onClick={handleVote}
+												disabled={
+													voteMutation.isPending ||
+													(remainingVotes !== null &&
+														remainingVotes <= 0)
+												}
+											>
+												{voteMutation.isPending && (
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												)}
+												投一票
+											</Button>
+										)
+									) : (
+										<Button
+											disabled
+											variant="outline"
+											className="w-full col-span-2 border-white/10 text-slate-500"
+										>
+											暂无法投票
+										</Button>
+									)}
 								</div>
-							</div>
-							{votingHint && (
-								<p className="text-sm text-muted-foreground">
-									{votingHint}
-								</p>
-							)}
-						</div>
-						<div className="hidden lg:block">
-							<Collapsible
-								open={!isQrCollapsed}
-								onOpenChange={(open) => setIsQrCollapsed(!open)}
-								className="rounded-xl border bg-muted/40"
-							>
-								<div className="flex items-center justify-between gap-2 p-4">
-									<div className="min-w-0">
-										<p className="text-sm font-semibold text-foreground">
-											扫码投票
-										</p>
-										<p className="text-xs text-muted-foreground">
-											适合现场大屏展示
-										</p>
-									</div>
-									<div className="flex items-center gap-2">
+
+								<div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
+									<p className="text-xs text-slate-500">
+										适合现场大屏展示，扫码即可直接投票
+									</p>
+									<div className="flex gap-1">
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-8 w-8 hover:bg-white/10 text-slate-400 hover:text-white"
+											onClick={handleCopyLink}
+										>
+											<Copy className="h-4 w-4" />
+										</Button>
 										<ShareSubmissionDialog
 											shareUrl={submissionUrl}
 											submissionName={
 												submission.name ?? "submission"
 											}
-											triggerLabel="分享"
+											iconOnly
 											triggerVariant="ghost"
-											triggerSize="sm"
-											triggerClassName="h-8 px-2"
+											triggerSize="icon"
+											triggerClassName="h-8 w-8 hover:bg-white/10 text-slate-400 hover:text-white"
 										/>
-										<CollapsibleTrigger asChild>
-											<Button
-												variant="ghost"
-												size="icon"
-												aria-label={
-													isQrCollapsed
-														? "展开二维码"
-														: "收起二维码"
-												}
-											>
-												{isQrCollapsed ? (
-													<ChevronDown className="h-4 w-4" />
-												) : (
-													<ChevronUp className="h-4 w-4" />
-												)}
-											</Button>
-										</CollapsibleTrigger>
 									</div>
 								</div>
-								<CollapsibleContent>
-									<div className="px-4 pb-4">
-										<div className="flex items-center gap-3">
-											<div className="rounded-lg border bg-white p-2 shadow-sm">
-												<QRCode
-													value={submissionUrl}
-													size={152}
-													className="h-auto w-[152px]"
-												/>
-											</div>
-											<div className="space-y-2 text-xs text-muted-foreground">
-												<p className="leading-relaxed">
-													手机扫码打开作品详情页后即可投票。
-												</p>
-												<div className="flex items-center gap-2">
-													<Button
-														variant="outline"
-														size="sm"
-														className="h-8 px-2 text-xs"
-														onClick={handleCopyLink}
-													>
-														<Copy className="mr-1 h-3.5 w-3.5" />
-														复制链接
-													</Button>
-												</div>
-												<p className="text-[11px] text-muted-foreground/80">
-													链接默认隐藏，可通过上方按钮复制或分享。
-												</p>
-											</div>
-										</div>
-									</div>
-								</CollapsibleContent>
-							</Collapsible>
-						</div>
-					</div>
 
-					{hasMedia ? (
-						<div className="grid gap-4 sm:grid-cols-2">
-							{submission.attachments.length === 0 &&
-								submission.coverImage && (
-									<div className="rounded-lg border overflow-hidden">
-										<img
-											src={submission.coverImage}
-											alt={submission.name}
-											className="w-full h-56 object-cover"
-										/>
-									</div>
-								)}
+								<div className="bg-white p-3 rounded-xl w-full flex justify-center shadow-inner">
+									<QRCode
+										value={submissionUrl}
+										size={160}
+										className="h-auto w-full max-w-[180px]"
+									/>
+								</div>
+							</div>
 
-							{submission.attachments.map((attachment) => {
-								const fallbackCaptionSrc =
-									createFallbackCaptionSrc(
-										attachment.fileName ??
-											submission.description ??
-											submission.tagline ??
-											submission.name ??
-											"媒体内容",
-									);
-								const captionLabel =
-									locale === "en" ? "Captions" : "字幕";
-								const captionLang =
-									locale === "en" ? "en" : "zh";
+							{/* Description */}
+							<div className="space-y-3 pt-4 border-t border-white/5">
+								<h3 className="text-lg font-medium text-white">
+									关于作品
+								</h3>
+								<div
+									className="prose prose-invert prose-p:text-slate-300 prose-a:text-blue-400 max-w-none text-sm leading-relaxed"
+									dangerouslySetInnerHTML={{
+										__html:
+											submission.description ||
+											"暂无详细介绍",
+									}}
+								/>
+							</div>
 
-								return (
-									<div
-										key={attachment.id}
-										className="rounded-lg border overflow-hidden"
-									>
-										{attachment.fileType === "image" ? (
-											<img
-												src={attachment.fileUrl}
-												alt={attachment.fileName}
-												className="w-full h-56 object-cover"
-											/>
-										) : attachment.fileType === "video" ? (
-											<video
-												controls
-												preload="metadata"
-												className="w-full h-56 bg-black"
-											>
-												<source
-													src={attachment.fileUrl}
-												/>
-												<track
-													default
-													kind="captions"
-													srcLang={captionLang}
-													label={captionLabel}
-													src={fallbackCaptionSrc}
-												/>
-												您的浏览器不支持视频播放
-											</video>
-										) : attachment.fileType === "audio" ? (
-											<div className="p-4">
-												<audio
-													controls
-													className="w-full"
-												>
-													<source
-														src={attachment.fileUrl}
+							{/* Team */}
+							{(submission.teamLeader ||
+								(submission.teamMembers &&
+									submission.teamMembers.length > 0)) && (
+								<div className="space-y-3 pt-4 border-t border-white/5">
+									<h3 className="text-lg font-medium text-white">
+										团队成员
+									</h3>
+									<div className="flex flex-wrap gap-4">
+										{submission.teamLeader && (
+											<div className="flex items-center gap-2">
+												<Avatar className="h-8 w-8 border border-white/10">
+													<AvatarImage
+														src={
+															submission
+																.teamLeader
+																.avatar ??
+															undefined
+														}
 													/>
-													<track
-														default
-														kind="captions"
-														srcLang={captionLang}
-														label={captionLabel}
-														src={fallbackCaptionSrc}
-													/>
-													您的浏览器不支持音频播放
-												</audio>
-												<div className="mt-2 text-xs text-muted-foreground">
-													{attachment.fileName}
+													<AvatarFallback>
+														{submission.teamLeader.name?.slice(
+															0,
+															2,
+														)}
+													</AvatarFallback>
+												</Avatar>
+												<div className="text-sm">
+													<p className="text-slate-200">
+														{
+															submission
+																.teamLeader.name
+														}
+													</p>
+													<p className="text-xs text-slate-500">
+														队长
+													</p>
 												</div>
-											</div>
-										) : (
-											<div className="p-4 text-sm text-muted-foreground">
-												<a
-													href={attachment.fileUrl}
-													target="_blank"
-													rel="noreferrer"
-													className="underline"
-												>
-													{attachment.fileName}
-												</a>
 											</div>
 										)}
-									</div>
-								);
-							})}
-						</div>
-					) : (
-						<div className="rounded-lg border bg-muted/30 py-10 text-center text-sm text-muted-foreground">
-							暂无截图或演示素材
-						</div>
-					)}
-
-					<div className="space-y-3">
-						<h3 className="text-lg font-semibold">作品介绍</h3>
-						<div
-							className="prose prose-slate max-w-none text-sm"
-							dangerouslySetInnerHTML={{
-								__html:
-									submission.description || "暂无详细介绍",
-							}}
-						/>
-					</div>
-
-					{customFieldAnswers.length > 0 && (
-						<div className="space-y-3">
-							<h3 className="text-lg font-semibold">补充信息</h3>
-							<div className="grid gap-3 md:grid-cols-2">
-								{customFieldAnswers.map((answer) => (
-									<div
-										key={answer.key}
-										className="rounded-lg border p-3 space-y-2"
-									>
-										<div className="flex items-center justify-between gap-2">
-											<p className="text-sm font-medium">
-												{answer.label}
-												{answer.required && (
-													<span className="text-red-500 ml-1">
-														*
-													</span>
-												)}
-											</p>
-											{answer.publicVisible === false && (
-												<Badge
-													variant="outline"
-													className="text-xs"
-												>
-													仅管理员
-												</Badge>
-											)}
-										</div>
-										<div className="text-sm text-muted-foreground break-words">
-											{renderCustomFieldValue(answer)}
-										</div>
-									</div>
-								))}
-							</div>
-						</div>
-					)}
-
-					<div className="grid gap-4 md:grid-cols-2">
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base">
-									团队信息
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3">
-								<div className="flex items-center gap-3">
-									<Avatar>
-										<AvatarImage
-											src={
-												submission.teamLeader?.avatar ??
-												undefined
-											}
-										/>
-										<AvatarFallback>
-											{submission.teamLeader?.name?.slice(
-												0,
-												2,
-											) ?? "?"}
-										</AvatarFallback>
-									</Avatar>
-									<div>
-										<p className="font-medium">
-											{submission.teamLeader?.name}
-										</p>
-										<p className="text-xs text-muted-foreground">
-											队长
-										</p>
-									</div>
-								</div>
-								{submission.teamMembers.length > 0 && (
-									<div className="flex flex-wrap gap-2">
-										{submission.teamMembers.map(
+										{submission.teamMembers?.map(
 											(member) => (
-												<Badge
+												<div
 													key={member.id}
-													variant="outline"
+													className="flex items-center gap-2"
 												>
-													{member.name}
-												</Badge>
+													<Avatar className="h-8 w-8 border border-white/10">
+														<AvatarImage
+															src={
+																member.avatar ??
+																undefined
+															}
+														/>
+														<AvatarFallback>
+															{member.name?.slice(
+																0,
+																2,
+															)}
+														</AvatarFallback>
+													</Avatar>
+													<div className="text-sm">
+														<p className="text-slate-200">
+															{member.name}
+														</p>
+														<p className="text-xs text-slate-500">
+															成员
+														</p>
+													</div>
+												</div>
 											),
 										)}
 									</div>
-								)}
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle className="text-base">
-									提交信息
-								</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-2 text-sm text-muted-foreground">
-								<div className="flex items-center gap-2">
-									<CalendarClock className="h-4 w-4" />
-									提交于 {submission.submittedAt ?? "-"}
 								</div>
-								{submission.demoUrl && (
-									<div>
-										演示链接：
-										<Link
-											href={submission.demoUrl}
-											target="_blank"
-											rel="noreferrer"
-											className="underline"
-										>
-											{submission.demoUrl}
-										</Link>
+							)}
+
+							{/* Custom Fields */}
+							{customFieldAnswers.length > 0 && (
+								<div className="space-y-4 pt-4 border-t border-white/5">
+									<h3 className="text-lg font-medium text-white">
+										补充信息
+									</h3>
+									<div className="grid gap-3">
+										{customFieldAnswers.map((answer) => (
+											<div
+												key={answer.key}
+												className="rounded-lg bg-white/5 p-3 space-y-1"
+											>
+												<p className="text-xs text-slate-500">
+													{answer.label}
+												</p>
+												<p className="text-sm text-slate-200 break-words">
+													{String(
+														answer.value ??
+															"未填写",
+													)}
+												</p>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
+						</div>
+					</div>
+
+					{/* Right Column: Media Display */}
+					<div className="lg:col-span-8 flex flex-col h-full bg-slate-900/30">
+						<div className="flex-1 p-6 flex flex-col gap-6 overflow-y-auto">
+							{/* Primary Media */}
+							<div className="w-full aspect-video rounded-2xl bg-black border border-white/10 overflow-hidden shadow-2xl relative group">
+								{primaryMedia?.type === "video" ? (
+									<video
+										controls
+										preload="metadata"
+										className="w-full h-full object-contain"
+									>
+										<source src={primaryMedia.url} />
+										<track
+											default
+											kind="captions"
+											srcLang={captionLang}
+											label={captionLabel}
+											src={fallbackCaptionSrc}
+										/>
+									</video>
+								) : primaryMedia?.type === "image" ? (
+									<img
+										src={primaryMedia.url}
+										alt={
+											primaryMedia.name || submission.name
+										}
+										className="w-full h-full object-contain"
+									/>
+								) : (
+									<div className="w-full h-full flex flex-col items-center justify-center text-slate-600 gap-4">
+										<div className="p-4 rounded-full bg-white/5">
+											<Play className="h-10 w-10 opacity-50" />
+										</div>
+										<p>暂无主媒体内容</p>
 									</div>
 								)}
-							</CardContent>
-						</Card>
-					</div>
-				</CardContent>
-			</Card>
 
-			<div className="md:hidden fixed inset-x-0 bottom-0 z-40 border-t bg-background/80 backdrop-blur">
-				<div className="container mx-auto max-w-4xl px-4 py-3">
-					<div className="flex items-center gap-2">
-						<div className="flex-1 [&>button]:w-full">
-							{renderVoteButton()}
+								{submission.demoUrl && (
+									<div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+										<Button
+											size="sm"
+											variant="secondary"
+											className="shadow-lg backdrop-blur-md bg-white/10 hover:bg-white/20 text-white border-0"
+											asChild
+										>
+											<Link
+												href={submission.demoUrl}
+												target="_blank"
+											>
+												<ArrowUpRight className="mr-2 h-3 w-3" />
+												访问演示链接
+											</Link>
+										</Button>
+									</div>
+								)}
+							</div>
+
+							{/* Other Attachments Grid */}
+							{otherAttachments.length > 0 && (
+								<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+									{otherAttachments.map((att) => (
+										<div
+											key={att.id}
+											className="aspect-video rounded-xl border border-white/10 bg-black/40 overflow-hidden relative group hover:ring-2 hover:ring-emerald-500/50 transition-all"
+										>
+											{att.fileType === "image" ? (
+												<img
+													src={att.fileUrl}
+													alt={att.fileName}
+													className="w-full h-full object-cover"
+												/>
+											) : att.fileType === "video" ? (
+												<div className="w-full h-full flex items-center justify-center bg-slate-900 group-hover:bg-slate-800 transition-colors">
+													<Play className="h-8 w-8 text-white/50" />
+												</div>
+											) : (
+												<div className="w-full h-full flex items-center justify-center bg-slate-900 text-xs text-slate-500 p-2 text-center">
+													{att.fileName}
+												</div>
+											)}
+											<a
+												href={att.fileUrl}
+												target="_blank"
+												rel="noreferrer"
+												className="absolute inset-0 z-10"
+												aria-label="查看附件"
+											>
+												<span className="sr-only">
+													查看附件
+												</span>
+											</a>
+										</div>
+									))}
+								</div>
+							)}
 						</div>
-						<Button
-							variant="outline"
-							size="icon"
-							onClick={handleCopyLink}
-							aria-label="复制作品链接"
-						>
-							<Copy className="h-4 w-4" />
-						</Button>
-						<ShareSubmissionDialog
-							shareUrl={submissionUrl}
-							submissionName={submission.name ?? "submission"}
-							iconOnly
-							triggerVariant="outline"
-							triggerSize="icon"
-						/>
 					</div>
-					{votingHint && (
-						<p className="mt-2 text-xs text-muted-foreground line-clamp-2">
-							{votingHint}
-						</p>
-					)}
 				</div>
 			</div>
 		</div>

@@ -66,13 +66,17 @@ export function WorksSection({
 	eventId,
 	userId,
 	onRequireLogin,
+	enabled = true,
 }: {
 	projectSubmissions?: ProjectSubmission[];
 	locale: string;
 	eventId: string;
 	userId?: string;
 	onRequireLogin?: (redirectTo?: string) => void;
+	enabled?: boolean;
 }) {
+	if (!enabled) return null;
+
 	const works: Work[] = projectSubmissions.map((submission) => {
 		const project = submission.project;
 		const cover = project?.screenshots?.[0] || null;

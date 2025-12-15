@@ -4,6 +4,7 @@ import { ensureActiveEventRegistration } from "@/features/event-submissions/serv
 import { getEventById } from "@/lib/database";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
 import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface PageProps {
 	params: Promise<{ eventId: string }>;
@@ -14,6 +15,9 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 	const event = await getEventById(eventId);
 
 	if (!event) {
+		notFound();
+	}
+	if (!isEventSubmissionsEnabled(event as any)) {
 		notFound();
 	}
 

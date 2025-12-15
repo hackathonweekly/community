@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getEventById } from "@/lib/database";
 import { ensureActiveEventRegistration } from "@/features/event-submissions/server/ensure-active-registration";
 import { SubmissionsDashboard } from "@/modules/dashboard/events/components/submissions/SubmissionsDashboard";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface PageProps {
 	params: Promise<{ eventId: string }>;
@@ -12,6 +13,9 @@ export default async function EventSubmissionsPage({ params }: PageProps) {
 	const event = await getEventById(eventId);
 
 	if (!event) {
+		notFound();
+	}
+	if (!isEventSubmissionsEnabled(event as any)) {
 		notFound();
 	}
 

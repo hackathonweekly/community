@@ -27,6 +27,7 @@ interface Event {
 	registrationDeadline?: string;
 	requireApproval: boolean;
 	requireProjectSubmission?: boolean;
+	submissionsEnabled?: boolean | null;
 	submissionFormConfig?: SubmissionFormConfig | null;
 	createdAt: string;
 	buildingConfig?: {

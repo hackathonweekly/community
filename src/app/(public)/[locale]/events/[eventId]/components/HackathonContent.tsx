@@ -22,6 +22,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import type { EventDetailsProps } from "../EventDetailsClient";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 type EventDetails = EventDetailsProps["event"];
 type EventRegistration = NonNullable<EventDetails["registrations"]>[number];
@@ -101,24 +102,7 @@ export function HackathonContent({
 	const projectSubmissionList = projectSubmissions || [];
 	const richContent = event.richContent || event.description || "";
 	const publicSubmissionsUrl = `/${currentLocale}/events/${event.id}/submissions`;
-
-	const getSubmissionOwnerId = (submission?: any) =>
-		submission?.submitterId ||
-		submission?.userId ||
-		submission?.user?.id ||
-		submission?.submitter?.id ||
-		submission?.project?.user?.id ||
-		null;
-
-	// 查找当前用户的作品提交
-	const userSubmission = projectSubmissions?.find(
-		(p) => getSubmissionOwnerId(p) === currentUserId,
-	);
-
-	// 根据是否已提交作品，决定跳转URL
-	const privateSubmissionUrl = userSubmission
-		? `/app/events/${event.id}/submissions`
-		: `/app/events/${event.id}/submissions/new`;
+	const submissionsEnabled = isEventSubmissionsEnabled(event);
 
 	// Check if user is registered
 	const userRegistration = event.registrations?.find(
@@ -132,9 +116,6 @@ export function HackathonContent({
 		}
 		handleRegister(onOpenRegistrationModal);
 	};
-
-	const isSubmissionOpen =
-		(event.submissionsOpen ?? true) && isEventStarted && !isEventEnded;
 
 	return (
 		<>
@@ -154,28 +135,21 @@ export function HackathonContent({
 			/>
 
 			{/* Action Buttons */}
-			<div className="flex flex-wrap gap-3 mb-8">
-				<Link href={publicSubmissionsUrl}>
-					<Button variant="outline" className="gap-2">
-						<LayoutGrid className="w-4 h-4" />
-						作品广场
-						{projectSubmissionList.length > 0 && (
-							<Badge variant="secondary" className="ml-1">
-								{projectSubmissionList.length}
-							</Badge>
-						)}
-					</Button>
-				</Link>
-
-				{/* {isSubmissionOpen && (
-					<Button asChild className="gap-2">
-						<Link href={privateSubmissionUrl}>
-							<Target className="w-4 h-4" />
-							{userSubmission ? "修改作品" : "提交作品"}
-						</Link>
-					</Button>
-				)} */}
-			</div>
+			{submissionsEnabled && (
+				<div className="flex flex-wrap gap-3 mb-8">
+					<Link href={publicSubmissionsUrl}>
+						<Button variant="outline" className="gap-2">
+							<LayoutGrid className="w-4 h-4" />
+							作品广场
+							{projectSubmissionList.length > 0 && (
+								<Badge variant="secondary" className="ml-1">
+									{projectSubmissionList.length}
+								</Badge>
+							)}
+						</Button>
+					</Link>
+				</div>
+			)}
 
 			{/* Main Content Section */}
 			<div className="space-y-10 animate-in fade-in-50 duration-300">

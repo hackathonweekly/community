@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "@dashboard/auth/hooks/use-session";
+import { useOptionalSession } from "@dashboard/auth/hooks/use-session";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type MouseEvent } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { eventKeys } from "@/app/(public)/[locale]/events/[eventId]/hooks/useEventQueries";
@@ -17,6 +17,7 @@ import {
 	useUserFeedback,
 } from "@/app/(public)/[locale]/events/[eventId]/hooks/useEventQueries";
 import { useRegistrationStatus } from "@/app/(public)/[locale]/events/[eventId]/hooks/useRegistrationStatus";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { EventShareModal } from "@/modules/dashboard/events/components/EventShareModal";
 import { QRGenerator } from "@/modules/dashboard/events/components/QRGenerator";
 import { EventRegistrationModal } from "@/modules/public/events/components";
@@ -48,11 +49,13 @@ export function NewEventPageClient({
 	locale = "zh",
 }: NewEventClientProps) {
 	const t = useTranslations();
-	const { user, loaded } = useSession();
+	const { user, loaded } = useOptionalSession();
 	const pathname = usePathname();
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const queryClient = useQueryClient();
+
+	const submissionsEnabled = isEventSubmissionsEnabled(event as any);
 
 	useIncrementViewCount(event.id);
 
@@ -283,7 +286,11 @@ export function NewEventPageClient({
 			existingRegistration &&
 			existingRegistration.status !== "CANCELLED"
 		) {
-			setShowSuccessInfo(true);
+			if (existingRegistration.status === "APPROVED") {
+				setShowQRGenerator(true);
+			} else {
+				setShowSuccessInfo(true);
+			}
 			return;
 		}
 		if (openModal) {
@@ -373,7 +380,7 @@ export function NewEventPageClient({
 		if (existingRegistration) {
 			switch (existingRegistration.status) {
 				case "APPROVED":
-					return "已报名";
+					return "查看门票";
 				case "PENDING":
 					return "审核中";
 				case "WAITLISTED":
@@ -429,7 +436,11 @@ export function NewEventPageClient({
 	);
 
 	const enabledAnchors = [
-		{ id: "registration", label: "报名" },
+		{
+			id: "registration",
+			label: "我的票夹",
+			show: !!existingRegistration,
+		},
 		{ id: "intro", label: "介绍" },
 		{
 			id: "awards",
@@ -537,6 +548,10 @@ export function NewEventPageClient({
 				registerDisabled={registerDisabled}
 				isEventAdmin={event.isEventAdmin}
 				eventId={event.id}
+				currentUserId={user?.id}
+				projectSubmissions={projectSubmissions}
+				isDialogOpen={showParticipantsDialog}
+				onDialogChange={setShowParticipantsDialog}
 			/>
 
 			<AnchorNav anchors={enabledAnchors} />
@@ -587,6 +602,7 @@ export function NewEventPageClient({
 						eventId={event.id}
 						userId={user?.id}
 						onRequireLogin={redirectToLogin}
+						enabled={submissionsEnabled}
 					/>
 
 					<ParticipantsSection
@@ -631,10 +647,12 @@ export function NewEventPageClient({
 				locale={locale}
 				eventId={event.id}
 				isEventAdmin={event.isEventAdmin}
+				submissionsEnabled={submissionsEnabled}
 				registerLabel={registerLabel}
 				onRegister={() =>
 					handleRegister(() => setShowRegistrationForm(true))
 				}
+				onShowSuccessInfo={() => setShowSuccessInfo(true)}
 				onCancel={handleCancelRegistration}
 				onShare={() => setShowShareModal(true)}
 				onFeedback={handleOpenFeedback}

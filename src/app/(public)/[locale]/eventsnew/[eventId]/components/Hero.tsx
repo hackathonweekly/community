@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { ManagementButton } from "@/app/(public)/[locale]/events/[eventId]/components/ManagementButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ParticipantAvatars } from "@/components/ui/participant-avatars";
 import { cn } from "@/lib/utils";
 
 import { HeroMeta } from "./common/HeroMeta";
@@ -29,6 +30,10 @@ interface HeroProps {
 	registerDisabled?: boolean;
 	isEventAdmin?: boolean;
 	eventId?: string;
+	currentUserId?: string;
+	projectSubmissions?: any[];
+	isDialogOpen?: boolean;
+	onDialogChange?: (open: boolean) => void;
 }
 
 export function Hero({
@@ -47,26 +52,36 @@ export function Hero({
 	registerDisabled,
 	isEventAdmin,
 	eventId,
+	currentUserId,
+	projectSubmissions,
+	isDialogOpen,
+	onDialogChange,
 }: HeroProps) {
 	const eventTypeLabels = getEventTypeLabels(useTranslations());
 	const timezoneLabel = formatTimezoneDisplay(event.timezone);
 
+	const approvedRegs = event.registrations.filter(
+		(reg) => reg.status === "APPROVED",
+	);
+
 	return (
-		<div className="relative isolate overflow-hidden bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
-			<div
-				className="absolute inset-0 opacity-40"
-				style={{
-					backgroundImage: event.coverImage
-						? `url(${event.coverImage})`
-						: undefined,
-					backgroundSize: "cover",
-					backgroundPosition: "center",
-					filter: "blur(2px)",
-					transform: "scale(1.05)",
-				}}
-			/>
-			<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/40 to-transparent" />
-			<div className="relative container max-w-6xl py-12 space-y-4">
+		<div className="relative isolate overflow-hidden bg-slate-900 text-white min-h-[400px] flex items-center">
+			{/* Background Image with Overlay */}
+			<div className="absolute inset-0 z-0">
+				{event.coverImage && (
+					<div
+						className="absolute inset-0 bg-cover bg-center"
+						style={{
+							backgroundImage: `url(${event.coverImage})`,
+						}}
+					/>
+				)}
+				{/* Stronger overlay for mobile readability */}
+				<div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 backdrop-blur-[2px]" />
+			</div>
+
+			<div className="relative container max-w-6xl py-12 space-y-6 z-10">
+				{/* Admin Controls - Keep visible but subtle */}
 				{isEventAdmin ? (
 					<div className="absolute right-4 top-4 sm:right-6 sm:top-6 flex flex-col items-end gap-2">
 						<ManagementButton
@@ -90,40 +105,79 @@ export function Hero({
 						</Button>
 					</div>
 				) : null}
-				<div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm">
-					<span className="h-2 w-2 rounded-full bg-emerald-400" />
+
+				<div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm backdrop-blur-md border border-white/10">
+					<span
+						className={cn(
+							"h-2 w-2 rounded-full",
+							event.isOnline ? "bg-emerald-400" : "bg-blue-400",
+						)}
+					/>
 					{event.isOnline ? "线上" : "线下"} ·{" "}
 					{eventTypeLabels[event.type] || event.type}
 				</div>
-				<h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">
+
+				<h1 className="text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl leading-tight tracking-tight shadow-md">
 					{event.title}
 				</h1>
-				<div className="flex flex-col items-start gap-2 text-sm text-white/90">
-					<HeroMeta
-						icon={CalendarDays}
-						primary={`${format(new Date(event.startTime), "M月d日 HH:mm")} - ${format(new Date(event.endTime), "M月d日 HH:mm")}`}
-						secondary={timezoneLabel}
-					/>
-					<HeroMeta
-						icon={MapPin}
-						primary={
-							event.isOnline ? "线上" : event.address || "待定"
-						}
-					/>
+
+				<div className="flex flex-col items-start gap-4 text-sm sm:text-base text-white/90">
+					<div className="flex flex-col items-start gap-3">
+						<HeroMeta
+							icon={CalendarDays}
+							primary={`${format(new Date(event.startTime), "M月d日 HH:mm")} - ${format(new Date(event.endTime), "M月d日 HH:mm")}`}
+							secondary={timezoneLabel}
+						/>
+						<HeroMeta
+							icon={MapPin}
+							primary={
+								event.isOnline
+									? "线上"
+									: event.address || "待定"
+							}
+						/>
+					</div>
+
+					{/* Participants Avatars */}
+					<div className="flex items-center gap-2">
+						<ParticipantAvatars
+							participants={approvedRegs.map((reg) => ({
+								...reg.user,
+								status: reg.status,
+								registeredAt: reg.registeredAt,
+								allowDigitalCardDisplay: (reg as any)
+									.allowDigitalCardDisplay,
+								user: reg.user,
+							}))}
+							totalCount={approvedRegs.length}
+							eventId={event.id}
+							currentUserId={currentUserId}
+							showInterestButtons={Boolean(currentUserId)}
+							projectSubmissions={projectSubmissions}
+							open={isDialogOpen}
+							onOpenChange={onDialogChange}
+						/>
+					</div>
 				</div>
+
 				{(event.tags || []).length > 0 ? (
 					<div className="flex flex-wrap gap-2">
 						{event.tags.map((tag) => (
-							<Badge key={tag} className="bg-white/20 text-white">
+							<Badge
+								key={tag}
+								className="bg-white/10 hover:bg-white/20 text-white border-white/20 transition-colors"
+							>
 								{tag}
 							</Badge>
 						))}
 					</div>
 				) : null}
-				<div className="flex flex-wrap items-center gap-3 pt-2">
+
+				{/* Buttons Container - HIDDEN on Mobile (md:flex) to avoid dupes with Bottom Bar */}
+				<div className="hidden md:flex flex-wrap items-center gap-3 pt-6">
 					<Button
 						size="lg"
-						className="h-11 px-6"
+						className="h-12 px-8 text-base font-medium shadow-lg shadow-indigo-500/20"
 						onClick={onRegister}
 						disabled={registerDisabled}
 					>
@@ -131,7 +185,7 @@ export function Hero({
 					</Button>
 					<Button
 						variant="secondary"
-						className="h-11 bg-white text-indigo-700 hover:bg-white/90"
+						className="h-12 bg-white/10 text-white border border-white/10 hover:bg-white/20 backdrop-blur-sm"
 						asChild
 					>
 						<a href={`/${locale}/events/${event.id}/submissions`}>
@@ -141,7 +195,7 @@ export function Hero({
 					{canCancel ? (
 						<Button
 							variant="ghost"
-							className="h-11 text-white/90 hover:text-white"
+							className="h-12 text-white/70 hover:text-white"
 							onClick={onCancel}
 						>
 							取消报名
@@ -149,32 +203,35 @@ export function Hero({
 					) : null}
 					<Button
 						variant="ghost"
-						className="h-11 text-white/90 hover:text-white"
+						className="h-12 text-white/70 hover:text-white"
 						onClick={onShare}
 					>
-						<Share2 className="h-4 w-4 mr-2" />
+						<Share2 className="h-5 w-5 mr-2" />
 						分享
 					</Button>
-					<div className="flex items-center gap-2">
+
+					<div className="flex items-center gap-2 ml-2 border-l border-white/10 pl-4">
 						<Button
 							variant="ghost"
 							size="icon"
 							className={cn(
-								"h-11 w-11 text-white/90 hover:text-white",
-								isLiked && "bg-white/10",
+								"h-12 w-12 rounded-full hover:bg-white/10",
+								isLiked && "bg-white/10 text-pink-500",
 							)}
 							onClick={onToggleLike}
 							aria-label="点赞"
 						>
 							<Heart
 								className={cn(
-									"h-5 w-5",
-									isLiked ? "fill-white text-white" : "",
+									"h-6 w-6",
+									isLiked
+										? "fill-pink-500 text-pink-500"
+										: "text-white/80",
 								)}
 							/>
 						</Button>
 						{typeof likeCount === "number" ? (
-							<span className="text-sm text-white/80">
+							<span className="text-sm font-medium">
 								{likeCount}
 							</span>
 						) : null}
@@ -182,16 +239,18 @@ export function Hero({
 							variant="ghost"
 							size="icon"
 							className={cn(
-								"h-11 w-11 text-white/90 hover:text-white",
-								isBookmarked && "bg-white/10",
+								"h-12 w-12 rounded-full hover:bg-white/10",
+								isBookmarked && "bg-white/10 text-yellow-400",
 							)}
 							onClick={onToggleBookmark}
 							aria-label="收藏活动"
 						>
 							<Bookmark
 								className={cn(
-									"h-5 w-5",
-									isBookmarked ? "fill-white text-white" : "",
+									"h-6 w-6",
+									isBookmarked
+										? "fill-yellow-400 text-yellow-400"
+										: "text-white/80",
 								)}
 							/>
 						</Button>

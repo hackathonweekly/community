@@ -1,7 +1,8 @@
 "use client";
 
 import { eventKeys } from "@/app/(public)/[locale]/events/[eventId]/hooks/useEventQueries";
-import { useSession } from "@dashboard/auth/hooks/use-session";
+import { ApiClientProvider } from "@/components/shared/ApiClientProvider";
+import { useOptionalSession } from "@dashboard/auth/hooks/use-session";
 import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -16,7 +17,21 @@ export function EventPageWrapper({
 	initialEvent,
 	locale = "zh",
 }: EventPageWrapperProps) {
-	const { user, loaded, reloadSession } = useSession();
+	return (
+		<ApiClientProvider>
+			<EventPageWrapperInner
+				initialEvent={initialEvent}
+				locale={locale}
+			/>
+		</ApiClientProvider>
+	);
+}
+
+function EventPageWrapperInner({
+	initialEvent,
+	locale = "zh",
+}: EventPageWrapperProps) {
+	const { user, loaded, reloadSession } = useOptionalSession();
 	const searchParams = useSearchParams();
 	const previousUserRef = useRef(user);
 

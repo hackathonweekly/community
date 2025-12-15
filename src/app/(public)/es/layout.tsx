@@ -1,5 +1,4 @@
 import { BetaBanner } from "@/components/shared/BetaBanner";
-import { CustomerServiceWidget } from "@/components/shared/CustomerServiceWidget";
 import { Providers } from "@/components/shared/Providers";
 import { config } from "@/config";
 import { ConditionalFooter } from "@/modules/public/shared/components/ConditionalFooter";
@@ -42,7 +41,6 @@ export default async function EsLayout({
 						<DynamicLayoutWrapper>{children}</DynamicLayoutWrapper>
 						<ConditionalFooter locale={locale} />
 						<TabBar />
-						<CustomerServiceWidget />
 					</SessionProvider>
 				</NextIntlClientProvider>
 			</FumadocsRootProvider>

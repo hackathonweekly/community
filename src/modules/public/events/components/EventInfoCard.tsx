@@ -19,6 +19,7 @@ import { format } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface EventInfoCardProps {
 	event: {
@@ -34,6 +35,7 @@ interface EventInfoCardProps {
 		maxAttendees?: number;
 		tags: string[];
 		requireProjectSubmission?: boolean;
+		submissionsEnabled?: boolean | null;
 		organizer: {
 			id: string;
 			name: string;
@@ -128,6 +130,11 @@ export function EventInfoCard({
 	const t = useTranslations();
 	const locale = useLocale();
 	const [showMembersSearch, setShowMembersSearch] = useState(false);
+	const submissionsEnabled = isEventSubmissionsEnabled(event);
+	const currentUserRegistration = event.registrations?.find(
+		(registration) => registration.user.id === currentUserId,
+	);
+	const isUserApproved = currentUserRegistration?.status === "APPROVED";
 
 	const formatEventDate = (dateString: string) => {
 		const date = new Date(dateString);
@@ -240,11 +247,9 @@ export function EventInfoCard({
 						totalCount={event._count.registrations}
 						eventId={event.id}
 						currentUserId={currentUserId}
-						showInterestButtons={!!currentUserId}
+						showInterestButtons={!!currentUserId && isUserApproved}
 						projectSubmissions={
-							event.requireProjectSubmission
-								? projectSubmissions
-								: undefined
+							submissionsEnabled ? projectSubmissions : undefined
 						}
 					/>
 				)}
@@ -275,7 +280,7 @@ export function EventInfoCard({
 				)}
 
 				{/* Participant Interests - Show interests section for logged-in users */}
-				{currentUserId && (
+				{currentUserId && isUserApproved && (
 					<ParticipantInterests
 						eventId={event.id}
 						currentUserId={currentUserId}

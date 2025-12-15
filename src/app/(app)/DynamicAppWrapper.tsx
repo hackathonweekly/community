@@ -1,7 +1,6 @@
 "use client";
 
 import { useBannerLayout } from "@/lib/hooks/use-banner-layout";
-import { CustomerServiceWidget } from "@/components/shared/CustomerServiceWidget";
 import type { PropsWithChildren } from "react";
 
 export function DynamicAppWrapper({ children }: PropsWithChildren) {
@@ -10,7 +9,6 @@ export function DynamicAppWrapper({ children }: PropsWithChildren) {
 	return (
 		<div className={`transition-all duration-200 ${appMainPadding}`}>
 			{children}
-			<CustomerServiceWidget />
 		</div>
 	);
 }

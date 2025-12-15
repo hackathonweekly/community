@@ -18,17 +18,21 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useUnifiedEventRegistration } from "../../../../app/(public)/[locale]/events/[eventId]/hooks/useUnifiedEventRegistration";
 import { VolunteerListModal } from "./VolunteerListModal";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface EventRegistrationCardProps {
 	event: {
 		id: string;
 		title: string;
+		type?: string;
 		status: string;
 		endTime: string;
 		registrationDeadline?: string;
 		isExternalEvent: boolean;
 		externalUrl?: string;
 		requireApproval: boolean;
+		requireProjectSubmission?: boolean;
+		submissionsEnabled?: boolean | null;
 		registrationSuccessInfo?: string;
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;
@@ -154,6 +158,8 @@ export function EventRegistrationCard({
 
 	const volunteerStats = getVolunteerStats(event.volunteerRoles);
 
+	const submissionsEnabled = isEventSubmissionsEnabled(event);
+
 	// 获取当前活动的作品提交，用于判断用户是否已有提交
 	const { projectSubmissions } = useEventProjectSubmissions(event.id);
 	const getSubmissionOwnerId = (submission?: any) =>
@@ -201,17 +207,37 @@ export function EventRegistrationCard({
 								{existingRegistration.status === "APPROVED" && (
 									<div className="space-y-4">
 										{/* 报名成功后的主要操作按钮 - 提交/修改作品 */}
-										<Button
-											asChild
-											className="w-full font-semibold text-base h-11 shadow-sm"
-											size="lg"
-										>
-											<Link href={submissionHref}>
-												{hasUserSubmitted
-													? "📝 修改作品"
-													: "📤 提交作品"}
-											</Link>
-										</Button>
+										{submissionsEnabled ? (
+											<Button
+												asChild
+												className="w-full font-semibold text-base h-11 shadow-sm"
+												size="lg"
+											>
+												<Link href={submissionHref}>
+													{hasUserSubmitted
+														? "📝 修改作品"
+														: "📤 提交作品"}
+												</Link>
+											</Button>
+										) : (
+											<Button
+												onClick={() => {
+													const result =
+														handleRegisterAction();
+													if (
+														result ===
+															"SHOW_QR_CODE" &&
+														onShowQRGenerator
+													) {
+														onShowQRGenerator();
+													}
+												}}
+												className="w-full font-semibold text-base h-11 shadow-sm"
+												size="lg"
+											>
+												🎫 查看报名二维码
+											</Button>
+										)}
 
 										{/* 次要按钮：重要信息 - 只在有内容时显示 */}
 										{(event.registrationSuccessInfo?.trim() ||
@@ -337,18 +363,6 @@ export function EventRegistrationCard({
 										>
 											🏁 活动已结束
 										</Button>
-										{/* 引导用户查看活动回顾或反馈 */}
-										{onFeedbackSubmit && (
-											<Button
-												variant="outline"
-												onClick={() =>
-													onShowFeedback?.()
-												}
-												className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
-											>
-												💬 分享活动反馈
-											</Button>
-										)}
 									</div>
 								) : (
 									<Button disabled className="w-full">
@@ -448,16 +462,18 @@ export function EventRegistrationCard({
 					</div>
 
 					{/* 签到二维码 - 只在桌面端显示，移动到更多菜单 */}
-					<div className="lg:block hidden">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={onShowQRGenerator}
-							className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:border-gray-300 transition-all"
-						>
-							📱 签到二维码
-						</Button>
-					</div>
+					{existingRegistration?.status === "APPROVED" && (
+						<div className="lg:block hidden">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={onShowQRGenerator}
+								className="w-full flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800 hover:border-gray-300 transition-all"
+							>
+								📱 签到二维码
+							</Button>
+						</div>
+					)}
 
 					{/* 倒计时大屏 - 管理员工具（桌面端） */}
 					{canShowCountdownTool ? (
@@ -483,18 +499,21 @@ export function EventRegistrationCard({
 					{/* 活动反馈 + 联系组织者 */}
 					<div className="flex gap-2">
 						{/* 活动反馈按钮 */}
-						{onFeedbackSubmit && (
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={() => onShowFeedback?.()}
-								className="flex-1 flex items-center justify-center gap-1 text-gray-600 hover:text-gray-800 transition-all"
-								data-testid="feedback-button"
-							>
-								💬{" "}
-								{hasSubmittedFeedback ? "修改反馈" : "活动反馈"}
-							</Button>
-						)}
+						{onFeedbackSubmit &&
+							existingRegistration?.status === "APPROVED" && (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => onShowFeedback?.()}
+									className="flex-1 flex items-center justify-center gap-1 text-gray-600 hover:text-gray-800 transition-all"
+									data-testid="feedback-button"
+								>
+									💬{" "}
+									{hasSubmittedFeedback
+										? "修改反馈"
+										: "活动反馈"}
+								</Button>
+							)}
 
 						{/* 联系组织者 */}
 						{event.organizerContact && !event.isExternalEvent && (

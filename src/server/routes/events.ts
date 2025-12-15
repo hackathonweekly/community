@@ -3,6 +3,7 @@ import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
 } from "@/features/hackathon/config";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { NotificationService } from "@/features/notifications/service";
 import { RestrictedAction, canUserDoAction } from "@/features/permissions";
 import { auth } from "@/lib/auth";
@@ -468,6 +469,7 @@ const eventSchema = z
 		registrationPendingInfo: z.string().optional(),
 		registrationPendingImage: z.string().optional(),
 		requireProjectSubmission: z.boolean().default(false), // 作品关联设置
+		submissionsEnabled: z.boolean().optional(), // 活动插件：作品提交
 		askDigitalCardConsent: z.boolean().default(false), // 数字名片公开确认
 		coverImage: z
 			.string()
@@ -734,6 +736,7 @@ const updateEventSchema = z.object({
 	registrationPendingInfo: z.string().optional(),
 	registrationPendingImage: z.string().optional(),
 	requireProjectSubmission: z.boolean().optional(), // 作品关联设置
+	submissionsEnabled: z.boolean().optional(), // 活动插件：作品提交
 	askDigitalCardConsent: z.boolean().optional(), // 数字名片公开确认
 	coverImage: z.string().optional(),
 	tags: z.array(z.string()).optional(),
@@ -1163,12 +1166,22 @@ app.post("/", async (c) => {
 					})
 				: undefined;
 		const normalizedSubmissionFormConfig =
-			restEventData.type === "HACKATHON"
+			submissionFormConfig !== undefined
 				? (submissionFormConfig as unknown as Prisma.InputJsonValue | null)
 				: undefined;
 
+		const requestedSubmissionsEnabled = restEventData.submissionsEnabled;
+		const submissionsEnabled = restEventData.requireProjectSubmission
+			? true
+			: (requestedSubmissionsEnabled ??
+				(restEventData.type === "HACKATHON" ? true : undefined));
+
+		const { submissionsEnabled: _ignored, ...restEventDataWithoutPlugin } =
+			restEventData;
+
 		const event = await createEvent({
-			...restEventData,
+			...restEventDataWithoutPlugin,
+			submissionsEnabled,
 			organizerId: session.user.id,
 			registrationFieldConfig:
 				registrationFieldConfig as unknown as Prisma.InputJsonValue,
@@ -1585,13 +1598,24 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 				: undefined;
 		const normalizedSubmissionFormConfig =
 			submissionFormConfig !== undefined
-				? targetType === "HACKATHON"
-					? (submissionFormConfig as unknown as Prisma.InputJsonValue | null)
-					: null
+				? (submissionFormConfig as unknown as Prisma.InputJsonValue | null)
 				: undefined;
 
+		const nextRequireProjectSubmission =
+			restUpdateData.requireProjectSubmission ??
+			existingEvent.requireProjectSubmission;
+		const requestedSubmissionsEnabled = restUpdateData.submissionsEnabled;
+		const submissionsEnabled = nextRequireProjectSubmission
+			? true
+			: (requestedSubmissionsEnabled ??
+				(typeChangedToHackathon ? true : undefined));
+
+		const { submissionsEnabled: _ignored, ...restUpdateDataWithoutPlugin } =
+			restUpdateData;
+
 		const updatedEvent = await updateEvent(id, {
-			...restUpdateData,
+			...restUpdateDataWithoutPlugin,
+			...(submissionsEnabled !== undefined && { submissionsEnabled }),
 			...(registrationFieldConfig !== undefined && {
 				registrationFieldConfig:
 					registrationFieldConfig as unknown as Prisma.InputJsonValue,
@@ -2107,6 +2131,26 @@ app.delete("/:id", async (c) => {
 app.get("/:eventId/project-submissions", async (c) => {
 	try {
 		const eventId = c.req.param("eventId");
+
+		const event = await db.event.findUnique({
+			where: { id: eventId },
+			select: {
+				id: true,
+				type: true,
+				requireProjectSubmission: true,
+				submissionsEnabled: true,
+			},
+		});
+
+		if (!event || !isEventSubmissionsEnabled(event)) {
+			return c.json(
+				{
+					success: false,
+					error: "Project submissions are disabled for this event",
+				},
+				404,
+			);
+		}
 
 		// Import the database query function
 		const { getEventProjectSubmissions } = await import(

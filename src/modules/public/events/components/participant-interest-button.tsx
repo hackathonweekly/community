@@ -38,15 +38,29 @@ export function ParticipantInterestButton({
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({
-						targetUserId,
-					}),
+					body: JSON.stringify({ targetUserId }),
 				},
 			);
 
 			const result = await response.json();
 
 			if (!response.ok) {
+				if (response.status === 401) {
+					const redirect = encodeURIComponent(
+						window.location.pathname,
+					);
+					toast.error(
+						t("events.participantsSection.interestToggleFailed"),
+					);
+					window.location.assign(
+						`/auth/login?redirectTo=${redirect}`,
+					);
+					return;
+				}
+				if (response.status === 403) {
+					toast.error("请先报名并通过审核后再使用此功能");
+					return;
+				}
 				throw new Error(result.error || "Failed to toggle interest");
 			}
 

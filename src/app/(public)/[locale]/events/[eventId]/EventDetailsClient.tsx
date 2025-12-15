@@ -46,6 +46,7 @@ export interface EventDetailsProps {
 		registrationDeadline?: string;
 		requireApproval: boolean;
 		requireProjectSubmission?: boolean;
+		submissionsEnabled?: boolean | null;
 		registrationSuccessInfo?: string;
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;

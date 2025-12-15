@@ -21,6 +21,7 @@ import { formatForDatetimeLocal } from "@/modules/dashboard/events/utils/date-ut
 import { normalizeSubmissionFormConfig } from "@/modules/dashboard/events/utils/submission-form";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { useUserOrganizations } from "@/modules/dashboard/organizations/hooks/use-user-organizations";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -48,6 +49,7 @@ interface Event {
 	registrationDeadline?: string;
 	requireApproval: boolean;
 	requireProjectSubmission?: boolean; // 作品关联设置
+	submissionsEnabled?: boolean | null; // 活动插件：作品提交
 	askDigitalCardConsent?: boolean; // 数字名片公开确认
 	registrationSuccessInfo?: string;
 	registrationSuccessImage?: string;
@@ -411,6 +413,7 @@ export default function EventEditPage() {
 			: "",
 		requireApproval: event.requireApproval,
 		requireProjectSubmission: event.requireProjectSubmission || false, // 作品关联设置
+		submissionsEnabled: isEventSubmissionsEnabled(event as any), // 活动插件：作品提交（黑客松默认开启）
 		askDigitalCardConsent: event.askDigitalCardConsent || false, // 数字名片公开确认
 		registrationSuccessInfo: event.registrationSuccessInfo || "",
 		registrationSuccessImage: event.registrationSuccessImage || "",

@@ -3,9 +3,10 @@ import { getEventById } from "@/lib/database";
 import { EventSubmissionsGallery } from "@/modules/public/events/submissions/EventSubmissionsGallery";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Presentation } from "lucide-react";
 import { SubmissionsActionButton } from "@/modules/public/events/submissions/SubmissionsActionButton";
 import { ShareSubmissionsDialog } from "@/modules/public/events/submissions/ShareSubmissionsDialog";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface PageProps {
 	params: Promise<{ locale: string; eventId: string }>;
@@ -15,6 +16,9 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 	const { locale, eventId } = await params;
 	const event = await getEventById(eventId);
 	if (!event) {
+		notFound();
+	}
+	if (!isEventSubmissionsEnabled(event as any)) {
 		notFound();
 	}
 
@@ -60,6 +64,19 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 				</div>
 
 				<div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-end">
+					<Button
+						asChild
+						variant="outline"
+						size="lg"
+						className="gap-2"
+					>
+						<Link
+							href={`/${locale}/events/${eventId}/submissions/slides`}
+						>
+							<Presentation className="h-4 w-4" />
+							投屏模式
+						</Link>
+					</Button>
 					<ShareSubmissionsDialog />
 					<SubmissionsActionButton
 						eventId={eventId}

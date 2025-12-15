@@ -69,6 +69,8 @@ export async function createEvent(data: {
 	paymentNote?: string;
 	// 作品关联设置
 	requireProjectSubmission?: boolean;
+	// Activity plugins
+	submissionsEnabled?: boolean | null;
 	// 数字名片公开确认
 	askDigitalCardConsent?: boolean;
 	// Hackathon 配置
@@ -95,6 +97,7 @@ export async function createEvent(data: {
 		paymentQRCode,
 		paymentNote,
 		requireProjectSubmission,
+		submissionsEnabled,
 		askDigitalCardConsent,
 		registrationSuccessInfo,
 		registrationSuccessImage,
@@ -125,6 +128,7 @@ export async function createEvent(data: {
 			...eventData,
 			status,
 			requireProjectSubmission,
+			submissionsEnabled,
 			askDigitalCardConsent,
 			registrationSuccessInfo,
 			registrationSuccessImage,
@@ -657,6 +661,7 @@ export async function updateEvent(
 		tags: string[];
 		featured: boolean;
 		requireProjectSubmission: boolean;
+		submissionsEnabled: boolean | null;
 		askDigitalCardConsent: boolean;
 		registrationSuccessInfo: string;
 		registrationSuccessImage: string;

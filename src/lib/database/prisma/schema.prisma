@@ -793,6 +793,11 @@ model Event {
   projectSubmissionDeadline DateTime?     // 作品提交截止时间
   askDigitalCardConsent Boolean           @default(false) // 是否询问用户是否愿意在现场屏幕公开数字名片
   
+  // Activity plugins
+  // Whether the event has the "project submissions" feature enabled.
+  // `null` means "use legacy defaults" (HACKATHON + legacy requireProjectSubmission => enabled).
+  submissionsEnabled Boolean?
+
   // Hackathon specific configuration
   hackathonConfig Json?                   // Hackathon configuration (JSON format) - DEPRECATED: use control switches below
 

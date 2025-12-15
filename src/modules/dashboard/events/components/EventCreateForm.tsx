@@ -122,6 +122,8 @@ export function EventCreateForm({
 			paymentNote: "",
 			// 作品关联默认值
 			requireProjectSubmission: false,
+			// 活动插件：作品提交
+			submissionsEnabled: false,
 			// 数字名片公开确认
 			askDigitalCardConsent: false,
 			// 报名字段配置
@@ -227,6 +229,12 @@ export function EventCreateForm({
 				// 作品关联设置
 				requireProjectSubmission:
 					template.requireProjectSubmission || false,
+				// 活动插件：作品提交（黑客松默认开启）
+				submissionsEnabled:
+					typeof template.submissionsEnabled === "boolean"
+						? template.submissionsEnabled
+						: mapTemplateTypeToEventType(template.type) ===
+							"HACKATHON",
 				// 数字名片公开确认
 				askDigitalCardConsent: template.askDigitalCardConsent || false,
 				// Hackathon 字段
@@ -300,6 +308,16 @@ export function EventCreateForm({
 	const activityType = form.watch("type");
 	const isBuildingPublic = activityType === "BUILDING_PUBLIC";
 	const isHackathon = activityType === "HACKATHON";
+
+	useEffect(() => {
+		if (activityType !== "HACKATHON") return;
+		if (form.formState.dirtyFields.submissionsEnabled) return;
+		if (form.getValues("submissionsEnabled") === true) return;
+		form.setValue("submissionsEnabled", true, {
+			shouldDirty: false,
+			shouldTouch: true,
+		});
+	}, [activityType, form]);
 
 	const handleFormSubmit = (
 		data: EventFormData,
@@ -425,6 +443,8 @@ export function EventCreateForm({
 			paymentNote: formData.paymentNote || undefined,
 			// 作品关联设置
 			requireProjectSubmission: formData.requireProjectSubmission,
+			// 活动插件：作品提交
+			submissionsEnabled: formData.submissionsEnabled,
 			// 数字名片公开确认
 			askDigitalCardConsent: formData.askDigitalCardConsent,
 			// Hackathon configuration

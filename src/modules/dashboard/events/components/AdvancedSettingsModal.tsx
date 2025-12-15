@@ -34,10 +34,23 @@ export function AdvancedSettingsModal({
 	const [newTag, setNewTag] = useState("");
 	void control;
 	const projectRequired = form.watch("requireProjectSubmission");
+	const submissionsEnabled = form.watch("submissionsEnabled");
 	const digitalCardConsent = form.watch("askDigitalCardConsent");
 
 	const handleToggle = (field: string, value: boolean) => {
 		form.setValue(field, value, { shouldDirty: true, shouldTouch: true });
+		if (field === "requireProjectSubmission" && value) {
+			form.setValue("submissionsEnabled", true, {
+				shouldDirty: true,
+				shouldTouch: true,
+			});
+		}
+		if (field === "submissionsEnabled" && !value && projectRequired) {
+			form.setValue("requireProjectSubmission", false, {
+				shouldDirty: true,
+				shouldTouch: true,
+			});
+		}
 	};
 
 	return (
@@ -134,8 +147,29 @@ export function AdvancedSettingsModal({
 					</div>
 
 					<div className="space-y-3">
-						<Label>报名附加要求</Label>
+						<Label>活动插件与报名要求</Label>
 						<div className="space-y-2">
+							<div className="flex items-start gap-3 rounded-md border px-3 py-2">
+								<Checkbox
+									checked={!!submissionsEnabled}
+									onCheckedChange={(checked) =>
+										handleToggle(
+											"submissionsEnabled",
+											!!checked,
+										)
+									}
+									className="mt-1 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+								/>
+								<div className="space-y-1">
+									<p className="text-sm font-medium">
+										开启作品提交
+									</p>
+									<p className="text-xs text-muted-foreground">
+										开启后，报名者可提交/编辑作品，并展示作品广场
+									</p>
+								</div>
+							</div>
+
 							<div className="flex items-start gap-3 rounded-md border px-3 py-2">
 								<Checkbox
 									checked={!!projectRequired}
@@ -199,14 +233,19 @@ export function AdvancedSettingsModal({
 export function AdvancedSettingsSummary({
 	tags,
 	requireProjectSubmission,
+	submissionsEnabled,
 	askDigitalCardConsent,
 }: {
 	tags: string[];
 	requireProjectSubmission?: boolean;
+	submissionsEnabled?: boolean;
 	askDigitalCardConsent?: boolean;
 }) {
 	const hasAdvancedSettings =
-		tags.length > 0 || requireProjectSubmission || askDigitalCardConsent;
+		tags.length > 0 ||
+		requireProjectSubmission ||
+		submissionsEnabled ||
+		askDigitalCardConsent;
 
 	if (!hasAdvancedSettings) {
 		return (
@@ -216,8 +255,15 @@ export function AdvancedSettingsSummary({
 
 	return (
 		<div className="space-y-2">
-			{(requireProjectSubmission || askDigitalCardConsent) && (
+			{(submissionsEnabled ||
+				requireProjectSubmission ||
+				askDigitalCardConsent) && (
 				<div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+					{submissionsEnabled && (
+						<Badge variant="outline" className="text-xs">
+							开启作品提交
+						</Badge>
+					)}
 					{requireProjectSubmission && (
 						<Badge variant="outline" className="text-xs">
 							需要作品关联

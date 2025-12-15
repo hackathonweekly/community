@@ -7,6 +7,7 @@ import { EventSubmissionForm } from "@/modules/dashboard/events/components/submi
 import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
 import type { EventSubmission } from "@/features/event-submissions/types";
 import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface PageProps {
 	params: Promise<{ eventId: string; submissionId: string }>;
@@ -50,6 +51,9 @@ export default async function EditSubmissionPage({ params }: PageProps) {
 	]);
 
 	if (!submission || !event) {
+		notFound();
+	}
+	if (!isEventSubmissionsEnabled(event as any)) {
 		notFound();
 	}
 

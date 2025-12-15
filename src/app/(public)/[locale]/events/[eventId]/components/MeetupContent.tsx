@@ -5,6 +5,11 @@ import {
 	EventInfoCard,
 	EventHero,
 } from "@/modules/public/events/components";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { LayoutGrid } from "lucide-react";
+import { useLocale } from "next-intl";
 
 interface MeetupContentProps {
 	event: any;
@@ -43,6 +48,10 @@ export function MeetupContent({
 	eventTypeLabels,
 	isBookmarked,
 }: MeetupContentProps) {
+	const locale = useLocale();
+	const submissionsEnabled = isEventSubmissionsEnabled(event);
+	const publicSubmissionsUrl = `/${locale}/events/${event.id}/submissions`;
+
 	return (
 		<>
 			{/* Hero Section */}
@@ -63,6 +72,17 @@ export function MeetupContent({
 				currentUserId={user?.id}
 				projectSubmissions={projectSubmissions}
 			/>
+
+			{submissionsEnabled && (
+				<div className="flex flex-wrap gap-3 mb-8">
+					<Link href={publicSubmissionsUrl}>
+						<Button variant="outline" className="gap-2">
+							<LayoutGrid className="w-4 h-4" />
+							作品广场
+						</Button>
+					</Link>
+				</div>
+			)}
 
 			{/* Description */}
 			<EventDescription richContent={event.richContent || ""} />

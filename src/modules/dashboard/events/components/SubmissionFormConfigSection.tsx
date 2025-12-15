@@ -16,17 +16,17 @@ import { SubmissionFormConfigEditor } from "./SubmissionFormConfigEditor";
 interface SubmissionFormConfigSectionProps {
 	submissionFormConfig?: SubmissionFormConfig | null;
 	onChange: (config: SubmissionFormConfig | null) => void;
-	requireProjectSubmission?: boolean;
+	submissionsEnabled?: boolean;
 }
 
 interface SubmissionFormConfigSummaryProps {
 	submissionFormConfig?: SubmissionFormConfig | null;
-	requireProjectSubmission?: boolean;
+	submissionsEnabled?: boolean;
 }
 
 function SubmissionFormConfigSummary({
 	submissionFormConfig,
-	requireProjectSubmission,
+	submissionsEnabled,
 }: SubmissionFormConfigSummaryProps) {
 	const normalizedFields =
 		submissionFormConfig?.fields?.map((field) => ({
@@ -58,7 +58,7 @@ function SubmissionFormConfigSummary({
 		? "含宣传授权确认"
 		: "不展示宣传授权";
 
-	if (!requireProjectSubmission) {
+	if (!submissionsEnabled) {
 		return (
 			<p className="text-sm text-muted-foreground">
 				未开启作品提交 · {fieldText}
@@ -76,7 +76,7 @@ function SubmissionFormConfigSummary({
 export function SubmissionFormConfigSection({
 	submissionFormConfig,
 	onChange,
-	requireProjectSubmission,
+	submissionsEnabled,
 }: SubmissionFormConfigSectionProps) {
 	return (
 		<div className="flex items-start justify-between gap-3 px-4 py-3">
@@ -86,7 +86,7 @@ export function SubmissionFormConfigSection({
 					<p className="font-medium">作品提交表单</p>
 					<SubmissionFormConfigSummary
 						submissionFormConfig={submissionFormConfig}
-						requireProjectSubmission={requireProjectSubmission}
+						submissionsEnabled={submissionsEnabled}
 					/>
 				</div>
 			</div>

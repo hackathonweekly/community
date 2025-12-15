@@ -30,10 +30,12 @@ export function MobileCTA({
 	onFeedback,
 	onContact,
 	onShowQR,
+	onShowSuccessInfo,
 	canCancel,
 	hasPhotos,
 	registerDisabled,
 	canShowQr,
+	submissionsEnabled = true,
 	canContact = true,
 	canFeedback = true,
 }: {
@@ -51,8 +53,10 @@ export function MobileCTA({
 	hasPhotos: boolean;
 	registerDisabled?: boolean;
 	canShowQr?: boolean;
+	submissionsEnabled?: boolean;
 	canContact?: boolean;
 	canFeedback?: boolean;
+	onShowSuccessInfo?: () => void;
 }) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
 	const canShowCountdownTool =
@@ -85,6 +89,7 @@ export function MobileCTA({
 				window.location.assign(
 					`/${locale}/events/${eventId}/submissions`,
 				),
+			show: submissionsEnabled,
 		},
 		hasPhotos
 			? {
@@ -116,6 +121,12 @@ export function MobileCTA({
 					show: true,
 				}
 			: null,
+		{
+			key: "success-info",
+			label: "报名须知",
+			onClick: onShowSuccessInfo,
+			show: !!onShowSuccessInfo,
+		},
 	]
 		.filter((item): item is MoreAction => Boolean(item))
 		.filter((item) => item.show !== false);

@@ -57,6 +57,7 @@ interface EventLayoutProps {
 		registrationDeadline?: string;
 		requireApproval: boolean;
 		requireProjectSubmission?: boolean;
+		submissionsEnabled?: boolean | null;
 		registrationSuccessInfo?: string;
 		registrationSuccessImage?: string;
 		registrationPendingInfo?: string;
@@ -380,7 +381,8 @@ export function EventLayout({
 	const canContactOrganizer = Boolean(
 		event.organizerContact && !event.isExternalEvent,
 	);
-	const canShowFeedback = true;
+	const canShowFeedback =
+		existingRegistration?.status === "APPROVED" && !event.isExternalEvent;
 
 	const [latestRegistration, setLatestRegistration] = useState<any>(null);
 
@@ -447,6 +449,11 @@ export function EventLayout({
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);
+			return;
+		}
+
+		if (existingRegistration?.status !== "APPROVED") {
+			toast.error("请先报名并通过审核后再提交反馈");
 			return;
 		}
 

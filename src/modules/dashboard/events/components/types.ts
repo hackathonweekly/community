@@ -169,6 +169,8 @@ export const eventSchema = z
 		paymentNote: z.string().optional(),
 		// 作品关联设置
 		requireProjectSubmission: z.boolean().default(false),
+		// 活动插件：作品提交
+		submissionsEnabled: z.boolean().default(false),
 		// 数字名片公开确认
 		askDigitalCardConsent: z.boolean().default(false),
 		// 报名字段配置

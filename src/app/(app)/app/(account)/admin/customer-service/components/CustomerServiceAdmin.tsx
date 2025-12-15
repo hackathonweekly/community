@@ -236,18 +236,6 @@ export function CustomerServiceAdmin() {
 						<div className="space-y-4">
 							<div>
 								<Label className="text-sm font-medium">
-									浮动按钮样式
-								</Label>
-								<div className="relative h-32 bg-gray-50 dark:bg-gray-900 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700">
-									<CustomerServiceWidget variant="floating" />
-									<div className="absolute bottom-2 left-2 text-xs text-muted-foreground">
-										右下角浮动按钮
-									</div>
-								</div>
-							</div>
-
-							<div>
-								<Label className="text-sm font-medium">
 									内联按钮样式
 								</Label>
 								<div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
@@ -263,7 +251,6 @@ export function CustomerServiceAdmin() {
 								使用说明：
 							</h4>
 							<ul className="space-y-1 ml-4">
-								<li>• 浮动按钮会显示在网站右下角</li>
 								<li>• 点击后弹出客服选项卡</li>
 								<li>
 									• 支持AI助手（预留）、社群二维码、帮助文档
