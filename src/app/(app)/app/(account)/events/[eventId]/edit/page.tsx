@@ -457,8 +457,7 @@ export default function EventEditPage() {
 		hackathonConfig: {
 			...(event.hackathonConfig ?? {}),
 			settings: {
-				maxTeamSize:
-					event.hackathonConfig?.settings?.maxTeamSize ?? 5,
+				maxTeamSize: event.hackathonConfig?.settings?.maxTeamSize ?? 5,
 				allowSolo: event.hackathonConfig?.settings?.allowSolo ?? true,
 			},
 			voting: event.hackathonConfig?.voting ?? {
