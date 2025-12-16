@@ -1,12 +1,12 @@
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import { db } from "@/lib/database";
+import { getPublicStorageUrl } from "@/lib/storage";
+import { Prisma } from "@prisma/client";
 import type {
 	EventStatus,
 	EventType,
 	RegistrationStatus,
 } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
-import { getPublicStorageUrl } from "@/lib/storage";
 // Event queries
 export async function createEvent(data: {
 	title: string;
@@ -235,205 +235,258 @@ export async function createEvent(data: {
 	return createdEvent;
 }
 
-export async function getEventById(id: string) {
-	const event = await db.event.findUnique({
-		where: { id },
+export type GetEventByIdOptions = {
+	/**
+	 * When true, includes registrations/volunteers/feedbacks and project-submission
+	 * enrichment; this is expensive and should be used only for admin views.
+	 */
+	includeAdminData?: boolean;
+};
+
+const eventByIdBaseInclude = Prisma.validator<Prisma.EventInclude>()({
+	organizer: {
+		select: {
+			id: true,
+			name: true,
+			email: true,
+			image: true,
+			username: true,
+			bio: true,
+			userRoleString: true,
+			region: true,
+		},
+	},
+	organization: {
+		select: {
+			id: true,
+			name: true,
+			slug: true,
+			logo: true,
+		},
+	},
+	questions: {
+		orderBy: {
+			order: "asc",
+		},
+	},
+	ticketTypes: {
+		where: {
+			isActive: true,
+		},
 		include: {
-			organizer: {
+			_count: {
+				select: {
+					registrations: true,
+				},
+			},
+		},
+		orderBy: {
+			sortOrder: "asc",
+		},
+	},
+	_count: {
+		select: {
+			registrations: {
+				where: {
+					status: {
+						in: ["APPROVED", "PENDING"] as RegistrationStatus[],
+					},
+					user: {
+						is: {},
+					},
+				},
+			},
+			checkIns: true,
+			feedbacks: true,
+		},
+	},
+	buildingConfig: true,
+});
+
+const eventByIdAdminInclude = Prisma.validator<Prisma.EventInclude>()({
+	...eventByIdBaseInclude,
+	// Filter out orphaned registrations with missing user records to prevent Prisma from throwing
+	registrations: {
+		where: {
+			status: {
+				in: ["APPROVED", "PENDING"] as RegistrationStatus[],
+			},
+			user: {
+				is: {},
+			},
+		},
+		select: {
+			status: true,
+			registeredAt: true,
+			allowDigitalCardDisplay: true,
+			user: {
 				select: {
 					id: true,
 					name: true,
 					email: true,
 					image: true,
 					username: true,
-					bio: true,
 					userRoleString: true,
+					currentWorkOn: true,
+					bio: true,
+					skills: true,
 					region: true,
+					lifeStatus: true,
+					whatICanOffer: true,
+					whatIAmLookingFor: true,
+					showEmail: true,
+					showWechat: true,
+					githubUrl: true,
+					twitterUrl: true,
+					websiteUrl: true,
+					wechatId: true,
+					membershipLevel: true,
+					creatorLevel: true,
+					mentorLevel: true,
+					contributorLevel: true,
 				},
 			},
-			organization: {
-				select: {
-					id: true,
-					name: true,
-					slug: true,
-					logo: true,
-				},
-			},
-			// Filter out orphaned registrations with missing user records to prevent Prisma from throwing
+		},
+		orderBy: {
+			registeredAt: "asc",
+		},
+	},
+	volunteerRoles: {
+		include: {
+			volunteerRole: true,
 			registrations: {
 				where: {
-					status: {
-						in: ["APPROVED", "PENDING"],
-					},
 					user: {
 						is: {},
 					},
 				},
-				select: {
-					status: true,
-					registeredAt: true,
-					allowDigitalCardDisplay: true,
+				include: {
 					user: {
 						select: {
 							id: true,
 							name: true,
-							email: true,
 							image: true,
 							username: true,
 							userRoleString: true,
 							currentWorkOn: true,
-							bio: true,
-							skills: true,
-							region: true,
-							lifeStatus: true,
-							whatICanOffer: true,
-							whatIAmLookingFor: true,
-							showEmail: true,
-							showWechat: true,
-							githubUrl: true,
-							twitterUrl: true,
-							websiteUrl: true,
-							wechatId: true,
-							membershipLevel: true,
-							creatorLevel: true,
-							mentorLevel: true,
-							contributorLevel: true,
 						},
 					},
 				},
 				orderBy: {
-					registeredAt: "asc",
+					appliedAt: "asc",
 				},
 			},
-			questions: {
-				orderBy: {
-					order: "asc",
-				},
-			},
-			ticketTypes: {
-				where: {
-					isActive: true,
-				},
-				include: {
-					_count: {
-						select: {
-							registrations: true,
-						},
-					},
-				},
-				orderBy: {
-					sortOrder: "asc",
-				},
-			},
-			volunteerRoles: {
-				include: {
-					volunteerRole: true,
-					registrations: {
-						where: {
-							user: {
-								is: {},
-							},
-						},
-						include: {
-							user: {
-								select: {
-									id: true,
-									name: true,
-									image: true,
-									username: true,
-									userRoleString: true,
-									currentWorkOn: true,
-								},
-							},
-						},
-						orderBy: {
-							appliedAt: "asc",
-						},
-					},
-				},
-				orderBy: {
-					createdAt: "asc",
-				},
-			},
-			feedbacks: {
-				where: {
-					user: {
-						is: {},
-					},
-				},
-				include: {
-					user: {
-						select: {
-							id: true,
-							name: true,
-							image: true,
-							username: true,
-						},
-					},
-				},
-				orderBy: {
-					createdAt: "desc",
-				},
-			},
-			_count: {
-				select: {
-					registrations: {
-						where: {
-							status: {
-								in: ["APPROVED", "PENDING"],
-							},
-							user: {
-								is: {},
-							},
-						},
-					},
-					checkIns: true,
-					feedbacks: true,
-				},
-			},
-			buildingConfig: true,
 		},
-	});
-
-	// If the event requires project submission, fetch associated project submissions for each registration
-	if (event?.requireProjectSubmission && event.registrations.length > 0) {
-		const userIds = event.registrations.map((reg) => reg.user.id);
-
-		// Get project submissions for all registered users
-		const projectSubmissions = await db.eventProjectSubmission.findMany({
-			where: {
-				eventId: id,
-				userId: {
-					in: userIds,
+		orderBy: {
+			createdAt: "asc",
+		},
+	},
+	feedbacks: {
+		where: {
+			user: {
+				is: {},
+			},
+		},
+		include: {
+			user: {
+				select: {
+					id: true,
+					name: true,
+					image: true,
+					username: true,
 				},
 			},
-			include: {
-				project: {
-					select: {
-						id: true,
-						title: true,
-						description: true,
-						screenshots: true,
-						stage: true,
-						projectTags: true,
-						url: true,
-					},
-				},
-			},
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+	},
+});
+
+type EventByIdBase = Prisma.EventGetPayload<{
+	include: typeof eventByIdBaseInclude;
+}>;
+
+type EventByIdAdmin = Prisma.EventGetPayload<{
+	include: typeof eventByIdAdminInclude;
+}>;
+
+export async function getEventById(
+	id: string,
+	options?: { includeAdminData?: true },
+): Promise<EventByIdAdmin | null>;
+export async function getEventById(
+	id: string,
+	options: { includeAdminData: false },
+): Promise<EventByIdBase | null>;
+export async function getEventById(
+	id: string,
+	options?: GetEventByIdOptions,
+): Promise<EventByIdAdmin | EventByIdBase | null> {
+	const includeAdminData = options?.includeAdminData ?? true;
+
+	if (includeAdminData) {
+		const event = await db.event.findUnique({
+			where: { id },
+			include: eventByIdAdminInclude,
 		});
 
-		// Create a map for easy lookup
-		const submissionsByUserId = new Map(
-			projectSubmissions.map((sub) => [sub.userId, sub]),
-		);
+		// If the event requires project submission, fetch associated project submissions for each registration
+		if (event?.requireProjectSubmission && event.registrations.length > 0) {
+			const userIds = event.registrations.map((reg) => reg.user.id);
 
-		// Add project submissions to registrations
-		event.registrations = event.registrations.map((registration) => ({
-			...registration,
-			projectSubmission:
-				submissionsByUserId.get(registration.user.id) || null,
-		}));
+			// Get project submissions for all registered users
+			const projectSubmissions = await db.eventProjectSubmission.findMany(
+				{
+					where: {
+						eventId: id,
+						userId: {
+							in: userIds,
+						},
+					},
+					include: {
+						project: {
+							select: {
+								id: true,
+								title: true,
+								description: true,
+								screenshots: true,
+								stage: true,
+								projectTags: true,
+								url: true,
+							},
+						},
+					},
+				},
+			);
+
+			// Create a map for easy lookup
+			const submissionsByUserId = new Map(
+				projectSubmissions.map((sub) => [sub.userId, sub]),
+			);
+
+			// Add project submissions to registrations
+			event.registrations = event.registrations.map((registration) => ({
+				...registration,
+				projectSubmission:
+					submissionsByUserId.get(registration.user.id) || null,
+			}));
+		}
+
+		// Convert organization logo path to full URL if organization exists
+		if (event?.organization?.logo) {
+			event.organization.logo = getPublicStorageUrl(
+				event.organization.logo,
+			);
+		}
+
+		return event;
 	}
+
+	const event = await db.event.findUnique({
+		where: { id },
+		include: eventByIdBaseInclude,
+	});
 
 	// Convert organization logo path to full URL if organization exists
 	if (event?.organization?.logo) {

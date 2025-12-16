@@ -29,10 +29,10 @@ import {
 	User,
 	X,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,10 +93,12 @@ export function OrganizationApplicationForm({
 	slug,
 	invitationCode,
 }: OrganizationApplicationFormProps) {
+	const locale = useLocale();
 	const [organization, setOrganization] = useState<OrganizationData | null>(
 		null,
 	);
 	const [loading, setLoading] = useState(true);
+	const [organizationNotFound, setOrganizationNotFound] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [currentUser, setCurrentUser] = useState<any>(null);
 	const [profileValidation, setProfileValidation] =
@@ -210,7 +212,7 @@ export function OrganizationApplicationForm({
 	useEffect(() => {
 		fetchOrganization();
 		checkAuthStatus();
-	}, [slug]);
+	}, [slug, locale, invitationCode]);
 
 	// 验证用户资料完整性
 	useEffect(() => {
@@ -428,16 +430,37 @@ export function OrganizationApplicationForm({
 				} else {
 					// Redirect to login with return URL
 					setProfileLoading(false);
-					router.push(`/auth/login?redirectTo=/orgs/${slug}/apply`);
+					const redirectTo = `/${locale}/orgs/${slug}/apply${
+						invitationCode
+							? `?invited-code=${encodeURIComponent(invitationCode)}`
+							: ""
+					}`;
+					router.push(
+						`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
+					);
 				}
 			} else {
 				setProfileLoading(false);
-				router.push(`/auth/login?redirectTo=/orgs/${slug}/apply`);
+				const redirectTo = `/${locale}/orgs/${slug}/apply${
+					invitationCode
+						? `?invited-code=${encodeURIComponent(invitationCode)}`
+						: ""
+				}`;
+				router.push(
+					`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
+				);
 			}
 		} catch (error) {
 			console.error("Failed to check auth status:", error);
 			setProfileLoading(false);
-			router.push(`/auth/login?redirectTo=/orgs/${slug}/apply`);
+			const redirectTo = `/${locale}/orgs/${slug}/apply${
+				invitationCode
+					? `?invited-code=${encodeURIComponent(invitationCode)}`
+					: ""
+			}`;
+			router.push(
+				`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
+			);
 		}
 	};
 
@@ -447,8 +470,10 @@ export function OrganizationApplicationForm({
 			if (response.ok) {
 				const data = await response.json();
 				setOrganization(data);
+				setOrganizationNotFound(false);
 			} else if (response.status === 404) {
-				notFound();
+				setOrganization(null);
+				setOrganizationNotFound(true);
 			}
 		} catch (error) {
 			console.error("Failed to fetch organization:", error);
@@ -787,9 +812,27 @@ export function OrganizationApplicationForm({
 		);
 	}
 
+	if (organizationNotFound) {
+		return (
+			<div className="container max-w-2xl pt-16 pb-16">
+				<h1 className="text-2xl font-semibold">组织不存在或未公开</h1>
+				<p className="mt-3 text-muted-foreground">
+					请检查链接是否正确，或联系组织管理员确认组织状态。
+				</p>
+				<div className="mt-6">
+					<Button asChild>
+						<Link href={`/${locale}`}>返回首页</Link>
+					</Button>
+				</div>
+			</div>
+		);
+	}
+
 	if (!organization || !isLoggedIn) {
 		return null;
 	}
+
+	const orgDetailsHref = `/${locale}/orgs/${organization.slug}`;
 
 	// 如果用户已经是成员，显示成员状态页面
 	if (membershipStatus?.isMember) {
@@ -797,7 +840,7 @@ export function OrganizationApplicationForm({
 			<div className="container max-w-4xl pt-16 pb-16">
 				<div className="mb-6">
 					<Button variant="ghost" className="gap-2" asChild>
-						<Link href={`/orgs/${organization.slug}`}>
+						<Link href={orgDetailsHref}>
 							<ArrowLeft className="h-4 w-4" />
 							返回组织详情
 						</Link>
@@ -849,15 +892,13 @@ export function OrganizationApplicationForm({
 
 								<div className="flex justify-center gap-4">
 									<Button asChild>
-										<Link
-											href={`/orgs/${organization.slug}`}
-										>
+										<Link href={orgDetailsHref}>
 											查看组织详情
 										</Link>
 									</Button>
 									<Button variant="outline" asChild>
 										<Link
-											href={`/app/orgs/${organization.slug}`}
+											href={`/app/${organization.slug}`}
 										>
 											进入组织管理
 										</Link>
@@ -891,7 +932,7 @@ export function OrganizationApplicationForm({
 			<div className="container max-w-4xl pt-16 pb-16">
 				<div className="mb-6">
 					<Button variant="ghost" className="gap-2" asChild>
-						<Link href={`/orgs/${organization.slug}`}>
+						<Link href={orgDetailsHref}>
 							<ArrowLeft className="h-4 w-4" />
 							{t("backToDetails")}
 						</Link>
@@ -958,7 +999,7 @@ export function OrganizationApplicationForm({
 		<div className="container max-w-4xl pt-16 pb-16">
 			<div className="mb-6">
 				<Button variant="ghost" className="gap-2" asChild>
-					<Link href={`/orgs/${organization.slug}`}>
+					<Link href={orgDetailsHref}>
 						<ArrowLeft className="h-4 w-4" />
 						{t("backToDetails")}
 					</Link>

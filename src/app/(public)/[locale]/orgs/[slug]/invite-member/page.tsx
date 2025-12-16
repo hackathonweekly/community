@@ -1,4 +1,5 @@
 import { OrganizationMemberInvitationForm } from "@/modules/public/organizations/components/OrganizationMemberInvitationForm";
+import { db } from "@/lib/database/prisma/client";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
@@ -68,6 +69,15 @@ export default async function InviteMemberPage({
 
 	// Validate slug format
 	if (slug.includes(".") || slug.length > 100) {
+		return notFound();
+	}
+
+	const organization = await db.organization.findUnique({
+		where: { slug },
+		select: { id: true, isPublic: true },
+	});
+
+	if (!organization || !organization.isPublic) {
 		return notFound();
 	}
 

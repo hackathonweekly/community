@@ -1,4 +1,5 @@
 import { OrganizationApplicationForm } from "@/modules/public/organizations/components/OrganizationApplicationForm";
+import { db } from "@/lib/database/prisma/client";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -72,6 +73,15 @@ export default async function OrganizationApplicationPage({
 
 	// Validate slug format - should not be a file name
 	if (slug.includes(".") || slug.length > 100) {
+		return notFound();
+	}
+
+	const organization = await db.organization.findUnique({
+		where: { slug },
+		select: { id: true, isPublic: true },
+	});
+
+	if (!organization || !organization.isPublic) {
 		return notFound();
 	}
 

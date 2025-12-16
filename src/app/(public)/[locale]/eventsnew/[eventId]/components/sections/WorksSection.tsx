@@ -1,17 +1,11 @@
 "use client";
 
+import { Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { SectionCard } from "../common/SectionCard";
 
@@ -138,43 +132,57 @@ export function WorksSection({
 			ctaOnClick={handleViewAll}
 		>
 			{works.length > 0 ? (
-				<div className="grid gap-3 md:grid-cols-3">
+				<div className="space-y-3">
 					{works.slice(0, 3).map((work, idx) => (
 						<Card
 							key={`${work.title}-${idx}`}
-							className={cn(
-								"shadow-none bg-gradient-to-br from-white to-slate-50 cursor-pointer transition hover:shadow-md",
-							)}
+							className="group overflow-hidden cursor-pointer transition-all hover:shadow-md hover:border-primary/20"
 							onClick={() => handleCardClick(work.href)}
 						>
-							<CardHeader className="pb-2">
-								<CardTitle className="text-base">
-									{work.title}
-								</CardTitle>
-								<CardDescription className="flex flex-wrap items-center gap-2">
-									{work.tag}
-									{work.stage ? (
-										<Badge variant="secondary">
-											{work.stage}
-										</Badge>
-									) : null}
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="pt-0">
-								{work.cover ? (
-									<div className="mb-3 overflow-hidden rounded-md border bg-muted/40">
-										<Image
-											src={work.cover}
-											alt={work.title}
-											width={400}
-											height={240}
-											className="h-28 w-full object-cover"
-										/>
+							<CardContent className="p-3">
+								<div className="flex items-center gap-3">
+									{/* Thumbnail */}
+									<div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+										{work.cover ? (
+											<Image
+												src={work.cover}
+												alt={work.title}
+												fill
+												className="object-cover transition-transform duration-500 group-hover:scale-105"
+											/>
+										) : (
+											<div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-muted-foreground">
+												<ImageIcon className="h-5 w-5 opacity-70" />
+											</div>
+										)}
 									</div>
-								) : null}
-								<Badge variant="secondary">
-									🙋 {work.owner}
-								</Badge>
+
+									{/* Content */}
+									<div className="min-w-0 flex-1 flex flex-col gap-1">
+										<div className="flex items-center gap-2 flex-wrap">
+											<h4 className="line-clamp-1 font-semibold leading-tight group-hover:text-primary transition-colors text-sm md:text-base">
+												{work.title}
+											</h4>
+										</div>
+
+										<div className="flex items-center gap-2 text-xs text-muted-foreground">
+											<span className="truncate">
+												{work.owner}
+											</span>
+											{work.stage && (
+												<>
+													<span>·</span>
+													<Badge
+														variant="secondary"
+														className="h-5 px-1.5 font-normal text-[10px]"
+													>
+														{work.stage}
+													</Badge>
+												</>
+											)}
+										</div>
+									</div>
+								</div>
 							</CardContent>
 						</Card>
 					))}

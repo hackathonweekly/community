@@ -12,6 +12,7 @@ import {
 import type { DigitalBusinessCardData } from "@/components/ui/digital-business-card";
 import { DigitalBusinessCardGallery } from "@/components/ui/digital-business-card-gallery";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { ParticipantInterestButton } from "@/modules/public/events/components/participant-interest-button";
 import { UserSlideDeckModal } from "@/modules/public/shared/components/UserSlideDeck";
 import {
@@ -45,6 +46,7 @@ interface ParticipantAvatarsProps {
 	onRequireAuth?: () => void;
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
+	darkBackground?: boolean;
 }
 
 export function ParticipantAvatars({
@@ -58,6 +60,7 @@ export function ParticipantAvatars({
 	onRequireAuth,
 	open,
 	onOpenChange,
+	darkBackground = false,
 }: ParticipantAvatarsProps) {
 	const t = useTranslations();
 	const [isDialogOpen, setIsDialogOpen] = useState(open ?? false);
@@ -248,7 +251,12 @@ export function ParticipantAvatars({
 					{remainingCount > 0 && (
 						<div
 							key="remaining-count"
-							className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-xs font-medium text-gray-600"
+							className={cn(
+								"flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-medium z-[1]",
+								darkBackground
+									? "border-white/20 bg-white/10 text-white"
+									: "border-white bg-gray-100 text-gray-600",
+							)}
 						>
 							+{remainingCount}
 						</div>
@@ -262,9 +270,14 @@ export function ParticipantAvatars({
 					>
 						<DialogTrigger asChild>
 							<Button
-								variant="outline"
+								variant={darkBackground ? "ghost" : "outline"}
 								size="sm"
-								className="ml-2 text-xs"
+								className={cn(
+									"ml-2 text-xs",
+									darkBackground
+										? "text-white/80 hover:text-white hover:bg-white/10 border border-white/20"
+										: "",
+								)}
 							>
 								{t("events.viewAll")}
 							</Button>

@@ -2253,14 +2253,26 @@ export const organizationsRouter = new Hono()
 
 				// If approved, add user as member
 				if (status === "APPROVED") {
-					await db.member.create({
-						data: {
-							organizationId: application.organizationId,
-							userId: application.userId,
-							role: "member",
-							createdAt: new Date(),
-						},
-					});
+					try {
+						await db.member.create({
+							data: {
+								organizationId: application.organizationId,
+								userId: application.userId,
+								role: "member",
+								createdAt: new Date(),
+							},
+						});
+					} catch (error) {
+						if (
+							error instanceof
+								Prisma.PrismaClientKnownRequestError &&
+							error.code === "P2002"
+						) {
+							// Already a member; allow the review action to be idempotent.
+						} else {
+							throw error;
+						}
+					}
 				}
 
 				if (application.invitationRequest) {

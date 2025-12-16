@@ -156,6 +156,7 @@ export function Hero({
 							projectSubmissions={projectSubmissions}
 							open={isDialogOpen}
 							onOpenChange={onDialogChange}
+							darkBackground
 						/>
 					</div>
 				</div>

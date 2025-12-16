@@ -869,12 +869,6 @@ const app = new Hono()
 
 // Helper function to get event with admin check
 async function getEventWithAdminCheck(eventId: string, headers: Headers) {
-	const event = await getEventById(eventId);
-
-	if (!event) {
-		return null;
-	}
-
 	// Check if current user is admin of this event
 	let isEventAdmin = false;
 	try {
@@ -887,6 +881,14 @@ async function getEventWithAdminCheck(eventId: string, headers: Headers) {
 	} catch (adminCheckError) {
 		// Log error but don't fail the request
 		console.error("Error checking admin status:", adminCheckError);
+	}
+
+	const event = isEventAdmin
+		? await getEventById(eventId, { includeAdminData: true })
+		: await getEventById(eventId, { includeAdminData: false });
+
+	if (!event) {
+		return null;
 	}
 
 	return {

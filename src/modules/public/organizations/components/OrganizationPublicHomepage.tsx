@@ -380,7 +380,7 @@ export function OrganizationPublicHomepage({
 													asChild
 												>
 													<Link
-														href={`/orgs/${organization.slug}/invite-member`}
+														href={`/${locale}/orgs/${organization.slug}/invite-member`}
 													>
 														<Users className="h-4 w-4 mr-2" />
 														邀请成员
@@ -413,7 +413,7 @@ export function OrganizationPublicHomepage({
 												asChild
 											>
 												<Link
-													href={`/orgs/${organization.slug}/apply`}
+													href={`/${locale}/orgs/${organization.slug}/apply`}
 												>
 													<Heart className="h-4 w-4 mr-2" />
 													{t("public.applyToJoin")}
@@ -426,7 +426,7 @@ export function OrganizationPublicHomepage({
 												asChild
 											>
 												<Link
-													href={`/auth/login?redirectTo=/orgs/${organization.slug}/apply`}
+													href={`/auth/login?redirectTo=/${locale}/orgs/${organization.slug}/apply`}
 												>
 													<Heart className="h-4 w-4 mr-2" />
 													{t("public.loginToApply")}

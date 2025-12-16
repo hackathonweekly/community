@@ -17,10 +17,10 @@ import {
 	Link2,
 	Loader2,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
 import Link from "next/link";
-import { notFound, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface OrganizationData {
@@ -41,6 +41,7 @@ const MAX_TEXT_LENGTH = 500; // 最大文本长度
 export function OrganizationMemberInvitationForm({
 	slug,
 }: OrganizationMemberInvitationFormProps) {
+	const locale = useLocale();
 	const [organization, setOrganization] = useState<OrganizationData | null>(
 		null,
 	);
@@ -73,7 +74,7 @@ export function OrganizationMemberInvitationForm({
 	useEffect(() => {
 		fetchOrganization();
 		checkMembershipStatus();
-	}, [slug, currentUser]);
+	}, [slug, currentUser, locale]);
 
 	const fetchOrganization = async () => {
 		try {
@@ -82,7 +83,8 @@ export function OrganizationMemberInvitationForm({
 				const data = await response.json();
 				setOrganization(data);
 			} else if (response.status === 404) {
-				notFound();
+				setOrganization(null);
+				setMembershipStatus("non-member");
 			}
 		} catch (error) {
 			console.error("Failed to fetch organization:", error);
@@ -93,7 +95,10 @@ export function OrganizationMemberInvitationForm({
 
 	const checkMembershipStatus = async () => {
 		if (!currentUser) {
-			router.push(`/auth/login?redirectTo=/orgs/${slug}/invite-member`);
+			const redirectTo = `/${locale}/orgs/${slug}/invite-member`;
+			router.push(
+				`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
+			);
 			return;
 		}
 
@@ -108,7 +113,7 @@ export function OrganizationMemberInvitationForm({
 
 				// 非成员不允许访问此页面
 				if (!isMember) {
-					router.push(`/orgs/${slug}`);
+					router.push(`/${locale}/orgs/${slug}`);
 				}
 			}
 		} catch (error) {
@@ -252,12 +257,13 @@ export function OrganizationMemberInvitationForm({
 	if (submitted) {
 		const isReferral = invitationMode === "referral";
 		const inviteeDisplayName = formData.inviteeName || "候选人";
+		const orgDetailsHref = `/${locale}/orgs/${organization.slug}`;
 
 		return (
 			<div className="container max-w-4xl pt-16 pb-16">
 				<div className="mb-6">
 					<Button variant="ghost" className="gap-2" asChild>
-						<Link href={`/orgs/${organization.slug}`}>
+						<Link href={orgDetailsHref}>
 							<ArrowLeft className="h-4 w-4" />
 							返回组织页面
 						</Link>
@@ -337,11 +343,12 @@ export function OrganizationMemberInvitationForm({
 	}
 
 	// 邀请问卷表单
+	const orgDetailsHref = `/${locale}/orgs/${organization.slug}`;
 	return (
 		<div className="container max-w-4xl pt-16 pb-16">
 			<div className="mb-6">
 				<Button variant="ghost" className="gap-2" asChild>
-					<Link href={`/orgs/${organization.slug}`}>
+					<Link href={orgDetailsHref}>
 						<ArrowLeft className="h-4 w-4" />
 						返回组织页面
 					</Link>
