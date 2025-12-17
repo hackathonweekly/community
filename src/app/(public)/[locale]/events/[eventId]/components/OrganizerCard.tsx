@@ -2,6 +2,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { EventHostSubscriptionButton } from "@/components/shared/EventHostSubscriptionButton";
+import { useLocale } from "next-intl";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 type Organizer = {
@@ -23,6 +25,14 @@ export function OrganizerCard({
 	organizer: Organizer;
 	showSubscription?: boolean;
 }) {
+	const locale = useLocale();
+	const pathname = usePathname();
+
+	const organizerIdOrUsername = organizer.username || organizer.id;
+	const returnTo = pathname
+		? `?returnTo=${encodeURIComponent(pathname)}`
+		: "";
+
 	return (
 		<Card>
 			<CardHeader>
@@ -30,7 +40,7 @@ export function OrganizerCard({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<Link
-					href={`/u/${organizer.username || organizer.id}`}
+					href={`/${locale}/u/${organizerIdOrUsername}${returnTo}`}
 					className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-gray-50"
 				>
 					<UserAvatar

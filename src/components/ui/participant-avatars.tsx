@@ -25,7 +25,7 @@ import {
 	PresentationChartBarIcon,
 } from "@heroicons/react/24/outline";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 interface Participant extends ParticipantUser {
@@ -63,6 +63,7 @@ export function ParticipantAvatars({
 	darkBackground = false,
 }: ParticipantAvatarsProps) {
 	const t = useTranslations();
+	const locale = useLocale();
 	const [isDialogOpen, setIsDialogOpen] = useState(open ?? false);
 	const [isSlideOpen, setIsSlideOpen] = useState(false);
 	const [isCardGalleryOpen, setIsCardGalleryOpen] = useState(false);
@@ -361,9 +362,19 @@ export function ParticipantAvatars({
 											key={participant.user.id}
 											className="group relative flex items-center gap-3 rounded-lg border p-3 transition-all hover:bg-blue-50/50 hover:border-blue-200 hover:shadow-sm cursor-pointer"
 											onClick={() => {
+												const returnTo =
+													typeof window !==
+													"undefined"
+														? `${window.location.pathname}${window.location.search || ""}`
+														: "";
+												const profilePath = `/${locale}/u/${participant.user.username || participant.user.id}`;
+												const profileHref = returnTo
+													? `${profilePath}?returnTo=${encodeURIComponent(returnTo)}`
+													: profilePath;
 												window.open(
-													`/u/${participant.user.username || participant.user.id}`,
+													profileHref,
 													"_blank",
+													"noopener,noreferrer",
 												);
 											}}
 											title={`查看 ${participant.user.name} 的个人主页`}

@@ -2,7 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+	type CSSProperties,
+} from "react";
 
 interface TruncatedTextProps {
 	text: string;
@@ -21,35 +29,88 @@ export function TruncatedText({
 	className = "",
 	showMoreText = "查看更多",
 	showLessText = "收起",
-	lineHeight = 1.5,
 }: TruncatedTextProps) {
 	const [isExpanded, setIsExpanded] = useState(false);
+	const [canToggle, setCanToggle] = useState(false);
+	const wrapperRef = useRef<HTMLDivElement>(null);
+	const clampedRef = useRef<HTMLParagraphElement>(null);
+	const fullRef = useRef<HTMLParagraphElement>(null);
 
 	if (!text) return null;
 
-	// 计算字符截断点
-	const shouldTruncateByLength = text.length > maxLength;
-	const estimatedHeight = lineHeight * 1.6; // 估算每行高度（rem）
-	const containerStyle = {
-		maxHeight: isExpanded ? "none" : `${estimatedHeight * maxLines}rem`,
-	};
+	const previewText = useMemo(() => {
+		if (text.length <= maxLength) return text;
+		return `${text.slice(0, maxLength)}...`;
+	}, [text, maxLength]);
 
-	const needsTruncation = shouldTruncateByLength;
+	const recomputeToggle = useCallback(() => {
+		if (text.length > maxLength) {
+			setCanToggle(true);
+			return;
+		}
+
+		const clampedEl = clampedRef.current;
+		const fullEl = fullRef.current;
+		if (!clampedEl || !fullEl) return;
+
+		const clampedHeight = clampedEl.getBoundingClientRect().height;
+		const fullHeight = fullEl.getBoundingClientRect().height;
+		setCanToggle(fullHeight - clampedHeight > 1);
+	}, [text, maxLength]);
+
+	useLayoutEffect(() => {
+		// Only relevant in collapsed mode; expanded always shows full text.
+		if (isExpanded) return;
+		recomputeToggle();
+	}, [isExpanded, recomputeToggle, previewText, maxLines]);
+
+	useEffect(() => {
+		const wrapperEl = wrapperRef.current;
+		if (!wrapperEl || typeof ResizeObserver === "undefined") return;
+
+		const ro = new ResizeObserver(() => {
+			if (!isExpanded) recomputeToggle();
+		});
+		ro.observe(wrapperEl);
+		return () => ro.disconnect();
+	}, [isExpanded, recomputeToggle]);
+
+	const clampStyle = useMemo<CSSProperties | undefined>(() => {
+		if (isExpanded) return undefined;
+		return {
+			display: "-webkit-box",
+			WebkitBoxOrient: "vertical",
+			WebkitLineClamp: maxLines,
+			overflow: "hidden",
+			overflowWrap: "anywhere",
+		};
+	}, [isExpanded, maxLines]);
 
 	return (
-		<div className="relative">
+		<div ref={wrapperRef} className="relative">
 			<div
-				className={`overflow-hidden transition-all duration-300 ease-in-out ${className}`}
-				style={containerStyle}
+				className={`transition-all duration-300 ease-in-out ${className}`}
 			>
-				<p className="whitespace-pre-line">
-					{isExpanded || !needsTruncation
-						? text
-						: `${text.slice(0, maxLength)}...`}
+				<p
+					ref={clampedRef}
+					className="whitespace-pre-line break-words"
+					style={clampStyle}
+				>
+					{isExpanded ? text : previewText}
 				</p>
 			</div>
 
-			{needsTruncation && (
+			{/* Invisible full text for measuring overflow */}
+			<p
+				ref={fullRef}
+				aria-hidden="true"
+				className={`pointer-events-none absolute left-0 top-0 w-full whitespace-pre-line break-words opacity-0 ${className}`}
+				style={{ overflowWrap: "anywhere" }}
+			>
+				{text}
+			</p>
+
+			{canToggle && (
 				<div className="mt-2">
 					<Button
 						variant="ghost"

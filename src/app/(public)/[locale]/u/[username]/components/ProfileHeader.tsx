@@ -2,14 +2,23 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { InteractiveBadge } from "@/components/ui/interactive-badge";
 import { TruncatedText } from "@/components/ui/truncated-text";
 import { UserFollowButton } from "@/components/ui/user-follow-button";
 import { UserLikeButton } from "@/components/ui/user-like-button";
+import { cn } from "@/lib/utils";
 import type { ProfileUser } from "@/modules/public/shared/components/UserSlideDeckUtils";
 import { UserLevelBadges } from "@dashboard/level/components/LevelBadge";
 import {
 	Copy,
+	ArrowLeft,
 	ExternalLinkIcon,
 	EyeIcon,
 	GithubIcon,
@@ -28,12 +37,19 @@ import {
 	X,
 	ChevronDown,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useState,
+	type ComponentProps,
+} from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
 import { ProfileSlideModeLauncher } from "../ProfileSlideModeLauncher";
 import type { UserProfile } from "../types";
 import { getImageUrl, getLifeStatusLabel } from "../types";
+import { useSearchParams } from "next/navigation";
 
 interface ProfileHeaderProps {
 	user: UserProfile;
@@ -60,6 +76,7 @@ export function ProfileHeader({
 	translations,
 	profileUser,
 }: ProfileHeaderProps) {
+	const searchParams = useSearchParams();
 	const [showQR, setShowQR] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isSendingCard, setIsSendingCard] = useState(false);
@@ -217,6 +234,23 @@ export function ProfileHeader({
 	// 未登录用户是否显示回发名片按钮
 	const shouldShowSendCardBackButton = !currentUserId && !isSelfProfile;
 
+	const returnTo = useMemo(() => {
+		const raw = searchParams.get("returnTo");
+		if (!raw) return null;
+		const trimmed = raw.trim();
+		if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
+		for (let i = 0; i < trimmed.length; i += 1) {
+			const code = trimmed.charCodeAt(i);
+			if (code < 32 || code === 127) return null;
+		}
+		return trimmed;
+	}, [searchParams]);
+
+	const backLabel =
+		returnTo?.includes("/events/") || returnTo?.includes("/eventsnew/")
+			? "返回活动"
+			: "返回";
+
 	const unlockedContactLabels = [
 		user.wechatId || user.wechatQrCode ? "微信" : null,
 		user.email ? "邮箱" : null,
@@ -248,6 +282,102 @@ export function ProfileHeader({
 			});
 	}, []);
 
+	const safeExternalUrl = useCallback((raw: string | null | undefined) => {
+		if (!raw) return null;
+		const trimmed = raw.trim();
+		if (!trimmed) return null;
+
+		const lower = trimmed.toLowerCase();
+		if (
+			lower.startsWith("javascript:") ||
+			lower.startsWith("data:") ||
+			lower.startsWith("vbscript:")
+		) {
+			return null;
+		}
+
+		try {
+			const url = trimmed.includes("://")
+				? new URL(trimmed)
+				: new URL(`https://${trimmed}`);
+			if (url.protocol !== "http:" && url.protocol !== "https:") {
+				return null;
+			}
+			return url.toString();
+		} catch {
+			return null;
+		}
+	}, []);
+
+	const githubUrl = safeExternalUrl(user.githubUrl);
+	const twitterUrl = safeExternalUrl(user.twitterUrl);
+	const websiteUrl = safeExternalUrl(user.websiteUrl);
+
+	const ExpandableValueBadge = ({
+		label,
+		value,
+		variant,
+		className,
+	}: {
+		label: string;
+		value: string;
+		variant: ComponentProps<typeof Badge>["variant"];
+		className?: string;
+	}) => {
+		const shouldExpand =
+			value.length > 18 || value.includes("\n") || value.includes("\r");
+
+		if (!shouldExpand) {
+			return (
+				<Badge
+					variant={variant}
+					className={cn(className)}
+					title={value}
+				>
+					{value}
+				</Badge>
+			);
+		}
+
+		return (
+			<Dialog>
+				<DialogTrigger asChild>
+					<Badge
+						variant={variant}
+						className={cn("cursor-pointer", className)}
+						title={value}
+					>
+						{value}
+					</Badge>
+				</DialogTrigger>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{label}</DialogTitle>
+					</DialogHeader>
+					<div className="space-y-3">
+						<p
+							className="whitespace-pre-line break-words text-sm"
+							style={{ overflowWrap: "anywhere" }}
+						>
+							{value}
+						</p>
+						<div className="flex justify-end">
+							<Button
+								type="button"
+								variant="outline"
+								size="sm"
+								onClick={() => copyToClipboard(value, label)}
+							>
+								<Copy className="h-4 w-4 mr-2" />
+								复制
+							</Button>
+						</div>
+					</div>
+				</DialogContent>
+			</Dialog>
+		);
+	};
+
 	const CopyButton = ({
 		value,
 		label,
@@ -273,17 +403,32 @@ export function ProfileHeader({
 
 	return (
 		<>
-			{/* Logo button - floating top left */}
-			<a
-				href="/"
-				className="fixed top-4 left-4 z-50 flex items-center justify-center w-12 h-12 rounded-full bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-md"
-			>
-				<img
-					src="/images/logo-stack.png"
-					alt="Logo"
-					className="w-10 h-10"
-				/>
-			</a>
+			<div className="fixed top-4 left-4 z-50 flex items-center gap-2">
+				{returnTo && (
+					<a
+						href={returnTo}
+						className="flex items-center justify-center w-12 h-12 rounded-full bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-md"
+						aria-label={backLabel}
+						title={backLabel}
+					>
+						<ArrowLeft className="h-5 w-5" />
+						<span className="sr-only">{backLabel}</span>
+					</a>
+				)}
+				{/* Logo button - floating top left */}
+				<a
+					href="/"
+					className="flex items-center justify-center w-12 h-12 rounded-full bg-white border border-gray-200 hover:bg-gray-50 transition-colors shadow-md"
+					aria-label="返回首页"
+					title="返回首页"
+				>
+					<img
+						src="/images/logo-stack.png"
+						alt="Logo"
+						className="w-10 h-10"
+					/>
+				</a>
+			</div>
 
 			{/* Share button - floating top right */}
 			<Button
@@ -330,7 +475,12 @@ export function ProfileHeader({
 						{/* Basic info */}
 						<div className="flex-1 text-center sm:text-left">
 							<h1 className="text-2xl sm:text-3xl font-bold mb-2">
-								{user.name || "User"}
+								<span
+									className="break-words"
+									style={{ overflowWrap: "anywhere" }}
+								>
+									{user.name || "User"}
+								</span>
 							</h1>
 
 							{/* User level badges */}
@@ -341,24 +491,22 @@ export function ProfileHeader({
 							<div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-3">
 								{/* Current Work */}
 								{user.currentWorkOn && (
-									<Badge
+									<ExpandableValueBadge
+										label="当前在做"
+										value={user.currentWorkOn}
 										variant="default"
 										className="text-sm font-medium max-w-[180px] sm:max-w-[250px] md:max-w-[350px] lg:max-w-[450px] truncate"
-										title={user.currentWorkOn}
-									>
-										{user.currentWorkOn}
-									</Badge>
+									/>
 								)}
 
 								{/* User Role String */}
 								{user.userRoleString && (
-									<Badge
+									<ExpandableValueBadge
+										label="用户角色"
+										value={user.userRoleString}
 										variant="secondary"
 										className="text-sm max-w-[160px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px] truncate"
-										title={user.userRoleString}
-									>
-										{user.userRoleString}
-									</Badge>
+									/>
 								)}
 
 								{/* Gender */}
@@ -378,7 +526,12 @@ export function ProfileHeader({
 								{user.region && (
 									<div className="flex items-center text-sm text-muted-foreground">
 										<GlobeIcon className="h-4 w-4 mr-1" />
-										{user.region}
+										<span
+											className="max-w-[220px] truncate"
+											title={user.region}
+										>
+											{user.region}
+										</span>
 									</div>
 								)}
 
@@ -418,31 +571,64 @@ export function ProfileHeader({
 												<Badge
 													key={index}
 													variant="outline"
-													className="text-xs bg-blue-50 border-blue-200 text-blue-700"
+													className="text-xs bg-blue-50 border-blue-200 text-blue-700 max-w-[140px] truncate"
+													title={skill}
 												>
 													{skill}
 												</Badge>
 											))}
 										{normalizedSkills.length > 5 && (
-											<Badge
-												variant="secondary"
-												className="text-xs bg-blue-100 text-blue-800"
-											>
-												+{normalizedSkills.length - 5}
-											</Badge>
+											<Dialog>
+												<DialogTrigger asChild>
+													<Badge
+														variant="secondary"
+														className="text-xs bg-blue-100 text-blue-800 cursor-pointer"
+													>
+														+
+														{normalizedSkills.length -
+															5}
+													</Badge>
+												</DialogTrigger>
+												<DialogContent>
+													<DialogHeader>
+														<DialogTitle>
+															技能
+														</DialogTitle>
+													</DialogHeader>
+													<div className="max-h-[50vh] overflow-auto">
+														<div className="flex flex-wrap gap-2">
+															{normalizedSkills.map(
+																(
+																	skill,
+																	index,
+																) => (
+																	<Badge
+																		key={`${skill}-${index}`}
+																		variant="outline"
+																		className="max-w-[220px] truncate"
+																		title={
+																			skill
+																		}
+																	>
+																		{skill}
+																	</Badge>
+																),
+															)}
+														</div>
+													</div>
+												</DialogContent>
+											</Dialog>
 										)}
 									</div>
 								</div>
 							)}
 
 							{/* Public social links */}
-							{(user.githubUrl ||
-								user.twitterUrl ||
-								user.websiteUrl) && (
+							{(githubUrl || twitterUrl || websiteUrl) && (
 								<div className="flex flex-wrap items-center justify-center sm:justify-start gap-3">
-									{user.githubUrl && (
+									{githubUrl && (
 										<a
-											href={user.githubUrl}
+											href={githubUrl}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -452,9 +638,9 @@ export function ProfileHeader({
 										</a>
 									)}
 
-									{user.twitterUrl && (
+									{twitterUrl && (
 										<a
-											href={user.twitterUrl}
+											href={twitterUrl}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -464,9 +650,9 @@ export function ProfileHeader({
 										</a>
 									)}
 
-									{user.websiteUrl && (
+									{websiteUrl && (
 										<a
-											href={user.websiteUrl}
+											href={websiteUrl}
 											target="_blank"
 											rel="noopener noreferrer"
 											className="flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
