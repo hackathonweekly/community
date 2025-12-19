@@ -8,16 +8,26 @@ import {
 	type SortOption,
 } from "@/components/shared/MemberList";
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import {
 	Settings,
 	Calendar,
 	FolderOpen,
 	ExternalLink,
 	Globe,
+	UserPlus,
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import Link from "next/link";
+import { InviteMemberForm } from "@dashboard/organizations/components/InviteMemberForm";
 
 interface Member {
 	id: string;
@@ -41,6 +51,11 @@ interface Member {
 		profilePublic: boolean;
 		skills: string[];
 	};
+	inviter?: {
+		id: string;
+		name: string | null;
+		username: string | null;
+	} | null;
 }
 
 export function OrganizationPageClient({
@@ -102,6 +117,13 @@ export function OrganizationPageClient({
 			twitterUrl: member.user?.twitterUrl || null,
 			websiteUrl: member.user?.websiteUrl || null,
 			wechatId: member.user?.wechatId || null,
+			inviter: member.inviter
+				? {
+						id: member.inviter.id,
+						name: member.inviter.name || null,
+						username: member.inviter.username || null,
+					}
+				: null,
 		}));
 	}, [members]);
 
@@ -169,18 +191,53 @@ export function OrganizationPageClient({
 					</div>
 					{/* 管理功能按钮移到右上角 */}
 					{userIsAdmin && (
-						<Link
-							href={`/app/${activeOrganization.slug}/settings/general`}
-						>
-							<Button
-								size="sm"
-								variant="outline"
-								className="gap-1"
+						<div className="flex items-center gap-2">
+							<Dialog>
+								<DialogTrigger asChild>
+									<Button size="sm" className="gap-1">
+										<UserPlus className="h-3 w-3" />
+										<span className="hidden sm:inline">
+											邀请成员
+										</span>
+									</Button>
+								</DialogTrigger>
+								<DialogContent className="max-w-md">
+									<DialogHeader>
+										<DialogTitle>邀请成员</DialogTitle>
+										<DialogDescription>
+											邀请新成员加入组织
+										</DialogDescription>
+									</DialogHeader>
+									<div className="py-4">
+										<InviteMemberForm
+											organizationId={
+												activeOrganization.id
+											}
+											organizationSlug={
+												activeOrganization.slug
+											}
+											onMemberAdded={
+												fetchOrganizationMembers
+											}
+										/>
+									</div>
+								</DialogContent>
+							</Dialog>
+							<Link
+								href={`/app/${activeOrganization.slug}/settings/general`}
 							>
-								<Settings className="h-3 w-3" />
-								<span className="hidden sm:inline">设置</span>
-							</Button>
-						</Link>
+								<Button
+									size="sm"
+									variant="outline"
+									className="gap-1"
+								>
+									<Settings className="h-3 w-3" />
+									<span className="hidden sm:inline">
+										设置
+									</span>
+								</Button>
+							</Link>
+						</div>
 					)}
 				</div>
 			</div>
@@ -255,6 +312,7 @@ export function OrganizationPageClient({
 						showLevel={false}
 						showSkills={true}
 						showRole={true}
+						showInviter={true}
 						showBio={true}
 						showRegion={true}
 						showContactLinks={true}

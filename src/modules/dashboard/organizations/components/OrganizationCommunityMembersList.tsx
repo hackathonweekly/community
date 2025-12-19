@@ -48,6 +48,13 @@ export function OrganizationCommunityMembersList({
 			creatorLevel: (member.user as any)?.creatorLevel || null,
 			mentorLevel: (member.user as any)?.mentorLevel || null,
 			contributorLevel: (member.user as any)?.contributorLevel || null,
+			inviter: member.inviter
+				? {
+						id: member.inviter.id,
+						name: member.inviter.name || null,
+						username: member.inviter.username || null,
+					}
+				: null,
 		}),
 	);
 
@@ -143,6 +150,7 @@ export function OrganizationCommunityMembersList({
 				showAvatar={true}
 				showLevel={true}
 				showRole={true}
+				showInviter={true}
 				showSkills={true}
 				showCP={true}
 				showJoinDate={true}

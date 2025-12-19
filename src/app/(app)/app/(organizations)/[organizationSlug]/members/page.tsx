@@ -30,6 +30,11 @@ interface Member {
 		profilePublic: boolean;
 		skills: string[];
 	};
+	inviter?: {
+		id: string;
+		name: string | null;
+		username: string | null;
+	} | null;
 }
 
 interface Organization {
@@ -90,6 +95,13 @@ export default function OrganizationMembersPage() {
 			twitterUrl: member.user?.twitterUrl || null,
 			websiteUrl: member.user?.websiteUrl || null,
 			wechatId: member.user?.wechatId || null,
+			inviter: member.inviter
+				? {
+						id: member.inviter.id,
+						name: member.inviter.name || null,
+						username: member.inviter.username || null,
+					}
+				: null,
 		}));
 	}, [members]);
 
@@ -168,6 +180,7 @@ export default function OrganizationMembersPage() {
 				showLevel={true}
 				showSkills={true}
 				showRole={true}
+				showInviter={true}
 				showBio={true}
 				showRegion={true}
 				showContactLinks={true}

@@ -93,6 +93,11 @@ export interface MemberData {
 	joinedAt?: string;
 	contributionValue?: number;
 	status?: "active" | "inactive";
+	inviter?: {
+		id: string;
+		name: string | null;
+		username: string | null;
+	} | null;
 }
 
 // 操作按钮配置
@@ -151,6 +156,7 @@ export interface MemberListProps {
 	showContributions?: boolean;
 	showCP?: boolean;
 	showRole?: boolean;
+	showInviter?: boolean;
 	showBanStatus?: boolean;
 	showJoinDate?: boolean;
 	showLastActive?: boolean;
@@ -195,6 +201,7 @@ export function MemberList({
 	showContributions = false,
 	showCP = false,
 	showRole = true,
+	showInviter = false,
 	showBanStatus = false,
 	showJoinDate = true,
 	showLastActive = false,
@@ -227,6 +234,28 @@ export function MemberList({
 	const [selectedMembers, setSelectedMembers] = useState<Set<string>>(
 		new Set(),
 	);
+
+	const renderInviter = (member: MemberData) => {
+		const inviter = member.inviter;
+		if (!inviter) {
+			return <span className="text-muted-foreground">—</span>;
+		}
+
+		const label = inviter.name || inviter.username || "未知";
+		if (inviter.username) {
+			return (
+				<Link
+					href={`/zh/u/${inviter.username}`}
+					target="_blank"
+					className="hover:text-primary transition-colors hover:underline"
+				>
+					{label}
+				</Link>
+			);
+		}
+
+		return <span>{label}</span>;
+	};
 
 	// 使用受控或非受控的视图模式
 	const viewMode = controlledViewMode || internalViewMode;
@@ -568,6 +597,7 @@ export function MemberList({
 								)}
 								{showLevel && <TableHead>等级</TableHead>}
 								{showRole && <TableHead>角色</TableHead>}
+								{showInviter && <TableHead>邀请人</TableHead>}
 								{showSkills && <TableHead>技能标签</TableHead>}
 								{showCP && <TableHead>CP值</TableHead>}
 								{showContributions && (
@@ -720,6 +750,13 @@ export function MemberList({
 										{showRole && (
 											<TableCell>
 												{getRoleBadge(member.role)}
+											</TableCell>
+										)}
+										{showInviter && (
+											<TableCell>
+												<div className="text-sm">
+													{renderInviter(member)}
+												</div>
 											</TableCell>
 										)}
 
@@ -1089,6 +1126,11 @@ export function MemberList({
 									</div>
 								</CardHeader>
 								<CardContent className="pt-0">
+									{showInviter && (
+										<p className="text-xs text-muted-foreground mb-2">
+											邀请人: {renderInviter(member)}
+										</p>
+									)}
 									{showBio && member.bio && (
 										<p className="text-sm text-muted-foreground mb-4 line-clamp-2">
 											{member.bio}
@@ -1287,6 +1329,11 @@ export function MemberList({
 												</a>
 											)}
 									</div>
+									{showInviter && (
+										<div className="text-xs text-muted-foreground">
+											邀请人: {renderInviter(member)}
+										</div>
+									)}
 								</div>
 								{customActionsRenderer && (
 									<div className="flex items-center gap-2">

@@ -659,6 +659,13 @@ export const organizationsRouter = new Hono()
 									skills: true,
 								},
 							},
+							inviter: {
+								select: {
+									id: true,
+									name: true,
+									username: true,
+								},
+							},
 						},
 						orderBy: {
 							createdAt: "asc",
@@ -1466,6 +1473,7 @@ export const organizationsRouter = new Hono()
 					});
 
 					invitationRecord.email = normalizedCurrentUserEmail;
+					invitationRecord.metadata = updatedMetadata;
 					invitationMetadata =
 						parseInvitationMetadata(updatedMetadata);
 				}
@@ -1511,6 +1519,37 @@ export const organizationsRouter = new Hono()
 							: {}),
 					},
 				});
+
+				const memberRecord = await db.member.findFirst({
+					where: {
+						organizationId: invitationRecord.organizationId,
+						userId: currentUser.id,
+					},
+					select: {
+						id: true,
+						invitedBy: true,
+						invitationId: true,
+					},
+				});
+
+				if (memberRecord) {
+					const updateData: Prisma.MemberUncheckedUpdateInput = {};
+
+					if (!memberRecord.invitedBy && invitationRecord.inviterId) {
+						updateData.invitedBy = invitationRecord.inviterId;
+					}
+
+					if (!memberRecord.invitationId) {
+						updateData.invitationId = invitationId;
+					}
+
+					if (Object.keys(updateData).length > 0) {
+						await db.member.update({
+							where: { id: memberRecord.id },
+							data: updateData,
+						});
+					}
+				}
 
 				const metadataValue =
 					(invitationRecord.metadata as Prisma.JsonObject | null) ??
@@ -2260,6 +2299,9 @@ export const organizationsRouter = new Hono()
 								userId: application.userId,
 								role: "member",
 								createdAt: new Date(),
+								invitedBy:
+									application.invitationRequest?.inviterId ??
+									null,
 							},
 						});
 					} catch (error) {

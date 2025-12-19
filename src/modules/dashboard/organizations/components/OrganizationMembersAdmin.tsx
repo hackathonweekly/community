@@ -94,6 +94,11 @@ interface OrganizationMember {
 		mentorLevel?: string | null;
 		contributorLevel?: string | null;
 	};
+	inviter?: {
+		id: string;
+		name: string | null;
+		username: string | null;
+	} | null;
 	// Legacy fields for backward compatibility
 	name?: string;
 	email?: string;
@@ -1156,6 +1161,7 @@ export function OrganizationMembersAdmin({
 										</TableHead>
 										<TableHead>姓名</TableHead>
 										<TableHead>邮箱</TableHead>
+										<TableHead>邀请人</TableHead>
 										<TableHead>等级</TableHead>
 										<TableHead>技能标签</TableHead>
 										<TableHead>最后活跃</TableHead>
@@ -1196,6 +1202,31 @@ export function OrganizationMembersAdmin({
 												{member.user?.email ||
 													member.email ||
 													"No email"}
+											</TableCell>
+											<TableCell>
+												{member.inviter ? (
+													member.inviter.username ? (
+														<Link
+															href={`/u/${member.inviter.username}`}
+															className="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+														>
+															{member.inviter
+																.name ||
+																member.inviter
+																	.username ||
+																"未知"}
+														</Link>
+													) : (
+														<span className="text-sm text-gray-700">
+															{member.inviter
+																.name || "未知"}
+														</span>
+													)
+												) : (
+													<span className="text-xs text-gray-500">
+														—
+													</span>
+												)}
 											</TableCell>
 											<TableCell>
 												<UserLevelBadges
