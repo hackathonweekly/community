@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { EventCreateForm } from "@/modules/dashboard/events/components/EventCreateForm";
-import type { EventTemplate } from "@/modules/dashboard/events/components/EventTemplateSelector";
+import {
+	EventCreateForm,
+	type EventCopySource,
+} from "@/modules/dashboard/events/components/EventCreateForm";
 import type { EventFormData } from "@/modules/dashboard/events/components/types";
 import {
 	buildTemplatePayload,
@@ -21,21 +23,13 @@ import {
 import type { MembershipLevel } from "@prisma/client";
 import {
 	ArrowLeftIcon,
+	DocumentDuplicateIcon,
 	PlusIcon,
-	StarIcon,
-	TrashIcon,
 } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
-interface Organization {
-	id: string;
-	name: string;
-	slug: string;
-	logo?: string;
-}
 
 interface VolunteerRole {
 	id: string;
@@ -46,6 +40,47 @@ interface VolunteerRole {
 	cpPoints: number;
 }
 
+interface CopySourceSummary {
+	id: string;
+	title: string;
+	shortDescription?: string | null;
+	type: "MEETUP" | "HACKATHON" | "BUILDING_PUBLIC";
+	startTime: string;
+	endTime: string;
+	coverImage?: string | null;
+	organizer?: {
+		id: string;
+		name: string;
+		image?: string | null;
+		username?: string | null;
+	};
+	organization?: {
+		id: string;
+		name: string;
+		slug?: string;
+		logo?: string | null;
+	};
+}
+
+const eventTypeLabels: Record<CopySourceSummary["type"], string> = {
+	MEETUP: "常规活动",
+	HACKATHON: "黑客松",
+	BUILDING_PUBLIC: "Building Public",
+};
+
+const formatEventDate = (value: string) => {
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+	return date.toLocaleDateString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	});
+};
+
+const getCopySourceHost = (source: CopySourceSummary) =>
+	source.organization?.name ?? source.organizer?.name ?? "社区活动";
+
 export default function CreateEventPage() {
 	const router = useRouter();
 	const { user } = useSession();
@@ -54,14 +89,17 @@ export default function CreateEventPage() {
 		isLoading: organizationsLoading,
 		refetchUserOrganizations,
 	} = useUserOrganizations();
-	const [selectedTemplate, setSelectedTemplate] =
-		useState<EventTemplate | null>(null);
+	const [selectedSourceEvent, setSelectedSourceEvent] =
+		useState<EventCopySource | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [volunteerRoles, setVolunteerRoles] = useState<VolunteerRole[]>([]);
 	const [volunteerRolesLoading, setVolunteerRolesLoading] = useState(true);
-	const [templates, setTemplates] = useState<EventTemplate[]>([]);
-	const [templatesLoading, setTemplatesLoading] = useState(true);
-	const [showTemplates, setShowTemplates] = useState(true);
+	const [copySources, setCopySources] = useState<CopySourceSummary[]>([]);
+	const [copySourcesLoading, setCopySourcesLoading] = useState(true);
+	const [copySourceLoadingId, setCopySourceLoadingId] = useState<
+		string | null
+	>(null);
+	const [showSourcePicker, setShowSourcePicker] = useState(true);
 
 	// 检查用户是否有创建活动的权限
 	const permissionCheck = canUserDoAction(
@@ -124,29 +162,55 @@ export default function CreateEventPage() {
 		}
 	};
 
-	const fetchTemplates = async () => {
+	const fetchCopySources = async () => {
 		try {
-			const response = await fetch("/api/event-templates");
-			if (response.ok) {
-				const data = await response.json();
-				setTemplates(data.data || []);
+			const response = await fetch("/api/events/copy-sources?limit=12");
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || "获取历史活动失败");
 			}
+			const data = await response.json();
+			setCopySources(data.data || []);
 		} catch (error) {
-			console.error("Error fetching templates:", error);
+			console.error("Error fetching copy sources:", error);
+			toast.error(
+				error instanceof Error ? error.message : "获取历史活动失败",
+			);
 		} finally {
-			setTemplatesLoading(false);
+			setCopySourcesLoading(false);
 		}
 	};
 
 	useEffect(() => {
 		// fetchUserOrganizations(); // 不再需要，TanStack Query 自动处理
 		fetchVolunteerRoles();
-		fetchTemplates();
+		fetchCopySources();
 	}, []);
 
-	const handleTemplateSelect = (template: EventTemplate | null) => {
-		setSelectedTemplate(template);
-		setShowTemplates(false); // 选择模板后隐藏模板列表
+	const handleCopySourceSelect = async (source: CopySourceSummary) => {
+		setCopySourceLoadingId(source.id);
+		try {
+			const response = await fetch(
+				`/api/events/copy-sources/${source.id}`,
+			);
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || "获取历史活动失败");
+			}
+			const data = await response.json();
+			if (!data.data) {
+				throw new Error("未能获取活动数据");
+			}
+			setSelectedSourceEvent(data.data);
+			setShowSourcePicker(false);
+		} catch (error) {
+			console.error("Error fetching copy source:", error);
+			toast.error(
+				error instanceof Error ? error.message : "获取历史活动失败",
+			);
+		} finally {
+			setCopySourceLoadingId(null);
+		}
 	};
 
 	const handleSubmit = async (
@@ -155,9 +219,7 @@ export default function CreateEventPage() {
 	) => {
 		setIsLoading(true);
 		try {
-			const submitData = selectedTemplate
-				? { ...data, templateId: selectedTemplate.id, status }
-				: { ...data, status };
+			const submitData = { ...data, status };
 
 			const response = await fetch("/api/events", {
 				method: "POST",
@@ -269,7 +331,6 @@ export default function CreateEventPage() {
 			}
 
 			toast.success("模板保存成功！");
-			await fetchTemplates();
 		} catch (error) {
 			console.error("Error saving template:", error);
 			toast.error(
@@ -278,43 +339,7 @@ export default function CreateEventPage() {
 		}
 	};
 
-	const handleEditTemplate = async (template: EventTemplate) => {
-		// 跳转到模板编辑页面 - 修复路由路径
-		router.push(`/app/templates/${template.id}/edit`);
-	};
-
-	const handleDeleteTemplate = async (template: EventTemplate) => {
-		if (
-			!confirm(`确定要删除模板「${template.name}」吗？此操作不可撤销。`)
-		) {
-			return;
-		}
-
-		try {
-			const response = await fetch(
-				`/api/event-templates/${template.id}`,
-				{
-					method: "DELETE",
-				},
-			);
-
-			if (!response.ok) {
-				const error = await response.json();
-				throw new Error(error.message || "删除模板失败");
-			}
-
-			toast.success("模板删除成功！");
-			// 重新获取模板列表
-			fetchTemplates();
-		} catch (error) {
-			console.error("Error deleting template:", error);
-			toast.error(
-				error instanceof Error ? error.message : "删除模板失败",
-			);
-		}
-	};
-
-	if (organizationsLoading || volunteerRolesLoading || templatesLoading) {
+	if (organizationsLoading || volunteerRolesLoading || copySourcesLoading) {
 		return (
 			<div className="container mx-auto px-2 md:px-4 py-4 md:py-8">
 				<div className="max-w-4xl mx-auto">
@@ -347,12 +372,12 @@ export default function CreateEventPage() {
 						创建活动
 					</h1>
 					<p className="text-muted-foreground mt-2">
-						使用模板快速创建或从空白开始
+						从历史活动快速复刻或从空白开始
 					</p>
 				</div>
 
-				{/* 模板选择区域 */}
-				{showTemplates && (
+				{/* 活动来源选择区域 */}
+				{showSourcePicker && (
 					<div className="mb-8 space-y-8">
 						{/* 1. 自定义活动创建 */}
 						<div>
@@ -363,14 +388,18 @@ export default function CreateEventPage() {
 								<CardContent className="p-4 md:p-6">
 									<div
 										className="flex flex-col md:flex-row md:items-center md:justify-between w-full text-left gap-4"
-										onClick={() => setShowTemplates(false)}
+										onClick={() => {
+											setSelectedSourceEvent(null);
+											setShowSourcePicker(false);
+										}}
 										onKeyDown={(event) => {
 											if (
 												event.key === "Enter" ||
 												event.key === " "
 											) {
 												event.preventDefault();
-												setShowTemplates(false);
+												setSelectedSourceEvent(null);
+												setShowSourcePicker(false);
 											}
 										}}
 										tabIndex={0}
@@ -400,170 +429,133 @@ export default function CreateEventPage() {
 							</Card>
 						</div>
 
-						{/* 2. 个人模板 */}
-						{templates.filter((t) => t.createdBy === user?.id)
-							.length > 0 && (
-							<div>
-								<h2 className="text-xl font-semibold mb-4">
-									我的模板
-								</h2>
+						{/* 2. 历史活动 */}
+						<div>
+							<h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+								<DocumentDuplicateIcon className="w-5 h-5 text-muted-foreground" />
+								历史活动
+							</h2>
+							<p className="text-sm text-muted-foreground mb-4">
+								选择一个历史活动快速复刻，公开信息会自动带入（主办方联系方式不会复制）。
+							</p>
+							{copySources.length > 0 ? (
 								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{templates
-										.filter((t) => t.createdBy === user?.id)
-										.map((template) => (
+									{copySources.map((source) => {
+										const isCopying =
+											copySourceLoadingId === source.id;
+										return (
 											<Card
-												key={template.id}
-												className="cursor-pointer hover:shadow-md transition-shadow"
+												key={source.id}
+												className={`cursor-pointer hover:shadow-md transition-shadow ${isCopying ? "opacity-60 pointer-events-none" : ""}`}
 												onClick={() =>
-													handleTemplateSelect(
-														template,
+													handleCopySourceSelect(
+														source,
 													)
 												}
 											>
 												<CardContent className="p-4">
-													<div className="flex items-start justify-between mb-2">
-														<h3 className="font-semibold line-clamp-1">
-															{template.name}
-														</h3>
-														<div className="flex gap-1">
-															<Button
-																variant="ghost"
-																size="sm"
-																onClick={(
-																	e,
-																) => {
-																	e.stopPropagation();
-																	handleEditTemplate(
-																		template,
-																	);
-																}}
-															>
-																编辑
-															</Button>
-															<Button
-																variant="ghost"
-																size="sm"
-																className="text-red-600 hover:text-red-700 hover:bg-red-50"
-																onClick={(
-																	e,
-																) => {
-																	e.stopPropagation();
-																	handleDeleteTemplate(
-																		template,
-																	);
-																}}
-															>
-																<TrashIcon className="w-4 h-4" />
-															</Button>
-														</div>
-													</div>
-													<p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-														{template.description}
-													</p>
-													<div className="flex items-center justify-between text-xs text-muted-foreground">
-														<span>
-															使用{" "}
-															{template.usageCount ||
-																0}{" "}
-															次
-														</span>
-														<Badge
-															variant="outline"
-															className="text-xs"
-														>
-															个人模板
-														</Badge>
-													</div>
-												</CardContent>
-											</Card>
-										))}
-								</div>
-							</div>
-						)}
-
-						{/* 3. 社区精选模板 */}
-						{templates.filter(
-							(t) => t.isFeatured && t.createdBy !== user?.id,
-						).length > 0 && (
-							<div>
-								<h2 className="text-xl font-semibold mb-4">
-									社区精选模板
-								</h2>
-								<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-									{templates
-										.filter(
-											(t) =>
-												t.isFeatured &&
-												t.createdBy !== user?.id,
-										)
-										.map((template) => (
-											<Card
-												key={template.id}
-												className="cursor-pointer hover:shadow-md transition-shadow"
-												onClick={() =>
-													handleTemplateSelect(
-														template,
-													)
-												}
-											>
-												<CardContent className="p-4">
-													<div className="flex items-start justify-between mb-2">
-														<h3 className="font-semibold line-clamp-1">
-															{template.name}
-														</h3>
-														<div className="flex items-center gap-1">
-															<StarIcon className="w-4 h-4 text-amber-500 fill-current" />
-															<span className="text-xs text-amber-600">
-																精选
-															</span>
-														</div>
-													</div>
-													<p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-														{template.description}
-													</p>
-													<div className="flex items-center justify-between text-xs text-muted-foreground">
-														<span>
-															使用{" "}
-															{template.usageCount ||
-																0}{" "}
-															次
-														</span>
-														{template.createdBy && (
-															<span>by User</span>
+													<div className="flex items-start gap-3">
+														{source.coverImage ? (
+															<div className="w-14 h-14 rounded-md overflow-hidden bg-muted flex-shrink-0">
+																<img
+																	src={
+																		source.coverImage
+																	}
+																	alt={
+																		source.title
+																	}
+																	className="w-full h-full object-cover"
+																	loading="lazy"
+																/>
+															</div>
+														) : (
+															<div className="w-14 h-14 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground flex-shrink-0">
+																无封面
+															</div>
 														)}
+														<div className="flex-1 min-w-0">
+															<div className="flex items-start justify-between gap-2">
+																<h3 className="font-semibold line-clamp-1">
+																	{
+																		source.title
+																	}
+																</h3>
+																<Badge
+																	variant="outline"
+																	className="text-xs"
+																>
+																	{
+																		eventTypeLabels[
+																			source
+																				.type
+																		]
+																	}
+																</Badge>
+															</div>
+															<p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+																{source.shortDescription ||
+																	"暂无简介"}
+															</p>
+															<div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
+																<span>
+																	结束于{" "}
+																	{formatEventDate(
+																		source.endTime,
+																	)}
+																</span>
+																<span>
+																	{getCopySourceHost(
+																		source,
+																	)}
+																</span>
+															</div>
+															{isCopying && (
+																<div className="text-xs text-muted-foreground mt-2">
+																	正在加载活动信息...
+																</div>
+															)}
+														</div>
 													</div>
 												</CardContent>
 											</Card>
-										))}
+										);
+									})}
 								</div>
-							</div>
-						)}
+							) : (
+								<Card>
+									<CardContent className="p-6 text-center text-sm text-muted-foreground">
+										暂无可复制的历史活动
+									</CardContent>
+								</Card>
+							)}
+						</div>
 					</div>
 				)}
 
 				{/* 活动创建表单 */}
-				{!showTemplates && (
+				{!showSourcePicker && (
 					<div>
-						{selectedTemplate && (
+						{selectedSourceEvent && (
 							<div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
 								<div className="flex items-center justify-between">
 									<div>
 										<h3 className="font-medium text-blue-900">
-											使用模板：{selectedTemplate.name}
+											基于历史活动复刻：
+											{selectedSourceEvent.title}
 										</h3>
 										<p className="text-sm text-blue-600 mt-1">
-											{selectedTemplate.description}
+											已自动带入公开信息，主办方联系方式需重新填写
 										</p>
 									</div>
 									<Button
 										variant="ghost"
 										size="sm"
 										onClick={() => {
-											setSelectedTemplate(null);
-											setShowTemplates(true);
+											setSelectedSourceEvent(null);
+											setShowSourcePicker(true);
 										}}
 									>
-										重新选择模板
+										重新选择历史活动
 									</Button>
 								</div>
 							</div>
@@ -575,7 +567,7 @@ export default function CreateEventPage() {
 							onSubmit={handleSubmit}
 							onSaveAsTemplate={handleSaveAsTemplate}
 							isLoading={isLoading}
-							template={selectedTemplate}
+							sourceEvent={selectedSourceEvent}
 							user={user ? { email: user.email } : undefined}
 							onRefreshOrganizations={refetchUserOrganizations}
 						/>

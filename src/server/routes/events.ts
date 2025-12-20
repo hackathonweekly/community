@@ -852,6 +852,11 @@ const getEventsSchema = z.object({
 	hostType: z.enum(["organization", "individual", "all"]).optional(),
 });
 
+const copySourcesQuerySchema = z.object({
+	limit: z.coerce.number().int().positive().max(50).optional(),
+	search: z.string().optional(),
+});
+
 const app = new Hono()
 	.route("/", registrationsRouter)
 	.route("/", eventPhotosRouter)
@@ -982,6 +987,306 @@ app.get("/", zValidator("query", getEventsSchema), async (c) => {
 			{
 				success: false,
 				error: "Failed to fetch events",
+			},
+			500,
+		);
+	}
+});
+
+// GET /api/events/copy-sources - Get historical events for copying
+app.get(
+	"/copy-sources",
+	zValidator("query", copySourcesQuerySchema),
+	async (c) => {
+		try {
+			const session = await auth.api.getSession({
+				headers: c.req.raw.headers,
+			});
+
+			if (!session) {
+				return c.json(
+					{
+						success: false,
+						error: "Authentication required",
+					},
+					401,
+				);
+			}
+
+			const user = await db.user.findUnique({
+				where: { id: session.user.id },
+				select: { membershipLevel: true },
+			});
+
+			if (!user) {
+				return c.json(
+					{
+						success: false,
+						error: "User not found",
+					},
+					404,
+				);
+			}
+
+			const restrictions = await getVisitorRestrictionsConfig();
+			const { allowed, reason } = canUserDoAction(
+				{ membershipLevel: user.membershipLevel },
+				RestrictedAction.CREATE_EVENT,
+				restrictions,
+			);
+
+			if (!allowed) {
+				return c.json(
+					{
+						success: false,
+						error:
+							reason ??
+							"创建活动需要成为共创伙伴，请联系社区负责人！",
+					},
+					403,
+				);
+			}
+
+			const { limit, search } = c.req.valid("query");
+			const now = new Date();
+			const safeLimit = limit ?? 12;
+
+			const where: Prisma.EventWhereInput = {
+				status: { in: ["PUBLISHED", "COMPLETED"] },
+				endTime: { lt: now },
+				...(search && {
+					OR: [
+						{ title: { contains: search, mode: "insensitive" } },
+						{
+							shortDescription: {
+								contains: search,
+								mode: "insensitive",
+							},
+						},
+					],
+				}),
+			};
+
+			const events = await db.event.findMany({
+				where,
+				orderBy: { endTime: "desc" },
+				take: Math.min(safeLimit, 50),
+				select: {
+					id: true,
+					title: true,
+					shortDescription: true,
+					type: true,
+					startTime: true,
+					endTime: true,
+					coverImage: true,
+					organizer: {
+						select: {
+							id: true,
+							name: true,
+							image: true,
+							username: true,
+						},
+					},
+					organization: {
+						select: {
+							id: true,
+							name: true,
+							slug: true,
+							logo: true,
+						},
+					},
+				},
+			});
+
+			return c.json({
+				success: true,
+				data: events,
+			});
+		} catch (error) {
+			console.error("Error fetching copy sources:", error);
+			return c.json(
+				{
+					success: false,
+					error: "Failed to fetch copy sources",
+				},
+				500,
+			);
+		}
+	},
+);
+
+// GET /api/events/copy-sources/:id - Get a historical event for copying
+app.get("/copy-sources/:id", async (c) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: c.req.raw.headers,
+		});
+
+		if (!session) {
+			return c.json(
+				{
+					success: false,
+					error: "Authentication required",
+				},
+				401,
+			);
+		}
+
+		const user = await db.user.findUnique({
+			where: { id: session.user.id },
+			select: { membershipLevel: true },
+		});
+
+		if (!user) {
+			return c.json(
+				{
+					success: false,
+					error: "User not found",
+				},
+				404,
+			);
+		}
+
+		const restrictions = await getVisitorRestrictionsConfig();
+		const { allowed, reason } = canUserDoAction(
+			{ membershipLevel: user.membershipLevel },
+			RestrictedAction.CREATE_EVENT,
+			restrictions,
+		);
+
+		if (!allowed) {
+			return c.json(
+				{
+					success: false,
+					error:
+						reason ??
+						"创建活动需要成为共创伙伴，请联系社区负责人！",
+				},
+				403,
+			);
+		}
+
+		const eventId = c.req.param("id");
+		const now = new Date();
+
+		const event = await db.event.findUnique({
+			where: { id: eventId },
+			select: {
+				id: true,
+				title: true,
+				richContent: true,
+				shortDescription: true,
+				contentImages: true,
+				type: true,
+				status: true,
+				startTime: true,
+				endTime: true,
+				isOnline: true,
+				address: true,
+				onlineUrl: true,
+				isExternalEvent: true,
+				externalUrl: true,
+				maxAttendees: true,
+				registrationDeadline: true,
+				requireApproval: true,
+				registrationSuccessInfo: true,
+				registrationSuccessImage: true,
+				registrationPendingInfo: true,
+				registrationPendingImage: true,
+				coverImage: true,
+				tags: true,
+				organizationId: true,
+				requireProjectSubmission: true,
+				submissionsEnabled: true,
+				askDigitalCardConsent: true,
+				registrationFieldConfig: true,
+				submissionFormConfig: true,
+				hackathonConfig: true,
+				buildingConfig: {
+					select: {
+						requiredCheckIns: true,
+						depositAmount: true,
+						refundRate: true,
+						paymentType: true,
+					},
+				},
+				questions: {
+					orderBy: { order: "asc" },
+					select: {
+						id: true,
+						question: true,
+						description: true,
+						type: true,
+						options: true,
+						required: true,
+						order: true,
+					},
+				},
+				ticketTypes: {
+					where: { isActive: true },
+					orderBy: { sortOrder: "asc" },
+					select: {
+						name: true,
+						description: true,
+						price: true,
+						maxQuantity: true,
+						sortOrder: true,
+					},
+				},
+				volunteerRoles: {
+					orderBy: { createdAt: "asc" },
+					select: {
+						volunteerRoleId: true,
+						recruitCount: true,
+						description: true,
+						requireApproval: true,
+						volunteerRole: {
+							select: {
+								id: true,
+								name: true,
+								description: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		if (!event) {
+			return c.json(
+				{
+					success: false,
+					error: "Event not found",
+				},
+				404,
+			);
+		}
+
+		if (
+			!["PUBLISHED", "COMPLETED"].includes(event.status) ||
+			event.endTime >= now
+		) {
+			return c.json(
+				{
+					success: false,
+					error: "Event is not eligible for copying",
+				},
+				403,
+			);
+		}
+
+		const { status, ...copyEvent } = event;
+
+		return c.json({
+			success: true,
+			data: copyEvent,
+		});
+	} catch (error) {
+		console.error("Error fetching copy source:", error);
+		return c.json(
+			{
+				success: false,
+				error: "Failed to fetch copy source",
 			},
 			500,
 		);

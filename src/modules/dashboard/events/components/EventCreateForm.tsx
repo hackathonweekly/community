@@ -2,6 +2,7 @@
 
 import { Form } from "@/components/ui/form";
 import { getRandomTemplate } from "@/config/image-templates";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { DEFAULT_HACKATHON_SETTINGS } from "@/features/hackathon/config";
 import { getPresetRegistrationFieldConfig } from "@/lib/events/registration-fields";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,7 +10,11 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { FieldErrors } from "react-hook-form";
 import { toast } from "sonner";
-import { getDefaultEventTimes } from "../utils/date-utils";
+import {
+	formatForDatetimeLocal,
+	getDefaultEventTimes,
+} from "../utils/date-utils";
+import { normalizeSubmissionFormConfig } from "../utils/submission-form";
 import { BasicInfoForm } from "./BasicInfoForm";
 import { BuildingPublicSettings } from "./BuildingPublicSettings";
 import { FormActions } from "./FormActions";
@@ -21,6 +26,71 @@ import {
 	eventSchema,
 } from "./types";
 
+export interface EventCopySource {
+	id: string;
+	title: string;
+	richContent?: string | null;
+	shortDescription?: string | null;
+	contentImages?: string[] | null;
+	type: "MEETUP" | "HACKATHON" | "BUILDING_PUBLIC";
+	startTime?: string | null;
+	endTime?: string | null;
+	isOnline?: boolean | null;
+	address?: string | null;
+	onlineUrl?: string | null;
+	isExternalEvent?: boolean | null;
+	externalUrl?: string | null;
+	maxAttendees?: number | null;
+	registrationDeadline?: string | null;
+	requireApproval?: boolean | null;
+	registrationSuccessInfo?: string | null;
+	registrationSuccessImage?: string | null;
+	registrationPendingInfo?: string | null;
+	registrationPendingImage?: string | null;
+	coverImage?: string | null;
+	tags?: string[] | null;
+	questions?: Array<{
+		id?: string;
+		question: string;
+		description?: string | null;
+		type: "TEXT" | "TEXTAREA" | "SELECT" | "CHECKBOX" | "RADIO";
+		options?: string[] | null;
+		required?: boolean | null;
+		order?: number | null;
+	}> | null;
+	ticketTypes?: Array<{
+		name: string;
+		description?: string | null;
+		price?: number | null;
+		maxQuantity?: number | null;
+	}> | null;
+	volunteerRoles?: Array<{
+		volunteerRoleId?: string | null;
+		recruitCount?: number | null;
+		description?: string | null;
+		requireApproval?: boolean | null;
+		volunteerRole?: {
+			id: string;
+		};
+	}> | null;
+	registrationFieldConfig?: EventFormData["registrationFieldConfig"];
+	submissionFormConfig?: EventFormData["submissionFormConfig"];
+	hackathonConfig?: EventFormData["hackathonConfig"];
+	buildingConfig?: {
+		requiredCheckIns?: number | null;
+		depositAmount?: number | null;
+		refundRate?: number | null;
+		paymentType?: "NONE" | "CUSTOM" | string | null;
+		paymentUrl?: string | null;
+		paymentQRCode?: string | null;
+		paymentNote?: string | null;
+	} | null;
+	organizationId?: string | null;
+	requireProjectSubmission?: boolean | null;
+	submissionsEnabled?: boolean | null;
+	askDigitalCardConsent?: boolean | null;
+}
+
 interface EventCreateFormProps {
 	organizations?: Organization[];
 	volunteerRoles?: VolunteerRole[];
@@ -30,6 +100,7 @@ interface EventCreateFormProps {
 	defaultValues?: Partial<EventFormData>;
 	initialData?: any;
 	template?: any;
+	sourceEvent?: EventCopySource | null;
 	isEdit?: boolean;
 	isEditMode?: boolean;
 	hideTemplateAction?: boolean;
@@ -51,6 +122,62 @@ const mapTemplateTypeToEventType = (
 	}
 };
 
+const parseDate = (value?: string | null) => {
+	if (!value) return null;
+	const parsed = new Date(value);
+	return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const buildCopyTimes = (
+	sourceStart?: string | null,
+	sourceEnd?: string | null,
+	fallbackTimes?: { startTime: string; endTime: string },
+) => {
+	if (!fallbackTimes) {
+		return getDefaultEventTimes();
+	}
+
+	const startDate = parseDate(sourceStart);
+	const endDate = parseDate(sourceEnd);
+	const fallbackStart = parseDate(fallbackTimes.startTime);
+
+	if (!startDate || !endDate || !fallbackStart) {
+		return fallbackTimes;
+	}
+
+	const durationMs = endDate.getTime() - startDate.getTime();
+	if (durationMs <= 0) {
+		return fallbackTimes;
+	}
+
+	const newStart = new Date(fallbackStart.getTime());
+	const newEnd = new Date(newStart.getTime() + durationMs);
+
+	return {
+		startTime: formatForDatetimeLocal(newStart),
+		endTime: formatForDatetimeLocal(newEnd),
+	};
+};
+
+const buildRelativeDeadline = (
+	sourceDeadline?: string | null,
+	sourceStart?: string | null,
+	targetStart?: string,
+) => {
+	const deadlineDate = parseDate(sourceDeadline);
+	const sourceStartDate = parseDate(sourceStart);
+	const targetStartDate = parseDate(targetStart);
+
+	if (!deadlineDate || !sourceStartDate || !targetStartDate) {
+		return "";
+	}
+
+	const offsetMs = deadlineDate.getTime() - sourceStartDate.getTime();
+	const targetDeadline = new Date(targetStartDate.getTime() + offsetMs);
+
+	return formatForDatetimeLocal(targetDeadline);
+};
+
 export function EventCreateForm({
 	organizations = [],
 	volunteerRoles = [],
@@ -60,6 +187,7 @@ export function EventCreateForm({
 	defaultValues,
 	initialData,
 	template,
+	sourceEvent,
 	isEdit = false,
 	isEditMode = false,
 	hideTemplateAction = false,
@@ -73,7 +201,7 @@ export function EventCreateForm({
 		return getDefaultEventTimes();
 	};
 
-	// 合并数据优先级：initialData > template > defaultValues > 默认值
+	// 合并数据优先级：initialData > sourceEvent > template > defaultValues > 默认值
 	const getDefaultFormValues = () => {
 		const defaultTimes = getDefaultTimes();
 
@@ -147,6 +275,154 @@ export function EventCreateForm({
 		// 如果有 initialData（用于模板编辑），优先使用
 		if (initialData) {
 			return { ...baseDefaults, ...initialData };
+		}
+
+		// 如果有 sourceEvent，基于历史活动构建表单数据
+		if (sourceEvent) {
+			const copyTimes = buildCopyTimes(
+				sourceEvent.startTime,
+				sourceEvent.endTime,
+				defaultTimes,
+			);
+
+			const locationValue = sourceEvent.isExternalEvent
+				? sourceEvent.address || ""
+				: sourceEvent.isOnline && sourceEvent.onlineUrl
+					? sourceEvent.onlineUrl
+					: sourceEvent.address || "";
+
+			const availableOrganizationIds = new Set(
+				organizations.map((org) => org.id),
+			);
+			const organizationIdValue =
+				sourceEvent.organizationId &&
+				availableOrganizationIds.has(sourceEvent.organizationId)
+					? sourceEvent.organizationId
+					: baseDefaults.organizationId;
+
+			const normalizedSubmissionFormConfig =
+				normalizeSubmissionFormConfig(
+					sourceEvent.submissionFormConfig ?? null,
+				);
+
+			const registrationDeadline = buildRelativeDeadline(
+				sourceEvent.registrationDeadline,
+				sourceEvent.startTime,
+				copyTimes.startTime,
+			);
+
+			const sourceType = sourceEvent.type || baseDefaults.type;
+
+			const sourceDefaults = {
+				title: sourceEvent.title,
+				richContent: sourceEvent.richContent || "",
+				shortDescription: sourceEvent.shortDescription || "",
+				contentImages: sourceEvent.contentImages || [],
+				type: sourceType,
+				startTime: copyTimes.startTime,
+				endTime: copyTimes.endTime,
+				location: locationValue,
+				organizationId: organizationIdValue,
+				isExternalEvent: Boolean(sourceEvent.isExternalEvent),
+				externalUrl: sourceEvent.externalUrl || "",
+				maxAttendees: sourceEvent.maxAttendees?.toString() || "",
+				registrationDeadline,
+				requireApproval: Boolean(sourceEvent.requireApproval),
+				registrationSuccessInfo:
+					sourceEvent.registrationSuccessInfo || "",
+				registrationSuccessImage:
+					sourceEvent.registrationSuccessImage || "",
+				registrationPendingInfo:
+					sourceEvent.registrationPendingInfo || "",
+				registrationPendingImage:
+					sourceEvent.registrationPendingImage || "",
+				coverImage: sourceEvent.coverImage || baseDefaults.coverImage,
+				tags: sourceEvent.tags || [],
+				questions:
+					sourceEvent.questions?.map((q, index) => ({
+						id: q.id,
+						question: q.question,
+						description: q.description || "",
+						type: q.type,
+						required: q.required ?? false,
+						options: q.options || [],
+						order: q.order ?? index,
+					})) || [],
+				ticketTypes:
+					sourceEvent.ticketTypes?.map((ticket) => ({
+						name: ticket.name,
+						description: ticket.description || "",
+						price: ticket.price ?? 0,
+						quantity: ticket.maxQuantity ?? 100,
+					})) || [],
+				volunteerRoles:
+					sourceEvent.volunteerRoles
+						?.filter(
+							(role) =>
+								role.volunteerRoleId || role.volunteerRole?.id,
+						)
+						?.map((role) => ({
+							volunteerRoleId:
+								role.volunteerRoleId ||
+								role.volunteerRole?.id ||
+								"",
+							recruitCount: role.recruitCount ?? 1,
+							description: role.description || "",
+							requireApproval: role.requireApproval ?? true,
+						})) || [],
+				volunteerContactInfo: "",
+				volunteerWechatQrCode: "",
+				organizerContact: baseDefaults.organizerContact,
+				registrationFieldConfig:
+					sourceEvent.registrationFieldConfig ||
+					getPresetRegistrationFieldConfig("FULL"),
+				// Building Public 字段
+				minCheckIns:
+					sourceEvent.buildingConfig?.requiredCheckIns ||
+					baseDefaults.minCheckIns,
+				depositAmount: sourceEvent.buildingConfig?.depositAmount ?? 0,
+				refundRate:
+					sourceEvent.buildingConfig?.refundRate ??
+					baseDefaults.refundRate,
+				paymentType:
+					sourceEvent.buildingConfig?.paymentType === "CUSTOM"
+						? "CUSTOM"
+						: "NONE",
+				paymentUrl: "",
+				paymentQRCode: "",
+				paymentNote: "",
+				// 作品关联设置
+				requireProjectSubmission:
+					sourceEvent.requireProjectSubmission || false,
+				// 活动插件：作品提交
+				submissionsEnabled: isEventSubmissionsEnabled(sourceEvent),
+				// 数字名片公开确认
+				askDigitalCardConsent:
+					sourceEvent.askDigitalCardConsent || false,
+				// Hackathon 字段
+				hackathonConfig: {
+					...(sourceEvent.hackathonConfig ?? {}),
+					settings: {
+						maxTeamSize:
+							sourceEvent.hackathonConfig?.settings
+								?.maxTeamSize ?? 5,
+						allowSolo:
+							sourceEvent.hackathonConfig?.settings?.allowSolo ??
+							true,
+					},
+					voting: sourceEvent.hackathonConfig?.voting ?? {
+						allowPublicVoting: true,
+						enableJudgeVoting: false,
+						judgeWeight: 0,
+						publicWeight: 1,
+						publicVotingScope: "PARTICIPANTS" as const,
+					},
+				},
+				// 作品提交表单配置
+				submissionFormConfig: normalizedSubmissionFormConfig,
+			};
+
+			return { ...baseDefaults, ...sourceDefaults };
 		}
 
 		// 如果有 template，从模板构建表单数据
@@ -274,7 +550,10 @@ export function EventCreateForm({
 	// 添加一个标志来跟踪用户是否手动选择了图片
 	// 如果是编辑模式且已有图片，认为用户已经选择了图片
 	const [userHasSelectedImage, setUserHasSelectedImage] = useState(
-		!!(isEdit && formDefaultValues.coverImage),
+		Boolean(
+			(isEdit && formDefaultValues.coverImage) ||
+				(sourceEvent && sourceEvent.coverImage),
+		),
 	);
 
 	useEffect(() => {
