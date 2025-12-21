@@ -60,9 +60,11 @@ export function Hero({
 	const eventTypeLabels = getEventTypeLabels(useTranslations());
 	const timezoneLabel = formatTimezoneDisplay(event.timezone);
 
-	const approvedRegs = event.registrations.filter(
+	const registrations = event.registrations ?? [];
+	const approvedRegs = registrations.filter(
 		(reg) => reg.status === "APPROVED",
 	);
+	const tags = event.tags ?? [];
 
 	return (
 		<div className="relative isolate overflow-hidden bg-slate-900 text-white min-h-[400px] flex items-center">
@@ -161,9 +163,9 @@ export function Hero({
 					</div>
 				</div>
 
-				{(event.tags || []).length > 0 ? (
+				{tags.length > 0 ? (
 					<div className="flex flex-wrap gap-2">
-						{event.tags.map((tag) => (
+						{tags.map((tag) => (
 							<Badge
 								key={tag}
 								className="bg-white/10 hover:bg-white/20 text-white border-white/20 transition-colors"

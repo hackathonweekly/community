@@ -25,7 +25,7 @@ export function ParticipantsSection({
 	isDialogOpen,
 	onDialogChange,
 }: ParticipantsSectionProps) {
-	const approvedRegs = event.registrations.filter(
+	const approvedRegs = (event.registrations ?? []).filter(
 		(reg) => reg.status === "APPROVED",
 	);
 	// Show more items in the horizontal scroll
