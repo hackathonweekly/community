@@ -2439,15 +2439,49 @@ app.get("/:eventId/project-submissions", async (c) => {
 	try {
 		const eventId = c.req.param("eventId");
 
-		const event = await db.event.findUnique({
-			where: { id: eventId },
-			select: {
-				id: true,
-				type: true,
-				requireProjectSubmission: true,
-				submissionsEnabled: true,
-			},
-		});
+		// Prefer reading `submissionsEnabled` when the Prisma Client supports it,
+		// but gracefully fall back for environments with a stale generated client.
+		let event: {
+			id: string;
+			type: string | null;
+			requireProjectSubmission: boolean;
+			submissionsEnabled?: boolean | null;
+		} | null = null;
+
+		try {
+			event = await db.event.findUnique({
+				where: { id: eventId },
+				select: {
+					id: true,
+					type: true,
+					requireProjectSubmission: true,
+					submissionsEnabled: true,
+				},
+			});
+		} catch (error) {
+			const isUnknownSubmissionsEnabledField =
+				error &&
+				typeof error === "object" &&
+				"name" in error &&
+				(error as { name?: string }).name ===
+					"PrismaClientValidationError" &&
+				"message" in error &&
+				typeof (error as { message?: unknown }).message === "string" &&
+				(error as { message: string }).message.includes(
+					"Unknown field `submissionsEnabled`",
+				);
+
+			if (!isUnknownSubmissionsEnabledField) throw error;
+
+			event = await db.event.findUnique({
+				where: { id: eventId },
+				select: {
+					id: true,
+					type: true,
+					requireProjectSubmission: true,
+				},
+			});
+		}
 
 		if (!event || !isEventSubmissionsEnabled(event)) {
 			return c.json(
