@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Bookmark, CalendarDays, Heart, MapPin, Share2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
+import { BackToEventsLink } from "@/app/(public)/[locale]/events/[eventId]/components/BackToEventsLink";
 import { ManagementButton } from "@/app/(public)/[locale]/events/[eventId]/components/ManagementButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ interface HeroProps {
 	locale: string;
 	registerLabel: string;
 	onRegister: () => void;
+	onSubmitWork?: () => void;
 	canCancel: boolean;
 	onCancel: () => void;
 	onShare: () => void;
@@ -41,6 +43,7 @@ export function Hero({
 	locale,
 	registerLabel,
 	onRegister,
+	onSubmitWork,
 	canCancel,
 	onCancel,
 	onShare,
@@ -57,7 +60,8 @@ export function Hero({
 	isDialogOpen,
 	onDialogChange,
 }: HeroProps) {
-	const eventTypeLabels = getEventTypeLabels(useTranslations());
+	const t = useTranslations();
+	const eventTypeLabels = getEventTypeLabels(t);
 	const timezoneLabel = formatTimezoneDisplay(event.timezone);
 
 	const registrations = event.registrations ?? [];
@@ -83,6 +87,13 @@ export function Hero({
 			</div>
 
 			<div className="relative container max-w-6xl py-12 space-y-6 z-10">
+				<div className="absolute left-4 top-4 sm:left-6 sm:top-6 z-20">
+					<BackToEventsLink
+						label={t("events.backToEventsList")}
+						className="text-white/80 hover:text-white"
+					/>
+				</div>
+
 				{/* Admin Controls - Keep visible but subtle */}
 				{isEventAdmin ? (
 					<div className="absolute right-4 top-4 sm:right-6 sm:top-6 flex flex-col items-end gap-2">
@@ -189,11 +200,17 @@ export function Hero({
 					<Button
 						variant="secondary"
 						className="h-12 bg-white/10 text-white border border-white/10 hover:bg-white/20 backdrop-blur-sm"
-						asChild
+						onClick={() => {
+							if (onSubmitWork) {
+								onSubmitWork();
+								return;
+							}
+							window.location.assign(
+								`/${locale}/events/${event.id}/submissions`,
+							);
+						}}
 					>
-						<a href={`/${locale}/events/${event.id}/submissions`}>
-							提交/修改作品
-						</a>
+						提交/修改作品
 					</Button>
 					{canCancel ? (
 						<Button

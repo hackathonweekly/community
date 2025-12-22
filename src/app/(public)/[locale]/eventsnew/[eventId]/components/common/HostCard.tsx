@@ -14,8 +14,10 @@ export function HostCard({
 	image?: string | null;
 	highlight?: string | null;
 }) {
-	const fallback =
-		name?.[0]?.toUpperCase() || username?.[0]?.toUpperCase() || title[0];
+	const fallbackSource = (name ?? username ?? title).trim();
+	const fallback = fallbackSource
+		? Array.from(fallbackSource)[0]?.toUpperCase()
+		: "?";
 
 	return (
 		<Card className="shadow-none border-dashed">
@@ -24,7 +26,9 @@ export function HostCard({
 					{image ? (
 						<AvatarImage src={image} alt={name || title} />
 					) : null}
-					<AvatarFallback>{fallback}</AvatarFallback>
+					<AvatarFallback className="font-medium leading-none">
+						{fallback}
+					</AvatarFallback>
 				</Avatar>
 				<div>
 					<p className="text-xs text-muted-foreground">{title}</p>

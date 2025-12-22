@@ -60,6 +60,7 @@ export function WorksSection({
 	eventId,
 	userId,
 	onRequireLogin,
+	onSubmitWork,
 	enabled = true,
 }: {
 	projectSubmissions?: ProjectSubmission[];
@@ -67,6 +68,7 @@ export function WorksSection({
 	eventId: string;
 	userId?: string;
 	onRequireLogin?: (redirectTo?: string) => void;
+	onSubmitWork?: () => void;
 	enabled?: boolean;
 }) {
 	if (!enabled) return null;
@@ -112,6 +114,10 @@ export function WorksSection({
 	};
 
 	const handleSubmit = () => {
+		if (onSubmitWork) {
+			onSubmitWork();
+			return;
+		}
 		if (!userId) {
 			onRequireLogin?.(submissionHref);
 			return;
@@ -200,9 +206,9 @@ export function WorksSection({
 				>
 					提交/修改作品
 				</Button>
-				{userSubmission ? (
+				{/* {userSubmission ? (
 					<Badge variant="secondary">已提交作品</Badge>
-				) : null}
+				) : null} */}
 			</div>
 		</SectionCard>
 	);

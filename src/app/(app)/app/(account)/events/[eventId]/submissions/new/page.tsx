@@ -5,6 +5,7 @@ import { getEventById } from "@/lib/database";
 import { EventSubmissionForm } from "@/modules/dashboard/events/components/submissions/EventSubmissionForm";
 import { SubmissionPageShell } from "@/modules/dashboard/events/components/submissions/SubmissionPageShell";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
+import { getUserLocale } from "@/modules/i18n/lib/locale-cookie";
 
 interface PageProps {
 	params: Promise<{ eventId: string }>;
@@ -13,6 +14,7 @@ interface PageProps {
 export default async function NewSubmissionPage({ params }: PageProps) {
 	const { eventId } = await params;
 	const event = await getEventById(eventId);
+	const locale = await getUserLocale();
 
 	if (!event) {
 		notFound();
@@ -34,7 +36,7 @@ export default async function NewSubmissionPage({ params }: PageProps) {
 		<SubmissionPageShell
 			eyebrow="提交作品"
 			title={event.title}
-			backHref={`/events/${eventId}`}
+			backHref={`/${locale}/eventsnew/${eventId}`}
 			backLabel="返回活动主页"
 		>
 			<EventSubmissionForm

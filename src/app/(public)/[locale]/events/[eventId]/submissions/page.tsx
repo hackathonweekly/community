@@ -49,7 +49,7 @@ export default async function PublicSubmissionsPage({ params }: PageProps) {
 				<div className="flex items-center gap-3">
 					<Button variant="ghost" asChild>
 						<Link
-							href={`/${locale}/events/${eventId}`}
+							href={`/${locale}/eventsnew/${eventId}`}
 							aria-label="返回活动"
 						>
 							<span className="inline-flex items-center gap-2">

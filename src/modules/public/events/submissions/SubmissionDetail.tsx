@@ -429,7 +429,7 @@ export function SubmissionDetail({
 
 							{/* Voting Card */}
 							<div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-5 space-y-4 backdrop-blur-sm shadow-xl">
-								<div className="flex items-center justify-between">
+								<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
 									<h3 className="text-base font-semibold text-white flex items-center gap-2">
 										<Heart
 											className={cn(
@@ -442,7 +442,7 @@ export function SubmissionDetail({
 										给作品投票
 									</h3>
 									{votingHint && (
-										<span className="text-xs text-slate-400">
+										<span className="text-xs text-slate-400 leading-snug sm:max-w-[60%] sm:text-right">
 											{votingHint}
 										</span>
 									)}

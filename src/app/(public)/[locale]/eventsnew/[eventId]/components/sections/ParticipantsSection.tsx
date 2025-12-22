@@ -20,9 +20,7 @@ type ParticipantsSectionProps = {
 export function ParticipantsSection({
 	event,
 	currentUserId,
-	projectSubmissions = [],
 	onRequireLogin,
-	isDialogOpen,
 	onDialogChange,
 }: ParticipantsSectionProps) {
 	const approvedRegs = (event.registrations ?? []).filter(
@@ -31,6 +29,15 @@ export function ParticipantsSection({
 	// Show more items in the horizontal scroll
 	const preview = approvedRegs.slice(0, 10);
 	const totalCount = approvedRegs.length;
+
+	const getFallbackText = (
+		name?: string | null,
+		username?: string | null,
+	) => {
+		const source = (name ?? username ?? "").trim();
+		if (!source) return "??";
+		return Array.from(source).slice(0, 2).join("").toUpperCase();
+	};
 
 	const handleViewAll = () => {
 		if (!currentUserId) {
@@ -56,9 +63,17 @@ export function ParticipantsSection({
 									<Avatar className="h-16 w-16 border-2 border-white shadow-sm group-hover/card:scale-105 transition-transform">
 										<AvatarImage
 											src={reg.user.image || undefined}
+											alt={
+												reg.user.name ||
+												reg.user.username ||
+												"用户头像"
+											}
 										/>
-										<AvatarFallback>
-											{reg.user.name?.slice(0, 2)}
+										<AvatarFallback className="font-medium leading-none">
+											{getFallbackText(
+												reg.user.name,
+												reg.user.username,
+											)}
 										</AvatarFallback>
 									</Avatar>
 									<div className="space-y-1 w-full">
