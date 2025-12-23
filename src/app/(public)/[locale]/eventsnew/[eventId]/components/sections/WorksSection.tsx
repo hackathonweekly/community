@@ -108,6 +108,7 @@ export function WorksSection({
 	const submissionHref = userSubmission
 		? `/app/events/${eventId}/submissions`
 		: `/app/events/${eventId}/submissions/new`;
+	const unauthenticatedSubmissionHref = `/app/events/${eventId}/submissions`;
 
 	const handleViewAll = () => {
 		window.location.assign(`/${locale}/events/${eventId}/submissions`);
@@ -119,7 +120,12 @@ export function WorksSection({
 			return;
 		}
 		if (!userId) {
-			onRequireLogin?.(submissionHref);
+			const redirectTarget = unauthenticatedSubmissionHref;
+			if (onRequireLogin) {
+				onRequireLogin(redirectTarget);
+				return;
+			}
+			window.location.assign(redirectTarget);
 			return;
 		}
 		window.location.assign(submissionHref);

@@ -1220,6 +1220,9 @@
 		"linkCopied": "Link copied",
 		"linkCopyFailed": "Copy failed, please try again",
 		"registrationSuccess": "Registered successfully!",
+		"registrationSuccessInfo": {
+			"requiresRegistration": "Please register before viewing the registration instructions."
+		},
 		"loginRequiredVolunteer": "Please log in to apply as volunteer",
 		"loginToRegister": "Log in to register",
 		"toasts": {

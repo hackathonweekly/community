@@ -1267,6 +1267,9 @@
 		"linkCopied": "链接已复制",
 		"linkCopyFailed": "复制失败，请重试",
 		"registrationSuccess": "报名成功！",
+		"registrationSuccessInfo": {
+			"requiresRegistration": "请先报名后查看报名须知。"
+		},
 		"loginRequiredVolunteer": "请先登录后申请志愿者",
 		"loginToRegister": "登录后报名",
 		"toasts": {

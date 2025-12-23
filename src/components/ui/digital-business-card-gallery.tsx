@@ -1,21 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-	DigitalBusinessCard,
-	type DigitalBusinessCardData,
-	convertCardToImage,
-} from "./digital-business-card";
 import {
 	ChevronLeftIcon,
 	ChevronRightIcon,
 	XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/solid";
-import { toast } from "sonner";
 import JSZip from "jszip";
 import { useLocale } from "next-intl";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { toast } from "sonner";
+import {
+	DigitalBusinessCard,
+	type DigitalBusinessCardData,
+	convertCardToImage,
+} from "./digital-business-card";
 
 interface DigitalBusinessCardGalleryProps {
 	users: DigitalBusinessCardData[];
@@ -43,6 +44,10 @@ export function DigitalBusinessCardGallery({
 }: DigitalBusinessCardGalleryProps) {
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [isDownloading, setIsDownloading] = useState(false);
+	const [portalTarget] = useState<HTMLElement | null>(() => {
+		if (typeof document === "undefined") return null;
+		return document.body;
+	});
 	const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
 	const locale = useLocale();
@@ -191,8 +196,12 @@ export function DigitalBusinessCardGallery({
 		return null;
 	}
 
-	return (
-		<div className="fixed inset-0 z-50 flex items-center justify-center">
+	if (!portalTarget) {
+		return null;
+	}
+
+	return createPortal(
+		<div className="fixed inset-0 z-[60] flex items-center justify-center">
 			{/* Backdrop */}
 			<div
 				className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -330,6 +339,7 @@ export function DigitalBusinessCardGallery({
 					</p>
 				</div>
 			</div>
-		</div>
+		</div>,
+		portalTarget,
 	);
 }

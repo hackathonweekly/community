@@ -64,9 +64,16 @@ export function ParticipantAvatars({
 }: ParticipantAvatarsProps) {
 	const t = useTranslations();
 	const locale = useLocale();
-	const [isDialogOpen, setIsDialogOpen] = useState(open ?? false);
+	const [uncontrolledDialogOpen, setUncontrolledDialogOpen] = useState(false);
+	const isControlled = typeof open === "boolean";
+	const dialogOpen =
+		typeof open === "boolean" ? open : uncontrolledDialogOpen;
+
 	const [isSlideOpen, setIsSlideOpen] = useState(false);
 	const [isCardGalleryOpen, setIsCardGalleryOpen] = useState(false);
+	const [pendingModal, setPendingModal] = useState<
+		"cardGallery" | "slideDeck" | null
+	>(null);
 	const [checkedInUserIds, setCheckedInUserIds] = useState<Set<string>>(
 		new Set(),
 	);
@@ -79,27 +86,25 @@ export function ParticipantAvatars({
 		(reg) => reg.status === "APPROVED",
 	);
 
-	useEffect(() => {
-		if (typeof open === "boolean") {
-			setIsDialogOpen(open);
+	const setDialogOpen = (nextOpen: boolean) => {
+		if (!isControlled) {
+			setUncontrolledDialogOpen(nextOpen);
 		}
-	}, [open]);
+		onOpenChange?.(nextOpen);
+	};
 
 	// 重置搜索和分页状态
 	const handleDialogChange = (openState: boolean) => {
 		if (openState && requireAuth && !currentUserId) {
 			onRequireAuth?.();
-			onOpenChange?.(false);
+			setDialogOpen(false);
 			return;
 		}
 		if (openState) {
 			setSearchTerm(""); // 打开弹窗时重置搜索
 			setCurrentPage(1); // 重置到第一页
 		}
-		if (typeof open !== "boolean") {
-			setIsDialogOpen(openState);
-		}
-		onOpenChange?.(openState);
+		setDialogOpen(openState);
 	};
 
 	useEffect(() => {
@@ -228,6 +233,18 @@ export function ParticipantAvatars({
 		);
 	}, [confirmedParticipants]);
 
+	useEffect(() => {
+		if (!pendingModal) return;
+		if (dialogOpen) return;
+
+		if (pendingModal === "cardGallery") {
+			setIsCardGalleryOpen(true);
+		} else {
+			setIsSlideOpen(true);
+		}
+		setPendingModal(null);
+	}, [pendingModal, dialogOpen]);
+
 	if (confirmedParticipants.length === 0) {
 		return null;
 	}
@@ -265,10 +282,7 @@ export function ParticipantAvatars({
 				</div>
 
 				<div className="flex gap-2">
-					<Dialog
-						open={isDialogOpen}
-						onOpenChange={handleDialogChange}
-					>
+					<Dialog open={dialogOpen} onOpenChange={handleDialogChange}>
 						<DialogTrigger asChild>
 							<Button
 								variant={darkBackground ? "ghost" : "outline"}
@@ -333,8 +347,10 @@ export function ParticipantAvatars({
 												variant="outline"
 												size="sm"
 												onClick={() => {
-													setIsCardGalleryOpen(true);
-													handleDialogChange(false);
+													setPendingModal(
+														"cardGallery",
+													);
+													setDialogOpen(false);
 												}}
 											>
 												<IdentificationIcon className="mr-1 h-4 w-4" />
@@ -344,8 +360,10 @@ export function ParticipantAvatars({
 												variant="outline"
 												size="sm"
 												onClick={() => {
-													setIsSlideOpen(true);
-													handleDialogChange(false);
+													setPendingModal(
+														"slideDeck",
+													);
+													setDialogOpen(false);
 												}}
 												className="hidden md:flex"
 											>

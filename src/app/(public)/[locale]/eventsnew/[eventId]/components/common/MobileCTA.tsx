@@ -38,6 +38,7 @@ export function MobileCTA({
 	submissionsEnabled = true,
 	canContact = true,
 	canFeedback = true,
+	hasImportantInfo = true,
 }: {
 	locale: string;
 	eventId: string;
@@ -57,6 +58,7 @@ export function MobileCTA({
 	canContact?: boolean;
 	canFeedback?: boolean;
 	onShowSuccessInfo?: () => void;
+	hasImportantInfo?: boolean;
 }) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
 	const canShowCountdownTool =
@@ -125,7 +127,7 @@ export function MobileCTA({
 			key: "success-info",
 			label: "报名须知",
 			onClick: onShowSuccessInfo,
-			show: !!onShowSuccessInfo,
+			show: Boolean(onShowSuccessInfo),
 		},
 	]
 		.filter((item): item is MoreAction => Boolean(item))

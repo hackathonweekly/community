@@ -89,6 +89,19 @@ export function NewEventPageClient({
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
 	const [latestRegistration, setLatestRegistration] = useState<any>(null);
 
+	const hasImportantInfo = Boolean(
+		event.registrationSuccessInfo ||
+			event.registrationSuccessImage ||
+			event.registrationPendingInfo ||
+			event.registrationPendingImage,
+	);
+	const canViewSuccessInfo = Boolean(
+		event.isExternalEvent ||
+			(latestRegistration && latestRegistration.status !== "CANCELLED") ||
+			(existingRegistration &&
+				existingRegistration.status !== "CANCELLED"),
+	);
+
 	const registrationDisabledReason = useMemo(() => {
 		if (event.isExternalEvent) return null;
 		if (isEventEnded) return "活动已结束";
@@ -140,13 +153,14 @@ export function NewEventPageClient({
 	useEffect(() => {
 		const openRegistration = searchParams.get("openRegistration");
 		if (!openRegistration) return;
+		if (!loaded) return;
 
 		const searchString = searchParams.toString();
 		const targetPath = searchString
 			? `${pathname}?${searchString}`
 			: pathname;
 
-		if (!user && loaded) {
+		if (!user) {
 			const timer = setTimeout(() => {
 				router.push(
 					`/auth/login?redirectTo=${encodeURIComponent(targetPath)}`,
@@ -305,6 +319,16 @@ export function NewEventPageClient({
 		setShowSuccessInfo(true);
 		toast.success("报名成功！");
 		handleDataRefresh();
+	};
+
+	const handleShowSuccessInfo = () => {
+		if (!canViewSuccessInfo) {
+			toast.error(
+				t("events.registrationSuccessInfo.requiresRegistration"),
+			);
+			return;
+		}
+		setShowSuccessInfo(true);
 	};
 
 	const handleCancelRegistration = () => {
@@ -570,7 +594,7 @@ export function NewEventPageClient({
 						onCancel={handleCancelRegistration}
 						onShowQR={() => setShowQRGenerator(true)}
 						onShowShare={() => setShowShareModal(true)}
-						onShowSuccessInfo={() => setShowSuccessInfo(true)}
+						onShowSuccessInfo={handleShowSuccessInfo}
 						onContact={handleOpenContact}
 						onFeedback={handleOpenFeedback}
 						canContact={canContactOrganizer}
@@ -652,7 +676,7 @@ export function NewEventPageClient({
 				onRegister={() =>
 					handleRegister(() => setShowRegistrationForm(true))
 				}
-				onShowSuccessInfo={() => setShowSuccessInfo(true)}
+				onShowSuccessInfo={handleShowSuccessInfo}
 				onCancel={handleCancelRegistration}
 				onShare={() => setShowShareModal(true)}
 				onFeedback={handleOpenFeedback}
@@ -664,6 +688,7 @@ export function NewEventPageClient({
 				canShowQr={existingRegistration?.status === "APPROVED"}
 				canContact={canContactOrganizer}
 				canFeedback={canShowFeedback}
+				hasImportantInfo={hasImportantInfo}
 			/>
 
 			{showShareModal && (

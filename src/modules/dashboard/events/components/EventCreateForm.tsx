@@ -551,8 +551,7 @@ export function EventCreateForm({
 	// 如果是编辑模式且已有图片，认为用户已经选择了图片
 	const [userHasSelectedImage, setUserHasSelectedImage] = useState(
 		Boolean(
-			(isEdit && formDefaultValues.coverImage) ||
-				(sourceEvent && sourceEvent.coverImage),
+			(isEdit && formDefaultValues.coverImage) || sourceEvent?.coverImage,
 		),
 	);
 
