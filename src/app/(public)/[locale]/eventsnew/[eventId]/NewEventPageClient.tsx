@@ -120,11 +120,11 @@ export function NewEventPageClient({
 			event.isExternalEvent
 				? false
 				: Boolean(
-						isEventEnded ||
-							isRegistrationClosed ||
-							isEventFull ||
-							(existingRegistration &&
-								existingRegistration.status !== "CANCELLED"),
+						(!existingRegistration ||
+							existingRegistration.status === "CANCELLED") &&
+							(isEventEnded ||
+								isRegistrationClosed ||
+								isEventFull),
 					),
 		[
 			event.isExternalEvent,
@@ -284,6 +284,17 @@ export function NewEventPageClient({
 			redirectToLogin(targetPath);
 			return;
 		}
+		if (
+			existingRegistration &&
+			existingRegistration.status !== "CANCELLED"
+		) {
+			if (existingRegistration.status === "APPROVED") {
+				setShowQRGenerator(true);
+			} else {
+				setShowSuccessInfo(true);
+			}
+			return;
+		}
 		if (isEventEnded) {
 			toast.error("活动已结束，无法报名");
 			return;
@@ -296,22 +307,47 @@ export function NewEventPageClient({
 			toast.error("名额已满");
 			return;
 		}
-		if (
-			existingRegistration &&
-			existingRegistration.status !== "CANCELLED"
-		) {
-			if (existingRegistration.status === "APPROVED") {
-				setShowQRGenerator(true);
-			} else {
-				setShowSuccessInfo(true);
-			}
-			return;
-		}
 		if (openModal) {
 			openModal();
 			return;
 		}
 		setShowRegistrationForm(true);
+	};
+
+	const handleSubmitWork = () => {
+		if (!loaded) return;
+
+		if (!user) {
+			const params = new URLSearchParams(searchParams.toString());
+			params.set("openRegistration", "true");
+			const targetPath = params.toString()
+				? `${pathname}?${params.toString()}`
+				: pathname;
+			redirectToLogin(targetPath);
+			return;
+		}
+
+		if (existingRegistration?.status === "APPROVED") {
+			const getSubmissionOwnerId = (submission?: any) =>
+				submission?.submitter?.id ??
+				submission?.user?.id ??
+				submission?.submitterId ??
+				submission?.userId ??
+				null;
+			const hasUserSubmitted = projectSubmissions
+				? projectSubmissions.some(
+						(submission: any) =>
+							getSubmissionOwnerId(submission) === user.id,
+					)
+				: false;
+			const route = hasUserSubmitted
+				? `/app/events/${event.id}/submissions`
+				: `/app/events/${event.id}/submissions/new`;
+			router.push(route);
+			return;
+		}
+
+		handleRegister(() => setShowRegistrationForm(true));
 	};
 
 	const handleRegistrationComplete = (registration: any) => {
@@ -561,6 +597,7 @@ export function NewEventPageClient({
 				locale={locale}
 				registerLabel={registerLabel}
 				onRegister={handleRegister}
+				onSubmitWork={handleSubmitWork}
 				canCancel={canCancel}
 				onCancel={handleCancelRegistration}
 				onShare={() => setShowShareModal(true)}
@@ -626,6 +663,7 @@ export function NewEventPageClient({
 						eventId={event.id}
 						userId={user?.id}
 						onRequireLogin={redirectToLogin}
+						onSubmitWork={handleSubmitWork}
 						enabled={submissionsEnabled}
 					/>
 
