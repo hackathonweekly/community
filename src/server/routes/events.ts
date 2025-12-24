@@ -1,11 +1,22 @@
 import { getVisitorRestrictionsConfig } from "@/config/visitor-restrictions";
+import { getRandomTemplate } from "@/config/image-templates";
 import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
 } from "@/features/hackathon/config";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
+import { getEventCreationEligibility } from "@/features/events/creation-eligibility";
 import { NotificationService } from "@/features/notifications/service";
 import { RestrictedAction, canUserDoAction } from "@/features/permissions";
+import {
+	findActiveEventsTokenByValue,
+	recordEventsTokenUsage,
+} from "@/features/events-token/service";
+import { getRequestClientMetadata } from "@/features/events-token/request-metadata";
+import {
+	EventsTokenRateLimitError,
+	enforceEventsTokenRateLimit,
+} from "@/features/events-token/rate-limit";
 import { auth } from "@/lib/auth";
 import {
 	ContentType,
@@ -51,6 +62,75 @@ import statusRouter from "./events/status";
 import { eventTicketTypesRouter } from "./events/ticket-types";
 import volunteerAdminRouter from "./events/volunteer-admin";
 import volunteersRouter from "./events/volunteers";
+
+type AuthSessionResult = NonNullable<
+	Awaited<ReturnType<typeof auth.api.getSession>>
+>;
+
+type EventCreatorAuth =
+	| {
+			type: "session";
+			userId: string;
+			session: AuthSessionResult;
+	  }
+	| {
+			type: "token";
+			userId: string;
+			tokenId: string;
+			rawToken: string;
+	  };
+
+type ResolvedEventCreatorAuth = EventCreatorAuth | "invalid-token" | null;
+
+function extractEventsTokenFromAuthorizationHeader(header?: string | null) {
+	if (!header) {
+		return null;
+	}
+
+	const [scheme, ...rest] = header.trim().split(/\s+/);
+	if (!scheme || scheme.toLowerCase() !== "eventstoken") {
+		return null;
+	}
+
+	const token = rest.join(" ").trim();
+	return token.length > 0 ? token : null;
+}
+
+async function resolveEventCreatorAuth(
+	headers: Headers,
+): Promise<ResolvedEventCreatorAuth> {
+	const tokenValue = extractEventsTokenFromAuthorizationHeader(
+		headers.get("authorization"),
+	);
+
+	if (tokenValue) {
+		const tokenRecord = await findActiveEventsTokenByValue(tokenValue);
+		if (!tokenRecord) {
+			return "invalid-token";
+		}
+
+		return {
+			type: "token",
+			userId: tokenRecord.userId,
+			tokenId: tokenRecord.id,
+			rawToken: tokenValue,
+		};
+	}
+
+	const session = await auth.api.getSession({
+		headers,
+	});
+
+	if (!session) {
+		return null;
+	}
+
+	return {
+		type: "session",
+		userId: session.user.id,
+		session,
+	};
+}
 
 const registrationFieldSwitchSchema = z.object({
 	enabled: z.boolean().optional(),
@@ -1313,11 +1393,19 @@ app.post("/", async (c) => {
 			);
 		}
 
-		const session = await auth.api.getSession({
-			headers: c.req.raw.headers,
-		});
+		const authContext = await resolveEventCreatorAuth(c.req.raw.headers);
 
-		if (!session) {
+		if (authContext === "invalid-token") {
+			return c.json(
+				{
+					success: false,
+					error: "Invalid or expired events token",
+				},
+				401,
+			);
+		}
+
+		if (!authContext) {
 			return c.json(
 				{
 					success: false,
@@ -1327,42 +1415,43 @@ app.post("/", async (c) => {
 			);
 		}
 
-		// Check L0 user (VISITOR) permissions
-		const { db } = await import("@/lib/database/prisma/client");
-		const user = await db.user.findUnique({
-			where: { id: session.user.id },
-			select: { membershipLevel: true },
-		});
-
-		if (!user) {
-			return c.json(
-				{
-					success: false,
-					error: "User not found",
-				},
-				404,
-			);
+		if (authContext.type === "token") {
+			try {
+				enforceEventsTokenRateLimit(authContext.tokenId);
+			} catch (error) {
+				if (error instanceof EventsTokenRateLimitError) {
+					return c.json(
+						{
+							success: false,
+							error: "Events token rate limit exceeded",
+						},
+						429,
+						{
+							"Retry-After": error.retryAfter.toString(),
+						},
+					);
+				}
+				throw error;
+			}
 		}
 
-		const restrictions = await getVisitorRestrictionsConfig();
-		const membership = { membershipLevel: user.membershipLevel };
-		const { allowed, reason } = canUserDoAction(
-			membership,
-			RestrictedAction.CREATE_EVENT,
-			restrictions,
+		const eligibility = await getEventCreationEligibility(
+			authContext.userId,
 		);
 
-		if (!allowed) {
+		if (!eligibility.allowed) {
 			return c.json(
 				{
 					success: false,
 					error:
-						reason ??
+						eligibility.reason ??
 						"创建活动需要成为共创伙伴，请联系社区负责人！",
 				},
-				403,
+				eligibility.status,
 			);
 		}
+
+		const actingUserId = authContext.userId;
 
 		const data = validationResult.data;
 
@@ -1379,7 +1468,7 @@ app.post("/", async (c) => {
 					title: data.title,
 				},
 				errors: moderationResult.errors,
-				userId: session.user.id,
+				userId: actingUserId,
 			});
 			return c.json(
 				{
@@ -1418,7 +1507,7 @@ app.post("/", async (c) => {
 			});
 			if (!moderation.isApproved) {
 				console.warn("Event creation image moderation failed", {
-					userId: session.user.id,
+					userId: actingUserId,
 					field: field.name,
 					value: field.value,
 					result: moderation.result,
@@ -1449,11 +1538,28 @@ app.post("/", async (c) => {
 			...restEventData
 		} = cleanedData;
 
-		// If organizationId is provided, verify user has access to create events for this organization
+		if (!restEventData.coverImage) {
+			const fallbackTemplate = getRandomTemplate(
+				restEventData.type?.toLowerCase(),
+			);
+			restEventData.coverImage = fallbackTemplate.url;
+		}
+
+		// If organizationId is provided, verify context
 		if (restEventData.organizationId) {
+			if (authContext.type === "token") {
+				return c.json(
+					{
+						success: false,
+						error: "Events tokens can only create personal events. Remove organizationId from the payload.",
+					},
+					400,
+				);
+			}
+
 			const membership = await getOrganizationMembership(
 				restEventData.organizationId,
-				session.user.id,
+				actingUserId,
 			);
 			if (!membership) {
 				return c.json(
@@ -1469,7 +1575,7 @@ app.post("/", async (c) => {
 		const normalizedHackathonConfig =
 			restEventData.type === "HACKATHON"
 				? withHackathonConfigDefaults(hackathonConfig, {
-						changedBy: session.user.id,
+						changedBy: actingUserId,
 					})
 				: undefined;
 		const normalizedSubmissionFormConfig =
@@ -1489,7 +1595,7 @@ app.post("/", async (c) => {
 		const event = await createEvent({
 			...restEventDataWithoutPlugin,
 			submissionsEnabled,
-			organizerId: session.user.id,
+			organizerId: actingUserId,
 			registrationFieldConfig:
 				registrationFieldConfig as unknown as Prisma.InputJsonValue,
 			submissionFormConfig: normalizedSubmissionFormConfig,
@@ -1502,7 +1608,7 @@ app.post("/", async (c) => {
 		if (event.status === "PUBLISHED") {
 			const hostContext = await resolveEventHostContext(event);
 			const excludeUserIds = Array.from(
-				new Set([session.user.id, event.organizerId].filter(Boolean)),
+				new Set([actingUserId, event.organizerId].filter(Boolean)),
 			);
 
 			// 添加调试日志
@@ -1525,9 +1631,22 @@ app.post("/", async (c) => {
 			});
 		}
 
+		if (authContext.type === "token") {
+			const metadata = getRequestClientMetadata(c.req.raw);
+			await recordEventsTokenUsage({
+				tokenId: authContext.tokenId,
+				ipAddress: metadata.ipAddress,
+				userAgent: metadata.userAgent,
+			});
+		}
+
+		const eventUrl = generateEventUrl(event.id);
 		return c.json({
 			success: true,
-			data: event,
+			data: {
+				...event,
+				eventUrl,
+			},
 		});
 	} catch (error) {
 		console.error("Error creating event:", error);

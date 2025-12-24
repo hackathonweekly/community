@@ -104,6 +104,26 @@ src/
 - 身份认证设置
 - 部署说明
 
+## 🔐 Events Token API
+
+如果你希望在飞书、Zapier 或自建工具中自动创建活动，可以在「账号设置 → 安全」里生成 `Events Token`。它是一种仅限「个人发起」活动的 API 密钥，使用方式如下：
+
+1. **生成/管理 Token**：进入账户安全页的 “Events Token” 模块，点击生成或重新生成。Token 只展示一次，请立即复制。
+2. **请求格式**：向 `POST /api/events` 发送 JSON 负载，并在请求头添加 `Authorization: EventsToken <你的 token>`。请求体与网页端创建活动一致，但 `organizationId` 会被忽略，所有活动都归属 Token 所在账户的个人身份。
+3. **速率限制**：默认限制为每个 Token 每 5 分钟 60 次请求，超过会返回 `429 Too Many Requests`。
+4. **安全建议**：Token 仅以哈希形式存储，可随时撤销或重新生成。建议为第三方工具准备单独的子账号，并定期旋转密钥。
+
+简单示例：
+
+```bash
+curl -X POST https://your-domain/api/events \
+  -H "Authorization: EventsToken evt_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "title": "API meetup", "type": "MEETUP", "isOnline": true, ... }'
+```
+
+返回结构与普通创建一致，包含 `success`、`data` 字段，并额外提供 `data.eventUrl` 指向新活动的完整访问链接。若 Token 失效或权限不足，将得到相应的 `401/403` 错误码和提示信息。
+
 ## 🔧 脚本命令
 
 - `bun dev` - 启动开发服务器

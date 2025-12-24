@@ -27,6 +27,7 @@ import { eventHostSubscriptionsRouter } from "./routes/event-host-subscriptions"
 import eventTemplatesRouter from "./routes/event-templates";
 import eventsRouter from "./routes/events";
 import eventsRegistrationsRouter from "./routes/events/registrations";
+import { eventsTokenRouter } from "./routes/events-token";
 import hackathonRouter from "./routes/hackathon";
 import { healthRouter } from "./routes/health";
 import { levelRouter } from "./routes/level";
@@ -70,6 +71,7 @@ app.route("/", authRouter) // 🔧 Better Auth处理 /auth/* 路径
 	.route("/", contactRouter)
 	.route("/", projectsRouter)
 	.route("/", newsletterRouter)
+	.route("/events-token", eventsTokenRouter)
 	.route("/contributions", contributionsRouter)
 	.route("/badges", badgesRouter)
 	.route("/volunteer-roles", volunteerRolesRouter)

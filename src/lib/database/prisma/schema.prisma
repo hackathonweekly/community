@@ -221,7 +221,28 @@ model User {
   boundNfcCards              NfcCard[]      @relation("BoundNfcCards") // 绑定的NFC卡片
   createdNfcCards            NfcCard[]      @relation("CreatedNfcCards") // 创建的NFC卡片
 
+  // Events API token relation
+  eventsApiToken             EventsApiToken?
+
   @@map("user")
+}
+
+model EventsApiToken {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  tokenHash          String?  @unique
+  tokenLastFour      String?
+  createdAt          DateTime @default(now())
+  createdByIp        String?
+  createdByUserAgent String?
+  lastUsedAt         DateTime?
+  lastUsedIp         String?
+  lastUsedUserAgent  String?
+  revokedAt          DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
 }
 
 model Session {

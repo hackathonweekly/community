@@ -2701,6 +2701,51 @@
 						},
 						"title": "密钥"
 					},
+					"eventsToken": {
+						"title": "Events Token",
+						"description": "生成专属 API Token，让受信任的工具通过 /api/events 代表你创建“个人发起”的活动。",
+						"empty": {
+							"title": "尚未创建 Events Token",
+							"description": "生成 Token 后即可把活动创建接入飞书、Zapier 等系统，所有活动都会归属于你的个人身份。"
+						},
+						"status": {
+							"active": "已启用，尾号 {lastFour}",
+							"neverUsed": "尚未使用",
+							"lastUsed": "最近一次使用：{date}",
+							"createdAt": "创建时间：{date}",
+							"lastUsedIp": "最近请求 IP：{ip}"
+						},
+						"eligibility": {
+							"blocked": "当前账号不具备创建活动的权限，暂时无法生成 Events Token。"
+						},
+						"actions": {
+							"generate": "生成 Token",
+							"regenerate": "重新生成",
+							"revoke": "立即失效",
+							"copied": "Token 已复制",
+							"usageHeading": "调用方式",
+							"usageSteps": {
+								"post": "向 POST /api/events 提交活动内容。",
+								"header": "添加请求头 Authorization: EventsToken <token>。",
+								"personalOnly": "仅支持个人活动，organizationId 会被忽略。",
+								"limit": "单个 Token 5 分钟最多 60 次请求。"
+							}
+						},
+						"tokenReveal": {
+							"title": "请妥善保存",
+							"description": "Token 仅展示一次，请立即复制并安全存储。"
+						},
+						"notifications": {
+							"generate": {
+								"success": "Events Token 已生成",
+								"error": "生成 Token 失败"
+							},
+							"revoke": {
+								"success": "Events Token 已撤销",
+								"error": "撤销 Token 失败"
+							}
+						}
+					},
 					"setPassword": {
 						"description": "您尚未设置密码。要设置密码，您需要通过密码重置流程。点击下面的按钮发送邮件以重置密码，并按照邮件中的说明操作。",
 						"descriptionNeedEmail": "要设置密码，您需要先绑定并验证一个真实的邮箱地址。请前往邮箱设置页面添加并验证您的邮箱。",
@@ -3612,6 +3657,51 @@
 						}
 					},
 					"title": "密钥"
+				},
+				"eventsToken": {
+					"title": "Events Token",
+					"description": "生成专属 API Token，让受信任的工具通过 /api/events 代表你创建“个人发起”的活动。",
+					"empty": {
+						"title": "尚未创建 Events Token",
+						"description": "生成 Token 后即可把活动创建接入飞书、Zapier 等系统，所有活动都会归属于你的个人身份。"
+					},
+					"status": {
+						"active": "已启用，尾号 {lastFour}",
+						"neverUsed": "尚未使用",
+						"lastUsed": "最近一次使用：{date}",
+						"createdAt": "创建时间：{date}",
+						"lastUsedIp": "最近请求 IP：{ip}"
+					},
+					"eligibility": {
+						"blocked": "当前账号不具备创建活动的权限，暂时无法生成 Events Token。"
+					},
+					"actions": {
+						"generate": "生成 Token",
+						"regenerate": "重新生成",
+						"revoke": "立即失效",
+						"copied": "Token 已复制",
+						"usageHeading": "调用方式",
+						"usageSteps": {
+							"post": "向 POST /api/events 提交活动内容。",
+							"header": "添加请求头 Authorization: EventsToken <token>。",
+							"personalOnly": "仅支持个人活动，organizationId 会被忽略。",
+							"limit": "单个 Token 5 分钟最多 60 次请求。"
+						}
+					},
+					"tokenReveal": {
+						"title": "请妥善保存",
+						"description": "Token 仅展示一次，请立即复制并安全存储。"
+					},
+					"notifications": {
+						"generate": {
+							"success": "Events Token 已生成",
+							"error": "生成 Token 失败"
+						},
+						"revoke": {
+							"success": "Events Token 已撤销",
+							"error": "撤销 Token 失败"
+						}
+					}
 				},
 				"setPassword": {
 					"description": "您尚未设置密码。要设置密码，您需要通过密码重置流程。点击下面的按钮发送邮件以重置密码，并按照邮件中的说明操作。",

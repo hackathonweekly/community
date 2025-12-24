@@ -2647,6 +2647,51 @@
 						},
 						"title": "Passkeys"
 					},
+					"eventsToken": {
+						"title": "Events token",
+						"description": "Generate a personal API token so trusted tools can call POST /api/events on your behalf. Tokens only create personal events.",
+						"empty": {
+							"title": "No events token yet",
+							"description": "Issue a token to allow verified automations to create events from your account. Tokens only support personal hosts and respect your membership limits."
+						},
+						"status": {
+							"active": "Active token ending with {lastFour}",
+							"neverUsed": "Never used yet",
+							"lastUsed": "Last used {date}",
+							"createdAt": "Created {date}",
+							"lastUsedIp": "Last used from {ip}"
+						},
+						"eligibility": {
+							"blocked": "You need permission to create events before issuing an events token."
+						},
+						"actions": {
+							"generate": "Generate token",
+							"regenerate": "Regenerate token",
+							"revoke": "Revoke token",
+							"copied": "Token copied",
+							"usageHeading": "API usage",
+							"usageSteps": {
+								"post": "Send POST /api/events with your payload.",
+								"header": "Add header Authorization: EventsToken <token>.",
+								"personalOnly": "organizationId is ignored so requests always create personal events.",
+								"limit": "Events tokens are limited to 60 calls every 5 minutes."
+							}
+						},
+						"tokenReveal": {
+							"title": "Save this token",
+							"description": "The token value is only shown once. Store it securely."
+						},
+						"notifications": {
+							"generate": {
+								"success": "Events token ready",
+								"error": "Failed to create token"
+							},
+							"revoke": {
+								"success": "Events token revoked",
+								"error": "Failed to revoke token"
+							}
+						}
+					},
 					"setPassword": {
 						"description": "You have not set a password yet. To set one, you need to go through the password reset flow. Click the button below to send an email to reset your password and follow the instructions in the email.",
 						"descriptionNeedEmail": "To set a password, you need to first bind and verify a real email address. Please go to the Email settings page to add and verify your email.",
