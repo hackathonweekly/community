@@ -122,7 +122,7 @@ curl -X POST https://your-domain/api/events \
   -d '{ "title": "API meetup", "type": "MEETUP", "isOnline": true, ... }'
 ```
 
-返回结构与普通创建一致，包含 `success`、`data` 字段。若 Token 失效或权限不足，将得到相应的 `401/403` 错误码和提示信息。
+返回结构与普通创建一致，包含 `success`、`data` 字段，并额外提供 `data.eventUrl` 指向新活动的完整访问链接。若 Token 失效或权限不足，将得到相应的 `401/403` 错误码和提示信息。
 
 ## 🔧 脚本命令
 

@@ -1632,9 +1632,13 @@ app.post("/", async (c) => {
 			});
 		}
 
+		const eventUrl = generateEventUrl(event.id);
 		return c.json({
 			success: true,
-			data: event,
+			data: {
+				...event,
+				eventUrl,
+			},
 		});
 	} catch (error) {
 		console.error("Error creating event:", error);
