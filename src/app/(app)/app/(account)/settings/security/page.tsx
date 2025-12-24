@@ -13,6 +13,7 @@ import { ActiveSessionsBlock } from "@dashboard/settings/components/ActiveSessio
 import { ChangePasswordForm } from "@dashboard/settings/components/ChangePassword";
 import { ConnectedAccountsBlock } from "@dashboard/settings/components/ConnectedAccountsBlock";
 import { PasskeysBlock } from "@dashboard/settings/components/PasskeysBlock";
+import { EventsTokenBlock } from "@dashboard/settings/components/EventsTokenBlock";
 import { PhoneNumberBindingBlock } from "@dashboard/settings/components/PhoneNumberBindingBlock";
 import { SetPasswordForm } from "@dashboard/settings/components/SetPassword";
 import { TwoFactorBlock } from "@dashboard/settings/components/TwoFactorBlock";
@@ -67,6 +68,7 @@ export default async function AccountSettingsPage() {
 			{config.auth.enableSocialLogin && <ConnectedAccountsBlock />}
 			{config.auth.enablePasskeys && <PasskeysBlock />}
 			{config.auth.enableTwoFactor && <TwoFactorBlock />}
+			<EventsTokenBlock />
 			<ActiveSessionsBlock />
 		</SettingsList>
 	);
