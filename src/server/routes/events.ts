@@ -1,4 +1,5 @@
 import { getVisitorRestrictionsConfig } from "@/config/visitor-restrictions";
+import { getRandomTemplate } from "@/config/image-templates";
 import {
 	HackathonConfigSchema,
 	withHackathonConfigDefaults,
@@ -1536,6 +1537,13 @@ app.post("/", async (c) => {
 			registrationFieldConfig,
 			...restEventData
 		} = cleanedData;
+
+		if (!restEventData.coverImage) {
+			const fallbackTemplate = getRandomTemplate(
+				restEventData.type?.toLowerCase(),
+			);
+			restEventData.coverImage = fallbackTemplate.url;
+		}
 
 		// If organizationId is provided, verify context
 		if (restEventData.organizationId) {
