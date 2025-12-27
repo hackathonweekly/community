@@ -94,7 +94,8 @@ export async function verifyPhoneOTP(
 				type === "REGISTRATION" ||
 				type === "VERIFY" ||
 				updatePhoneNumber,
-			disableSession: type === "REGISTRATION",
+			// 注册/绑定场景不应创建（或切换）会话，避免产生额外 session 或账号切换副作用
+			disableSession: type === "REGISTRATION" || type === "VERIFY",
 		});
 
 		if (error) {

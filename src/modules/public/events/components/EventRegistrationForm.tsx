@@ -622,31 +622,37 @@ export function EventRegistrationForm({
 			}
 		}
 
-		const currentPhone = getFieldValue("phoneNumber");
-		if (currentPhone) {
-			const fullPhoneNumber = currentPhone.startsWith("+")
-				? currentPhone
-				: `+86${currentPhone}`;
-			const phoneValidationResult =
-				validateFullPhoneNumber(fullPhoneNumber);
-			if (!phoneValidationResult.isValid) {
-				toast.error(
-					phoneValidationResult.errorMessage ||
-						t("toasts.invalidPhone"),
-				);
-				setPhoneValidation(phoneValidationResult);
-				setShowInlineProfileEdit(true);
-				return;
+		// Only validate phone number if the event requires it
+		if (isFieldEnabled("phoneNumber")) {
+			const currentPhone = getFieldValue("phoneNumber");
+			if (currentPhone) {
+				const fullPhoneNumber = currentPhone.startsWith("+")
+					? currentPhone
+					: `+86${currentPhone}`;
+				const phoneValidationResult =
+					validateFullPhoneNumber(fullPhoneNumber);
+				if (!phoneValidationResult.isValid) {
+					toast.error(
+						phoneValidationResult.errorMessage ||
+							t("toasts.invalidPhone"),
+					);
+					setPhoneValidation(phoneValidationResult);
+					setShowInlineProfileEdit(true);
+					return;
+				}
 			}
 		}
 
-		const currentEmail = getFieldValue("email");
-		if (currentEmail && !isEmailValid(currentEmail)) {
-			const message = "请输入有效的邮箱地址";
-			setEmailError(message);
-			toast.error(message);
-			setShowInlineProfileEdit(true);
-			return;
+		// Only validate email if the event requires it
+		if (isFieldEnabled("email")) {
+			const currentEmail = getFieldValue("email");
+			if (currentEmail && !isEmailValid(currentEmail)) {
+				const message = "请输入有效的邮箱地址";
+				setEmailError(message);
+				toast.error(message);
+				setShowInlineProfileEdit(true);
+				return;
+			}
 		}
 
 		setEmailError(null);

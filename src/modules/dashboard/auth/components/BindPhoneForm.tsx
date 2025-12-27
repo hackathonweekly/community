@@ -44,7 +44,7 @@ export function BindPhoneForm() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const searchParams = useSearchParams();
-	const { user, loaded: sessionLoaded } = useSession();
+	const { user, loaded: sessionLoaded, reloadSession } = useSession();
 
 	const [isOtpSent, setIsOtpSent] = useState(false);
 	const [otpCountdown, setOtpCountdown] = useState(0);
@@ -196,10 +196,13 @@ export function BindPhoneForm() {
 				// 绑定成功，显示成功提示
 				setBindingSuccess(true);
 
-				// 更新会话缓存
-				queryClient.invalidateQueries({
-					queryKey: sessionQueryKey,
-				});
+				// 绑定后强制刷新会话，确保跨页面/SSR 的 user 字段（如 phoneNumberVerified）立即生效
+				try {
+					await reloadSession();
+				} catch {
+					// ignore - 绑定已成功，允许继续跳转；后续页面会自动刷新会话
+				}
+				queryClient.invalidateQueries({ queryKey: sessionQueryKey });
 
 				// 延迟跳转，让用户看到成功提示
 				setTimeout(() => {
