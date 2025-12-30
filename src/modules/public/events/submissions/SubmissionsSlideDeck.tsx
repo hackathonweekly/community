@@ -198,7 +198,7 @@ export function SubmissionsSlideDeck({
 	const hasPrev = currentIndex > 0;
 	const hasNext = currentIndex < total - 1;
 
-	const currentSubmissionUrl = useMemo(() => {
+	const currentSubmissionDetailUrl = useMemo(() => {
 		if (!currentSubmission) return "";
 		const normalizedBase = baseUrl.endsWith("/")
 			? baseUrl.slice(0, -1)
@@ -206,8 +206,28 @@ export function SubmissionsSlideDeck({
 		return `${normalizedBase}/${locale}/events/${eventId}/submissions/${currentSubmission.id}`;
 	}, [baseUrl, locale, eventId, currentSubmission]);
 
+	const currentSubmissionVoteUrl = useMemo(() => {
+		if (!currentSubmission) return "";
+		const normalizedBase = baseUrl.endsWith("/")
+			? baseUrl.slice(0, -1)
+			: baseUrl;
+		return `${normalizedBase}/${locale}/events/${eventId}/submissions/${currentSubmission.id}/vote`;
+	}, [baseUrl, locale, eventId, currentSubmission]);
+
+	const qrUrl = useMemo(() => {
+		if (!currentSubmission) return "";
+		return isVotingOpen
+			? currentSubmissionVoteUrl
+			: currentSubmissionDetailUrl;
+	}, [
+		currentSubmission,
+		currentSubmissionDetailUrl,
+		currentSubmissionVoteUrl,
+		isVotingOpen,
+	]);
+
 	const voteLabel = useMemo(() => {
-		if (!isVotingOpen) return "投票已结束";
+		if (!isVotingOpen) return "扫码查看作品";
 		return "扫码投票";
 	}, [isVotingOpen]);
 
@@ -438,141 +458,25 @@ export function SubmissionsSlideDeck({
 									</div>
 
 									<div className="w-full h-full grid grid-cols-12">
-										{/* Left Column: Content */}
-										<div className="col-span-7 h-full flex flex-col p-8 lg:p-10 relative overflow-hidden">
-											{/* Subtle decorative elements */}
-											<div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-											<div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-
-											<div className="relative z-10 flex flex-col h-full">
-												<div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
-													<Badge
-														variant="secondary"
-														className="bg-white/10 text-white border-none px-3 py-1"
-													>
-														#{currentIndex + 1}
-													</Badge>
-													{showResults && (
-														<Badge
-															variant="outline"
-															className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 px-3 py-1"
-														>
-															{
-																currentSubmission.voteCount
-															}{" "}
-															票
-														</Badge>
-													)}
-													{currentSubmission.status ===
-														"AWARDED" && (
-														<Badge className="bg-amber-500 text-black hover:bg-amber-400 border-none px-3 py-1">
-															🏆 获奖作品
-														</Badge>
-													)}
-												</div>
-
-												<div className="mt-auto mb-auto space-y-6">
-													<div>
-														<h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-															{
-																currentSubmission.name
-															}
-														</h1>
-														{currentSubmission.tagline && (
-															<p className="mt-4 text-xl lg:text-2xl text-white/70 font-light leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-																{
-																	currentSubmission.tagline
-																}
-															</p>
-														)}
-													</div>
-
-													<div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
-														<div className="h-px w-20 bg-gradient-to-r from-white/30 to-transparent" />
-														{highlights.length >
-														0 ? (
-															<ul className="grid gap-3">
-																{highlights.map(
-																	(
-																		item,
-																		i,
-																	) => (
-																		<li
-																			key={
-																				i
-																			}
-																			className="flex items-start gap-3 group/item"
-																		>
-																			<span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] group-hover/item:scale-125 transition-transform" />
-																			<span className="text-lg text-white/80 leading-relaxed font-light">
-																				{
-																					item
-																				}
-																			</span>
-																		</li>
-																	),
-																)}
-															</ul>
-														) : (
-															<p className="text-lg text-white/50 italic font-light">
-																这个作品很神秘，没有提供详细介绍...
-															</p>
-														)}
-													</div>
-												</div>
-
-												<div className="mt-4 flex flex-wrap items-center gap-3 animate-in fade-in duration-700 delay-500">
-													{currentSubmission
-														.teamLeader?.name && (
-														<div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm">
-															<span className="text-white/40">
-																队长
-															</span>
-															<span className="font-medium text-white/90">
-																{
-																	currentSubmission
-																		.teamLeader
-																		.name
-																}
-															</span>
-														</div>
-													)}
-													{currentSubmission.teamMembers &&
-														currentSubmission
-															.teamMembers
-															.length > 0 && (
-															<div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm">
-																<span className="text-white/40">
-																	团队
-																</span>
-																<span className="font-medium text-white/90">
-																	{
-																		currentSubmission
-																			.teamMembers
-																			.length
-																	}{" "}
-																	人
-																</span>
-															</div>
-														)}
-												</div>
-											</div>
-										</div>
-
-										{/* Right Column: Media & QR */}
-										<div className="col-span-5 h-full bg-black/20 border-l border-white/5 p-6 flex flex-col gap-6 backdrop-blur-[2px]">
+										{/* Left Column: Media */}
+										<div className="col-span-8 h-full bg-black/20 border-r border-white/5 p-5 flex flex-col backdrop-blur-[2px]">
 											{/* Media Box */}
-											<div className="flex-1 rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-inner relative group/media">
+											<div
+												key={currentSubmission.id}
+												className="flex-1 rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-inner relative group/media"
+											>
 												{media?.type === "image" ? (
 													<img
+														key={media.url}
 														src={media.url}
 														alt={
 															currentSubmission.name
 														}
-														className="h-full w-full object-contain p-2 transition-transform duration-700 hover:scale-105"
+														className="h-full w-full object-contain p-1 transition-transform duration-700 hover:scale-105"
 													/>
 												) : media?.type === "video" ? (
 													<video
+														key={media.url}
 														controls
 														preload="metadata"
 														playsInline
@@ -621,95 +525,228 @@ export function SubmissionsSlideDeck({
 													</div>
 												)}
 											</div>
+										</div>
 
-											{/* QR Code Section */}
-											<Collapsible
-												open={!isQrCollapsed}
-												onOpenChange={(open) =>
-													setIsQrCollapsed(!open)
-												}
-												className="shrink-0 rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition-all hover:bg-white/10"
-											>
-												<div
-													className="flex items-center justify-between p-4 cursor-pointer"
-													onClick={() =>
-														setIsQrCollapsed(
-															(prev) => !prev,
-														)
-													}
-												>
-													<div>
-														<p className="text-sm font-semibold text-white/90 flex items-center gap-2">
-															{voteLabel}
-															{isVotingOpen && (
-																<span className="relative flex h-2 w-2">
-																	<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-																	<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-																</span>
-															)}
-														</p>
-													</div>
-													<CollapsibleTrigger asChild>
-														<Button
-															variant="ghost"
-															size="icon"
-															className="h-6 w-6 text-white/50 hover:text-white"
+										{/* Right Column: Content & QR */}
+										<div className="col-span-4 h-full flex flex-col p-8 lg:p-10 relative overflow-hidden">
+											{/* Subtle decorative elements */}
+											<div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+											<div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+
+											<div className="relative z-10 flex flex-col h-full">
+												<div className="flex items-center gap-3 animate-in fade-in slide-in-from-left-4 duration-500">
+													<Badge
+														variant="secondary"
+														className="bg-white/10 text-white border-none px-3 py-1"
+													>
+														#{currentIndex + 1}
+													</Badge>
+													{showResults && (
+														<Badge
+															variant="outline"
+															className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 px-3 py-1"
 														>
-															{isQrCollapsed ? (
-																<ChevronDown className="h-4 w-4" />
-															) : (
-																<ChevronUp className="h-4 w-4" />
-															)}
-														</Button>
-													</CollapsibleTrigger>
+															{
+																currentSubmission.voteCount
+															}{" "}
+															票
+														</Badge>
+													)}
+													{currentSubmission.status ===
+														"AWARDED" && (
+														<Badge className="bg-amber-500 text-black hover:bg-amber-400 border-none px-3 py-1">
+															🏆 获奖作品
+														</Badge>
+													)}
 												</div>
-												<CollapsibleContent>
-													<div className="px-4 pb-4">
-														<div className="flex gap-4">
-															<div className="shrink-0 p-2 rounded-xl bg-white shadow-lg">
-																<QRCode
-																	value={
-																		currentSubmissionUrl ||
-																		" "
-																	}
-																	size={120}
-																	className="h-auto w-[120px]"
-																/>
-															</div>
-															<div className="flex flex-col justify-center gap-2 min-w-0">
-																<p className="text-xs text-white/50 leading-relaxed">
-																	手机扫码即可查看详情并投票
-																</p>
-																<Button
-																	variant="outline"
-																	size="sm"
-																	className="h-7 text-xs border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white justify-start"
-																	onClick={(
-																		e,
-																	) => {
-																		e.stopPropagation();
-																		void copyText(
-																			currentSubmissionUrl,
-																		);
-																	}}
-																>
-																	复制链接
-																</Button>
-																{isVotingOpen ? (
-																	<div className="text-emerald-400 text-xs flex items-center gap-1.5">
-																		<CheckCircle2 className="h-3 w-3" />
-																		投票进行中
-																	</div>
-																) : (
-																	<div className="text-white/30 text-xs">
-																		投票已结束
-																	</div>
-																)}
-															</div>
-														</div>
+
+												<div className="mt-8 flex-1 min-h-0 space-y-6 overflow-hidden">
+													<div>
+														<h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-white drop-shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
+															{
+																currentSubmission.name
+															}
+														</h1>
+														{currentSubmission.tagline && (
+															<p className="mt-4 text-xl lg:text-2xl text-white/70 font-light leading-relaxed break-words whitespace-normal animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
+																{
+																	currentSubmission.tagline
+																}
+															</p>
+														)}
 													</div>
-												</CollapsibleContent>
-											</Collapsible>
+
+													<div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+														<div className="h-px w-20 bg-gradient-to-r from-white/30 to-transparent" />
+														{highlights.length >
+														0 ? (
+															<ul className="grid gap-3">
+																{highlights.map(
+																	(
+																		item,
+																		i,
+																	) => (
+																		<li
+																			key={
+																				i
+																			}
+																			className="flex min-w-0 items-start gap-3 group/item"
+																		>
+																			<span className="mt-2.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] group-hover/item:scale-125 transition-transform" />
+																			<span className="min-w-0 text-lg text-white/80 leading-relaxed font-light break-words whitespace-normal">
+																				{
+																					item
+																				}
+																			</span>
+																		</li>
+																	),
+																)}
+															</ul>
+														) : (
+															<p className="text-lg text-white/50 italic font-light">
+																这个作品很神秘，没有提供详细介绍...
+															</p>
+														)}
+													</div>
+
+													<div className="flex flex-wrap items-center gap-3 animate-in fade-in duration-700 delay-500">
+														{currentSubmission
+															.teamLeader
+															?.name && (
+															<div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm">
+																<span className="text-white/40">
+																	队长
+																</span>
+																<span className="font-medium text-white/90">
+																	{
+																		currentSubmission
+																			.teamLeader
+																			.name
+																	}
+																</span>
+															</div>
+														)}
+														{currentSubmission.teamMembers &&
+															currentSubmission
+																.teamMembers
+																.length > 0 && (
+																<div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm">
+																	<span className="text-white/40">
+																		团队
+																	</span>
+																	<span className="font-medium text-white/90">
+																		{
+																			currentSubmission
+																				.teamMembers
+																				.length
+																		}{" "}
+																		人
+																	</span>
+																</div>
+															)}
+													</div>
+												</div>
+
+												{/* QR Code Section */}
+												<div className="mt-auto pt-6 shrink-0">
+													<Collapsible
+														open={!isQrCollapsed}
+														onOpenChange={(open) =>
+															setIsQrCollapsed(
+																!open,
+															)
+														}
+														className="shrink-0 rounded-2xl border border-white/10 bg-white/5 overflow-hidden transition-all hover:bg-white/10"
+													>
+														<div
+															className="flex items-center justify-between p-4 cursor-pointer"
+															onClick={() =>
+																setIsQrCollapsed(
+																	(prev) =>
+																		!prev,
+																)
+															}
+														>
+															<div>
+																<p className="text-sm font-semibold text-white/90 flex items-center gap-2">
+																	{voteLabel}
+																	{isVotingOpen && (
+																		<span className="relative flex h-2 w-2">
+																			<span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+																			<span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+																		</span>
+																	)}
+																</p>
+															</div>
+															<CollapsibleTrigger
+																asChild
+															>
+																<Button
+																	variant="ghost"
+																	size="icon"
+																	className="h-6 w-6 text-white/50 hover:text-white"
+																>
+																	{isQrCollapsed ? (
+																		<ChevronDown className="h-4 w-4" />
+																	) : (
+																		<ChevronUp className="h-4 w-4" />
+																	)}
+																</Button>
+															</CollapsibleTrigger>
+														</div>
+														<CollapsibleContent>
+															<div className="px-4 pb-4">
+																<div className="flex gap-4">
+																	<div className="shrink-0 p-2 rounded-xl bg-white shadow-lg">
+																		<QRCode
+																			value={
+																				qrUrl ||
+																				" "
+																			}
+																			size={
+																				112
+																			}
+																			className="h-auto w-[112px]"
+																		/>
+																	</div>
+																	<div className="flex flex-col justify-center gap-2 min-w-0">
+																		<p className="text-xs text-white/50 leading-relaxed">
+																			{isVotingOpen
+																				? "手机扫码即可投票"
+																				: "手机扫码即可查看作品详情"}
+																		</p>
+																		<Button
+																			variant="outline"
+																			size="sm"
+																			className="h-7 text-xs border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white justify-start"
+																			onClick={(
+																				e,
+																			) => {
+																				e.stopPropagation();
+																				void copyText(
+																					qrUrl,
+																				);
+																			}}
+																		>
+																			复制链接
+																		</Button>
+																		{isVotingOpen ? (
+																			<div className="text-emerald-400 text-xs flex items-center gap-1.5">
+																				<CheckCircle2 className="h-3 w-3" />
+																				投票进行中
+																			</div>
+																		) : (
+																			<div className="text-white/30 text-xs">
+																				投票已结束
+																			</div>
+																		)}
+																	</div>
+																</div>
+															</div>
+														</CollapsibleContent>
+													</Collapsible>
+												</div>
+											</div>
 										</div>
 									</div>
 								</div>

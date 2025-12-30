@@ -118,6 +118,10 @@ export function SubmissionDetail({
 		[submission.eventId, submission.id],
 	);
 	const [isQrCollapsed, setIsQrCollapsed] = useState(false);
+	const voteUrl = useMemo(
+		() => (isVotingCurrentlyOpen ? `${submissionUrl}/vote` : submissionUrl),
+		[isVotingCurrentlyOpen, submissionUrl],
+	);
 
 	useEffect(() => {
 		try {
@@ -282,7 +286,7 @@ export function SubmissionDetail({
 	};
 
 	const handleCopyLink = async () => {
-		await copyText(submissionUrl);
+		await copyText(voteUrl);
 	};
 
 	const getMedia = () => {
@@ -496,7 +500,9 @@ export function SubmissionDetail({
 
 								<div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2">
 									<p className="text-xs text-slate-500">
-										适合现场大屏展示，扫码即可直接投票
+										{isVotingCurrentlyOpen
+											? "适合现场大屏展示，扫码即可直接投票"
+											: "扫码查看作品详情"}
 									</p>
 									<div className="flex gap-1">
 										<Button
@@ -508,7 +514,7 @@ export function SubmissionDetail({
 											<Copy className="h-4 w-4" />
 										</Button>
 										<ShareSubmissionDialog
-											shareUrl={submissionUrl}
+											shareUrl={voteUrl}
 											submissionName={
 												submission.name ?? "submission"
 											}
@@ -522,7 +528,7 @@ export function SubmissionDetail({
 
 								<div className="bg-white p-3 rounded-xl w-full flex justify-center shadow-inner">
 									<QRCode
-										value={submissionUrl}
+										value={voteUrl}
 										size={160}
 										className="h-auto w-full max-w-[180px]"
 									/>
