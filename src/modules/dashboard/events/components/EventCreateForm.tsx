@@ -268,6 +268,8 @@ export function EventCreateForm({
 					judgeWeight: 0,
 					publicWeight: 1,
 					publicVotingScope: "PARTICIPANTS",
+					publicVotingMode: "FIXED_QUOTA",
+					publicVoteQuota: 3,
 				},
 			},
 		};
@@ -416,6 +418,8 @@ export function EventCreateForm({
 						judgeWeight: 0,
 						publicWeight: 1,
 						publicVotingScope: "PARTICIPANTS" as const,
+						publicVotingMode: "FIXED_QUOTA" as const,
+						publicVoteQuota: 3,
 					},
 				},
 				// 作品提交表单配置
@@ -525,6 +529,8 @@ export function EventCreateForm({
 						judgeWeight: 0,
 						publicWeight: 1,
 						publicVotingScope: "PARTICIPANTS" as const,
+						publicVotingMode: "FIXED_QUOTA" as const,
+						publicVoteQuota: 3,
 					},
 				},
 			};

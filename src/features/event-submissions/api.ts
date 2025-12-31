@@ -7,6 +7,23 @@ import type {
 	UserSearchResult,
 } from "./types";
 
+export class ApiError extends Error {
+	code?: string;
+	status?: number;
+	payload?: unknown;
+
+	constructor(
+		message: string,
+		options?: { code?: string; status?: number; payload?: unknown },
+	) {
+		super(message);
+		this.name = "ApiError";
+		this.code = options?.code;
+		this.status = options?.status;
+		this.payload = options?.payload;
+	}
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
 	// Clone before consuming body so we can fall back to text when JSON parse fails
 	const cloned = response.clone();
@@ -22,6 +39,15 @@ async function handleResponse<T>(response: Response): Promise<T> {
 			payload?.error?.message ||
 			payload?.message ||
 			(typeof payload?.error === "string" ? payload.error : null);
+
+		const code =
+			typeof payload?.error === "string"
+				? payload.error
+				: typeof payload?.code === "string"
+					? payload.code
+					: typeof payload?.error?.code === "string"
+						? payload.error.code
+						: undefined;
 
 		if (
 			!message &&
@@ -52,7 +78,12 @@ async function handleResponse<T>(response: Response): Promise<T> {
 		if (!message) {
 			message = `Request failed (${response.status})`;
 		}
-		throw new Error(message);
+
+		throw new ApiError(message, {
+			code,
+			status: response.status,
+			payload,
+		});
 	}
 
 	if (payload && "data" in payload) {

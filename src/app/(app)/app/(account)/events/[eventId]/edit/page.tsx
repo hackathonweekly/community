@@ -84,6 +84,8 @@ interface Event {
 			judgeWeight: number;
 			publicWeight: number;
 			publicVotingScope: "ALL" | "REGISTERED" | "PARTICIPANTS";
+			publicVotingMode?: "FIXED_QUOTA" | "PER_PROJECT_LIKE";
+			publicVoteQuota?: number;
 		};
 	};
 	// 作品提交表单配置
@@ -469,6 +471,8 @@ export default function EventEditPage() {
 				judgeWeight: 0,
 				publicWeight: 1,
 				publicVotingScope: "PARTICIPANTS" as const,
+				publicVotingMode: "FIXED_QUOTA" as const,
+				publicVoteQuota: 3,
 			},
 		},
 		// 作品提交表单配置

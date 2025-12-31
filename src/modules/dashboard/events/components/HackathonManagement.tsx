@@ -664,6 +664,75 @@ export function HackathonManagement({
 										</SelectContent>
 									</Select>
 								</div>
+
+								<div>
+									<Label htmlFor="publicVotingMode">
+										投票模式
+									</Label>
+									<Select
+										value={
+											config.voting.publicVotingMode ??
+											"FIXED_QUOTA"
+										}
+										onValueChange={(
+											value:
+												| "FIXED_QUOTA"
+												| "PER_PROJECT_LIKE",
+										) =>
+											setConfig((prev) => ({
+												...prev,
+												voting: {
+													...prev.voting,
+													publicVotingMode:
+														value as HackathonVoting["publicVotingMode"],
+												},
+											}))
+										}
+									>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="FIXED_QUOTA">
+												限额投票（每人 N 票）
+											</SelectItem>
+											<SelectItem value="PER_PROJECT_LIKE">
+												逐项点赞（每作品 1 票）
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{(config.voting.publicVotingMode ??
+									"FIXED_QUOTA") === "FIXED_QUOTA" ? (
+									<div>
+										<Label htmlFor="publicVoteQuota">
+											每人票数配额
+										</Label>
+										<Input
+											id="publicVoteQuota"
+											type="number"
+											min={1}
+											max={100}
+											value={
+												config.voting.publicVoteQuota ??
+												3
+											}
+											onChange={(e) =>
+												setConfig((prev) => ({
+													...prev,
+													voting: {
+														...prev.voting,
+														publicVoteQuota:
+															Number.parseInt(
+																e.target.value,
+															) || 3,
+													},
+												}))
+											}
+										/>
+									</div>
+								) : null}
 							</div>
 						</CardContent>
 					</Card>

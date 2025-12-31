@@ -988,7 +988,38 @@
 				"noResultsDesc": "Results will be displayed here after voting ends",
 				"liveMessage": "Voting is live now — cast your vote!",
 				"notOpenMessage": "Voting will open once the event enters the voting stage.",
-				"closedMessage": "Voting has ended for this hackathon."
+				"closedMessage": "Voting has ended for this hackathon.",
+				"modes": {
+					"fixedQuota": "Fixed Quota (N votes per person)",
+					"perProjectLike": "Per-Project Like (1 vote per project)"
+				},
+				"modeLabels": {
+					"title": "Voting Mode",
+					"description": "Choose how voters can vote: fixed quota or per-project likes"
+				},
+				"quotaLabel": "Vote Quota per Person",
+				"quotaDescription": "Maximum number of votes each eligible voter can cast in this event",
+				"errors": {
+					"votesFull": "All available votes used",
+					"votesFullWithQuota": "All available votes used (max {quota} votes per person)",
+					"ownSubmission": "Cannot vote for your own submission",
+					"alreadyVoted": "You have already voted for this project",
+					"votingClosed": "Voting is closed or not yet open",
+					"votingEnded": "Voting has ended",
+					"notVoted": "You have not voted for this project",
+					"operationFailed": "Operation failed, please retry"
+				},
+				"messages": {
+					"remainingVotes": "You have {count} votes left",
+					"perProjectMode": "Per-project like (max 1 per project)",
+					"votedCount": "Voted for {count} projects",
+					"voteSuccess": "Vote successful",
+					"voteSuccessUnlimited": "Voted for this project, you can continue supporting others",
+					"voteSuccessWithRemaining": "{count} votes remaining",
+					"unvoteSuccess": "Vote removed",
+					"unvoteSuccessUnlimited": "Vote removed from this project",
+					"unvoteSuccessWithRemaining": "{count} votes remaining"
+				}
 			},
 			"description": {
 				"title": "Event Details"

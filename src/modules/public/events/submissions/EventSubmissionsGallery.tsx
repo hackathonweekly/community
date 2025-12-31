@@ -46,6 +46,7 @@ import {
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import type { RegistrationStatus } from "@prisma/client";
 import type { EventSubmission } from "@/features/event-submissions/types";
+import { toVotingErrorMessage } from "@/features/event-submissions/utils/voting-error-messages";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
@@ -86,8 +87,6 @@ export function EventSubmissionsGallery({
 	isSubmissionOpen = false,
 	showInlineSubmissionCta = true,
 }: EventSubmissionsGalleryProps) {
-	const MAX_VOTES_PER_USER = 3;
-
 	// Default to earliest submission order (Oldest -> Newest)
 	const [sortValue, setSortValue] = useState("createdAt:asc");
 	const [sortBy, sortOrder] = sortValue.split(":");
@@ -185,6 +184,15 @@ export function EventSubmissionsGallery({
 
 	const remainingVotes =
 		remainingVotesOverride ?? data?.remainingVotes ?? null;
+	const publicVoting = data?.publicVoting;
+	const allowPublicVoting = publicVoting?.allowPublicVoting ?? true;
+	const votingScope = publicVoting?.scope ?? "PARTICIPANTS";
+	const requiresParticipantRegistration = votingScope === "PARTICIPANTS";
+	const isUnlimitedVotes = publicVoting?.mode === "PER_PROJECT_LIKE";
+	const voteQuota =
+		publicVoting?.mode === "FIXED_QUOTA"
+			? (publicVoting.quota ?? null)
+			: null;
 	const votedIds = useMemo(
 		() => new Set(data?.userVotes ?? []),
 		[data?.userVotes],
@@ -254,31 +262,6 @@ export function EventSubmissionsGallery({
 		}
 	};
 
-	const toVotingErrorMessage = (error: unknown) => {
-		if (!(error instanceof Error)) return "操作失败";
-
-		const message = error.message;
-		if (message.includes("used all available votes")) {
-			return `可用票数已用完（每人最多 ${MAX_VOTES_PER_USER} 票），可先取消已投作品后再投`;
-		}
-		if (
-			message.includes("own submission") ||
-			message.includes("own team's submission")
-		) {
-			return "无法给自己的作品投票";
-		}
-		if (message.includes("already voted")) {
-			return "你已经投过该作品了";
-		}
-		if (message.includes("Voting has ended")) {
-			return "投票已结束";
-		}
-		if (message.includes("You have not voted")) {
-			return "你还没有给该作品投票";
-		}
-		return message;
-	};
-
 	const handleRequireAuth = (redirectPath?: string) => {
 		const targetPath = redirectPath || pathname || `/events/${eventId}`;
 		const redirectTo = encodeURIComponent(targetPath);
@@ -290,32 +273,75 @@ export function EventSubmissionsGallery({
 			handleRequireAuth();
 			return;
 		}
+		if (!isVotingOpen) {
+			toast.info("投票未开放或已结束");
+			return;
+		}
+		if (!allowPublicVoting) {
+			toast.info("本场活动未开启观众投票");
+			return;
+		}
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				toast.info("正在确认您的报名信息，请稍后再试");
+				return;
+			}
+			if (!hasActiveRegistration) {
+				toast.info("报名活动后才可投票");
+				router.push(registerHref);
+				return;
+			}
+		}
 		if (pendingSubmissionIds.has(submission.id)) return;
 		try {
 			markSubmissionPending(submission.id);
 			const result = await voteMutation.mutateAsync(submission.id);
 			setRemainingVotesOverride(result.remainingVotes);
 			toast.success("投票成功", {
-				description: `还剩 ${result.remainingVotes} 票`,
+				description:
+					result.remainingVotes === null
+						? "已为该作品投票，可继续支持其他作品"
+						: `还剩 ${result.remainingVotes} 票`,
 			});
 		} catch (error) {
-			toast.error(toVotingErrorMessage(error));
+			toast.error(toVotingErrorMessage(error, { voteQuota }));
 		} finally {
 			clearSubmissionPending(submission.id);
 		}
 	};
 
 	const handleUnvote = async (submission: EventSubmission) => {
+		if (!isVotingOpen) {
+			toast.info("投票未开放或已结束");
+			return;
+		}
+		if (!allowPublicVoting) {
+			toast.info("本场活动未开启观众投票");
+			return;
+		}
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				toast.info("正在确认您的报名信息，请稍后再试");
+				return;
+			}
+			if (!hasActiveRegistration) {
+				toast.info("报名活动后才可投票");
+				return;
+			}
+		}
 		if (pendingSubmissionIds.has(submission.id)) return;
 		try {
 			markSubmissionPending(submission.id);
 			const result = await unvoteMutation.mutateAsync(submission.id);
 			setRemainingVotesOverride(result.remainingVotes);
 			toast.success("已取消投票", {
-				description: `还剩 ${result.remainingVotes} 票`,
+				description:
+					result.remainingVotes === null
+						? "已取消对该作品的投票"
+						: `还剩 ${result.remainingVotes} 票`,
 			});
 		} catch (error) {
-			toast.error(toVotingErrorMessage(error));
+			toast.error(toVotingErrorMessage(error, { voteQuota }));
 		} finally {
 			clearSubmissionPending(submission.id);
 		}
@@ -348,6 +374,19 @@ export function EventSubmissionsGallery({
 			);
 		}
 
+		if (!allowPublicVoting) {
+			return (
+				<Button
+					variant="outline"
+					size="sm"
+					disabled
+					className={buttonTouchClass}
+				>
+					未开启投票
+				</Button>
+			);
+		}
+
 		if (!user) {
 			return (
 				<Button
@@ -359,6 +398,33 @@ export function EventSubmissionsGallery({
 					登录后投票
 				</Button>
 			);
+		}
+
+		if (requiresParticipantRegistration) {
+			if (isRegistrationLoading) {
+				return (
+					<Button
+						variant="outline"
+						size="sm"
+						disabled
+						className={buttonTouchClass}
+					>
+						确认资格中…
+					</Button>
+				);
+			}
+			if (!hasActiveRegistration) {
+				return (
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => router.push(registerHref)}
+						className={buttonTouchClass}
+					>
+						报名后投票
+					</Button>
+				);
+			}
 		}
 
 		if (isOwnTeam) {
@@ -406,23 +472,26 @@ export function EventSubmissionsGallery({
 				<Button
 					variant="outline"
 					size="sm"
-					aria-disabled
 					disabled={isPending}
 					onClick={() => {
 						if (isPending) return;
 						toast.info("可用票数已用完", {
-							description: `每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`,
+							description:
+								voteQuota === null
+									? "可先取消已投作品后再投"
+									: `每人最多 ${voteQuota} 票，可先取消已投作品后再投`,
 							action: {
 								label: "查看已投",
 								onClick: () => setFilter("voted"),
 							},
 						});
 					}}
-					title={`每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`}
-					className={cn(
-						buttonTouchClass,
-						"opacity-70 cursor-not-allowed",
-					)}
+					title={
+						voteQuota === null
+							? "可先取消已投作品后再投"
+							: `每人最多 ${voteQuota} 票，可先取消已投作品后再投`
+					}
+					className={cn(buttonTouchClass, "opacity-70")}
 				>
 					票已用完
 				</Button>
@@ -473,26 +542,41 @@ export function EventSubmissionsGallery({
 							作品展示与投票
 						</h2>
 						{isVotingOpen ? (
-							user ? (
+							!allowPublicVoting ? (
+								<p className="text-sm text-muted-foreground">
+									本场活动未开启观众投票
+								</p>
+							) : user ? (
+								!requiresParticipantRegistration ||
 								hasActiveRegistration ? (
 									<div className="space-y-1">
 										<p className="text-sm text-muted-foreground">
-											你还有{" "}
-											<span
-												className={cn(
-													"font-medium",
-													remainingVotes === 0 &&
-														"text-rose-600 font-semibold",
-												)}
-											>
-												{remainingVotes ??
-													MAX_VOTES_PER_USER}
-											</span>{" "}
-											票
+											{isUnlimitedVotes ? (
+												<>
+													逐项点赞（每个作品最多 1
+													次）
+												</>
+											) : (
+												<>
+													你还有{" "}
+													<span
+														className={cn(
+															"font-medium",
+															remainingVotes ===
+																0 &&
+																"text-rose-600 font-semibold",
+														)}
+													>
+														{remainingVotes ?? "—"}
+													</span>{" "}
+													票
+												</>
+											)}
 										</p>
 										<p className="text-xs text-muted-foreground">
-											每人最多 {MAX_VOTES_PER_USER}{" "}
-											票，可随时取消已投作品释放票数；不能投自己的作品
+											{isUnlimitedVotes
+												? `已投 ${votedIds.size} 个作品；不能投自己的作品`
+												: `每人最多 ${voteQuota ?? "—"} 票，可随时取消已投作品释放票数；不能投自己的作品`}
 										</p>
 									</div>
 								) : isRegistrationLoading ? (
@@ -501,14 +585,12 @@ export function EventSubmissionsGallery({
 									</p>
 								) : (
 									<p className="text-sm text-muted-foreground">
-										报名活动后即可拥有 {MAX_VOTES_PER_USER}{" "}
-										票并参与投票
+										报名活动后即可参与投票
 									</p>
 								)
 							) : (
 								<p className="text-sm text-muted-foreground">
-									登录后即可拥有 {MAX_VOTES_PER_USER}{" "}
-									票并参与投票
+									登录后即可参与投票
 								</p>
 							)
 						) : showResults ? (

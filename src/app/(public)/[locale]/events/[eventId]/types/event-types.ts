@@ -13,6 +13,8 @@ export interface HackathonConfig {
 		judgeWeight: number;
 		publicWeight: number;
 		publicVotingScope: "ALL" | "REGISTERED" | "PARTICIPANTS";
+		publicVotingMode?: "FIXED_QUOTA" | "PER_PROJECT_LIKE";
+		publicVoteQuota?: number;
 	};
 	awards: Array<{
 		id: string;

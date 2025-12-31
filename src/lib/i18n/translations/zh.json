@@ -1036,7 +1036,38 @@
 				"noResultsDesc": "投票结束后将在这里显示结果",
 				"liveMessage": "投票已开启，欢迎为喜欢的作品打Call！",
 				"notOpenMessage": "投票将在活动进入投票阶段后开放，请耐心等待。",
-				"closedMessage": "投票已结束，感谢你的参与。"
+				"closedMessage": "投票已结束，感谢你的参与。",
+				"modes": {
+					"fixedQuota": "限额投票（每人 N 票）",
+					"perProjectLike": "逐项点赞（每作品 1 票）"
+				},
+				"modeLabels": {
+					"title": "投票模式",
+					"description": "选择每位投票者的投票方式：限额 N 票或逐项点赞"
+				},
+				"quotaLabel": "每人票数配额",
+				"quotaDescription": "每位符合资格的投票者在本活动内最多可投多少票",
+				"errors": {
+					"votesFull": "可用票数已用完",
+					"votesFullWithQuota": "可用票数已用完（每人最多 {quota} 票）",
+					"ownSubmission": "无法给自己的作品投票",
+					"alreadyVoted": "你已经投过该作品了",
+					"votingClosed": "投票未开放或已结束",
+					"votingEnded": "投票已结束",
+					"notVoted": "你还没有给该作品投票",
+					"operationFailed": "操作失败，请重试"
+				},
+				"messages": {
+					"remainingVotes": "你还有 {count} 票",
+					"perProjectMode": "逐项点赞（每个作品最多 1 次）",
+					"votedCount": "已投 {count} 个作品",
+					"voteSuccess": "投票成功",
+					"voteSuccessUnlimited": "已为该作品投票，可继续支持其他作品",
+					"voteSuccessWithRemaining": "还剩 {count} 票",
+					"unvoteSuccess": "已取消投票",
+					"unvoteSuccessUnlimited": "已取消对该作品的投票",
+					"unvoteSuccessWithRemaining": "还剩 {count} 票"
+				}
 			},
 			"description": {
 				"title": "活动详情"

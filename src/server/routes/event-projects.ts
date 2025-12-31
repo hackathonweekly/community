@@ -1,5 +1,11 @@
 import { config } from "@/config";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
+import {
+	canCastVote,
+	getPublicVotingConfigForEvent,
+	getPublicVotingPolicyForEvent,
+	getRemainingVotes,
+} from "@/features/event-submissions/server/public-voting-policy";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
@@ -116,6 +122,7 @@ const submissionInclude = {
 			requireProjectSubmission: true,
 			submissionsEnabled: true,
 			hackathonConfig: true,
+			votingOpen: true,
 			projectSubmissionDeadline: true,
 			submissionFormConfig: true,
 		},
@@ -155,12 +162,19 @@ const app = new Hono()
 				type: true,
 				requireProjectSubmission: true,
 				submissionsEnabled: true,
+				hackathonConfig: true,
 			},
 		});
 
 		if (!event || !isEventSubmissionsEnabled(event)) {
 			throw new HTTPException(404, { message: "Event not found" });
 		}
+
+		const publicVoting = getPublicVotingConfigForEvent({
+			eventType: event.type,
+			hackathonConfig: event.hackathonConfig as any,
+			defaultQuota: MAX_VOTES_PER_USER,
+		});
 
 		const submissions = await db.eventProjectSubmission.findMany({
 			where: {
@@ -204,7 +218,12 @@ const app = new Hono()
 			userVotes = votes
 				.map((vote) => map.get(vote.projectId))
 				.filter((value): value is string => Boolean(value));
-			remainingVotes = Math.max(0, MAX_VOTES_PER_USER - votes.length);
+			const policy = getPublicVotingPolicyForEvent({
+				eventType: event.type,
+				hackathonConfig: event.hackathonConfig as any,
+				defaultQuota: MAX_VOTES_PER_USER,
+			});
+			remainingVotes = getRemainingVotes(policy, votes.length);
 
 			if (includePrivateFieldsRequested && submissions.length > 0) {
 				canAccessPrivateFields = await canAdministerEvent(
@@ -233,6 +252,7 @@ const app = new Hono()
 				total: payload.length,
 				userVotes,
 				remainingVotes,
+				publicVoting,
 			},
 		});
 	})
@@ -829,6 +849,22 @@ async function requireSession(c: any) {
 	return session;
 }
 
+async function hasActiveRegistration(eventId: string, userId: string) {
+	const registration = await db.eventRegistration.findUnique({
+		where: {
+			eventId_userId: {
+				eventId,
+				userId,
+			},
+		},
+	});
+
+	return Boolean(
+		registration &&
+			ACTIVE_REGISTRATION_STATUSES.includes(registration.status as any),
+	);
+}
+
 async function ensureParticipant(eventId: string, userId: string) {
 	const registration = await db.eventRegistration.findUnique({
 		where: {
@@ -1283,7 +1319,18 @@ function getExistingMemberIds(submission: SubmissionWithRelations) {
 		.map((member) => member.userId);
 }
 
-async function castVote(submission: SubmissionWithRelations, userId: string) {
+type VotingEligibilityError = {
+	success: false;
+	error: string;
+	message: string;
+	status: number;
+};
+
+async function validateVotingEligibility(
+	submission: SubmissionWithRelations,
+	userId: string,
+): Promise<VotingEligibilityError | null> {
+	// Check if user is the project owner
 	if (submission.project.userId === userId) {
 		return {
 			success: false,
@@ -1294,7 +1341,6 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 	}
 
 	// Prevent team members from voting for their own team's submission
-	// Note: project.userId (leader) is handled above; here we check other members
 	const memberIds = getExistingMemberIds(submission);
 	if (memberIds.includes(userId)) {
 		return {
@@ -1305,8 +1351,17 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 		};
 	}
 
-	await ensureParticipant(submission.eventId, userId);
+	// Check if voting is open
+	if (!submission.event.votingOpen) {
+		return {
+			success: false,
+			error: "VOTING_CLOSED",
+			message: "Voting is closed for this event",
+			status: 403,
+		};
+	}
 
+	// Check if voting period has ended
 	if (isEventVotingClosed(submission.event)) {
 		return {
 			success: false,
@@ -1316,6 +1371,53 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 		};
 	}
 
+	// Get public voting configuration
+	const publicVoting = getPublicVotingConfigForEvent({
+		eventType: submission.event.type,
+		hackathonConfig: submission.event.hackathonConfig as any,
+		defaultQuota: MAX_VOTES_PER_USER,
+	});
+
+	// Check if public voting is allowed
+	if (!publicVoting.allowPublicVoting) {
+		return {
+			success: false,
+			error: "PUBLIC_VOTING_DISABLED",
+			message: "Public voting is disabled for this event",
+			status: 403,
+		};
+	}
+
+	// Check participant registration if required
+	if (publicVoting.scope === "PARTICIPANTS") {
+		const eligible = await hasActiveRegistration(
+			submission.eventId,
+			userId,
+		);
+		if (!eligible) {
+			return {
+				success: false,
+				error: "NOT_ELIGIBLE",
+				message: "You need to register for this event to vote",
+				status: 403,
+			};
+		}
+	}
+
+	return null;
+}
+
+async function castVote(submission: SubmissionWithRelations, userId: string) {
+	// Validate voting eligibility
+	const eligibilityError = await validateVotingEligibility(
+		submission,
+		userId,
+	);
+	if (eligibilityError) {
+		return eligibilityError;
+	}
+
+	// Check if user has already voted
 	const existingVote = await db.projectVote.findUnique({
 		where: {
 			projectId_userId_eventId: {
@@ -1335,22 +1437,33 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 		};
 	}
 
-	const currentVotes = await db.projectVote.count({
-		where: {
-			eventId: submission.eventId,
-			userId,
-		},
+	// Check vote quota
+	const policy = getPublicVotingPolicyForEvent({
+		eventType: submission.event.type,
+		hackathonConfig: submission.event.hackathonConfig as any,
+		defaultQuota: MAX_VOTES_PER_USER,
 	});
 
-	if (currentVotes >= MAX_VOTES_PER_USER) {
-		return {
-			success: false,
-			error: "NO_VOTES_LEFT",
-			message: "You have used all available votes",
-			status: 400,
-		};
+	let currentVotes: number | null = null;
+	if (policy.quota !== null) {
+		currentVotes = await db.projectVote.count({
+			where: {
+				eventId: submission.eventId,
+				userId,
+			},
+		});
+
+		if (!canCastVote(policy, currentVotes)) {
+			return {
+				success: false,
+				error: "NO_VOTES_LEFT",
+				message: "You have used all available votes",
+				status: 400,
+			};
+		}
 	}
 
+	// Create the vote
 	await db.projectVote.create({
 		data: {
 			projectId: submission.projectId,
@@ -1359,6 +1472,7 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 		},
 	});
 
+	// Calculate new vote count
 	const baseVoteCount = await db.projectVote.count({
 		where: {
 			projectId: submission.projectId,
@@ -1372,11 +1486,15 @@ async function castVote(submission: SubmissionWithRelations, userId: string) {
 	return {
 		success: true,
 		voteCount,
-		remainingVotes: Math.max(0, MAX_VOTES_PER_USER - (currentVotes + 1)),
+		remainingVotes:
+			policy.quota === null
+				? null
+				: Math.max(0, policy.quota - ((currentVotes ?? 0) + 1)),
 	};
 }
 
 async function revokeVote(submission: SubmissionWithRelations, userId: string) {
+	// Check if vote exists
 	const existingVote = await db.projectVote.findUnique({
 		where: {
 			projectId_userId_eventId: {
@@ -1396,19 +1514,21 @@ async function revokeVote(submission: SubmissionWithRelations, userId: string) {
 		};
 	}
 
-	if (isEventVotingClosed(submission.event)) {
-		return {
-			success: false,
-			error: "VOTING_ENDED",
-			message: "Voting has ended for this event",
-			status: 400,
-		};
+	// Validate voting eligibility (same checks as castVote)
+	const eligibilityError = await validateVotingEligibility(
+		submission,
+		userId,
+	);
+	if (eligibilityError) {
+		return eligibilityError;
 	}
 
+	// Delete the vote
 	await db.projectVote.delete({
 		where: { id: existingVote.id },
 	});
 
+	// Calculate new vote count
 	const baseVoteCount = await db.projectVote.count({
 		where: { projectId: submission.projectId },
 	});
@@ -1417,14 +1537,26 @@ async function revokeVote(submission: SubmissionWithRelations, userId: string) {
 		Math.round(baseVoteCount + getManualVoteAdjustment(submission)),
 	);
 
-	const remainingVotes = await db.projectVote.count({
-		where: { eventId: submission.eventId, userId },
+	// Calculate remaining votes
+	const policy = getPublicVotingPolicyForEvent({
+		eventType: submission.event.type,
+		hackathonConfig: submission.event.hackathonConfig as any,
+		defaultQuota: MAX_VOTES_PER_USER,
 	});
+	const votesUsedAfterRevoke =
+		policy.quota === null
+			? 0
+			: await db.projectVote.count({
+					where: { eventId: submission.eventId, userId },
+				});
 
 	return {
 		success: true,
 		voteCount,
-		remainingVotes: Math.max(0, MAX_VOTES_PER_USER - remainingVotes),
+		remainingVotes:
+			policy.quota === null
+				? null
+				: getRemainingVotes(policy, votesUsedAfterRevoke),
 	};
 }
 

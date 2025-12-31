@@ -99,12 +99,18 @@ export interface SubmissionListResponse {
 	total: number;
 	userVotes: string[];
 	remainingVotes: number | null;
+	publicVoting: {
+		allowPublicVoting: boolean;
+		scope: "ALL" | "REGISTERED" | "PARTICIPANTS";
+		mode: "FIXED_QUOTA" | "PER_PROJECT_LIKE";
+		quota: number | null;
+	};
 }
 
 export interface SubmissionVoteResponse {
 	success: boolean;
 	voteCount: number;
-	remainingVotes: number;
+	remainingVotes: number | null;
 }
 
 export interface SubmissionFormValues {

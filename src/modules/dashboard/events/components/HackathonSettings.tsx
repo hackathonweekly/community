@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import {
 	FormControl,
 	FormDescription,
@@ -28,7 +29,10 @@ interface HackathonSettingsProps {
 }
 
 export function HackathonSettings({ control, watch }: HackathonSettingsProps) {
+	const t = useTranslations("events.hackathon");
 	const watchedType = watch("type");
+	const publicVotingMode =
+		watch("hackathonConfig.voting.publicVotingMode") ?? "FIXED_QUOTA";
 
 	// Only show for hackathon events
 	if (watchedType !== "HACKATHON") {
@@ -179,6 +183,78 @@ export function HackathonSettings({ control, watch }: HackathonSettingsProps) {
 							</FormItem>
 						)}
 					/>
+
+					<FormField
+						control={control}
+						name="hackathonConfig.voting.publicVotingMode"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel>
+									{t("voting.modeLabels.title")}
+								</FormLabel>
+								<Select
+									onValueChange={field.onChange}
+									value={field.value ?? "FIXED_QUOTA"}
+								>
+									<FormControl>
+										<SelectTrigger>
+											<SelectValue
+												placeholder={t(
+													"voting.modeLabels.title",
+												)}
+											/>
+										</SelectTrigger>
+									</FormControl>
+									<SelectContent>
+										<SelectItem value="FIXED_QUOTA">
+											{t("voting.modes.fixedQuota")}
+										</SelectItem>
+										<SelectItem value="PER_PROJECT_LIKE">
+											{t("voting.modes.perProjectLike")}
+										</SelectItem>
+									</SelectContent>
+								</Select>
+								<FormDescription>
+									{t("voting.modeLabels.description")}
+								</FormDescription>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+
+					{publicVotingMode === "FIXED_QUOTA" ? (
+						<FormField
+							control={control}
+							name="hackathonConfig.voting.publicVoteQuota"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>
+										{t("voting.quotaLabel")}
+									</FormLabel>
+									<FormControl>
+										<Input
+											type="number"
+											min="1"
+											max="100"
+											placeholder="3"
+											value={field.value || 3}
+											onChange={(e) =>
+												field.onChange(
+													Number.parseInt(
+														e.target.value,
+													) || 3,
+												)
+											}
+										/>
+									</FormControl>
+									<FormDescription>
+										{t("voting.quotaDescription")}
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+					) : null}
 				</div>
 			</div>
 		</div>

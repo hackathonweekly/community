@@ -35,6 +35,10 @@ export const HackathonVotingSchema = z.object({
 	publicVotingScope: z
 		.enum(["ALL", "REGISTERED", "PARTICIPANTS"])
 		.default("PARTICIPANTS"),
+	publicVotingMode: z
+		.enum(["FIXED_QUOTA", "PER_PROJECT_LIKE"])
+		.default("FIXED_QUOTA"),
+	publicVoteQuota: z.number().int().min(1).max(100).default(3),
 });
 
 const HackathonAwardSchema = z.object({
@@ -99,6 +103,8 @@ export const DEFAULT_HACKATHON_VOTING: HackathonVoting = {
 	judgeWeight: 0,
 	publicWeight: 1,
 	publicVotingScope: "PARTICIPANTS",
+	publicVotingMode: "FIXED_QUOTA",
+	publicVoteQuota: 3,
 };
 
 export const DEFAULT_HACKATHON_RESOURCES: HackathonResources = {

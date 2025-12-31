@@ -20,8 +20,6 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {} from "@/components/ui/collapsible";
-import {} from "@/components/ui/dropdown-menu";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import {
 	useEventSubmissions,
@@ -30,6 +28,7 @@ import {
 } from "@/features/event-submissions/hooks";
 import type { EventSubmission } from "@/features/event-submissions/types";
 import type { HackathonVoting } from "@/features/hackathon/config";
+import { toVotingErrorMessage } from "@/features/event-submissions/utils/voting-error-messages";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { ShareSubmissionDialog } from "./ShareSubmissionDialog";
@@ -87,8 +86,6 @@ export function SubmissionDetail({
 	submissionUrl,
 	eventTitle,
 }: SubmissionDetailProps) {
-	const MAX_VOTES_PER_USER = 3;
-
 	const { user } = useSession();
 	const userId = user?.id;
 	const router = useRouter();
@@ -146,8 +143,7 @@ export function SubmissionDetail({
 
 	const userVotes = new Set(data?.userVotes ?? []);
 	const hasVoted = userVotes.has(submission.id);
-	const remainingVotes =
-		data?.remainingVotes ?? (user ? MAX_VOTES_PER_USER : null);
+	const remainingVotes = data?.remainingVotes ?? null;
 	const isLeader = Boolean(userId) && submission.teamLeader?.id === userId;
 	const isOwnTeam =
 		Boolean(userId) &&
@@ -189,33 +185,11 @@ export function SubmissionDetail({
 		if (remainingVotes !== null) {
 			return `你还有 ${remainingVotes} 票`;
 		}
+		if (votingConfig?.publicVotingMode === "PER_PROJECT_LIKE") {
+			return "逐项点赞（每个作品最多 1 次）";
+		}
 		return null;
 	})();
-
-	const toVotingErrorMessage = (error: unknown) => {
-		if (!(error instanceof Error)) return "操作失败";
-
-		const message = error.message;
-		if (message.includes("used all available votes")) {
-			return `可用票数已用完（每人最多 ${MAX_VOTES_PER_USER} 票）`;
-		}
-		if (
-			message.includes("own submission") ||
-			message.includes("own team's submission")
-		) {
-			return "无法给自己的作品投票";
-		}
-		if (message.includes("already voted")) {
-			return "你已经投过该作品了";
-		}
-		if (message.includes("Voting has ended")) {
-			return "投票已结束";
-		}
-		if (message.includes("You have not voted")) {
-			return "你还没有给该作品投票";
-		}
-		return message;
-	};
 
 	const handleRequireAuth = () => {
 		const redirectTo = encodeURIComponent(
@@ -255,18 +229,32 @@ export function SubmissionDetail({
 		const noVotesLeft =
 			remainingVotes !== null && remainingVotes <= 0 && !hasVoted;
 		if (noVotesLeft) {
+			const quota =
+				votingConfig?.publicVotingMode === "FIXED_QUOTA"
+					? (votingConfig.publicVoteQuota ?? null)
+					: null;
 			toast.info("可用票数已用完", {
-				description: `每人最多 ${MAX_VOTES_PER_USER} 票，可先取消已投作品后再投`,
+				description:
+					quota === null
+						? "可先取消已投作品后再投"
+						: `每人最多 ${quota} 票，可先取消已投作品后再投`,
 			});
 			return;
 		}
 		try {
 			const result = await voteMutation.mutateAsync(submission.id);
 			toast.success("投票成功", {
-				description: `还剩 ${result.remainingVotes} 票`,
+				description:
+					result.remainingVotes === null
+						? "已为该作品投票，可继续支持其他作品"
+						: `还剩 ${result.remainingVotes} 票`,
 			});
 		} catch (error) {
-			toast.error(toVotingErrorMessage(error));
+			const voteQuota =
+				votingConfig?.publicVotingMode === "FIXED_QUOTA"
+					? (votingConfig.publicVoteQuota ?? null)
+					: null;
+			toast.error(toVotingErrorMessage(error, { voteQuota }));
 		}
 	};
 
@@ -278,10 +266,17 @@ export function SubmissionDetail({
 		try {
 			const result = await unvoteMutation.mutateAsync(submission.id);
 			toast.success("已取消投票", {
-				description: `还剩 ${result.remainingVotes} 票`,
+				description:
+					result.remainingVotes === null
+						? "已取消对该作品的投票"
+						: `还剩 ${result.remainingVotes} 票`,
 			});
 		} catch (error) {
-			toast.error(toVotingErrorMessage(error));
+			const voteQuota =
+				votingConfig?.publicVotingMode === "FIXED_QUOTA"
+					? (votingConfig.publicVoteQuota ?? null)
+					: null;
+			toast.error(toVotingErrorMessage(error, { voteQuota }));
 		}
 	};
 
