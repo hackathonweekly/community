@@ -457,13 +457,13 @@ export function SubmissionsSlideDeck({
 										</Button>
 									</div>
 
-									<div className="w-full h-full grid grid-cols-12">
+									<div className="w-full h-full min-h-0 grid grid-cols-12">
 										{/* Left Column: Media */}
-										<div className="col-span-8 h-full bg-black/20 border-r border-white/5 p-5 flex flex-col backdrop-blur-[2px]">
+										<div className="col-span-8 h-full min-h-0 bg-black/20 border-r border-white/5 p-5 flex flex-col backdrop-blur-[2px]">
 											{/* Media Box */}
 											<div
 												key={currentSubmission.id}
-												className="flex-1 rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-inner relative group/media"
+												className="flex-1 min-h-0 rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-inner relative group/media"
 											>
 												{media?.type === "image" ? (
 													<img
@@ -472,7 +472,7 @@ export function SubmissionsSlideDeck({
 														alt={
 															currentSubmission.name
 														}
-														className="h-full w-full object-contain p-1 transition-transform duration-700 hover:scale-105"
+														className="block h-full w-full object-contain p-1 transition-transform duration-700 hover:scale-105"
 													/>
 												) : media?.type === "video" ? (
 													<video
@@ -480,7 +480,7 @@ export function SubmissionsSlideDeck({
 														controls
 														preload="metadata"
 														playsInline
-														className="h-full w-full bg-black object-contain"
+														className="block h-full w-full bg-black object-contain"
 													>
 														<source
 															src={media.url}
@@ -528,7 +528,7 @@ export function SubmissionsSlideDeck({
 										</div>
 
 										{/* Right Column: Content & QR */}
-										<div className="col-span-4 h-full flex flex-col p-8 lg:p-10 relative overflow-hidden">
+										<div className="col-span-4 h-full min-h-0 flex flex-col p-8 lg:p-10 relative overflow-hidden">
 											{/* Subtle decorative elements */}
 											<div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
 											<div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
