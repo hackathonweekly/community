@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Target } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
@@ -25,7 +26,6 @@ interface SubmissionsActionButtonProps {
 
 export function SubmissionsActionButton({
 	eventId,
-	locale,
 	isSubmissionOpen = false,
 	className,
 	size = "default",
@@ -35,27 +35,23 @@ export function SubmissionsActionButton({
 	const router = useRouter();
 
 	const manageHref = `/app/events/${eventId}/submissions`;
-	const registerHref = `/${locale}/events/${eventId}/register`;
 	const computedVariant = variant ?? "default";
 
-	const { data: registration } = useEventRegistrationStatus(
-		eventId,
-		user?.id,
-	);
+	const { data: registration, isLoading: isRegistrationLoading } =
+		useEventRegistrationStatus(eventId, user?.id);
 
-	const isRegistrationApproved = registration?.status === "APPROVED";
-	const actionHref = isRegistrationApproved ? manageHref : registerHref;
+	const label = isSubmissionOpen ? "提交/编辑作品" : "管理我的作品";
 
-	const label = isRegistrationApproved
-		? isSubmissionOpen
-			? "提交/编辑作品"
-			: "管理我的作品"
-		: "立即报名";
+	const { status: registrationStatus } = registration ?? {};
+	const isRegistrationApproved = registrationStatus === "APPROVED";
 
 	const handleRequireAuth = () => {
-		// Take users directly to the authenticated submissions dashboard after login.
-		const redirectTo = encodeURIComponent(actionHref);
+		const redirectTo = encodeURIComponent(manageHref);
 		router.push(`/auth/login?redirectTo=${redirectTo}`);
+	};
+
+	const handleUnregisteredClick = () => {
+		toast.error("需要报名才能提交作品");
 	};
 
 	if (!user) {
@@ -72,6 +68,34 @@ export function SubmissionsActionButton({
 		);
 	}
 
+	if (isRegistrationLoading) {
+		return (
+			<Button
+				size={size}
+				variant={computedVariant}
+				className={className}
+				disabled
+			>
+				<Target className="h-4 w-4 mr-1.5" />
+				{label}
+			</Button>
+		);
+	}
+
+	if (!isRegistrationApproved) {
+		return (
+			<Button
+				size={size}
+				variant={computedVariant}
+				className={className}
+				onClick={handleUnregisteredClick}
+			>
+				<Target className="h-4 w-4 mr-1.5" />
+				{label}
+			</Button>
+		);
+	}
+
 	return (
 		<Button
 			size={size}
@@ -79,7 +103,7 @@ export function SubmissionsActionButton({
 			className={className}
 			asChild
 		>
-			<Link href={actionHref}>
+			<Link href={manageHref}>
 				<Target className="h-4 w-4 mr-1.5" />
 				{label}
 			</Link>
