@@ -21,6 +21,7 @@ interface HeroProps {
 	registerLabel: string;
 	onRegister: () => void;
 	onSubmitWork?: () => void;
+	showWorksButton?: boolean;
 	canCancel: boolean;
 	onCancel: () => void;
 	onShare: () => void;
@@ -44,6 +45,7 @@ export function Hero({
 	registerLabel,
 	onRegister,
 	onSubmitWork,
+	showWorksButton = true,
 	canCancel,
 	onCancel,
 	onShare,
@@ -197,21 +199,23 @@ export function Hero({
 					>
 						{registerLabel}
 					</Button>
-					<Button
-						variant="secondary"
-						className="h-12 bg-white/10 text-white border border-white/10 hover:bg-white/20 backdrop-blur-sm"
-						onClick={() => {
-							if (onSubmitWork) {
-								onSubmitWork();
-								return;
-							}
-							window.location.assign(
-								`/${locale}/events/${event.id}/submissions`,
-							);
-						}}
-					>
-						提交/修改作品
-					</Button>
+					{showWorksButton ? (
+						<Button
+							variant="secondary"
+							className="h-12 bg-white/10 text-white border border-white/10 hover:bg-white/20 backdrop-blur-sm"
+							onClick={() => {
+								if (onSubmitWork) {
+									onSubmitWork();
+									return;
+								}
+								window.location.assign(
+									`/${locale}/events/${event.id}/submissions`,
+								);
+							}}
+						>
+							提交/修改作品
+						</Button>
+					) : null}
 					{canCancel ? (
 						<Button
 							variant="ghost"

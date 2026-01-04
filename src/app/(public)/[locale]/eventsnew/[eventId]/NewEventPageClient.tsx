@@ -56,6 +56,8 @@ export function NewEventPageClient({
 	const queryClient = useQueryClient();
 
 	const submissionsEnabled = isEventSubmissionsEnabled(event as any);
+	const isHackathonEvent = event.type === "HACKATHON";
+	const showWorks = isHackathonEvent && submissionsEnabled;
 
 	useIncrementViewCount(event.id);
 
@@ -510,7 +512,7 @@ export function NewEventPageClient({
 		{
 			id: "works",
 			label: "作品",
-			show: true,
+			show: showWorks,
 		},
 		{
 			id: "participants",
@@ -598,6 +600,7 @@ export function NewEventPageClient({
 				registerLabel={registerLabel}
 				onRegister={handleRegister}
 				onSubmitWork={handleSubmitWork}
+				showWorksButton={showWorks}
 				canCancel={canCancel}
 				onCancel={handleCancelRegistration}
 				onShare={() => setShowShareModal(true)}
@@ -664,7 +667,7 @@ export function NewEventPageClient({
 						userId={user?.id}
 						onRequireLogin={redirectToLogin}
 						onSubmitWork={handleSubmitWork}
-						enabled={submissionsEnabled}
+						enabled={showWorks}
 					/>
 
 					<ParticipantsSection
@@ -709,7 +712,7 @@ export function NewEventPageClient({
 				locale={locale}
 				eventId={event.id}
 				isEventAdmin={event.isEventAdmin}
-				submissionsEnabled={submissionsEnabled}
+				submissionsEnabled={showWorks}
 				registerLabel={registerLabel}
 				onRegister={() =>
 					handleRegister(() => setShowRegistrationForm(true))

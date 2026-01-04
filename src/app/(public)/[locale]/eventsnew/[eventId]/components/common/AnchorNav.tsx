@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export function AnchorNav({
 	anchors,
 }: {
@@ -10,7 +12,10 @@ export function AnchorNav({
 					<a
 						key={anchor.id}
 						href={`#${anchor.id}`}
-						className="rounded-full px-3 py-1 transition hover:bg-slate-100 whitespace-nowrap"
+						className={cn(
+							"rounded-full px-3 py-1 transition hover:bg-slate-100 whitespace-nowrap",
+							anchor.id === "feedback" && "hidden md:inline-flex",
+						)}
 					>
 						{anchor.label}
 					</a>
