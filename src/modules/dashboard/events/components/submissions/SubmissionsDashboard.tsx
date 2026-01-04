@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useMemo } from "react";
-import { Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,7 @@ export function SubmissionsDashboard({
 	isSubmissionOpen = false,
 }: SubmissionsDashboardProps) {
 	const locale = useLocale();
+	const router = useRouter();
 	const { user } = useSession();
 	const { data, isLoading } = useEventSubmissions(eventId, {
 		includeVotes: true,
@@ -184,15 +186,26 @@ export function SubmissionsDashboard({
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-				<div>
-					<h1 className="text-2xl font-semibold">
-						{eventTitle} · 我的作品
-					</h1>
-					<p className="text-muted-foreground text-sm">
-						{isSubmissionOpen
-							? "在提交截止前，你可以随时编辑或再次提交作品。"
-							: "提交已结束，你仍可以查看和管理你已提交的作品。"}
-					</p>
+				<div className="flex items-start gap-3">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => router.back()}
+						className="p-2"
+						aria-label="返回"
+					>
+						<ArrowLeft className="h-4 w-4" />
+					</Button>
+					<div>
+						<h1 className="text-2xl font-semibold">
+							{eventTitle} · 我的作品
+						</h1>
+						<p className="text-muted-foreground text-sm">
+							{isSubmissionOpen
+								? "在提交截止前，你可以随时编辑或再次提交作品。"
+								: "提交已结束，你仍可以查看和管理你已提交的作品。"}
+						</p>
+					</div>
 				</div>
 				<div className="flex flex-col gap-2 md:flex-row md:items-center">
 					<Button variant="secondary" asChild>
