@@ -195,7 +195,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 	return (
 		<div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
 			{/* Header */}
-			<div className="flex items-center justify-between p-4 bg-white/80 backdrop-blur-sm border-b">
+			<div className="flex items-center justify-between p-3 sm:p-4 bg-white/80 backdrop-blur-sm border-b">
 				<Button
 					onClick={() => router.back()}
 					variant="ghost"
@@ -205,33 +205,33 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					<ArrowLeft className="w-4 h-4 mr-2" />
 					返回
 				</Button>
-				<h1 className="text-lg font-semibold text-muted-foreground">
+				<h1 className="text-base sm:text-lg font-semibold text-muted-foreground truncate max-w-[60vw] text-center">
 					{countdownTitle.trim() || "倒计时大屏"}
 				</h1>
-				<div className="w-20" /> {/* Spacer for centering */}
+				<div className="w-14 sm:w-20" /> {/* Spacer for centering */}
 			</div>
 
 			{/* Main countdown display */}
-			<div className="flex-1 flex flex-col items-center justify-center p-8">
+			<div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8">
 				{!isRunning && !isTimeUp ? (
 					// Setup screen
-					<div className="text-center space-y-8">
+					<div className="text-center space-y-6 sm:space-y-8">
 						<div className="space-y-4">
-							<Clock className="w-24 h-24 mx-auto text-blue-600" />
-							<h2 className="text-4xl font-bold text-gray-900">
+							<Clock className="w-16 h-16 sm:w-24 sm:h-24 mx-auto text-blue-600" />
+							<h2 className="text-2xl sm:text-4xl font-bold text-gray-900">
 								设置倒计时时间
 							</h2>
-							<p className="text-2xl font-semibold text-gray-800">
+							<p className="text-lg sm:text-2xl font-semibold text-gray-800">
 								{countdownTitle.trim() || "倒计时"}
 							</p>
-							<p className="text-xl text-muted-foreground">
+							<p className="text-sm sm:text-xl text-muted-foreground">
 								点击下方按钮开始设置倒计时
 							</p>
 						</div>
 
 						<Button
 							size="lg"
-							className="text-lg px-8 py-6"
+							className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6"
 							onClick={handleOpenSettings}
 						>
 							<Settings className="w-5 h-5 mr-2" />
@@ -240,18 +240,18 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					</div>
 				) : isTimeUp ? (
 					// Time up screen
-					<div className="text-center space-y-8">
+					<div className="text-center space-y-6 sm:space-y-8">
 						<div className="space-y-4">
-							<div className="text-9xl font-bold text-red-600 animate-pulse">
+							<div className="text-6xl sm:text-8xl lg:text-9xl font-bold text-red-600 animate-pulse">
 								时间到！
 							</div>
-							<p className="text-2xl text-muted-foreground">
+							<p className="text-base sm:text-2xl text-muted-foreground">
 								倒计时已结束
 							</p>
 						</div>
 						<Button
 							size="lg"
-							className="text-lg px-8 py-6"
+							className="text-base sm:text-lg px-6 sm:px-8 py-5 sm:py-6"
 							onClick={handleOpenSettings}
 						>
 							<Settings className="w-5 h-5 mr-2" />
@@ -260,8 +260,8 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 					</div>
 				) : (
 					// Countdown display
-					<div className="text-center space-y-12">
-						<p className="text-4xl font-semibold text-gray-900">
+					<div className="text-center space-y-8 sm:space-y-12">
+						<p className="text-2xl sm:text-4xl font-semibold text-gray-900 break-words">
 							{countdownTitle.trim() || "倒计时"}
 						</p>
 
@@ -269,7 +269,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 						<div className="space-y-2">
 							<h2
 								className={cn(
-									"text-5xl font-bold",
+									"text-3xl sm:text-5xl font-bold",
 									getColorClass(),
 								)}
 							>
@@ -278,21 +278,85 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 									: "倒计时进行中"}
 							</h2>
 							{isPaused && !timeLeft.isNegative && (
-								<p className="text-2xl text-orange-500 font-semibold">
+								<p className="text-base sm:text-2xl text-orange-500 font-semibold">
 									已暂停
 								</p>
 							)}
 						</div>
 
 						{/* Countdown numbers */}
-						<div className="flex items-center justify-center gap-8">
+						<div
+							className={cn(
+								"grid sm:hidden gap-3",
+								timeLeft.days > 0
+									? "grid-cols-4"
+									: "grid-cols-3",
+							)}
+						>
+							{timeLeft.days > 0 ? (
+								<div className="flex flex-col items-center">
+									<div
+										className={cn(
+											"text-[clamp(2.25rem,12vw,4.25rem)] font-bold tabular-nums leading-none",
+											getColorClass(),
+										)}
+									>
+										{String(timeLeft.days).padStart(2, "0")}
+									</div>
+									<div className="text-xs text-muted-foreground mt-2">
+										天
+									</div>
+								</div>
+							) : null}
+							<div className="flex flex-col items-center">
+								<div
+									className={cn(
+										"text-[clamp(2.25rem,12vw,4.25rem)] font-bold tabular-nums leading-none",
+										getColorClass(),
+									)}
+								>
+									{String(timeLeft.hours).padStart(2, "0")}
+								</div>
+								<div className="text-xs text-muted-foreground mt-2">
+									时
+								</div>
+							</div>
+							<div className="flex flex-col items-center">
+								<div
+									className={cn(
+										"text-[clamp(2.25rem,12vw,4.25rem)] font-bold tabular-nums leading-none",
+										getColorClass(),
+									)}
+								>
+									{String(timeLeft.minutes).padStart(2, "0")}
+								</div>
+								<div className="text-xs text-muted-foreground mt-2">
+									分
+								</div>
+							</div>
+							<div className="flex flex-col items-center">
+								<div
+									className={cn(
+										"text-[clamp(2.25rem,12vw,4.25rem)] font-bold tabular-nums leading-none",
+										getColorClass(),
+									)}
+								>
+									{String(timeLeft.seconds).padStart(2, "0")}
+								</div>
+								<div className="text-xs text-muted-foreground mt-2">
+									秒
+								</div>
+							</div>
+						</div>
+
+						<div className="hidden sm:flex items-center justify-center gap-6 lg:gap-8">
 							{/* Days */}
 							{timeLeft.days > 0 && (
 								<>
 									<div className="flex flex-col items-center">
 										<div
 											className={cn(
-												"text-9xl font-bold tabular-nums leading-none",
+												"text-7xl md:text-8xl lg:text-9xl font-bold tabular-nums leading-none",
 												getColorClass(),
 											)}
 										>
@@ -307,7 +371,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 									</div>
 									<div
 										className={cn(
-											"text-8xl font-bold leading-none",
+											"text-6xl md:text-7xl lg:text-8xl font-bold leading-none",
 											getColorClass(),
 										)}
 									>
@@ -320,7 +384,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 							<div className="flex flex-col items-center">
 								<div
 									className={cn(
-										"text-9xl font-bold tabular-nums leading-none",
+										"text-7xl md:text-8xl lg:text-9xl font-bold tabular-nums leading-none",
 										getColorClass(),
 									)}
 								>
@@ -333,7 +397,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 
 							<div
 								className={cn(
-									"text-8xl font-bold leading-none",
+									"text-6xl md:text-7xl lg:text-8xl font-bold leading-none",
 									getColorClass(),
 								)}
 							>
@@ -344,7 +408,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 							<div className="flex flex-col items-center">
 								<div
 									className={cn(
-										"text-9xl font-bold tabular-nums leading-none",
+										"text-7xl md:text-8xl lg:text-9xl font-bold tabular-nums leading-none",
 										getColorClass(),
 									)}
 								>
@@ -357,7 +421,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 
 							<div
 								className={cn(
-									"text-8xl font-bold leading-none",
+									"text-6xl md:text-7xl lg:text-8xl font-bold leading-none",
 									getColorClass(),
 								)}
 							>
@@ -368,7 +432,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 							<div className="flex flex-col items-center">
 								<div
 									className={cn(
-										"text-9xl font-bold tabular-nums leading-none",
+										"text-7xl md:text-8xl lg:text-9xl font-bold tabular-nums leading-none",
 										getColorClass(),
 									)}
 								>
@@ -386,14 +450,14 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 								{timeLeft.days === 0 &&
 									timeLeft.hours === 0 &&
 									timeLeft.minutes <= 10 && (
-										<p className="text-3xl font-bold text-red-600 animate-pulse">
+										<p className="text-xl sm:text-3xl font-bold text-red-600 animate-pulse">
 											⚠️ 即将结束！
 										</p>
 									)}
 								{timeLeft.days === 0 &&
 									timeLeft.hours === 0 &&
 									timeLeft.minutes <= 1 && (
-										<p className="text-2xl font-bold text-red-700">
+										<p className="text-lg sm:text-2xl font-bold text-red-700">
 											🚨 最后一分钟！
 										</p>
 									)}
@@ -401,13 +465,13 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 						)}
 
 						{/* Control buttons */}
-						<div className="flex items-center justify-center gap-4">
+						<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
 							{!timeLeft.isNegative && (
 								<Button
 									onClick={handlePauseResume}
 									size="lg"
 									variant="outline"
-									className="text-lg px-8"
+									className="text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto"
 								>
 									{isPaused ? (
 										<>
@@ -426,7 +490,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 								onClick={handleReset}
 								size="lg"
 								variant="outline"
-								className="text-lg px-8"
+								className="text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto"
 							>
 								<RotateCcw className="w-5 h-5 mr-2" />
 								重新设置
@@ -437,7 +501,7 @@ export default function CountdownPage({ params }: CountdownPageProps) {
 			</div>
 
 			<Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-				<DialogContent>
+				<DialogContent className="max-w-[calc(100vw-1.5rem)] sm:max-w-lg">
 					<DialogHeader>
 						<DialogTitle>设置倒计时时间</DialogTitle>
 						<DialogDescription>
