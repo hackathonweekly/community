@@ -48,7 +48,7 @@ export function DigitalBusinessCard({
 	return (
 		<div
 			ref={cardRef}
-			className={`relative bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl overflow-hidden ${className}`}
+			className={`relative bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl overflow-hidden`}
 			style={{
 				width: "100%",
 				height: "100%",
@@ -58,38 +58,38 @@ export function DigitalBusinessCard({
 			{/* Content */}
 			<div className="relative h-full flex flex-col items-center justify-center px-8 py-12">
 				{/* Avatar */}
-				<div className="mb-6">
+				<div className="mb-5 sm:mb-6">
 					{forExport && user.image ? (
 						<img
 							src={user.image}
 							alt={user.name}
-							className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+							className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg object-cover"
 							crossOrigin="anonymous"
 						/>
 					) : (
 						<UserAvatar
 							name={user.name}
 							avatarUrl={user.image}
-							className="w-32 h-32 border-4 border-white shadow-lg"
+							className="w-24 h-24 sm:w-32 sm:h-32 border-4 border-white shadow-lg"
 						/>
 					)}
 				</div>
 
 				{/* Name */}
-				<h1 className="text-4xl font-bold text-gray-900 mb-3 text-center px-4 line-clamp-1 break-words max-w-full">
+				<h1 className="text-4xl font-bold text-gray-900 mb-3 text-center px-4">
 					{user.name}
 				</h1>
 
 				{/* User Role */}
 				{user.userRoleString && (
-					<p className="text-xl text-primary font-medium mb-3 text-center px-4 line-clamp-1 break-words max-w-full">
+					<p className="text-xl text-primary font-medium mb-3 text-center px-4">
 						{user.userRoleString}
 					</p>
 				)}
 
 				{/* Current Work */}
 				{user.currentWorkOn && (
-					<p className="text-lg text-gray-600 mb-3 text-center px-6 line-clamp-2 break-words max-w-full">
+					<p className="text-sm sm:text-lg text-gray-600 mb-2.5 sm:mb-3 text-center px-6">
 						在做：{user.currentWorkOn}
 					</p>
 				)}

@@ -152,7 +152,7 @@ export function RegistrationSection({
 			</div>
 
 			<div
-				className={`relative overflow-hidden rounded-2xl border ${statusConfig.borderColor} ${statusConfig.bgColor} p-6 shadow-sm transition-all group hover:shadow-md`}
+				className={`z-10 relative overflow-hidden rounded-2xl border ${statusConfig.borderColor} ${statusConfig.bgColor} p-6 shadow-sm transition-all group hover:shadow-md`}
 			>
 				{/* Decorative Background Pattern */}
 				<div className="absolute right-[-40px] top-[-40px] opacity-[0.04] pointer-events-none transition-transform group-hover:scale-110 duration-500 will-change-transform">

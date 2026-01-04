@@ -201,7 +201,7 @@ export function DigitalBusinessCardGallery({
 	}
 
 	return createPortal(
-		<div className="fixed inset-0 z-[60] flex items-center justify-center">
+		<div className="fixed inset-0 z-[60] flex items-center justify-center p-0 sm:p-6 lg:p-10">
 			{/* Backdrop */}
 			<div
 				className="absolute inset-0 bg-black/50 backdrop-blur-sm"
@@ -209,7 +209,7 @@ export function DigitalBusinessCardGallery({
 			/>
 
 			{/* Content */}
-			<div className="relative w-full h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+			<div className="relative w-full h-full sm:h-[90vh] sm:max-w-6xl flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 sm:rounded-2xl sm:border sm:shadow-2xl overflow-hidden">
 				{/* Header Bar */}
 				<div className="relative z-50 bg-background/95 backdrop-blur-sm border-b px-4 py-3 flex items-center justify-between">
 					<div className="flex items-center gap-3">
@@ -272,12 +272,9 @@ export function DigitalBusinessCardGallery({
 				</div>
 
 				{/* Main Content Area */}
-				<div className="relative flex-1 flex items-center justify-center p-4 sm:p-8">
+				<div className="relative flex-1 min-h-0 flex items-center justify-center p-2">
 					{/* Card Display */}
-					<div
-						className="relative w-full h-full max-w-[500px] max-h-[calc(100vh-120px)]"
-						style={{ aspectRatio: "3/4" }}
-					>
+					<div className="relative w-full h-full max-w-[500px] max-h-[calc(100vh-120px)] sm:max-h-[calc(150vh)]">
 						{users.map((user, index) => (
 							<div
 								key={user.id}

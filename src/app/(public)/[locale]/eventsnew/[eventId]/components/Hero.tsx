@@ -234,7 +234,7 @@ export function Hero({
 						分享
 					</Button>
 
-					<div className="flex items-center gap-2 ml-2 border-l border-white/10 pl-4">
+					<div className="hidden items-center gap-2 ml-2 border-l border-white/10 pl-4">
 						<Button
 							variant="ghost"
 							size="icon"

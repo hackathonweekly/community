@@ -7,7 +7,7 @@ export function AnchorNav({
 }) {
 	return (
 		<div className="sticky top-0 z-20 border-b bg-white/90 backdrop-blur">
-			<div className="container max-w-6xl flex items-center gap-2 overflow-x-auto py-2 md:py-3 text-sm text-muted-foreground flex-nowrap">
+			<div className="z-20 container max-w-6xl flex items-center gap-2 overflow-x-auto py-2 md:py-3 text-sm text-muted-foreground flex-nowrap">
 				{anchors.map((anchor) => (
 					<a
 						key={anchor.id}
