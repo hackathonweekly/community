@@ -22,6 +22,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useEventSubmissions } from "@/features/event-submissions/hooks";
 import type { EventSubmission } from "@/features/event-submissions/types";
@@ -162,6 +163,7 @@ export function SubmissionsSlideDeck({
 	const [onlyApproved, setOnlyApproved] = useState(false);
 	const [currentIndex, setCurrentIndex] = useState(0);
 	const [isQrCollapsed, setIsQrCollapsed] = useState(false);
+	const [isQrZoomOpen, setIsQrZoomOpen] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 	const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -273,6 +275,7 @@ export function SubmissionsSlideDeck({
 
 	useEffect(() => {
 		const handleKey = (event: KeyboardEvent) => {
+			if (isQrZoomOpen) return;
 			if (event.key === "ArrowRight" || event.key === " ") {
 				event.preventDefault();
 				handleNext();
@@ -297,7 +300,7 @@ export function SubmissionsSlideDeck({
 
 		window.addEventListener("keydown", handleKey);
 		return () => window.removeEventListener("keydown", handleKey);
-	}, [handleNext, handlePrev, toggleFullscreen]);
+	}, [handleNext, handlePrev, isQrZoomOpen, toggleFullscreen]);
 
 	const descriptionText = useMemo(() => {
 		if (!currentSubmission) return "";
@@ -697,39 +700,63 @@ export function SubmissionsSlideDeck({
 														<CollapsibleContent>
 															<div className="px-4 pb-4">
 																<div className="flex gap-4">
-																	<div className="shrink-0 p-2 rounded-xl bg-white shadow-lg">
+																	<button
+																		type="button"
+																		className="shrink-0 rounded-2xl bg-white p-3 shadow-lg ring-1 ring-black/5 transition-transform hover:scale-[1.01] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500 cursor-zoom-in w-[clamp(180px,15vw,260px)]"
+																		onClick={() =>
+																			setIsQrZoomOpen(
+																				true,
+																			)
+																		}
+																		aria-label="放大二维码"
+																	>
 																		<QRCode
 																			value={
 																				qrUrl ||
 																				" "
 																			}
 																			size={
-																				112
+																				1024
 																			}
-																			className="h-auto w-[112px]"
+																			style={{
+																				height: "auto",
+																				width: "100%",
+																			}}
+																			className="h-auto w-full"
 																		/>
-																	</div>
+																	</button>
 																	<div className="flex flex-col justify-center gap-2 min-w-0">
 																		<p className="text-xs text-white/50 leading-relaxed">
 																			{isVotingOpen
 																				? "手机扫码即可投票"
 																				: "手机扫码即可查看作品详情"}
 																		</p>
-																		<Button
-																			variant="outline"
-																			size="sm"
-																			className="h-7 text-xs border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white justify-start"
-																			onClick={(
-																				e,
-																			) => {
-																				e.stopPropagation();
-																				void copyText(
-																					qrUrl,
-																				);
-																			}}
-																		>
-																			复制链接
-																		</Button>
+																		<div className="flex flex-col gap-2">
+																			<Button
+																				variant="outline"
+																				size="sm"
+																				className="h-7 text-xs border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white justify-start"
+																				onClick={() =>
+																					void copyText(
+																						qrUrl,
+																					)
+																				}
+																			>
+																				复制链接
+																			</Button>
+																			<Button
+																				variant="outline"
+																				size="sm"
+																				className="h-7 text-xs border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white justify-start"
+																				onClick={() =>
+																					setIsQrZoomOpen(
+																						true,
+																					)
+																				}
+																			>
+																				放大二维码
+																			</Button>
+																		</div>
 																		{isVotingOpen ? (
 																			<div className="text-emerald-400 text-xs flex items-center gap-1.5">
 																				<CheckCircle2 className="h-3 w-3" />
@@ -754,6 +781,47 @@ export function SubmissionsSlideDeck({
 						</div>
 					</div>
 				</div>
+
+				<Dialog open={isQrZoomOpen} onOpenChange={setIsQrZoomOpen}>
+					<DialogContent
+						showCloseButton={false}
+						className="max-w-none sm:max-w-none w-[calc(min(92vw,70vh)+40px)] max-h-[calc(100vh-2rem)] rounded-3xl border-white/10 bg-slate-950 p-5 text-white"
+					>
+						<div className="flex items-start justify-between gap-3">
+							<h2 className="text-4xl lg:text-5xl min-w-0 font-semibold leading-tight text-white/90">
+								<span className="block truncate">
+									{currentSubmission?.name ?? voteLabel}
+								</span>
+							</h2>
+							<DialogClose asChild>
+								<button
+									type="button"
+									className="shrink-0 rounded-full bg-white/5 p-2 text-white/70 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500"
+									aria-label="关闭"
+								>
+									<X className="h-4 w-4" />
+								</button>
+							</DialogClose>
+						</div>
+
+						<button
+							type="button"
+							className="mt-4 w-full aspect-square rounded-3xl bg-white p-4 shadow-xl ring-1 ring-black/5 cursor-copy"
+							onClick={() => void copyText(qrUrl)}
+							aria-label="点击复制链接"
+						>
+							<QRCode
+								value={qrUrl || " "}
+								size={1024}
+								style={{
+									height: "100%",
+									width: "100%",
+								}}
+								className="h-full w-full"
+							/>
+						</button>
+					</DialogContent>
+				</Dialog>
 
 				{/* Footer Controls */}
 				<div className="flex items-center justify-between text-sm text-white/30 px-2">
