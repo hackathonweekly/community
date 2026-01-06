@@ -15,6 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
 
+import { AudioPlayer } from "@/components/ui/audio-player";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,9 +26,9 @@ import {
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useEventSubmissions } from "@/features/event-submissions/hooks";
-import type { EventSubmission } from "@/features/event-submissions/types";
 import type { HackathonVoting } from "@/features/hackathon/config";
 import { cn } from "@/lib/utils";
+import { getSubmissionMedia } from "./types";
 import { createFallbackCaptionSrc } from "./utils";
 
 function clamp(value: number, min: number, max: number) {
@@ -97,21 +98,6 @@ function extractHighlights(
 	}
 
 	return result;
-}
-
-function getSubmissionMedia(submission: EventSubmission) {
-	if (submission.coverImage) {
-		return { type: "image" as const, url: submission.coverImage };
-	}
-	const first = submission.attachments?.[0];
-	if (!first) return null;
-	if (first.fileType === "image") {
-		return { type: "image" as const, url: first.fileUrl };
-	}
-	if (first.fileType === "video") {
-		return { type: "video" as const, url: first.fileUrl };
-	}
-	return null;
 }
 
 async function copyText(text: string) {
@@ -318,9 +304,11 @@ export function SubmissionsSlideDeck({
 	}, [descriptionText, currentSubmission?.tagline]);
 
 	const media = useMemo(() => {
-		if (!currentSubmission) return null;
+		if (!currentSubmission) return { visual: null, audio: null };
 		return getSubmissionMedia(currentSubmission);
 	}, [currentSubmission]);
+	const visual = media.visual;
+	const audio = media.audio;
 
 	const captionLang = locale === "en" ? "en" : "zh";
 	const captionLabel = locale === "en" ? "Captions" : "字幕";
@@ -468,25 +456,27 @@ export function SubmissionsSlideDeck({
 												key={currentSubmission.id}
 												className="flex-1 min-h-0 rounded-2xl border border-white/10 bg-black/40 overflow-hidden shadow-inner relative group/media"
 											>
-												{media?.type === "image" ? (
+												{visual &&
+												visual.type === "image" ? (
 													<img
-														key={media.url}
-														src={media.url}
+														key={visual.url}
+														src={visual.url}
 														alt={
 															currentSubmission.name
 														}
 														className="block h-full w-full object-contain p-1 transition-transform duration-700 hover:scale-105"
 													/>
-												) : media?.type === "video" ? (
+												) : visual &&
+													visual.type === "video" ? (
 													<video
-														key={media.url}
+														key={visual.url}
 														controls
 														preload="metadata"
 														playsInline
 														className="block h-full w-full bg-black object-contain"
 													>
 														<source
-															src={media.url}
+															src={visual.url}
 														/>
 														<track
 															default
@@ -502,13 +492,61 @@ export function SubmissionsSlideDeck({
 														您的浏览器不支持视频播放
 													</video>
 												) : (
-													<div className="flex h-full flex-col items-center justify-center gap-3 text-white/30">
-														<div className="p-4 rounded-full bg-white/5">
-															<Maximize2 className="h-6 w-6" />
-														</div>
-														<p>暂无演示素材</p>
+													<div className="flex h-full flex-col items-center justify-center gap-3 text-white/30 p-8">
+														{audio ? (
+															<div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md p-4">
+																<AudioPlayer
+																	src={
+																		audio.fileUrl
+																	}
+																	mimeType={
+																		audio.mimeType
+																	}
+																	locale={
+																		locale
+																	}
+																	title={
+																		currentSubmission.tagline ??
+																		currentSubmission.name
+																	}
+																	className="w-full"
+																/>
+															</div>
+														) : (
+															<>
+																<div className="p-4 rounded-full bg-white/5">
+																	<Maximize2 className="h-6 w-6" />
+																</div>
+																<p>
+																	暂无演示素材
+																</p>
+															</>
+														)}
 													</div>
 												)}
+
+												{audio &&
+												visual &&
+												visual.type === "image" ? (
+													<div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+														<div className="rounded-xl border border-white/10 bg-black/40 backdrop-blur-md p-3">
+															<AudioPlayer
+																src={
+																	audio.fileUrl
+																}
+																mimeType={
+																	audio.mimeType
+																}
+																locale={locale}
+																title={
+																	currentSubmission.tagline ??
+																	currentSubmission.name
+																}
+																className="w-full"
+															/>
+														</div>
+													</div>
+												) : null}
 
 												{/* Hover Actions */}
 												{currentSubmission.demoUrl && (

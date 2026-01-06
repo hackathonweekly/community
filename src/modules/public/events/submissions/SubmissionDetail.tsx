@@ -18,6 +18,7 @@ import { useEffect, useMemo, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
 
+import { AudioPlayer } from "@/components/ui/audio-player";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import { toVotingErrorMessage } from "@/features/event-submissions/utils/voting-
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { ShareSubmissionDialog } from "./ShareSubmissionDialog";
+import { getSubmissionAudio, getSubmissionMediaForDetail } from "./types";
 import { useEventRegistrationStatus } from "./useEventRegistrationStatus";
 import { createFallbackCaptionSrc } from "./utils";
 
@@ -287,45 +289,14 @@ export function SubmissionDetail({
 		await copyText(voteUrl);
 	};
 
-	const getMedia = () => {
-		// Prefer video over image if available? Or just first attachment.
-		// Logic similar to Slide Deck: Prefer cover image if no attachments, or specific logic.
-		// But in detail page we might want to show EVERYTHING.
-		// For the "Hero" media, let's pick the best one.
-		if (submission.attachments.length > 0) {
-			// Find first video
-			const vid = submission.attachments.find(
-				(a) => a.fileType === "video",
-			);
-			if (vid)
-				return {
-					type: "video" as const,
-					url: vid.fileUrl,
-					name: vid.fileName,
-				};
-
-			// Find first image
-			const img = submission.attachments.find(
-				(a) => a.fileType === "image",
-			);
-			if (img)
-				return {
-					type: "image" as const,
-					url: img.fileUrl,
-					name: img.fileName,
-				};
-		}
-		if (submission.coverImage) {
-			return {
-				type: "image" as const,
-				url: submission.coverImage,
-				name: submission.name,
-			};
-		}
-		return null;
-	};
-
-	const primaryMedia = getMedia();
+	const primaryMedia = useMemo(
+		() => getSubmissionMediaForDetail(submission),
+		[submission],
+	);
+	const primaryAudio = useMemo(
+		() => getSubmissionAudio(submission),
+		[submission],
+	);
 	const otherAttachments = submission.attachments.filter(
 		(a) => a.fileUrl !== primaryMedia?.url,
 	);
@@ -732,6 +703,21 @@ export function SubmissionDetail({
 										}
 										className="w-full h-full object-contain"
 									/>
+								) : primaryAudio ? (
+									<div className="w-full h-full flex flex-col items-center justify-center gap-4 p-8">
+										<div className="w-full max-w-lg rounded-2xl border border-white/10 bg-black/40 backdrop-blur-md p-4">
+											<AudioPlayer
+												src={primaryAudio.fileUrl}
+												mimeType={primaryAudio.mimeType}
+												locale={locale}
+												title={
+													submission.tagline ??
+													submission.name
+												}
+												className="w-full"
+											/>
+										</div>
+									</div>
 								) : (
 									<div className="w-full h-full flex flex-col items-center justify-center text-slate-600 gap-4">
 										<div className="p-4 rounded-full bg-white/5">
@@ -740,6 +726,24 @@ export function SubmissionDetail({
 										<p>暂无主媒体内容</p>
 									</div>
 								)}
+
+								{primaryAudio &&
+								primaryMedia?.type === "image" ? (
+									<div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+										<div className="rounded-xl border border-white/10 bg-black/40 backdrop-blur-md p-3">
+											<AudioPlayer
+												src={primaryAudio.fileUrl}
+												mimeType={primaryAudio.mimeType}
+												locale={locale}
+												title={
+													submission.tagline ??
+													submission.name
+												}
+												className="w-full"
+											/>
+										</div>
+									</div>
+								) : null}
 
 								{submission.demoUrl && (
 									<div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
