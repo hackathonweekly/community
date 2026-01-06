@@ -262,7 +262,10 @@ export function EventLayout({
 						action: {
 							label: t("auth.login.submit"),
 							onClick: () => {
-								const currentPath = pathname;
+								const searchString = searchParams.toString();
+								const currentPath = searchString
+									? `${pathname}?${searchString}`
+									: pathname;
 								router.push(
 									`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 								);
@@ -335,19 +338,32 @@ export function EventLayout({
 		const storageKey = `event-invite-${event.id}`;
 		const inviteParam = searchParams.get("invite");
 
-		if (inviteParam) {
-			setInviteCode(inviteParam);
+		const persistInviteCode = (code: string) => {
 			try {
-				window.localStorage.setItem(storageKey, inviteParam);
+				window.localStorage.setItem(storageKey, code);
 			} catch (error) {
 				console.warn("Failed to persist invite code", error);
 			}
+
+			try {
+				window.document.cookie = `${storageKey}=${encodeURIComponent(code)}; Path=/; Max-Age=2592000; SameSite=Lax`;
+			} catch (error) {
+				console.warn("Failed to write invite code cookie", error);
+			}
+		};
+
+		if (inviteParam) {
+			setInviteCode(inviteParam);
+			persistInviteCode(inviteParam);
 			return;
 		}
 
 		try {
 			const storedInvite = window.localStorage.getItem(storageKey);
 			setInviteCode(storedInvite);
+			if (storedInvite) {
+				persistInviteCode(storedInvite);
+			}
 		} catch (error) {
 			console.warn("Failed to read stored invite code", error);
 			setInviteCode(null);
@@ -399,7 +415,10 @@ export function EventLayout({
 	const handleUnifiedRegister = () => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);
@@ -423,7 +442,10 @@ export function EventLayout({
 	const handleVolunteerApply = async (eventVolunteerRoleId: string) => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);
@@ -445,7 +467,10 @@ export function EventLayout({
 	}) => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);

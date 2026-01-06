@@ -14,7 +14,12 @@ import {
 } from "@heroicons/react/24/outline";
 import { LocaleLink } from "@i18n/routing";
 import Link from "next/link";
-import { useParams, usePathname, useRouter } from "next/navigation";
+import {
+	useParams,
+	usePathname,
+	useRouter,
+	useSearchParams,
+} from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -41,6 +46,7 @@ interface CheckInStatus {
 export default function EventCheckInPage() {
 	const params = useParams();
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const router = useRouter();
 	const locale = useLocale();
 	const eventId = params.eventId as string;
@@ -50,6 +56,8 @@ export default function EventCheckInPage() {
 	);
 	const [loading, setLoading] = useState(true);
 	const [isCheckingIn, setIsCheckingIn] = useState(false);
+	const searchString = searchParams.toString();
+	const redirectTo = searchString ? `${pathname}?${searchString}` : pathname;
 
 	useEffect(() => {
 		fetchCheckInStatus();
@@ -319,7 +327,7 @@ export default function EventCheckInPage() {
 											asChild
 										>
 											<Link
-												href={`/auth/login?redirectTo=${encodeURIComponent(pathname)}`}
+												href={`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`}
 											>
 												{t("goToLogin")}
 											</Link>

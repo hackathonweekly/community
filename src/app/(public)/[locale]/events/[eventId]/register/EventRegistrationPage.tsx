@@ -2,7 +2,7 @@
 
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { useTranslations } from "next-intl";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect, useMemo } from "react";
@@ -21,9 +21,11 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 	const t = useTranslations();
 	const router = useRouter();
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const { user } = useSession();
 	const queryClient = useQueryClient();
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [inviteCode, setInviteCode] = useState<string | null>(null);
 
 	// 使用 state 来存储当前时间，避免 hydration mismatch
 	const [now, setNow] = useState<Date | null>(null);
@@ -32,14 +34,59 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 		setNow(new Date());
 	}, []);
 
+	useEffect(() => {
+		if (typeof window === "undefined") {
+			return;
+		}
+
+		const storageKey = `event-invite-${event.id}`;
+		const cookieKey = storageKey;
+		const inviteParam = searchParams.get("invite");
+
+		const persistInviteCode = (code: string) => {
+			try {
+				window.localStorage.setItem(storageKey, code);
+			} catch (error) {
+				console.warn("Failed to persist invite code", error);
+			}
+
+			try {
+				window.document.cookie = `${cookieKey}=${encodeURIComponent(code)}; Path=/; Max-Age=2592000; SameSite=Lax`;
+			} catch (error) {
+				console.warn("Failed to write invite code cookie", error);
+			}
+		};
+
+		if (inviteParam) {
+			setInviteCode(inviteParam);
+			persistInviteCode(inviteParam);
+			return;
+		}
+
+		try {
+			const storedInvite = window.localStorage.getItem(storageKey);
+			setInviteCode(storedInvite);
+			if (storedInvite) {
+				persistInviteCode(storedInvite);
+			}
+		} catch (error) {
+			console.warn("Failed to read stored invite code", error);
+			setInviteCode(null);
+		}
+	}, [event.id, searchParams]);
+
 	// Redirect to event page if user is not logged in
 	useEffect(() => {
 		if (!user) {
+			const searchString = searchParams.toString();
+			const redirectTo = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
+				`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
 			);
 		}
-	}, [user, router, pathname]);
+	}, [user, router, pathname, searchParams]);
 
 	// Check if event allows registration - 使用 useMemo 避免重复计算
 	const canRegisterResult = useMemo(() => {
@@ -205,6 +252,7 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 					onSubmittingChange={setIsSubmitting}
 					onRegistrationComplete={handleRegistrationComplete}
 					onCancel={handleGoBack}
+					inviteCode={inviteCode ?? undefined}
 				/>
 			</div>
 		</div>

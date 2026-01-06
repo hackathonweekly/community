@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEventEngagement, useEventRegistration } from "./useEventQueries";
 import { useTranslations } from "next-intl";
 import { useMemo, useState, useEffect } from "react";
@@ -36,6 +36,7 @@ export function useUnifiedEventRegistration({
 }: UnifiedEventRegistrationProps) {
 	const t = useTranslations();
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const { isBookmarked, toggleBookmark } = useEventEngagement(
 		event.id,
 		user?.id,
@@ -124,8 +125,12 @@ export function useUnifiedEventRegistration({
 		}
 
 		if (!user) {
+			const searchString = searchParams.toString();
+			const redirectTo = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
+				`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
 			);
 			return;
 		}
@@ -137,7 +142,11 @@ export function useUnifiedEventRegistration({
 		// 移动端跳转到报名页面
 		if (typeof window !== "undefined") {
 			const locale = window.location.pathname.split("/")[1];
-			window.location.href = `/${locale}/events/${event.id}/register`;
+			const invite = searchParams.get("invite");
+			const inviteQuery = invite
+				? `?invite=${encodeURIComponent(invite)}`
+				: "";
+			window.location.href = `/${locale}/events/${event.id}/register${inviteQuery}`;
 		}
 	};
 
@@ -156,8 +165,12 @@ export function useUnifiedEventRegistration({
 	// 收藏操作
 	const handleBookmark = async () => {
 		if (!user) {
+			const searchString = searchParams.toString();
+			const redirectTo = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
-				`/auth/login?redirectTo=${encodeURIComponent(pathname)}`,
+				`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
 			);
 			return;
 		}

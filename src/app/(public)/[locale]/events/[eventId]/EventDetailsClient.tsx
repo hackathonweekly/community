@@ -1,7 +1,7 @@
 "use client";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { useTranslations } from "next-intl";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -191,6 +191,7 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 	const t = useTranslations();
 	const router = useRouter();
 	const pathname = usePathname();
+	const searchParams = useSearchParams();
 	const { user } = useSession();
 	const eventTypeLabels = getEventTypeLabels(t);
 
@@ -271,7 +272,10 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 	const handleRegister = async (openModal?: () => void) => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);
@@ -286,7 +290,10 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 	const handleVolunteerApply = async (eventVolunteerRoleId: string) => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);
@@ -307,7 +314,10 @@ export function EventDetailsClient({ event }: EventDetailsProps) {
 	}) => {
 		if (!user) {
 			// 跳转到登录页，并带上当前页面的 URL 作为 redirectTo 参数
-			const currentPath = pathname;
+			const searchString = searchParams.toString();
+			const currentPath = searchString
+				? `${pathname}?${searchString}`
+				: pathname;
 			router.push(
 				`/auth/login?redirectTo=${encodeURIComponent(currentPath)}`,
 			);

@@ -17,6 +17,30 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
 
+const readCookieValue = (
+	cookieHeader: string | null,
+	name: string,
+): string | undefined => {
+	if (!cookieHeader) return undefined;
+
+	const pairs = cookieHeader.split(";");
+	for (const pair of pairs) {
+		const trimmed = pair.trim();
+		if (!trimmed) continue;
+		const separatorIndex = trimmed.indexOf("=");
+		if (separatorIndex === -1) continue;
+		const key = trimmed.slice(0, separatorIndex).trim();
+		if (key !== name) continue;
+		const value = trimmed.slice(separatorIndex + 1);
+		try {
+			return decodeURIComponent(value);
+		} catch {
+			return value;
+		}
+	}
+	return undefined;
+};
+
 const registerSchema = z.object({
 	note: z.string().optional(),
 	ticketTypeId: z.string().optional(), // 添加票种支持
@@ -182,9 +206,21 @@ app.post(
 				}
 			}
 
+			const inviteCodeFromBody = inviteCode?.trim() || undefined;
+			const inviteCodeFromCookie =
+				readCookieValue(
+					c.req.raw.headers.get("cookie"),
+					`event-invite-${eventId}`,
+				)?.trim() || undefined;
+			const inviteCodeCandidate =
+				inviteCodeFromBody ?? inviteCodeFromCookie;
+
 			let inviteId: string | undefined;
-			if (inviteCode) {
-				const invite = await findEventInviteByCode(eventId, inviteCode);
+			if (inviteCodeCandidate) {
+				const invite = await findEventInviteByCode(
+					eventId,
+					inviteCodeCandidate,
+				);
 				if (invite) {
 					inviteId = invite.id;
 				}
