@@ -16,7 +16,8 @@ COPY --from=oven/bun:1 /usr/local/bin/bun /usr/local/bin/bun
 FROM base AS deps
 
 # Copy dependency files
-COPY package.json bun.lockb ./
+COPY package.json bun.lockb bunfig.toml ./
+COPY scripts/prisma-cli.js ./scripts/prisma-cli.js
 COPY src/lib/database/prisma ./src/lib/database/prisma
 
 # Install dependencies with Bun (faster than npm)
