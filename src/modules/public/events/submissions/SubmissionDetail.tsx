@@ -10,6 +10,7 @@ import {
 	Play,
 	Presentation,
 	ShieldCheck,
+	X,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -20,6 +21,7 @@ import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { ACTIVE_REGISTRATION_STATUSES } from "@/features/event-submissions/constants";
 import {
 	useEventSubmissions,
@@ -115,6 +117,7 @@ export function SubmissionDetail({
 		[submission.eventId, submission.id],
 	);
 	const [isQrCollapsed, setIsQrCollapsed] = useState(false);
+	const [isQrZoomOpen, setIsQrZoomOpen] = useState(false);
 	const voteUrl = useMemo(
 		() => (isVotingCurrentlyOpen ? `${submissionUrl}/vote` : submissionUrl),
 		[isVotingCurrentlyOpen, submissionUrl],
@@ -521,13 +524,65 @@ export function SubmissionDetail({
 									</div>
 								</div>
 
-								<div className="bg-white p-3 rounded-xl w-full flex justify-center shadow-inner">
+								<button
+									type="button"
+									className="bg-white p-3 rounded-xl w-full flex justify-center shadow-inner cursor-zoom-in"
+									onClick={() => setIsQrZoomOpen(true)}
+									aria-label="放大二维码"
+								>
 									<QRCode
 										value={voteUrl}
 										size={160}
 										className="h-auto w-full max-w-[180px]"
 									/>
-								</div>
+								</button>
+
+								<Dialog
+									open={isQrZoomOpen}
+									onOpenChange={setIsQrZoomOpen}
+								>
+									<DialogContent
+										showCloseButton={false}
+										className="max-w-none sm:max-w-none w-[calc(min(92vw,70vh)+40px)] max-h-[calc(100vh-2rem)] rounded-3xl border-white/10 bg-slate-950 p-5 text-white"
+									>
+										<div className="flex items-start justify-between gap-3">
+											<h2 className="min-w-0 text-4xl lg:text-5xl font-semibold leading-tight text-white/90">
+												<span className="block truncate">
+													{submission.name ??
+														"作品二维码"}
+												</span>
+											</h2>
+											<DialogClose asChild>
+												<button
+													type="button"
+													className="shrink-0 rounded-full bg-white/5 p-2 text-white/70 ring-1 ring-white/10 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-emerald-500"
+													aria-label="关闭"
+												>
+													<X className="h-4 w-4" />
+												</button>
+											</DialogClose>
+										</div>
+
+										<button
+											type="button"
+											className="mt-4 w-full aspect-square rounded-3xl bg-white p-4 shadow-xl ring-1 ring-black/5 cursor-copy"
+											onClick={() =>
+												void copyText(voteUrl)
+											}
+											aria-label="点击复制链接"
+										>
+											<QRCode
+												value={voteUrl || " "}
+												size={1024}
+												style={{
+													height: "100%",
+													width: "100%",
+												}}
+												className="h-full w-full"
+											/>
+										</button>
+									</DialogContent>
+								</Dialog>
 							</div>
 
 							{/* Description */}
