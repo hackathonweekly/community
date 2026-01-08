@@ -583,6 +583,7 @@
 	},
 	"common": {
 		"clickHere": "click here to unsubscribe",
+		"loadMore": "Load more",
 		"from": "From",
 		"needHelp": "Need help?",
 		"contactSupport": "Contact support",
