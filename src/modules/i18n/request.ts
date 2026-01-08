@@ -18,5 +18,15 @@ export default getRequestConfig(async ({ requestLocale }) => {
 	return {
 		locale,
 		messages: await getMessagesForLocale(locale),
+		// Never hard-crash the whole page for missing translations in production.
+		// Instead, log (dev) and fall back to the key so the UI still renders.
+		onError(error) {
+			if (process.env.NODE_ENV !== "production") {
+				console.error("[i18n]", error);
+			}
+		},
+		getMessageFallback({ namespace, key }) {
+			return namespace ? `${namespace}.${key}` : key;
+		},
 	};
 });

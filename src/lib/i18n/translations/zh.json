@@ -637,6 +637,7 @@
 	},
 	"common": {
 		"clickHere": "点击这里取消订阅",
+		"loadMore": "加载更多",
 		"openLinkInBrowser": "如果您想在非默认浏览器中打开链接，请复制并粘贴此链接：",
 		"otp": "一次性密码",
 		"unsubscribe": "不想接收这些邮件？",
