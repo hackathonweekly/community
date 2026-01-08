@@ -40,7 +40,7 @@ type AttachmentInput = z.infer<typeof attachmentSchema>;
 
 const baseSubmissionSchema = z.object({
 	name: z.string().min(1).max(50),
-	tagline: z.string().min(10).max(100),
+	tagline: z.string().max(100).optional(),
 	description: z
 		.string()
 		.max(5000)
@@ -339,13 +339,17 @@ const app = new Hono()
 				);
 				await ensureUsersExist(sanitizedMembers);
 
+				const sanitizedTagline = sanitizeOptionalString(
+					payload.tagline,
+				);
+
 				const submissionId = await db.$transaction(async (tx) => {
 					const project = await tx.project.create({
 						data: {
 							userId: leaderId,
 							title: payload.name,
-							subtitle: payload.tagline,
-							tagline: payload.tagline,
+							subtitle: sanitizedTagline ?? null,
+							tagline: sanitizedTagline ?? null,
 							description: payload.description,
 							url: payload.demoUrl,
 							communityUseAuth: payload.communityUseAuthorization,
@@ -461,9 +465,12 @@ const app = new Hono()
 				if (payload.name) {
 					projectData.title = payload.name;
 				}
-				if (payload.tagline) {
-					projectData.tagline = payload.tagline;
-					projectData.subtitle = payload.tagline;
+				if (Object.prototype.hasOwnProperty.call(payload, "tagline")) {
+					const sanitizedTagline = sanitizeOptionalString(
+						payload.tagline,
+					);
+					projectData.tagline = sanitizedTagline ?? null;
+					projectData.subtitle = sanitizedTagline ?? null;
 				}
 				if (payload.description !== undefined) {
 					projectData.description = payload.description;

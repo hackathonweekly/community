@@ -459,13 +459,13 @@ export function EventSubmissionForm({
 										<FormItem>
 											<FormLabel>
 												一句话介绍{" "}
-												<span className="text-red-500">
-													*
+												<span className="text-muted-foreground text-xs font-normal">
+													(选填)
 												</span>
 											</FormLabel>
 											<FormControl>
 												<Input
-													placeholder="> 10 个字，概括核心价值"
+													placeholder="用一句话概括你的作品..."
 													{...field}
 												/>
 											</FormControl>

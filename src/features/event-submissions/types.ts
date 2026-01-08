@@ -115,7 +115,7 @@ export interface SubmissionVoteResponse {
 
 export interface SubmissionFormValues {
 	name: string;
-	tagline: string;
+	tagline?: string;
 	description?: string;
 	demoUrl?: string;
 	teamLeaderId?: string;

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const submissionFormSchema = z.object({
 	name: z.string().min(1, "请输入作品名称").max(50),
-	tagline: z.string().min(10, "至少 10 个字符").max(100),
+	tagline: z.string().max(100, "一句话介绍不能超过 100 个字符").optional(),
 	description: z.string().max(5000).optional().or(z.literal("")),
 	demoUrl: z.string().url("请输入合法的链接").optional().or(z.literal("")),
 	teamLeaderId: z.string().optional(),
