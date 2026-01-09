@@ -24,6 +24,7 @@ export type RegistrationFieldConfigMap = Record<
 export interface RegistrationFieldConfig {
 	template: RegistrationFieldTemplate;
 	fields: RegistrationFieldConfigMap;
+	participationAgreementMarkdown?: string;
 }
 
 export const registrationFieldKeys: RegistrationFieldKey[] = [
@@ -42,6 +43,7 @@ const cloneConfig = (
 	config: RegistrationFieldConfig,
 ): RegistrationFieldConfig => ({
 	template: config.template,
+	participationAgreementMarkdown: config.participationAgreementMarkdown,
 	fields: registrationFieldKeys.reduce((acc, key) => {
 		const value = config.fields[key];
 		acc[key] = { enabled: value.enabled, required: value.required };
@@ -122,9 +124,18 @@ export const resolveRegistrationFieldConfig = (
 		return acc;
 	}, {} as RegistrationFieldConfigMap);
 
+	const participationAgreementMarkdown =
+		typeof config?.participationAgreementMarkdown === "string" &&
+		config.participationAgreementMarkdown.trim()
+			? config.participationAgreementMarkdown.trim()
+			: undefined;
+
 	return {
 		template,
 		fields: mergedFields,
+		...(participationAgreementMarkdown
+			? { participationAgreementMarkdown }
+			: {}),
 	};
 };
 

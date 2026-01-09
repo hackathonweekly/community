@@ -30,10 +30,19 @@ const normalizeSettings = (
 		typeof maybeSettings.communityUseAuthorizationEnabled === "boolean"
 			? maybeSettings.communityUseAuthorizationEnabled
 			: undefined;
+	const workAuthorizationAgreementMarkdownRaw =
+		typeof maybeSettings.workAuthorizationAgreementMarkdown === "string"
+			? maybeSettings.workAuthorizationAgreementMarkdown.trim()
+			: "";
+	const workAuthorizationAgreementMarkdown =
+		workAuthorizationAgreementMarkdownRaw
+			? workAuthorizationAgreementMarkdownRaw
+			: undefined;
 
 	if (
 		attachmentsEnabled === undefined &&
-		communityUseAuthorizationEnabled === undefined
+		communityUseAuthorizationEnabled === undefined &&
+		workAuthorizationAgreementMarkdown === undefined
 	) {
 		return undefined;
 	}
@@ -42,6 +51,9 @@ const normalizeSettings = (
 		...(attachmentsEnabled !== undefined && { attachmentsEnabled }),
 		...(communityUseAuthorizationEnabled !== undefined && {
 			communityUseAuthorizationEnabled,
+		}),
+		...(workAuthorizationAgreementMarkdown !== undefined && {
+			workAuthorizationAgreementMarkdown,
 		}),
 	};
 };

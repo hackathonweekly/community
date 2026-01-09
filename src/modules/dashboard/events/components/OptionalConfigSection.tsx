@@ -9,7 +9,9 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import type { FeedbackConfig } from "@/lib/database/prisma/types/feedback";
+import { DEFAULT_PARTICIPATION_AGREEMENT_MARKDOWN } from "@/lib/events/event-work-agreements";
 import {
 	getPresetRegistrationFieldConfig,
 	registrationFieldKeys,
@@ -25,6 +27,8 @@ import {
 	UsersIcon,
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import {
 	AdvancedSettingsModal,
@@ -79,6 +83,14 @@ export function OptionalConfigSection({
 	const registrationFieldConfig =
 		(watch("registrationFieldConfig") as RegistrationFieldConfig) ||
 		getPresetRegistrationFieldConfig("FULL");
+	const participationAgreementMarkdown =
+		typeof registrationFieldConfig.participationAgreementMarkdown ===
+		"string"
+			? registrationFieldConfig.participationAgreementMarkdown
+			: "";
+	const resolvedParticipationAgreementMarkdown =
+		participationAgreementMarkdown.trim() ||
+		DEFAULT_PARTICIPATION_AGREEMENT_MARKDOWN;
 
 	const fieldLabels: Record<string, string> = {
 		name: "姓名",
@@ -95,7 +107,12 @@ export function OptionalConfigSection({
 	const applyTemplate = (template: "FULL" | "MINIMAL") => {
 		setValue(
 			"registrationFieldConfig",
-			getPresetRegistrationFieldConfig(template),
+			{
+				...getPresetRegistrationFieldConfig(template),
+				...(participationAgreementMarkdown.trim()
+					? { participationAgreementMarkdown }
+					: {}),
+			},
 			{ shouldDirty: true, shouldTouch: true },
 		);
 	};
@@ -271,6 +288,73 @@ export function OptionalConfigSection({
 												</div>
 											);
 										})}
+									</div>
+
+									<div className="rounded-lg border p-3 space-y-3">
+										<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+											<div className="space-y-1">
+												<p className="font-medium">
+													参赛协议（Markdown）
+												</p>
+												<p className="text-sm text-muted-foreground">
+													留空使用默认模板；将用于报名页的协议查看与同意勾选。
+												</p>
+											</div>
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												onClick={() =>
+													setValue(
+														"registrationFieldConfig.participationAgreementMarkdown" as any,
+														"",
+														{
+															shouldDirty: true,
+															shouldTouch: true,
+														},
+													)
+												}
+											>
+												恢复默认
+											</Button>
+										</div>
+
+										<Textarea
+											value={
+												participationAgreementMarkdown
+											}
+											onChange={(event) =>
+												setValue(
+													"registrationFieldConfig.participationAgreementMarkdown" as any,
+													event.target.value,
+													{
+														shouldDirty: true,
+														shouldTouch: true,
+													},
+												)
+											}
+											placeholder="在这里填写《参赛协议》Markdown（可选）"
+											rows={8}
+										/>
+
+										<div className="rounded-lg border bg-muted/30 p-3">
+											<p className="text-sm font-medium mb-2">
+												预览
+											</p>
+											<div className="max-h-64 overflow-y-auto">
+												<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+													<ReactMarkdown
+														remarkPlugins={[
+															remarkGfm,
+														]}
+													>
+														{
+															resolvedParticipationAgreementMarkdown
+														}
+													</ReactMarkdown>
+												</div>
+											</div>
+										</div>
 									</div>
 								</div>
 							</DialogContent>

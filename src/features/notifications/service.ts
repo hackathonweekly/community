@@ -44,7 +44,7 @@ export class NotificationService {
 					title: data.title,
 					content: data.content,
 					metadata: data.metadata
-						? (data.metadata as Prisma.JsonValue)
+						? (data.metadata as Prisma.InputJsonValue)
 						: undefined,
 					actionUrl: data.actionUrl,
 					priority: data.priority || "NORMAL",
@@ -548,7 +548,7 @@ export class NotificationService {
 						},
 						relatedUser: notification.relatedUser,
 						metadata: notification.metadata,
-					} as Prisma.JsonValue,
+					} as Prisma.InputJsonValue,
 					priority: notification.priority,
 					scheduledAt: NotificationService.getEmailScheduleTime(
 						notification.type,

@@ -8,6 +8,7 @@ import {
 import { getRequestClientMetadata } from "@/features/events-token/request-metadata";
 import { createModuleLogger } from "@/lib/logs";
 import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { authMiddleware } from "../middleware/auth";
 
 const logger = createModuleLogger("events-token-router");
@@ -42,7 +43,7 @@ export const eventsTokenRouter = new Hono()
 						eligibility.reason ??
 						"创建活动需要成为共创伙伴，请联系社区负责人！",
 				},
-				eligibility.status,
+				eligibility.status as ContentfulStatusCode,
 			);
 		}
 

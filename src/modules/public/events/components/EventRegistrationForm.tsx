@@ -2,8 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { resolveParticipationAgreementMarkdown } from "@/lib/events/event-work-agreements";
 import {
 	validateFullPhoneNumber,
 	type PhoneValidationResult,
@@ -13,6 +21,8 @@ import { PROFILE_LIMITS } from "@/lib/utils/profile-limits";
 import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { ProfileSection } from "./ProfileSection";
 import { ProjectSection } from "./ProjectSection";
@@ -127,11 +137,19 @@ export function EventRegistrationForm({
 	const fieldConfig = resolveRegistrationFieldConfig(
 		event.registrationFieldConfig,
 	);
+	const participationAgreementMarkdown =
+		resolveParticipationAgreementMarkdown(event.registrationFieldConfig);
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
 	const [allowDigitalCardDisplay, setAllowDigitalCardDisplay] = useState<
 		boolean | null
 	>(null);
+	const [agreedParticipationAgreement, setAgreedParticipationAgreement] =
+		useState(false);
+	const [
+		participationAgreementDialogOpen,
+		setParticipationAgreementDialogOpen,
+	] = useState(false);
 	const [projects, setProjects] = useState<Project[]>([]);
 	const [projectsLoading, setProjectsLoading] = useState(false);
 	const [selectedProjectId, setSelectedProjectId] = useState<string>("");
@@ -529,6 +547,11 @@ export function EventRegistrationForm({
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!agreedParticipationAgreement) {
+			toast.error("需同意《参赛协议》后才能报名");
+			return;
+		}
 
 		// Validate required questions
 		const missingAnswers = event.questions
@@ -944,6 +967,60 @@ export function EventRegistrationForm({
 					</CardContent>
 				</Card>
 			)}
+
+			<Card>
+				<CardHeader>
+					<CardTitle className="text-lg">参赛协议</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<div className="flex items-start gap-3">
+						<Checkbox
+							id="participation-agreement"
+							checked={agreedParticipationAgreement}
+							onCheckedChange={(checked) =>
+								setAgreedParticipationAgreement(
+									checked === true,
+								)
+							}
+						/>
+						<div className="space-y-1">
+							<Label
+								htmlFor="participation-agreement"
+								className="cursor-pointer"
+							>
+								我已阅读并同意《参赛协议》
+								<span className="text-red-500 ml-1">*</span>
+							</Label>
+							<Button
+								type="button"
+								variant="link"
+								className="h-auto p-0 text-sm"
+								onClick={() =>
+									setParticipationAgreementDialogOpen(true)
+								}
+							>
+								查看《参赛协议》
+							</Button>
+						</div>
+					</div>
+
+					<Dialog
+						open={participationAgreementDialogOpen}
+						onOpenChange={setParticipationAgreementDialogOpen}
+					>
+						<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+							<DialogHeader>
+								<DialogTitle>参赛协议</DialogTitle>
+							</DialogHeader>
+							<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+								<ReactMarkdown remarkPlugins={[remarkGfm]}>
+									{participationAgreementMarkdown}
+								</ReactMarkdown>
+							</div>
+						</DialogContent>
+					</Dialog>
+				</CardContent>
+			</Card>
 
 			{/* Form Actions */}
 			<div className="flex gap-4 pt-4 sticky bottom-0 bg-gray-50 pb-safe-bottom">

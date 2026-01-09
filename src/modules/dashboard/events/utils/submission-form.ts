@@ -19,6 +19,14 @@ export function normalizeSubmissionFormConfig(
 				attachmentsEnabled: config.settings.attachmentsEnabled ?? true,
 				communityUseAuthorizationEnabled:
 					config.settings.communityUseAuthorizationEnabled ?? true,
+				...(typeof config.settings
+					.workAuthorizationAgreementMarkdown === "string" &&
+				config.settings.workAuthorizationAgreementMarkdown.trim()
+					? {
+							workAuthorizationAgreementMarkdown:
+								config.settings.workAuthorizationAgreementMarkdown.trim(),
+						}
+					: {}),
 			}
 		: undefined;
 

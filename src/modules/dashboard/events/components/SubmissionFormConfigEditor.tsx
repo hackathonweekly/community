@@ -30,6 +30,7 @@ import type {
 	SubmissionFormConfig,
 	SubmissionFormField,
 } from "@/features/event-submissions/types";
+import { DEFAULT_WORK_AUTHORIZATION_AGREEMENT_MARKDOWN } from "@/lib/events/event-work-agreements";
 import { cn } from "@/lib/utils";
 import {
 	ChevronDown,
@@ -43,6 +44,8 @@ import {
 	Users,
 	Video,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface SubmissionFormConfigEditorProps {
 	value: SubmissionFormConfig | null;
@@ -75,6 +78,7 @@ const DEFAULT_FIELD: Omit<SubmissionFormField, "key" | "order"> = {
 const DEFAULT_SETTINGS = {
 	attachmentsEnabled: true,
 	communityUseAuthorizationEnabled: true,
+	workAuthorizationAgreementMarkdown: "",
 };
 
 // 预设字段模板
@@ -146,6 +150,11 @@ export function SubmissionFormConfigEditor({
 		...DEFAULT_SETTINGS,
 		...(value?.settings ?? {}),
 	};
+	const resolvedWorkAuthorizationAgreementMarkdown =
+		typeof settings.workAuthorizationAgreementMarkdown === "string" &&
+		settings.workAuthorizationAgreementMarkdown.trim()
+			? settings.workAuthorizationAgreementMarkdown
+			: DEFAULT_WORK_AUTHORIZATION_AGREEMENT_MARKDOWN;
 
 	const commitConfig = (
 		nextFields: SubmissionFormField[],
@@ -325,6 +334,54 @@ export function SubmissionFormConfigEditor({
 								})
 							}
 						/>
+					</div>
+				</div>
+
+				<div className="rounded-lg border p-3 space-y-3">
+					<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+						<div className="space-y-1">
+							<p className="font-medium">
+								作品授权协议（Markdown）
+							</p>
+							<p className="text-sm text-muted-foreground">
+								留空使用默认模板；将用于作品提交页「授权说明」的协议查看入口。
+							</p>
+						</div>
+						<Button
+							type="button"
+							variant="outline"
+							size="sm"
+							onClick={() =>
+								updateSettings({
+									workAuthorizationAgreementMarkdown: "",
+								})
+							}
+						>
+							恢复默认
+						</Button>
+					</div>
+
+					<Textarea
+						value={settings.workAuthorizationAgreementMarkdown}
+						onChange={(event) =>
+							updateSettings({
+								workAuthorizationAgreementMarkdown:
+									event.target.value,
+							})
+						}
+						placeholder="在这里填写《作品授权协议》Markdown（可选）"
+						rows={8}
+					/>
+
+					<div className="rounded-lg border bg-muted/30 p-3">
+						<p className="text-sm font-medium mb-2">预览</p>
+						<div className="max-h-64 overflow-y-auto">
+							<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+								<ReactMarkdown remarkPlugins={[remarkGfm]}>
+									{resolvedWorkAuthorizationAgreementMarkdown}
+								</ReactMarkdown>
+							</div>
+						</div>
 					</div>
 				</div>
 

@@ -934,7 +934,10 @@ async function processOrganizationEmailQueue(campaignId: string) {
 				await sendEmail({
 					to: job.recipient,
 					templateId: job.campaign.templateId as any,
-					context: job.context,
+					context: job.context as Omit<
+						unknown,
+						"locale" | "translations"
+					>,
 					locale: (job.user?.locale as "en" | "zh") || "en",
 				});
 

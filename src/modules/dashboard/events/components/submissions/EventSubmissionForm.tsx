@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Card,
@@ -15,6 +16,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import {
 	Form,
 	FormControl,
@@ -37,9 +44,12 @@ import type {
 	SubmissionFormValues,
 	UserSearchResult,
 } from "@/features/event-submissions/types";
+import { resolveWorkAuthorizationAgreementMarkdown } from "@/lib/events/event-work-agreements";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/modules/dashboard/auth/hooks/use-session";
 import { useSubmissionDraft } from "@/modules/dashboard/events/hooks/useSubmissionDraft";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
 	type AttachmentChange,
 	type AttachmentDraft,
@@ -80,6 +90,14 @@ export function EventSubmissionForm({
 	const communityAuthorizationEnabled =
 		submissionFormConfig?.settings?.communityUseAuthorizationEnabled ??
 		true;
+	const workAuthorizationAgreementMarkdown = useMemo(
+		() => resolveWorkAuthorizationAgreementMarkdown(submissionFormConfig),
+		[submissionFormConfig],
+	);
+	const [
+		workAuthorizationAgreementDialogOpen,
+		setWorkAuthorizationAgreementDialogOpen,
+	] = useState(false);
 	const [attachments, setAttachments] = useState<AttachmentDraft[]>(() =>
 		(initialData?.attachments ?? []).map((attachment, index) => ({
 			fileName: attachment.fileName,
@@ -600,7 +618,9 @@ export function EventSubmissionForm({
 						<Card>
 							<CardHeader className={COMPACT_CARD_HEADER}>
 								<CardTitle>授权说明</CardTitle>
-								<CardDescription>确认宣传授权</CardDescription>
+								<CardDescription>
+									确认作品是否参与展示、投票及评选
+								</CardDescription>
 							</CardHeader>
 							<CardContent className={COMPACT_CARD_CONTENT}>
 								<FormField
@@ -609,7 +629,7 @@ export function EventSubmissionForm({
 									render={({ field }) => (
 										<FormItem className="space-y-3">
 											<FormLabel>
-												是否授权社区用于宣传{" "}
+												是否授权社区{" "}
 												<span className="text-red-500">
 													*
 												</span>
@@ -641,8 +661,24 @@ export function EventSubmissionForm({
 																是的，同意授权
 															</p>
 															<p className="text-sm text-muted-foreground">
-																社区可在宣传渠道展示作品内容
+																作品将参与展示、投票及评选；选择即视为同意《作品授权协议》。
 															</p>
+															<Button
+																type="button"
+																variant="link"
+																className="h-auto p-0 text-sm"
+																onClick={(
+																	event,
+																) => {
+																	event.preventDefault();
+																	event.stopPropagation();
+																	setWorkAuthorizationAgreementDialogOpen(
+																		true,
+																	);
+																}}
+															>
+																查看《作品授权协议》
+															</Button>
 														</div>
 													</label>
 													<label
@@ -658,12 +694,52 @@ export function EventSubmissionForm({
 																暂不同意
 															</p>
 															<p className="text-sm text-muted-foreground">
-																不会影响作品展示与投票
+																作品不参与展示、投票及评选（仅提交者与活动组织者/管理员可见）
 															</p>
 														</div>
 													</label>
 												</RadioGroup>
 											</FormControl>
+
+											{!field.value && (
+												<Alert className="border-amber-500/40 bg-amber-50 text-amber-900 dark:bg-amber-900/20 dark:text-amber-100">
+													<AlertTriangle className="h-4 w-4" />
+													<AlertTitle>
+														选择“暂不同意”后
+													</AlertTitle>
+													<AlertDescription>
+														作品将不参与展示、投票及评选，仅对提交者与活动组织者/管理员可见。
+													</AlertDescription>
+												</Alert>
+											)}
+
+											<Dialog
+												open={
+													workAuthorizationAgreementDialogOpen
+												}
+												onOpenChange={
+													setWorkAuthorizationAgreementDialogOpen
+												}
+											>
+												<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+													<DialogHeader>
+														<DialogTitle>
+															作品授权协议
+														</DialogTitle>
+													</DialogHeader>
+													<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+														<ReactMarkdown
+															remarkPlugins={[
+																remarkGfm,
+															]}
+														>
+															{
+																workAuthorizationAgreementMarkdown
+															}
+														</ReactMarkdown>
+													</div>
+												</DialogContent>
+											</Dialog>
 										</FormItem>
 									)}
 								/>

@@ -465,14 +465,21 @@ export default function EventEditPage() {
 				maxTeamSize: event.hackathonConfig?.settings?.maxTeamSize ?? 5,
 				allowSolo: event.hackathonConfig?.settings?.allowSolo ?? true,
 			},
-			voting: event.hackathonConfig?.voting ?? {
-				allowPublicVoting: true,
-				enableJudgeVoting: false,
-				judgeWeight: 0,
-				publicWeight: 1,
-				publicVotingScope: "PARTICIPANTS" as const,
-				publicVotingMode: "FIXED_QUOTA" as const,
-				publicVoteQuota: 3,
+			voting: {
+				allowPublicVoting:
+					event.hackathonConfig?.voting?.allowPublicVoting ?? true,
+				enableJudgeVoting:
+					event.hackathonConfig?.voting?.enableJudgeVoting ?? false,
+				judgeWeight: event.hackathonConfig?.voting?.judgeWeight ?? 0,
+				publicWeight: event.hackathonConfig?.voting?.publicWeight ?? 1,
+				publicVotingScope:
+					event.hackathonConfig?.voting?.publicVotingScope ??
+					("PARTICIPANTS" as const),
+				publicVotingMode:
+					event.hackathonConfig?.voting?.publicVotingMode ??
+					("FIXED_QUOTA" as const),
+				publicVoteQuota:
+					event.hackathonConfig?.voting?.publicVoteQuota ?? 3,
 			},
 		},
 		// 作品提交表单配置

@@ -48,6 +48,7 @@ import { zValidator } from "@hono/zod-validator";
 import type { Prisma } from "@prisma/client";
 import type { Event, RegistrationStatus } from "@prisma/client";
 import { Hono } from "hono";
+import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
 import { eventAdminRouter } from "./events/admins";
 import checkinRouter from "./events/checkin";
@@ -140,6 +141,7 @@ const registrationFieldSwitchSchema = z.object({
 const registrationFieldConfigSchema = z
 	.object({
 		template: z.enum(["FULL", "MINIMAL", "CUSTOM"]).optional(),
+		participationAgreementMarkdown: z.string().optional(),
 		fields: z
 			.object({
 				name: registrationFieldSwitchSchema.optional(),
@@ -164,6 +166,7 @@ const registrationFieldConfigSchema = z
 const registrationFieldConfigUpdateSchema = z
 	.object({
 		template: z.enum(["FULL", "MINIMAL", "CUSTOM"]).optional(),
+		participationAgreementMarkdown: z.string().optional(),
 		fields: z
 			.object({
 				name: registrationFieldSwitchSchema.optional(),
@@ -215,6 +218,7 @@ const submissionFormSettingsSchema = z
 	.object({
 		attachmentsEnabled: z.boolean().optional(),
 		communityUseAuthorizationEnabled: z.boolean().optional(),
+		workAuthorizationAgreementMarkdown: z.string().optional(),
 	})
 	.optional();
 
@@ -1447,7 +1451,7 @@ app.post("/", async (c) => {
 						eligibility.reason ??
 						"创建活动需要成为共创伙伴，请联系社区负责人！",
 				},
-				eligibility.status,
+				eligibility.status as ContentfulStatusCode,
 			);
 		}
 

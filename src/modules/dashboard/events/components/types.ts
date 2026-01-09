@@ -44,6 +44,7 @@ const registrationFieldConfigSchema = z.object({
 		wechatId: registrationFieldSwitchSchema,
 		shippingAddress: registrationFieldSwitchSchema,
 	}),
+	participationAgreementMarkdown: z.string().optional(),
 });
 
 export const eventSchema = z
@@ -216,6 +217,9 @@ export const eventSchema = z
 						attachmentsEnabled: z.boolean().optional(),
 						communityUseAuthorizationEnabled: z
 							.boolean()
+							.optional(),
+						workAuthorizationAgreementMarkdown: z
+							.string()
 							.optional(),
 					})
 					.optional(),

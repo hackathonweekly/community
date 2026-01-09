@@ -194,5 +194,6 @@ export interface SubmissionFormConfig {
 	settings?: {
 		attachmentsEnabled?: boolean;
 		communityUseAuthorizationEnabled?: boolean;
+		workAuthorizationAgreementMarkdown?: string;
 	};
 }

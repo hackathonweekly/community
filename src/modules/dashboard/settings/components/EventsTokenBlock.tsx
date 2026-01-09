@@ -60,8 +60,13 @@ export function EventsTokenBlock() {
 			return t("settings.account.security.eventsToken.status.neverUsed");
 		}
 
+		const formattedDate = formatTimestamp(formatter, summary.lastUsedAt);
+		if (!formattedDate) {
+			return t("settings.account.security.eventsToken.status.neverUsed");
+		}
+
 		return t("settings.account.security.eventsToken.status.lastUsed", {
-			date: formatTimestamp(formatter, summary.lastUsedAt),
+			date: formattedDate,
 		});
 	}, [summary, formatter, t]);
 
@@ -70,8 +75,13 @@ export function EventsTokenBlock() {
 			return null;
 		}
 
+		const formattedDate = formatTimestamp(formatter, summary.createdAt);
+		if (!formattedDate) {
+			return null;
+		}
+
 		return t("settings.account.security.eventsToken.status.createdAt", {
-			date: formatTimestamp(formatter, summary.createdAt),
+			date: formattedDate,
 		});
 	}, [summary, formatter, t]);
 

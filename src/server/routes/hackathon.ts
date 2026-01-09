@@ -182,6 +182,9 @@ const app = new Hono()
 				where: {
 					eventId,
 					status: { in: ["APPROVED", "AWARDED"] },
+					project: {
+						communityUseAuth: true,
+					},
 					user: {
 						eventRegistrations: {
 							some: {

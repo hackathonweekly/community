@@ -46,12 +46,10 @@ export function VersionLogger() {
 					: reason instanceof Error
 						? reason.message
 						: reason &&
-							  typeof reason === "object" &&
-							  "message" in reason
-							? String(
-									(reason as { message?: unknown }).message,
-								)
-						: undefined;
+								typeof reason === "object" &&
+								"message" in reason
+							? String((reason as { message?: unknown }).message)
+							: undefined;
 
 			maybeReloadForDeploymentMismatch(message);
 		};

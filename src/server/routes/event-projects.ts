@@ -182,6 +182,9 @@ const app = new Hono()
 				status: {
 					in: PUBLIC_SUBMISSION_STATUSES,
 				},
+				project: {
+					communityUseAuth: true,
+				},
 				user: {
 					eventRegistrations: {
 						some: {
@@ -264,6 +267,9 @@ const app = new Hono()
 		const session = await getSession(c);
 		const includePrivateFields =
 			session && (await canManageSubmission(submission, session.user.id));
+		if (!submission.project.communityUseAuth && !includePrivateFields) {
+			throw new HTTPException(404, { message: "Submission not found" });
+		}
 		return c.json({
 			success: true,
 			data: serializeSubmission(submission, {
@@ -642,7 +648,9 @@ const app = new Hono()
 
 			await db.project.update({
 				where: { id: submission.projectId },
-				data: { customFields: nextCustomFields },
+				data: {
+					customFields: nextCustomFields as Prisma.InputJsonValue,
+				},
 			});
 
 			const updated = await fetchSubmissionByIdOrThrow(submissionId);
@@ -688,6 +696,9 @@ const app = new Hono()
 		const session = await requireSession(c);
 		const submissionId = c.req.param("submissionId");
 		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+		if (!submission.project.communityUseAuth) {
+			throw new HTTPException(404, { message: "Submission not found" });
+		}
 
 		const voteResult = await castVote(submission, session.user.id);
 		if (voteResult.error) {
@@ -707,6 +718,9 @@ const app = new Hono()
 		const session = await requireSession(c);
 		const submissionId = c.req.param("submissionId");
 		const submission = await fetchSubmissionByIdOrThrow(submissionId);
+		if (!submission.project.communityUseAuth) {
+			throw new HTTPException(404, { message: "Submission not found" });
+		}
 
 		const revokeResult = await revokeVote(submission, session.user.id);
 		if (revokeResult.error) {
@@ -744,6 +758,9 @@ const app = new Hono()
 					where: {
 						eventId,
 						status: { in: PUBLIC_SUBMISSION_STATUSES },
+						project: {
+							communityUseAuth: true,
+						},
 					},
 					include: submissionInclude,
 				}),

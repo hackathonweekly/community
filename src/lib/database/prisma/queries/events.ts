@@ -136,7 +136,10 @@ export async function createEvent(data: {
 			registrationPendingImage,
 			hackathonConfig,
 			registrationFieldConfig,
-			submissionFormConfig,
+			submissionFormConfig:
+				submissionFormConfig === null
+					? Prisma.JsonNull
+					: submissionFormConfig,
 			// 默认开启黑客松提交流程与投票（可在管理页关闭）
 			registrationOpen: registrationOpen ?? true,
 			submissionsOpen: hackathonControls.submissionsOpen,
@@ -784,17 +787,30 @@ export async function updateEvent(
 	} = data;
 
 	// Prepare the update data with proper organization handling
+	const { organizationId: _orgId, ...restEventData } = eventData as {
+		organizationId?: string | null;
+		[key: string]: unknown;
+	};
 	const updateData = {
-		...eventData,
+		...restEventData,
 		...(organizationId !== undefined && {
-			organizationId,
+			organization:
+				organizationId === null
+					? { disconnect: true }
+					: { connect: { id: organizationId } },
 		}),
-		...(hackathonConfig !== undefined && { hackathonConfig }),
+		...(hackathonConfig !== undefined && {
+			hackathonConfig:
+				hackathonConfig === null ? Prisma.JsonNull : hackathonConfig,
+		}),
 		...(registrationFieldConfig !== undefined && {
 			registrationFieldConfig,
 		}),
 		...(submissionFormConfig !== undefined && {
-			submissionFormConfig,
+			submissionFormConfig:
+				submissionFormConfig === null
+					? Prisma.JsonNull
+					: submissionFormConfig,
 		}),
 	};
 
@@ -2057,8 +2073,17 @@ export async function createEventFeedback(data: {
 		throw new Error("User has already submitted feedback for this event");
 	}
 
+	const { customAnswers, ...rest } = data;
 	return await db.eventFeedback.create({
-		data,
+		data: {
+			...rest,
+			customAnswers:
+				customAnswers === null
+					? Prisma.JsonNull
+					: customAnswers === undefined
+						? undefined
+						: (customAnswers as Prisma.InputJsonValue),
+		},
 		include: {
 			user: {
 				select: {
@@ -2097,6 +2122,7 @@ export async function updateEventFeedback(
 		throw new Error("Feedback not found for this user and event");
 	}
 
+	const { customAnswers, ...rest } = data;
 	return await db.eventFeedback.update({
 		where: {
 			eventId_userId: {
@@ -2104,7 +2130,15 @@ export async function updateEventFeedback(
 				userId,
 			},
 		},
-		data,
+		data: {
+			...rest,
+			customAnswers:
+				customAnswers === null
+					? Prisma.JsonNull
+					: customAnswers === undefined
+						? undefined
+						: (customAnswers as Prisma.InputJsonValue),
+		},
 		include: {
 			user: {
 				select: {

@@ -1567,7 +1567,12 @@ export const organizationsRouter = new Hono()
 
 				await db.invitation.update({
 					where: { id: invitationId },
-					data: { metadata: cleanedMetadata ?? null },
+					data: {
+						metadata:
+							cleanedMetadata === null
+								? Prisma.JsonNull
+								: (cleanedMetadata as Prisma.InputJsonValue),
+					},
 				});
 
 				return c.json({
