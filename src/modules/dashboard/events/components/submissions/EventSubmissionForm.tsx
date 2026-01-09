@@ -28,6 +28,7 @@ import {
 	FormField,
 	FormItem,
 	FormLabel,
+	FormDescription,
 	FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -85,8 +86,28 @@ export function EventSubmissionForm({
 }: EventSubmissionFormProps) {
 	const router = useRouter();
 	const { user } = useSession();
+	const baseFields = submissionFormConfig?.baseFields;
+	const taglineEnabled = baseFields?.tagline?.enabled ?? true;
+	const taglineRequired = baseFields?.tagline?.required ?? false;
+	const taglineLabel = baseFields?.tagline?.label ?? "一句话介绍";
+	const taglineDescription = baseFields?.tagline?.description;
+	const taglinePlaceholder =
+		baseFields?.tagline?.placeholder ?? "用一句话概括你的作品...";
+
+	const demoUrlEnabled = baseFields?.demoUrl?.enabled ?? true;
+	const demoUrlRequired = baseFields?.demoUrl?.required ?? false;
+	const demoUrlLabel = baseFields?.demoUrl?.label ?? "项目链接";
+	const demoUrlDescription = baseFields?.demoUrl?.description;
+	const demoUrlPlaceholder = baseFields?.demoUrl?.placeholder ?? "https://";
+
 	const attachmentsEnabled =
-		submissionFormConfig?.settings?.attachmentsEnabled ?? true;
+		baseFields?.attachments?.enabled ??
+		submissionFormConfig?.settings?.attachmentsEnabled ??
+		true;
+	const attachmentsRequired = baseFields?.attachments?.required ?? false;
+	const attachmentsLabel = baseFields?.attachments?.label ?? "附件上传";
+	const attachmentsDescription =
+		baseFields?.attachments?.description ?? "上传展示图片或演示文件";
 	const communityAuthorizationEnabled =
 		submissionFormConfig?.settings?.communityUseAuthorizationEnabled ??
 		true;
@@ -325,31 +346,40 @@ export function EventSubmissionForm({
 
 		return {
 			...restValues,
+			tagline: taglineEnabled
+				? restValues.tagline?.trim() || undefined
+				: undefined,
 			description: restValues.description || undefined,
-			demoUrl: restValues.demoUrl || undefined,
+			demoUrl:
+				demoUrlEnabled && (restValues.demoUrl?.trim() || undefined)
+					? restValues.demoUrl?.trim() || undefined
+					: undefined,
 			teamLeaderId: leader?.id,
 			teamMemberIds: members.map((member) => member.id),
-			attachments: attachments
-				.filter(
-					(attachment) => !attachment.uploading && attachment.fileUrl,
-				)
-				.map(
-					({
-						fileName,
-						fileUrl,
-						fileType,
-						mimeType,
-						fileSize,
-						order,
-					}) => ({
-						fileName,
-						fileUrl,
-						fileType,
-						mimeType,
-						fileSize,
-						order,
-					}),
-				),
+			attachments: attachmentsEnabled
+				? attachments
+						.filter(
+							(attachment) =>
+								!attachment.uploading && attachment.fileUrl,
+						)
+						.map(
+							({
+								fileName,
+								fileUrl,
+								fileType,
+								mimeType,
+								fileSize,
+								order,
+							}) => ({
+								fileName,
+								fileUrl,
+								fileType,
+								mimeType,
+								fileSize,
+								order,
+							}),
+						)
+				: undefined,
 			customFields: normalizedCustomFields,
 		};
 	};
@@ -391,6 +421,38 @@ export function EventSubmissionForm({
 						return;
 					}
 				}
+			}
+		}
+
+		const formValues = form.getValues();
+		const sanitizedTagline = formValues.tagline?.trim() || "";
+		const sanitizedDemoUrl = formValues.demoUrl?.trim() || "";
+
+		if (
+			taglineEnabled &&
+			taglineRequired &&
+			sanitizedTagline.length === 0
+		) {
+			toast.error(`请填写 ${taglineLabel}`);
+			return;
+		}
+
+		if (
+			demoUrlEnabled &&
+			demoUrlRequired &&
+			sanitizedDemoUrl.length === 0
+		) {
+			toast.error(`请填写 ${demoUrlLabel}`);
+			return;
+		}
+
+		if (attachmentsEnabled && attachmentsRequired) {
+			const uploadedCount = attachments.filter(
+				(attachment) => !attachment.uploading && attachment.fileUrl,
+			).length;
+			if (uploadedCount === 0) {
+				toast.error("请至少上传 1 个附件");
+				return;
 			}
 		}
 
@@ -470,49 +532,79 @@ export function EventSubmissionForm({
 										</FormItem>
 									)}
 								/>
+								{taglineEnabled && (
+									<FormField
+										control={form.control}
+										name="tagline"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>
+													{taglineLabel}{" "}
+													{taglineRequired ? (
+														<span className="text-red-500">
+															*
+														</span>
+													) : (
+														<span className="text-muted-foreground text-xs font-normal">
+															(选填)
+														</span>
+													)}
+												</FormLabel>
+												<FormControl>
+													<Input
+														placeholder={
+															taglinePlaceholder
+														}
+														{...field}
+													/>
+												</FormControl>
+												{taglineDescription && (
+													<FormDescription>
+														{taglineDescription}
+													</FormDescription>
+												)}
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+								)}
+							</div>
+							{demoUrlEnabled && (
 								<FormField
 									control={form.control}
-									name="tagline"
+									name="demoUrl"
 									render={({ field }) => (
 										<FormItem>
 											<FormLabel>
-												一句话介绍{" "}
-												<span className="text-muted-foreground text-xs font-normal">
-													(选填)
-												</span>
+												{demoUrlLabel}{" "}
+												{demoUrlRequired ? (
+													<span className="text-red-500">
+														*
+													</span>
+												) : (
+													<span className="text-muted-foreground text-xs font-normal">
+														(选填)
+													</span>
+												)}
 											</FormLabel>
 											<FormControl>
 												<Input
-													placeholder="用一句话概括你的作品..."
+													placeholder={
+														demoUrlPlaceholder
+													}
 													{...field}
 												/>
 											</FormControl>
+											{demoUrlDescription && (
+												<FormDescription>
+													{demoUrlDescription}
+												</FormDescription>
+											)}
 											<FormMessage />
 										</FormItem>
 									)}
 								/>
-							</div>
-							<FormField
-								control={form.control}
-								name="demoUrl"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>
-											项目链接{" "}
-											<span className="text-muted-foreground text-xs font-normal">
-												(选填)
-											</span>
-										</FormLabel>
-										<FormControl>
-											<Input
-												placeholder="https://"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
+							)}
 							<FormField
 								control={form.control}
 								name="description"
@@ -589,9 +681,14 @@ export function EventSubmissionForm({
 					{attachmentsEnabled && (
 						<Card>
 							<CardHeader className={COMPACT_CARD_HEADER}>
-								<CardTitle>附件上传</CardTitle>
+								<CardTitle>
+									{attachmentsLabel}{" "}
+									{attachmentsRequired && (
+										<span className="text-red-500">*</span>
+									)}
+								</CardTitle>
 								<CardDescription>
-									上传展示图片或演示文件
+									{attachmentsDescription}
 								</CardDescription>
 							</CardHeader>
 							<CardContent className={COMPACT_CARD_CONTENT}>

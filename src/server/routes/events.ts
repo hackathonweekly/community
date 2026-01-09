@@ -222,9 +222,28 @@ const submissionFormSettingsSchema = z
 	})
 	.optional();
 
+const submissionBaseFieldSchema = z
+	.object({
+		label: z.string().optional(),
+		description: z.string().optional(),
+		placeholder: z.string().optional(),
+		required: z.boolean().optional(),
+		enabled: z.boolean().optional(),
+	})
+	.optional();
+
+const submissionBaseFieldsSchema = z
+	.object({
+		tagline: submissionBaseFieldSchema,
+		demoUrl: submissionBaseFieldSchema,
+		attachments: submissionBaseFieldSchema,
+	})
+	.optional();
+
 const submissionFormConfigSchema = z
 	.object({
 		fields: z.array(submissionFormFieldSchema).optional(),
+		baseFields: submissionBaseFieldsSchema,
 		settings: submissionFormSettingsSchema,
 	})
 	.nullable()

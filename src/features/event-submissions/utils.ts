@@ -1,4 +1,8 @@
-import type { SubmissionFieldType, SubmissionFormConfig } from "./types";
+import type {
+	SubmissionBaseFieldConfig,
+	SubmissionFieldType,
+	SubmissionFormConfig,
+} from "./types";
 
 const FIELD_TYPE_SET = new Set<SubmissionFieldType>([
 	"text",
@@ -66,6 +70,47 @@ const normalizeOptions = (value: unknown): string[] | undefined => {
 		(option): option is string => typeof option === "string",
 	);
 	return safeOptions.length > 0 ? safeOptions : undefined;
+};
+
+const normalizeOptionalString = (value: unknown): string | undefined => {
+	if (typeof value !== "string") {
+		return undefined;
+	}
+	const trimmed = value.trim();
+	return trimmed.length > 0 ? trimmed : undefined;
+};
+
+const normalizeBaseFieldConfig = (
+	value: unknown,
+): SubmissionBaseFieldConfig | undefined => {
+	if (!value || typeof value !== "object") {
+		return undefined;
+	}
+
+	const raw = value as Record<string, unknown>;
+	const label = normalizeOptionalString(raw.label);
+	const description = normalizeOptionalString(raw.description);
+	const placeholder = normalizeOptionalString(raw.placeholder);
+	const required =
+		typeof raw.required === "boolean" ? raw.required : undefined;
+	const enabled = typeof raw.enabled === "boolean" ? raw.enabled : undefined;
+
+	const hasAny =
+		label !== undefined ||
+		description !== undefined ||
+		placeholder !== undefined ||
+		required !== undefined ||
+		enabled !== undefined;
+
+	return hasAny
+		? {
+				...(label !== undefined && { label }),
+				...(description !== undefined && { description }),
+				...(placeholder !== undefined && { placeholder }),
+				...(required !== undefined && { required }),
+				...(enabled !== undefined && { enabled }),
+			}
+		: undefined;
 };
 
 export function normalizeSubmissionFormConfig(
@@ -138,15 +183,41 @@ export function normalizeSubmissionFormConfig(
 
 	const sortedFields = fields?.sort((a, b) => a.order - b.order);
 
+	const rawBaseFields =
+		rawConfig.baseFields && typeof rawConfig.baseFields === "object"
+			? (rawConfig.baseFields as Record<string, unknown>)
+			: null;
+	const tagline = rawBaseFields
+		? normalizeBaseFieldConfig(rawBaseFields.tagline)
+		: undefined;
+	const demoUrl = rawBaseFields
+		? normalizeBaseFieldConfig(rawBaseFields.demoUrl)
+		: undefined;
+	const attachments = rawBaseFields
+		? normalizeBaseFieldConfig(rawBaseFields.attachments)
+		: undefined;
+
+	const baseFields: SubmissionFormConfig["baseFields"] | undefined =
+		tagline || demoUrl || attachments
+			? {
+					...(tagline && { tagline }),
+					...(demoUrl && { demoUrl }),
+					...(attachments && { attachments }),
+				}
+			: undefined;
+
+	const hasBaseFields = Boolean(baseFields);
+
 	const settings = normalizeSettings(rawConfig.settings);
 	const hasFields = Boolean(sortedFields && sortedFields.length > 0);
 
-	if (!hasFields && !settings) {
+	if (!hasFields && !settings && !hasBaseFields) {
 		return null;
 	}
 
 	return {
 		...(hasFields ? { fields: sortedFields } : {}),
+		...(hasBaseFields ? { baseFields } : {}),
 		...(settings ? { settings } : {}),
 	};
 }
