@@ -552,16 +552,20 @@ export function SubmissionsSlideDeck({
 												{currentSubmission.demoUrl && (
 													<div className="absolute top-4 right-4 opacity-0 group-hover/media:opacity-100 transition-opacity">
 														<Button
+															asChild
 															size="sm"
 															variant="secondary"
 															className="shadow-lg"
-															onClick={() =>
-																void copyText(
-																	currentSubmission.demoUrl!,
-																)
-															}
 														>
-															复制演示链接
+															<a
+																href={
+																	currentSubmission.demoUrl
+																}
+																target="_blank"
+																rel="noreferrer noopener"
+															>
+																访问演示链接
+															</a>
 														</Button>
 													</div>
 												)}
