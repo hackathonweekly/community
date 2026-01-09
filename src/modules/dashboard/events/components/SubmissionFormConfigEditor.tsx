@@ -26,6 +26,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type {
+	SubmissionBaseFieldConfig,
+	SubmissionBaseFieldKey,
 	SubmissionFieldType,
 	SubmissionFormConfig,
 	SubmissionFormField,
@@ -76,9 +78,35 @@ const DEFAULT_FIELD: Omit<SubmissionFormField, "key" | "order"> = {
 };
 
 const DEFAULT_SETTINGS = {
-	attachmentsEnabled: true,
 	communityUseAuthorizationEnabled: true,
 	workAuthorizationAgreementMarkdown: "",
+};
+
+const DEFAULT_BASE_FIELDS: Record<
+	SubmissionBaseFieldKey,
+	Required<Pick<SubmissionBaseFieldConfig, "enabled" | "required">> &
+		Pick<SubmissionBaseFieldConfig, "label" | "description" | "placeholder">
+> = {
+	tagline: {
+		label: "一句话介绍",
+		description: "用一句话概括你的作品（可选）",
+		placeholder: "用一句话概括你的作品...",
+		enabled: true,
+		required: false,
+	},
+	demoUrl: {
+		label: "项目链接",
+		description: "可选，填写作品演示或项目主页链接",
+		placeholder: "https://",
+		enabled: true,
+		required: false,
+	},
+	attachments: {
+		label: "附件上传",
+		description: "上传展示图片或演示文件",
+		enabled: true,
+		required: false,
+	},
 };
 
 // 预设字段模板
@@ -156,16 +184,46 @@ export function SubmissionFormConfigEditor({
 			? settings.workAuthorizationAgreementMarkdown
 			: DEFAULT_WORK_AUTHORIZATION_AGREEMENT_MARKDOWN;
 
+	const baseFields = {
+		tagline: {
+			...DEFAULT_BASE_FIELDS.tagline,
+			...(value?.baseFields?.tagline ?? {}),
+		},
+		demoUrl: {
+			...DEFAULT_BASE_FIELDS.demoUrl,
+			...(value?.baseFields?.demoUrl ?? {}),
+		},
+		attachments: {
+			...DEFAULT_BASE_FIELDS.attachments,
+			...{
+				enabled:
+					value?.baseFields?.attachments?.enabled ??
+					value?.settings?.attachmentsEnabled ??
+					DEFAULT_BASE_FIELDS.attachments.enabled,
+			},
+			...(value?.baseFields?.attachments ?? {}),
+		},
+	} satisfies Record<SubmissionBaseFieldKey, SubmissionBaseFieldConfig>;
+
 	const commitConfig = (
 		nextFields: SubmissionFormField[],
 		nextSettings:
 			| SubmissionFormConfig["settings"]
 			| undefined = value?.settings,
+		nextBaseFields:
+			| SubmissionFormConfig["baseFields"]
+			| undefined = value?.baseFields,
 	) => {
 		const hasFields = nextFields.length > 0;
 		const hasSettings = !!nextSettings;
+		const hasBaseFields = Boolean(
+			nextBaseFields &&
+				(nextBaseFields.tagline ||
+					nextBaseFields.demoUrl ||
+					nextBaseFields.attachments),
+		);
 
-		if (!hasFields && !hasSettings) {
+		if (!hasFields && !hasSettings && !hasBaseFields) {
 			onChange(null);
 			return;
 		}
@@ -173,11 +231,12 @@ export function SubmissionFormConfigEditor({
 		onChange({
 			...(hasFields ? { fields: nextFields } : { fields: [] }),
 			...(nextSettings ? { settings: nextSettings } : {}),
+			...(hasBaseFields ? { baseFields: nextBaseFields } : {}),
 		});
 	};
 
 	const updateConfig = (nextFields: SubmissionFormField[]) => {
-		commitConfig(nextFields, value?.settings);
+		commitConfig(nextFields, value?.settings, value?.baseFields);
 	};
 
 	const addField = () => {
@@ -292,7 +351,23 @@ export function SubmissionFormConfigEditor({
 
 	const updateSettings = (updates: Partial<typeof DEFAULT_SETTINGS>) => {
 		const nextSettings = { ...settings, ...updates };
-		commitConfig(fields, nextSettings);
+		commitConfig(fields, nextSettings, value?.baseFields);
+	};
+
+	const updateBaseField = (
+		key: SubmissionBaseFieldKey,
+		updates: Partial<SubmissionBaseFieldConfig>,
+	) => {
+		const nextBaseFields: SubmissionFormConfig["baseFields"] = {
+			...(value?.baseFields ?? {}),
+		};
+		const current = nextBaseFields[key] ?? {};
+		const next = { ...current, ...updates };
+		if (updates.enabled === false) {
+			next.required = false;
+		}
+		nextBaseFields[key] = next;
+		commitConfig(fields, value?.settings, nextBaseFields);
 	};
 
 	return (
@@ -305,20 +380,6 @@ export function SubmissionFormConfigEditor({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-					<div className="flex items-center justify-between rounded-lg border p-3">
-						<div className="space-y-1">
-							<p className="font-medium">附件上传</p>
-							<p className="text-sm text-muted-foreground">
-								控制是否在提交表单展示附件上传区域
-							</p>
-						</div>
-						<Switch
-							checked={settings.attachmentsEnabled}
-							onCheckedChange={(checked) =>
-								updateSettings({ attachmentsEnabled: checked })
-							}
-						/>
-					</div>
 					<div className="flex items-center justify-between rounded-lg border p-3">
 						<div className="space-y-1">
 							<p className="font-medium">宣传授权确认</p>
@@ -382,6 +443,165 @@ export function SubmissionFormConfigEditor({
 								</ReactMarkdown>
 							</div>
 						</div>
+					</div>
+				</div>
+
+				<div className="space-y-3">
+					<div>
+						<p className="font-medium">基础字段</p>
+						<p className="text-sm text-muted-foreground">
+							配置作品提交表单内置字段的展示、文案与必填规则
+						</p>
+					</div>
+
+					<div className="space-y-3">
+						{(
+							[
+								{
+									key: "tagline",
+									title: "一句话介绍",
+									showPlaceholder: true,
+								},
+								{
+									key: "demoUrl",
+									title: "项目链接",
+									showPlaceholder: true,
+								},
+								{
+									key: "attachments",
+									title: "附件上传",
+									showPlaceholder: false,
+								},
+							] as const
+						).map(({ key, title, showPlaceholder }) => (
+							<div
+								key={key}
+								className="rounded-lg border p-3 space-y-3"
+							>
+								<div className="flex items-start justify-between gap-4">
+									<div className="min-w-0">
+										<p className="font-medium">{title}</p>
+										<p className="text-xs text-muted-foreground">
+											{key}
+										</p>
+									</div>
+									<div className="flex items-center gap-4">
+										<div className="flex items-center gap-2">
+											<Label className="text-sm">
+												显示
+											</Label>
+											<Switch
+												checked={
+													baseFields[key].enabled ??
+													true
+												}
+												onCheckedChange={(checked) =>
+													updateBaseField(key, {
+														enabled: checked,
+													})
+												}
+											/>
+										</div>
+										<div className="flex items-center gap-2">
+											<Label className="text-sm">
+												必填
+											</Label>
+											<Switch
+												checked={
+													(baseFields[key].required ??
+														false) &&
+													(baseFields[key].enabled ??
+														true)
+												}
+												disabled={
+													!(
+														baseFields[key]
+															.enabled ?? true
+													)
+												}
+												onCheckedChange={(checked) =>
+													updateBaseField(key, {
+														required: checked,
+													})
+												}
+											/>
+										</div>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+									<div className="space-y-1">
+										<Label>字段名</Label>
+										<Input
+											value={baseFields[key].label ?? ""}
+											onChange={(e) =>
+												updateBaseField(key, {
+													label: e.target.value,
+												})
+											}
+											placeholder={
+												DEFAULT_BASE_FIELDS[key]
+													.label ?? ""
+											}
+											disabled={
+												!(
+													baseFields[key].enabled ??
+													true
+												)
+											}
+										/>
+									</div>
+									{showPlaceholder && (
+										<div className="space-y-1">
+											<Label>Placeholder</Label>
+											<Input
+												value={
+													baseFields[key]
+														.placeholder ?? ""
+												}
+												onChange={(e) =>
+													updateBaseField(key, {
+														placeholder:
+															e.target.value,
+													})
+												}
+												placeholder={
+													DEFAULT_BASE_FIELDS[key]
+														.placeholder ?? ""
+												}
+												disabled={
+													!(
+														baseFields[key]
+															.enabled ?? true
+													)
+												}
+											/>
+										</div>
+									)}
+								</div>
+
+								<div className="space-y-1">
+									<Label>字段说明</Label>
+									<Textarea
+										value={
+											baseFields[key].description ?? ""
+										}
+										onChange={(e) =>
+											updateBaseField(key, {
+												description: e.target.value,
+											})
+										}
+										placeholder={
+											DEFAULT_BASE_FIELDS[key]
+												.description ?? ""
+										}
+										disabled={
+											!(baseFields[key].enabled ?? true)
+										}
+									/>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 

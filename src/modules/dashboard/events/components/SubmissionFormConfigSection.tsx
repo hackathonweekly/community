@@ -43,8 +43,16 @@ function SubmissionFormConfigSummary({
 	const publicFieldsCount = normalizedFields.filter(
 		(field) => field.enabled !== false && field.publicVisible !== false,
 	).length;
+	const baseFields = submissionFormConfig?.baseFields;
+	const taglineEnabled = baseFields?.tagline?.enabled ?? true;
+	const taglineRequired = baseFields?.tagline?.required ?? false;
+	const demoUrlEnabled = baseFields?.demoUrl?.enabled ?? true;
+	const demoUrlRequired = baseFields?.demoUrl?.required ?? false;
 	const attachmentsEnabled =
-		submissionFormConfig?.settings?.attachmentsEnabled ?? true;
+		baseFields?.attachments?.enabled ??
+		submissionFormConfig?.settings?.attachmentsEnabled ??
+		true;
+	const attachmentsRequired = baseFields?.attachments?.required ?? false;
 	const authorizationEnabled =
 		submissionFormConfig?.settings?.communityUseAuthorizationEnabled ??
 		true;
@@ -53,7 +61,18 @@ function SubmissionFormConfigSummary({
 		enabledFieldsCount > 0
 			? `字段 ${enabledFieldsCount} 个（必填 ${requiredFieldsCount} · 公开 ${publicFieldsCount}）`
 			: "使用默认字段";
-	const attachmentText = attachmentsEnabled ? "附件上传开启" : "附件上传关闭";
+
+	const baseFieldStateText = (enabled: boolean, required: boolean) => {
+		if (!enabled) return "隐藏";
+		return required ? "必填" : "选填";
+	};
+
+	const baseFieldText = `基础字段：介绍${baseFieldStateText(
+		taglineEnabled,
+		taglineRequired,
+	)} · 链接${baseFieldStateText(demoUrlEnabled, demoUrlRequired)} · 附件${
+		!attachmentsEnabled ? "隐藏" : attachmentsRequired ? "必填" : "选填"
+	}`;
 	const authorizationText = authorizationEnabled
 		? "含宣传授权确认"
 		: "不展示宣传授权";
@@ -61,14 +80,14 @@ function SubmissionFormConfigSummary({
 	if (!submissionsEnabled) {
 		return (
 			<p className="text-sm text-muted-foreground">
-				未开启作品提交 · {fieldText}
+				未开启作品提交 · {fieldText} · {baseFieldText}
 			</p>
 		);
 	}
 
 	return (
 		<p className="text-sm text-muted-foreground">
-			{fieldText} · {attachmentText} · {authorizationText}
+			{fieldText} · {baseFieldText} · {authorizationText}
 		</p>
 	);
 }

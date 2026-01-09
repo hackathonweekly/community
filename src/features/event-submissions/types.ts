@@ -120,7 +120,7 @@ export interface SubmissionFormValues {
 	demoUrl?: string;
 	teamLeaderId?: string;
 	teamMemberIds: string[];
-	attachments: SubmissionAttachmentInput[];
+	attachments?: SubmissionAttachmentInput[];
 	communityUseAuthorization: boolean;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	customFields?: Record<string, any>;
@@ -189,8 +189,21 @@ export interface SubmissionFormField {
 	order: number;
 }
 
+export type SubmissionBaseFieldKey = "tagline" | "demoUrl" | "attachments";
+
+export interface SubmissionBaseFieldConfig {
+	label?: string;
+	description?: string;
+	placeholder?: string;
+	required?: boolean;
+	enabled?: boolean;
+}
+
 export interface SubmissionFormConfig {
 	fields?: SubmissionFormField[];
+	baseFields?: Partial<
+		Record<SubmissionBaseFieldKey, SubmissionBaseFieldConfig>
+	>;
 	settings?: {
 		attachmentsEnabled?: boolean;
 		communityUseAuthorizationEnabled?: boolean;

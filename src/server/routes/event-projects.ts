@@ -6,6 +6,7 @@ import {
 	getPublicVotingPolicyForEvent,
 	getRemainingVotes,
 } from "@/features/event-submissions/server/public-voting-policy";
+import { normalizeSubmissionFormConfig } from "@/features/event-submissions/utils";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { auth } from "@/lib/auth/auth";
 import { db } from "@/lib/database/prisma";
@@ -297,6 +298,7 @@ const app = new Hono()
 						organizationId: true,
 						requireProjectSubmission: true,
 						submissionsEnabled: true,
+						submissionFormConfig: true,
 						projectSubmissionDeadline: true,
 						endTime: true,
 						hackathonConfig: true,
@@ -339,15 +341,65 @@ const app = new Hono()
 					});
 				}
 
+				const submissionFormConfig = normalizeSubmissionFormConfig(
+					event.submissionFormConfig ?? null,
+				);
+				const baseFields = submissionFormConfig?.baseFields;
+				const taglineConfig = baseFields?.tagline;
+				const demoUrlConfig = baseFields?.demoUrl;
+				const attachmentsConfig = baseFields?.attachments;
+
+				const taglineEnabled = taglineConfig?.enabled ?? true;
+				const taglineRequired =
+					(taglineConfig?.required ?? false) && taglineEnabled;
+				const taglineLabel = taglineConfig?.label ?? "一句话介绍";
+
+				const demoUrlEnabled = demoUrlConfig?.enabled ?? true;
+				const demoUrlRequired =
+					(demoUrlConfig?.required ?? false) && demoUrlEnabled;
+				const demoUrlLabel = demoUrlConfig?.label ?? "项目链接";
+
+				const attachmentsEnabled =
+					attachmentsConfig?.enabled ??
+					submissionFormConfig?.settings?.attachmentsEnabled ??
+					true;
+				const attachmentsRequired =
+					(attachmentsConfig?.required ?? false) &&
+					attachmentsEnabled;
+
 				const sanitizedMembers = sanitizeMemberIds(
 					payload.teamMemberIds || [],
 					leaderId,
 				);
 				await ensureUsersExist(sanitizedMembers);
 
-				const sanitizedTagline = sanitizeOptionalString(
-					payload.tagline,
-				);
+				const sanitizedTagline = taglineEnabled
+					? sanitizeOptionalString(payload.tagline)
+					: undefined;
+				const sanitizedDemoUrl = demoUrlEnabled
+					? payload.demoUrl
+					: undefined;
+
+				if (taglineRequired && !sanitizedTagline) {
+					throw new HTTPException(400, {
+						message: `${taglineLabel}（tagline）为必填`,
+					});
+				}
+
+				if (demoUrlRequired && !sanitizedDemoUrl) {
+					throw new HTTPException(400, {
+						message: `${demoUrlLabel}（demoUrl）为必填`,
+					});
+				}
+
+				if (attachmentsRequired) {
+					const attachmentCount = payload.attachments?.length ?? 0;
+					if (attachmentCount === 0) {
+						throw new HTTPException(400, {
+							message: "请至少上传 1 个附件",
+						});
+					}
+				}
 
 				const submissionId = await db.$transaction(async (tx) => {
 					const project = await tx.project.create({
@@ -357,7 +409,7 @@ const app = new Hono()
 							subtitle: sanitizedTagline ?? null,
 							tagline: sanitizedTagline ?? null,
 							description: payload.description,
-							url: payload.demoUrl,
+							url: sanitizedDemoUrl ?? null,
 							communityUseAuth: payload.communityUseAuthorization,
 							customFields: payload.customFields,
 							isSubmission: true,
@@ -365,7 +417,11 @@ const app = new Hono()
 						},
 					});
 
-					if (payload.attachments && payload.attachments.length > 0) {
+					if (
+						attachmentsEnabled &&
+						payload.attachments &&
+						payload.attachments.length > 0
+					) {
 						await replaceAttachments(
 							tx,
 							project.id,
@@ -392,7 +448,7 @@ const app = new Hono()
 										: "DEMO_PROJECT",
 							title: payload.name,
 							description: payload.description || "",
-							demoUrl: payload.demoUrl,
+							demoUrl: sanitizedDemoUrl ?? null,
 							projectSnapshot: buildProjectSnapshot(project),
 							status: "SUBMITTED",
 						},
@@ -466,23 +522,93 @@ const app = new Hono()
 					: getExistingMemberIds(submission);
 			await ensureUsersExist(memberIds);
 
+			const submissionFormConfig = normalizeSubmissionFormConfig(
+				submission.event.submissionFormConfig ?? null,
+			);
+			const baseFields = submissionFormConfig?.baseFields;
+			const taglineConfig = baseFields?.tagline;
+			const demoUrlConfig = baseFields?.demoUrl;
+			const attachmentsConfig = baseFields?.attachments;
+
+			const taglineEnabled = taglineConfig?.enabled ?? true;
+			const taglineRequired =
+				(taglineConfig?.required ?? false) && taglineEnabled;
+			const taglineLabel = taglineConfig?.label ?? "一句话介绍";
+
+			const demoUrlEnabled = demoUrlConfig?.enabled ?? true;
+			const demoUrlRequired =
+				(demoUrlConfig?.required ?? false) && demoUrlEnabled;
+			const demoUrlLabel = demoUrlConfig?.label ?? "项目链接";
+
+			const attachmentsEnabled =
+				attachmentsConfig?.enabled ??
+				submissionFormConfig?.settings?.attachmentsEnabled ??
+				true;
+			const attachmentsRequired =
+				(attachmentsConfig?.required ?? false) && attachmentsEnabled;
+
+			const nextTagline = Object.prototype.hasOwnProperty.call(
+				payload,
+				"tagline",
+			)
+				? taglineEnabled
+					? sanitizeOptionalString(payload.tagline)
+					: sanitizeOptionalString(submission.project.tagline)
+				: sanitizeOptionalString(submission.project.tagline);
+
+			const nextDemoUrl =
+				payload.demoUrl !== undefined
+					? demoUrlEnabled
+						? payload.demoUrl
+						: sanitizeOptionalString(submission.project.url)
+					: sanitizeOptionalString(submission.project.url);
+
+			const nextAttachmentCount =
+				payload.attachments !== undefined
+					? attachmentsEnabled
+						? payload.attachments.length
+						: submission.project.attachments.length
+					: submission.project.attachments.length;
+
+			if (taglineRequired && !nextTagline) {
+				throw new HTTPException(400, {
+					message: `${taglineLabel}（tagline）为必填`,
+				});
+			}
+
+			if (demoUrlRequired && !nextDemoUrl) {
+				throw new HTTPException(400, {
+					message: `${demoUrlLabel}（demoUrl）为必填`,
+				});
+			}
+
+			if (attachmentsRequired && nextAttachmentCount === 0) {
+				throw new HTTPException(400, {
+					message: "请至少上传 1 个附件",
+				});
+			}
+
 			await db.$transaction(async (tx) => {
 				const projectData: Prisma.ProjectUpdateInput = {};
 				if (payload.name) {
 					projectData.title = payload.name;
 				}
 				if (Object.prototype.hasOwnProperty.call(payload, "tagline")) {
-					const sanitizedTagline = sanitizeOptionalString(
-						payload.tagline,
-					);
-					projectData.tagline = sanitizedTagline ?? null;
-					projectData.subtitle = sanitizedTagline ?? null;
+					if (taglineEnabled) {
+						const sanitizedTagline = sanitizeOptionalString(
+							payload.tagline,
+						);
+						projectData.tagline = sanitizedTagline ?? null;
+						projectData.subtitle = sanitizedTagline ?? null;
+					}
 				}
 				if (payload.description !== undefined) {
 					projectData.description = payload.description;
 				}
 				if (payload.demoUrl !== undefined) {
-					projectData.url = payload.demoUrl;
+					if (demoUrlEnabled) {
+						projectData.url = payload.demoUrl;
+					}
 				}
 				if (payload.communityUseAuthorization !== undefined) {
 					projectData.communityUseAuth =
@@ -503,11 +629,13 @@ const app = new Hono()
 				}
 
 				if (payload.attachments !== undefined) {
-					await replaceAttachments(
-						tx,
-						submission.projectId,
-						payload.attachments,
-					);
+					if (attachmentsEnabled) {
+						await replaceAttachments(
+							tx,
+							submission.projectId,
+							payload.attachments,
+						);
+					}
 				}
 
 				await syncProjectMembers(tx, {
@@ -524,7 +652,9 @@ const app = new Hono()
 							payload.description ??
 							submission.project.description ??
 							"",
-						demoUrl: payload.demoUrl ?? submission.project.url,
+						demoUrl: demoUrlEnabled
+							? (payload.demoUrl ?? submission.project.url)
+							: submission.project.url,
 						status: "SUBMITTED",
 					},
 				});

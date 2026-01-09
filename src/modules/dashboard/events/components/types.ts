@@ -185,6 +185,37 @@ export const eventSchema = z
 		// 作品提交表单配置
 		submissionFormConfig: z
 			.object({
+				baseFields: z
+					.object({
+						tagline: z
+							.object({
+								label: z.string().optional(),
+								description: z.string().optional(),
+								placeholder: z.string().optional(),
+								required: z.boolean().optional(),
+								enabled: z.boolean().optional(),
+							})
+							.optional(),
+						demoUrl: z
+							.object({
+								label: z.string().optional(),
+								description: z.string().optional(),
+								placeholder: z.string().optional(),
+								required: z.boolean().optional(),
+								enabled: z.boolean().optional(),
+							})
+							.optional(),
+						attachments: z
+							.object({
+								label: z.string().optional(),
+								description: z.string().optional(),
+								placeholder: z.string().optional(),
+								required: z.boolean().optional(),
+								enabled: z.boolean().optional(),
+							})
+							.optional(),
+					})
+					.optional(),
 				fields: z
 					.array(
 						z.object({
