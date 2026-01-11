@@ -3,6 +3,7 @@
 import type { RegistrationStatus } from "@prisma/client";
 import { CheckCircle2, ChevronRight, Loader2, XCircle } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -42,6 +43,7 @@ export function SubmissionQrVotePage(props: {
 	const { user } = useSession();
 	const userId = user?.id;
 	const historyRef = useRef<HTMLDivElement>(null);
+	const t = useTranslations("events.hackathon.voting");
 
 	const [autoVoteState, setAutoVoteState] = useState<
 		"idle" | "running" | "done"
@@ -111,6 +113,7 @@ export function SubmissionQrVotePage(props: {
 
 	const registerHref = `/${locale}/events/${eventId}/register`;
 	const submissionHref = `/${locale}/events/${eventId}/submissions/${submissionId}`;
+	const submissionsHref = `/${locale}/events/${eventId}/submissions`;
 
 	const handleVote = async () => {
 		if (!userId) {
@@ -426,9 +429,16 @@ export function SubmissionQrVotePage(props: {
 						</p>
 					) : null}
 				</div>
-				<Badge variant={isVotingOpen ? "default" : "secondary"}>
-					{isVotingOpen ? "投票中" : "已结束"}
-				</Badge>
+				<div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+					<Badge variant={isVotingOpen ? "default" : "secondary"}>
+						{isVotingOpen ? "投票中" : "已结束"}
+					</Badge>
+					<Button variant="outline" size="sm" asChild>
+						<Link href={submissionsHref}>
+							{t("submissions.viewAll")}
+						</Link>
+					</Button>
+				</div>
 			</div>
 
 			<Card className={cn("border", statusBorderClass)}>
