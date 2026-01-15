@@ -290,72 +290,74 @@ export function OptionalConfigSection({
 										})}
 									</div>
 
-									<div className="rounded-lg border p-3 space-y-3">
-										<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-											<div className="space-y-1">
-												<p className="font-medium">
-													参赛协议（Markdown）
-												</p>
-												<p className="text-sm text-muted-foreground">
-													留空使用默认模板；将用于报名页的协议查看与同意勾选。
-												</p>
+									{eventType === "HACKATHON" && (
+										<div className="rounded-lg border p-3 space-y-3">
+											<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+												<div className="space-y-1">
+													<p className="font-medium">
+														参赛协议（Markdown）
+													</p>
+													<p className="text-sm text-muted-foreground">
+														留空使用默认模板；将用于报名页的协议查看与同意勾选。
+													</p>
+												</div>
+												<Button
+													type="button"
+													variant="outline"
+													size="sm"
+													onClick={() =>
+														setValue(
+															"registrationFieldConfig.participationAgreementMarkdown" as any,
+															"",
+															{
+																shouldDirty: true,
+																shouldTouch: true,
+															},
+														)
+													}
+												>
+													恢复默认
+												</Button>
 											</div>
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												onClick={() =>
+
+											<Textarea
+												value={
+													participationAgreementMarkdown
+												}
+												onChange={(event) =>
 													setValue(
 														"registrationFieldConfig.participationAgreementMarkdown" as any,
-														"",
+														event.target.value,
 														{
 															shouldDirty: true,
 															shouldTouch: true,
 														},
 													)
 												}
-											>
-												恢复默认
-											</Button>
-										</div>
+												placeholder="在这里填写《参赛协议》Markdown（可选）"
+												rows={8}
+											/>
 
-										<Textarea
-											value={
-												participationAgreementMarkdown
-											}
-											onChange={(event) =>
-												setValue(
-													"registrationFieldConfig.participationAgreementMarkdown" as any,
-													event.target.value,
-													{
-														shouldDirty: true,
-														shouldTouch: true,
-													},
-												)
-											}
-											placeholder="在这里填写《参赛协议》Markdown（可选）"
-											rows={8}
-										/>
-
-										<div className="rounded-lg border bg-muted/30 p-3">
-											<p className="text-sm font-medium mb-2">
-												预览
-											</p>
-											<div className="max-h-64 overflow-y-auto">
-												<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
-													<ReactMarkdown
-														remarkPlugins={[
-															remarkGfm,
-														]}
-													>
-														{
-															resolvedParticipationAgreementMarkdown
-														}
-													</ReactMarkdown>
+											<div className="rounded-lg border bg-muted/30 p-3">
+												<p className="text-sm font-medium mb-2">
+													预览
+												</p>
+												<div className="max-h-64 overflow-y-auto">
+													<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+														<ReactMarkdown
+															remarkPlugins={[
+																remarkGfm,
+															]}
+														>
+															{
+																resolvedParticipationAgreementMarkdown
+															}
+														</ReactMarkdown>
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
+									)}
 								</div>
 							</DialogContent>
 						</Dialog>
