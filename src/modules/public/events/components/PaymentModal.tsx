@@ -135,6 +135,8 @@ export function PaymentModal({
 
 	useEffect(() => {
 		if (!open) return;
+		const initialDiff = Math.max(0, expiresAt.getTime() - Date.now());
+		setRemainingSeconds(Math.floor(initialDiff / 1000));
 		const interval = window.setInterval(() => {
 			const diff = Math.max(0, expiresAt.getTime() - Date.now());
 			setRemainingSeconds(Math.floor(diff / 1000));
@@ -216,13 +218,13 @@ export function PaymentModal({
 
 	useEffect(() => {
 		if (!open) return;
-		if (remainingSeconds <= 0 && status === "PENDING") {
+		if (status === "PENDING" && Date.now() >= expiresAt.getTime()) {
 			fetch(`/api/events/${eventId}/orders/${order.orderId}/cancel`, {
 				method: "POST",
 			});
 			setStatus("CANCELLED");
 		}
-	}, [remainingSeconds, status, open, eventId, order.orderId]);
+	}, [remainingSeconds, status, open, eventId, order.orderId, expiresAt]);
 
 	const handleCancel = async () => {
 		await fetch(`/api/events/${eventId}/orders/${order.orderId}/cancel`, {
