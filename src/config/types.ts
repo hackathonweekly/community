@@ -88,6 +88,7 @@ export type Config = {
 			};
 			wechatpay: {
 				enabled: boolean;
+				orderExpireMinutes?: number;
 			};
 		};
 	};

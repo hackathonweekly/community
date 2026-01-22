@@ -22,6 +22,11 @@ export interface TicketType {
 	name: string;
 	description?: string;
 	price?: number;
+	priceTiers?: Array<{
+		quantity: number;
+		price: number;
+		currency?: string;
+	}>;
 	maxQuantity?: number;
 	currentQuantity: number;
 	isActive: boolean;
@@ -41,6 +46,24 @@ export interface UserProfile {
 	showEmail?: boolean;
 	lifeStatus?: string;
 	shippingAddress?: string;
+}
+
+export interface EventRegistration {
+	id: string;
+	status:
+		| "PENDING_PAYMENT"
+		| "PENDING"
+		| "APPROVED"
+		| "WAITLISTED"
+		| "REJECTED"
+		| "CANCELLED";
+	eventId?: string;
+	userId?: string;
+	ticketTypeId?: string | null;
+	orderId?: string | null;
+	orderInviteId?: string | null;
+	inviteId?: string | null;
+	registeredAt?: string;
 }
 
 export interface Event {

@@ -26,6 +26,7 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 	const queryClient = useQueryClient();
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
+	const [giftCode, setGiftCode] = useState<string | null>(null);
 
 	// 使用 state 来存储当前时间，避免 hydration mismatch
 	const [now, setNow] = useState<Date | null>(null);
@@ -42,6 +43,12 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 		const storageKey = `event-invite-${event.id}`;
 		const cookieKey = storageKey;
 		const inviteParam = searchParams.get("invite");
+		const giftParam = searchParams.get("gift");
+
+		if (giftParam) {
+			setGiftCode(giftParam);
+			return;
+		}
 
 		const persistInviteCode = (code: string) => {
 			try {
@@ -253,6 +260,7 @@ export function EventRegistrationPage({ event }: EventRegistrationPageProps) {
 					onRegistrationComplete={handleRegistrationComplete}
 					onCancel={handleGoBack}
 					inviteCode={inviteCode ?? undefined}
+					giftCode={giftCode ?? undefined}
 				/>
 			</div>
 		</div>

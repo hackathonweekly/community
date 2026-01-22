@@ -10,14 +10,22 @@ interface TicketSelectionProps {
 	availableTicketTypes: TicketType[];
 	selectedTicketType: string;
 	onTicketTypeChange: (ticketTypeId: string) => void;
+	selectedQuantity: number;
+	onQuantityChange: (quantity: number) => void;
 }
 
 export function TicketSelection({
 	availableTicketTypes,
 	selectedTicketType,
 	onTicketTypeChange,
+	selectedQuantity,
+	onQuantityChange,
 }: TicketSelectionProps) {
 	const t = useTranslations("events.registration");
+
+	const selectedTicket = availableTicketTypes.find(
+		(ticket) => ticket.id === selectedTicketType,
+	);
 
 	const formatPrice = (price?: number) => {
 		if (!price) {
@@ -56,6 +64,7 @@ export function TicketSelection({
 	}
 
 	const hasMultipleOptions = availableTicketTypes.length > 1;
+	const tiers = selectedTicket?.priceTiers ?? [];
 
 	return (
 		<div className="space-y-3">
@@ -136,6 +145,38 @@ export function TicketSelection({
 								)}
 							</div>
 						))}
+				</div>
+			)}
+			{tiers.length > 0 && (
+				<div className="mt-4 space-y-2">
+					<Label className="text-sm font-medium">选择票档数量</Label>
+					<RadioGroup
+						value={String(selectedQuantity)}
+						onValueChange={(value) =>
+							onQuantityChange(Number(value))
+						}
+						className="space-y-2"
+					>
+						{tiers.map((tier) => (
+							<div
+								key={tier.quantity}
+								className="flex items-start space-x-3 rounded-lg border p-3 hover:bg-gray-50"
+							>
+								<RadioGroupItem
+									value={String(tier.quantity)}
+									id={`ticket-qty-${tier.quantity}`}
+									className="mt-1"
+								/>
+								<Label
+									htmlFor={`ticket-qty-${tier.quantity}`}
+									className="cursor-pointer"
+								>
+									{tier.quantity} 人票 -{" "}
+									{formatPrice(tier.price)}
+								</Label>
+							</div>
+						))}
+					</RadioGroup>
 				</div>
 			)}
 		</div>

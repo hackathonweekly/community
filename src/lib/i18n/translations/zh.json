@@ -1578,9 +1578,30 @@
 			"submitting": "提交中...",
 			"title": "报名活动",
 			"validation": {
+				"acceptParticipationAgreement": "需同意《参赛协议》后才能报名",
 				"missingAnswers": "请回答所有必填问题: {questions}",
+				"selectDigitalCardConsent": "请选择是否愿意在现场屏幕公开自我介绍并展示数字名片信息",
 				"selectProject": "请填写作品或想法信息",
+				"selectTierQuantity": "请选择合适的票档数量",
 				"selectTicketType": "请选择票种"
+			},
+			"payment": {
+				"title": "微信支付",
+				"orderNumber": "订单号",
+				"amount": "金额",
+				"scanToPay": "请使用微信扫码支付",
+				"invoking": "正在唤起微信支付...",
+				"paidSuccess": "支付成功！",
+				"orderCancelled": "订单已取消",
+				"remainingTime": "剩余支付时间",
+				"giftLinks": "赠送邀请链接",
+				"copyInvite": "复制",
+				"inviteCopied": "邀请链接已复制",
+				"cancelOrder": "取消订单",
+				"close": "关闭",
+				"wechatPayIncomplete": "微信支付未完成，请重新尝试",
+				"statusFetchRetry": "订单状态获取失败，正在重试...",
+				"statusFetchFailed": "订单状态获取失败，请稍后重试"
 			},
 			"toasts": {
 				"projectsFetchError": "获取作品列表失败",
@@ -2230,6 +2251,19 @@
 			"message": "感谢您报名参加活动「{eventTitle}」！我们已收到您的报名信息。",
 			"preview": "活动报名确认",
 			"subject": "事件注册确认",
+			"viewEvent": "查看活动详情"
+		},
+		"eventOrderCancelled": {
+			"eventDate": "活动日期",
+			"eventDetails": "活动详情",
+			"eventLocation": "活动地点",
+			"eventTitle": "活动名称",
+			"footer": "如有疑问请随时联系我们。",
+			"greeting": "你好 {name}，",
+			"message": "您报名的活动「{eventTitle}」订单已取消。",
+			"orderNumber": "订单号",
+			"preview": "订单已取消",
+			"subject": "订单已取消",
 			"viewEvent": "查看活动详情"
 		},
 		"eventReminder": {

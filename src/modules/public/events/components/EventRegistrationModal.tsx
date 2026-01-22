@@ -26,7 +26,15 @@ import { ProfileSection } from "./ProfileSection";
 import { ProjectSection } from "./ProjectSection";
 import { TicketSelection } from "./TicketSelection";
 import { QuestionsForm } from "./QuestionsForm";
-import type { Project, Question, TicketType, UserProfile } from "./types";
+import type {
+	EventRegistration,
+	Project,
+	Question,
+	TicketType,
+	UserProfile,
+} from "./types";
+import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
+import { useTicketSelection } from "./useTicketSelection";
 
 const getFirstErrorMessage = (value: unknown): string | null => {
 	if (!value) return null;
@@ -116,7 +124,7 @@ interface EventRegistrationModalProps {
 		registrationFieldConfig?: any;
 	};
 	inviteCode?: string;
-	onRegistrationComplete: (registration: any) => void;
+	onRegistrationComplete: (registration: EventRegistration) => void;
 }
 
 export function EventRegistrationModal({
@@ -135,6 +143,11 @@ export function EventRegistrationModal({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
+	const [selectedQuantity, setSelectedQuantity] = useState(1);
+	const [paymentOrder, setPaymentOrder] = useState<PaymentOrderData | null>(
+		null,
+	);
+	const [paymentOpen, setPaymentOpen] = useState(false);
 	const [allowDigitalCardDisplay, setAllowDigitalCardDisplay] = useState<
 		boolean | null
 	>(null);
@@ -520,13 +533,13 @@ export function EventRegistrationModal({
 		await saveProject();
 	};
 
-	// Get available ticket types
-	const availableTicketTypes = event.ticketTypes.filter(
-		(ticket) =>
-			ticket.isActive &&
-			(!ticket.maxQuantity ||
-				ticket.currentQuantity < ticket.maxQuantity),
-	);
+	const { availableTicketTypes, selectedTicket, selectedTier, isPaidTicket } =
+		useTicketSelection({
+			ticketTypes: event.ticketTypes,
+			selectedTicketType,
+			selectedQuantity,
+			onQuantityChange: setSelectedQuantity,
+		});
 
 	const handleAnswerChange = (questionId: string, answer: string) => {
 		setAnswers((prev) => ({
@@ -558,11 +571,14 @@ export function EventRegistrationModal({
 			return;
 		}
 
+		if (selectedTicket?.priceTiers?.length && !selectedTier) {
+			toast.error(t("validation.selectTierQuantity"));
+			return;
+		}
+
 		// Validate digital card consent if required
 		if (event.askDigitalCardConsent && allowDigitalCardDisplay === null) {
-			toast.error(
-				"请选择是否愿意在现场屏幕公开自我介绍并展示数字名片信息",
-			);
+			toast.error(t("validation.selectDigitalCardConsent"));
 			return;
 		}
 
@@ -723,25 +739,33 @@ export function EventRegistrationModal({
 		await performRegistration();
 	};
 
-	const performRegistration = async () => {
-		setIsSubmitting(true);
+	const resolveTicketTypeId = () => {
+		if (availableTicketTypes.length === 0) {
+			return undefined;
+		}
+		if (availableTicketTypes.length === 1) {
+			return availableTicketTypes[0].id;
+		}
+		return selectedTicketType || undefined;
+	};
+
+	const buildAnswersPayload = () =>
+		Object.entries(answers).map(([questionId, answer]) => ({
+			questionId,
+			answer,
+		}));
+
+	const performPaidOrder = async () => {
 		try {
-			const response = await fetch(`/api/events/${event.id}/register`, {
+			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					ticketTypeId:
-						availableTicketTypes.length === 1
-							? availableTicketTypes[0].id
-							: selectedTicketType,
-					answers: Object.entries(answers).map(
-						([questionId, answer]) => ({
-							questionId,
-							answer,
-						}),
-					),
+					ticketTypeId: resolveTicketTypeId(),
+					quantity: selectedQuantity,
+					answers: buildAnswersPayload(),
 					...(event.requireProjectSubmission && {
 						projectId: selectedProjectId,
 					}),
@@ -762,7 +786,49 @@ export function EventRegistrationModal({
 			}
 
 			const result = await response.json();
-			// Pass the registration data (including status) to parent
+			setPaymentOrder(result.data as PaymentOrderData);
+			setPaymentOpen(true);
+		} catch (error) {
+			console.error("Error creating paid order:", error);
+			toast.error(
+				resolveRegistrationErrorMessage(
+					error,
+					defaultRegistrationError,
+				),
+			);
+		}
+	};
+
+	const performFreeRegistration = async () => {
+		try {
+			const response = await fetch(`/api/events/${event.id}/register`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					ticketTypeId: resolveTicketTypeId(),
+					answers: buildAnswersPayload(),
+					...(event.requireProjectSubmission && {
+						projectId: selectedProjectId,
+					}),
+					...(event.askDigitalCardConsent &&
+						allowDigitalCardDisplay !== null && {
+							allowDigitalCardDisplay: allowDigitalCardDisplay,
+						}),
+					...(inviteCode ? { inviteCode } : {}),
+				}),
+			});
+
+			if (!response.ok) {
+				const errorMessage = await parseRegistrationError(
+					response,
+					defaultRegistrationError,
+				);
+				throw new Error(errorMessage);
+			}
+
+			const result = await response.json();
 			onRegistrationComplete(result.data);
 			onClose();
 		} catch (error) {
@@ -773,174 +839,207 @@ export function EventRegistrationModal({
 					defaultRegistrationError,
 				),
 			);
+		}
+	};
+
+	const performRegistration = async () => {
+		setIsSubmitting(true);
+		try {
+			if (isPaidTicket) {
+				await performPaidOrder();
+				return;
+			}
+			await performFreeRegistration();
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
-	const formatPrice = (price?: number) => {
-		if (!price) {
-			return t("free");
-		}
-		return `¥${price.toFixed(2)}`;
+	const handlePaymentSuccess = (registration: EventRegistration) => {
+		setPaymentOpen(false);
+		setPaymentOrder(null);
+		onRegistrationComplete(registration);
+		onClose();
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-				<DialogHeader>
-					<DialogTitle>
-						{t("title", { title: event.title })}
-					</DialogTitle>
-					<DialogDescription>
-						{t("description")}
-						{event.requireApproval && (
-							<span className="text-orange-600 font-medium">
-								{t("requiresApproval")}
-							</span>
-						)}
-					</DialogDescription>
-				</DialogHeader>
+		<>
+			<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+				<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+					<DialogHeader>
+						<DialogTitle>
+							{t("title", { title: event.title })}
+						</DialogTitle>
+						<DialogDescription>
+							{t("description")}
+							{event.requireApproval && (
+								<span className="text-orange-600 font-medium">
+									{t("requiresApproval")}
+								</span>
+							)}
+						</DialogDescription>
+					</DialogHeader>
 
-				<form onSubmit={handleSubmit} className="space-y-6">
-					{/* Profile Section */}
-					<ProfileSection
-						userProfile={userProfile}
-						showInlineProfileEdit={showInlineProfileEdit}
-						editingProfile={editingProfile}
-						phoneValidation={phoneValidation}
-						emailError={emailError}
-						savingProfile={savingProfile}
-						profileLoading={profileLoading}
-						fieldConfig={fieldConfig}
-						onToggleInlineEdit={setShowInlineProfileEdit}
-						onSaveProfile={handleSaveProfile}
-						onUpdateEditingProfile={(profile) =>
-							setEditingProfile((prev) => ({
-								...prev,
-								...profile,
-							}))
-						}
-						onPhoneNumberChange={handlePhoneNumberChange}
-						onEmailChange={(value) => {
-							setEmailError(null);
-							setEditingProfile((prev) => ({
-								...prev,
-								email: value,
-							}));
-						}}
-						onLifeStatusChange={(value) =>
-							setEditingProfile((prev) => ({
-								...prev,
-								lifeStatus: value,
-							}))
-						}
-					/>
-
-					{/* Project Selection - Only show if required */}
-					{event.requireProjectSubmission && (
-						<ProjectSection
-							projects={projects}
-							projectsLoading={projectsLoading}
-							selectedProjectId={selectedProjectId}
-							showInlineProjectEdit={showInlineProjectEdit}
-							editingProject={editingProject}
-							savingProject={savingProject}
-							onProjectSelect={setSelectedProjectId}
-							onRefreshProjects={fetchUserProjects}
-							onCreateNewProject={() => {
-								const currentPath = window.location.pathname;
-								router.push(
-									`/app/projects/create?returnTo=${encodeURIComponent(currentPath)}`,
-								);
-							}}
-							onToggleInlineEdit={setShowInlineProjectEdit}
-							onSaveProject={handleSaveProject}
-							onUpdateEditingProject={(project) =>
-								setEditingProject((prev) => ({
+					<form onSubmit={handleSubmit} className="space-y-6">
+						{/* Profile Section */}
+						<ProfileSection
+							userProfile={userProfile}
+							showInlineProfileEdit={showInlineProfileEdit}
+							editingProfile={editingProfile}
+							phoneValidation={phoneValidation}
+							emailError={emailError}
+							savingProfile={savingProfile}
+							profileLoading={profileLoading}
+							fieldConfig={fieldConfig}
+							onToggleInlineEdit={setShowInlineProfileEdit}
+							onSaveProfile={handleSaveProfile}
+							onUpdateEditingProfile={(profile) =>
+								setEditingProfile((prev) => ({
 									...prev,
-									...project,
+									...profile,
+								}))
+							}
+							onPhoneNumberChange={handlePhoneNumberChange}
+							onEmailChange={(value) => {
+								setEmailError(null);
+								setEditingProfile((prev) => ({
+									...prev,
+									email: value,
+								}));
+							}}
+							onLifeStatusChange={(value) =>
+								setEditingProfile((prev) => ({
+									...prev,
+									lifeStatus: value,
 								}))
 							}
 						/>
-					)}
 
-					{/* Ticket Type Selection */}
-					<TicketSelection
-						availableTicketTypes={availableTicketTypes}
-						selectedTicketType={selectedTicketType}
-						onTicketTypeChange={setSelectedTicketType}
-					/>
+						{/* Project Selection - Only show if required */}
+						{event.requireProjectSubmission && (
+							<ProjectSection
+								projects={projects}
+								projectsLoading={projectsLoading}
+								selectedProjectId={selectedProjectId}
+								showInlineProjectEdit={showInlineProjectEdit}
+								editingProject={editingProject}
+								savingProject={savingProject}
+								onProjectSelect={setSelectedProjectId}
+								onRefreshProjects={fetchUserProjects}
+								onCreateNewProject={() => {
+									const currentPath =
+										window.location.pathname;
+									router.push(
+										`/app/projects/create?returnTo=${encodeURIComponent(currentPath)}`,
+									);
+								}}
+								onToggleInlineEdit={setShowInlineProjectEdit}
+								onSaveProject={handleSaveProject}
+								onUpdateEditingProject={(project) =>
+									setEditingProject((prev) => ({
+										...prev,
+										...project,
+									}))
+								}
+							/>
+						)}
 
-					{/* Digital Card Consent */}
-					{event.askDigitalCardConsent && (
-						<div className="space-y-3">
-							<Label className="text-sm font-medium">
-								是否愿意在现场屏幕中公开自我介绍并展示数字名片
-								<span className="text-red-500 ml-1">*</span>
-							</Label>
-							<RadioGroup
-								value={
-									allowDigitalCardDisplay === null
-										? ""
-										: String(allowDigitalCardDisplay)
-								}
-								onValueChange={(value) =>
-									setAllowDigitalCardDisplay(value === "true")
-								}
+						{/* Ticket Type Selection */}
+						<TicketSelection
+							availableTicketTypes={availableTicketTypes}
+							selectedTicketType={selectedTicketType}
+							onTicketTypeChange={setSelectedTicketType}
+							selectedQuantity={selectedQuantity}
+							onQuantityChange={setSelectedQuantity}
+						/>
+
+						{/* Digital Card Consent */}
+						{event.askDigitalCardConsent && (
+							<div className="space-y-3">
+								<Label className="text-sm font-medium">
+									是否愿意在现场屏幕中公开自我介绍并展示数字名片
+									<span className="text-red-500 ml-1">*</span>
+								</Label>
+								<RadioGroup
+									value={
+										allowDigitalCardDisplay === null
+											? ""
+											: String(allowDigitalCardDisplay)
+									}
+									onValueChange={(value) =>
+										setAllowDigitalCardDisplay(
+											value === "true",
+										)
+									}
+								>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="true"
+											id="consent-yes"
+										/>
+										<Label
+											htmlFor="consent-yes"
+											className="font-normal cursor-pointer"
+										>
+											非常愿意
+										</Label>
+									</div>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="false"
+											id="consent-no"
+										/>
+										<Label
+											htmlFor="consent-no"
+											className="font-normal cursor-pointer"
+										>
+											下次一定
+										</Label>
+									</div>
+								</RadioGroup>
+							</div>
+						)}
+
+						{/* Questions */}
+						<QuestionsForm
+							questions={event.questions}
+							answers={answers}
+							onAnswerChange={handleAnswerChange}
+						/>
+
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={onClose}
+								disabled={isSubmitting}
 							>
-								<div className="flex items-center space-x-2">
-									<RadioGroupItem
-										value="true"
-										id="consent-yes"
-									/>
-									<Label
-										htmlFor="consent-yes"
-										className="font-normal cursor-pointer"
-									>
-										非常愿意
-									</Label>
-								</div>
-								<div className="flex items-center space-x-2">
-									<RadioGroupItem
-										value="false"
-										id="consent-no"
-									/>
-									<Label
-										htmlFor="consent-no"
-										className="font-normal cursor-pointer"
-									>
-										下次一定
-									</Label>
-								</div>
-							</RadioGroup>
-						</div>
-					)}
+								{t("cancel")}
+							</Button>
+							<Button type="submit" disabled={isSubmitting}>
+								{isSubmitting
+									? t("submitting")
+									: t("confirmRegistration")}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 
-					{/* Questions */}
-					<QuestionsForm
-						questions={event.questions}
-						answers={answers}
-						onAnswerChange={handleAnswerChange}
-					/>
-
-					<DialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={onClose}
-							disabled={isSubmitting}
-						>
-							{t("cancel")}
-						</Button>
-						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting
-								? t("submitting")
-								: t("confirmRegistration")}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+			{paymentOrder && (
+				<PaymentModal
+					open={paymentOpen}
+					onOpenChange={(open) => {
+						setPaymentOpen(open);
+						if (!open) {
+							setPaymentOrder(null);
+						}
+					}}
+					eventId={event.id}
+					order={paymentOrder}
+					onPaymentSuccess={handlePaymentSuccess}
+				/>
+			)}
+		</>
 	);
 }

@@ -108,6 +108,9 @@ model User {
   // Event system relations
   organizedEvents     Event[]               @relation("OrganizedEvents")
   eventRegistrations  EventRegistration[]
+  eventOrders         EventOrder[]
+  refundedEventOrders EventOrder[]          @relation("RefundedOrders")
+  redeemedOrderInvites EventOrderInvite[]    @relation("EventOrderInviteRedeemers")
   eventAnswers        EventAnswer[]
   eventCheckIns       EventCheckIn[]
   eventFeedbacks      EventFeedback[]
@@ -853,6 +856,7 @@ model Event {
   checkIns        EventCheckIn[]
   feedbacks       EventFeedback[]
   ticketTypes     EventTicketType[]
+  orders          EventOrder[]
   photos          EventPhoto[]
   admins          EventAdmin[]
   volunteerRoles  EventVolunteerRole[]
@@ -904,8 +908,93 @@ model EventTicketType {
   // Relations
   event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
   registrations   EventRegistration[]
+  priceTiers      EventTicketPriceTier[]
+  orders          EventOrder[]
   
   @@map("event_ticket_type")
+}
+
+model EventTicketPriceTier {
+  id            String          @id @default(cuid())
+  ticketTypeId  String
+  quantity      Int
+  price         Float
+  currency      String          @default("CNY")
+  isActive      Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  ticketType    EventTicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, quantity])
+  @@index([ticketTypeId])
+  @@map("event_ticket_price_tier")
+}
+
+model EventOrder {
+  id             String           @id @default(cuid())
+  orderNo        String           @unique
+
+  eventId        String
+  userId         String
+  ticketTypeId   String
+
+  quantity       Int              @default(1)
+  unitPrice      Float?
+  totalAmount    Float
+  currency       String           @default("CNY")
+
+  status         EventOrderStatus @default(PENDING)
+  paymentMethod  PaymentMethod?
+  transactionId  String?
+  paidAt         DateTime?
+
+  prepayId       String?
+  codeUrl        String?
+
+  refundId       String?
+  refundAmount   Float?
+  refundedAt     DateTime?
+  refundReason   String?
+  refundedBy     String?
+
+  expiredAt      DateTime
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  event          Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketType     EventTicketType  @relation(fields: [ticketTypeId], references: [id])
+  registrations  EventRegistration[]
+  invites        EventOrderInvite[]
+  refunder       User?            @relation("RefundedOrders", fields: [refundedBy], references: [id])
+
+  @@index([orderNo])
+  @@index([userId, status])
+  @@index([eventId, status])
+  @@index([status, expiredAt])
+  @@map("event_order")
+}
+
+model EventOrderInvite {
+  id             String                @id @default(cuid())
+  orderId        String
+  code           String                @unique
+  status         EventOrderInviteStatus @default(PENDING)
+  redeemedAt     DateTime?
+  redeemedBy     String?
+
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  order          EventOrder            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  redeemer       User?                 @relation("EventOrderInviteRedeemers", fields: [redeemedBy], references: [id])
+  registration   EventRegistration?    @relation("EventOrderInviteRegistration")
+
+  @@index([orderId, status])
+  @@map("event_order_invite")
 }
 
 model EventPhoto {
@@ -963,6 +1052,8 @@ model EventRegistration {
   eventId         String
   userId          String
   ticketTypeId    String?             // 关联票种
+  orderId         String?
+  orderInviteId   String?             @unique
   inviteId        String?
   status          RegistrationStatus  @default(PENDING)
   
@@ -979,6 +1070,8 @@ model EventRegistration {
   // Relations
   event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
   ticketType      EventTicketType?    @relation(fields: [ticketTypeId], references: [id])
+  order           EventOrder?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderInvite     EventOrderInvite?   @relation("EventOrderInviteRegistration", fields: [orderInviteId], references: [id], onDelete: SetNull)
   invite          EventInvite?        @relation(fields: [inviteId], references: [id], onDelete: SetNull)
   user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   reviewer        User?               @relation("ReviewedRegistrations", fields: [reviewedBy], references: [id])
@@ -986,6 +1079,8 @@ model EventRegistration {
   
   @@unique([eventId, userId]) // Same user cannot register for same event twice
   @@index([inviteId])
+  @@index([orderId])
+  @@index([orderInviteId])
   @@index([eventId, status]) // 活动报名状态查询优化
   @@index([userId, status]) // 用户报名状态查询优化
   @@index([status, registeredAt]) // 按状态和时间排序
@@ -1096,11 +1191,33 @@ enum EventStatus {
 }
 
 enum RegistrationStatus {
+  PENDING_PAYMENT // Pending payment
   PENDING         // Pending (if approval required)
   APPROVED        // Approved (auto-approved if no manual approval required)
   WAITLISTED      // Waitlisted
   REJECTED        // Rejected
   CANCELLED       // Cancelled
+}
+
+enum EventOrderStatus {
+  PENDING        // Pending payment
+  PAID           // Paid
+  CANCELLED      // Cancelled
+  REFUND_PENDING // Refund in progress
+  REFUNDED       // Refunded
+}
+
+enum PaymentMethod {
+  WECHAT_NATIVE
+  WECHAT_JSAPI
+  STRIPE
+  FREE
+}
+
+enum EventOrderInviteStatus {
+  PENDING
+  REDEEMED
+  INVALID
 }
 
 enum EventInviteType {

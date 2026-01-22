@@ -52,6 +52,7 @@ import { websitesRouter } from "./routes/websites";
 import { functionalRolesRouter } from "./routes/functional-roles";
 import { versionRouter } from "./routes/version";
 import { clientLogsRouter } from "./routes/client-logs";
+import { cronRouter } from "./routes/cron";
 
 export const app = new Hono().basePath("/api");
 
@@ -63,6 +64,7 @@ app.use(apiRateLimit);
 // 挂载所有路由器 - 先挂载无认证的路由器
 app.route("/", authRouter) // 🔧 Better Auth处理 /auth/* 路径
 	.route("/", webhooksRouter)
+	.route("/", cronRouter)
 	.route("/", healthRouter)
 	.route("/", versionRouter)
 	.route("/", clientLogsRouter)

@@ -1516,9 +1516,30 @@
 			"submitting": "Submitting...",
 			"title": "Register for event",
 			"validation": {
+				"acceptParticipationAgreement": "Please accept the participation agreement before registering.",
 				"missingAnswers": "Please answer all required questions: {questions}",
+				"selectDigitalCardConsent": "Please choose whether you agree to show your introduction and digital card on-site.",
 				"selectProject": "Please share a project or idea",
+				"selectTierQuantity": "Please choose a valid ticket quantity",
 				"selectTicketType": "Please select a ticket type"
+			},
+			"payment": {
+				"title": "WeChat Pay",
+				"orderNumber": "Order number",
+				"amount": "Amount",
+				"scanToPay": "Scan with WeChat to pay",
+				"invoking": "Launching WeChat Pay...",
+				"paidSuccess": "Payment successful!",
+				"orderCancelled": "Order cancelled",
+				"remainingTime": "Time remaining",
+				"giftLinks": "Gift invite links",
+				"copyInvite": "Copy",
+				"inviteCopied": "Invite link copied",
+				"cancelOrder": "Cancel order",
+				"close": "Close",
+				"wechatPayIncomplete": "WeChat Pay was not completed. Please try again.",
+				"statusFetchRetry": "Failed to fetch order status. Retrying...",
+				"statusFetchFailed": "Failed to fetch order status. Please try again later."
 			},
 			"toasts": {
 				"projectsFetchError": "Failed to load projects",
@@ -2176,6 +2197,19 @@
 			"message": "Thank you for registering for the event \"{eventTitle}\"! We have received your registration information.",
 			"preview": "Event registration confirmation",
 			"subject": "Event Registration Confirmed",
+			"viewEvent": "View Event Details"
+		},
+		"eventOrderCancelled": {
+			"eventDate": "Event Date",
+			"eventDetails": "Event Details",
+			"eventLocation": "Event Location",
+			"eventTitle": "Event Title",
+			"footer": "If you have any questions, just reply to this email.",
+			"greeting": "Hello {name},",
+			"message": "Your order for \"{eventTitle}\" has been cancelled.",
+			"orderNumber": "Order Number",
+			"preview": "Your event order was cancelled",
+			"subject": "Event Order Cancelled",
 			"viewEvent": "View Event Details"
 		},
 		"eventReminder": {

@@ -9,6 +9,12 @@ import { validator } from "hono-openapi/zod";
 import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth";
 
+const priceTierSchema = z.object({
+	quantity: z.number().int().min(1),
+	price: z.number().min(0),
+	currency: z.string().optional(),
+});
+
 const createTicketTypeSchema = z.object({
 	name: z.string().min(1, "票种名称不能为空"),
 	description: z.string().optional(),
@@ -16,6 +22,17 @@ const createTicketTypeSchema = z.object({
 	maxQuantity: z.number().min(1).optional(),
 	isActive: z.boolean().default(true),
 	sortOrder: z.number().default(0),
+	priceTiers: z
+		.array(priceTierSchema)
+		.optional()
+		.refine(
+			(tiers) => {
+				if (!tiers) return true;
+				const quantities = tiers.map((tier) => tier.quantity);
+				return new Set(quantities).size === quantities.length;
+			},
+			{ message: "票档数量不能重复" },
+		),
 });
 
 const updateTicketTypeSchema = createTicketTypeSchema.partial();
@@ -50,6 +67,10 @@ export const eventTicketTypesRouter = new Hono()
 						_count: {
 							select: { registrations: true },
 						},
+						priceTiers: {
+							where: { isActive: true },
+							orderBy: { quantity: "asc" },
+						},
 					},
 				});
 
@@ -77,6 +98,7 @@ export const eventTicketTypesRouter = new Hono()
 				const user = c.get("user");
 				const { id: eventId } = c.req.valid("param");
 				const validatedData = c.req.valid("json");
+				const { priceTiers, ...ticketTypeData } = validatedData;
 
 				// 验证活动是否存在
 				const event = await db.event.findUnique({
@@ -99,11 +121,26 @@ export const eventTicketTypesRouter = new Hono()
 				const ticketType = await db.eventTicketType.create({
 					data: {
 						eventId,
-						...validatedData,
+						...ticketTypeData,
+						...(priceTiers?.length
+							? {
+									priceTiers: {
+										create: priceTiers.map((tier) => ({
+											quantity: tier.quantity,
+											price: tier.price,
+											currency: tier.currency ?? "CNY",
+										})),
+									},
+								}
+							: {}),
 					},
 					include: {
 						_count: {
 							select: { registrations: true },
+						},
+						priceTiers: {
+							where: { isActive: true },
+							orderBy: { quantity: "asc" },
 						},
 					},
 				});
@@ -135,6 +172,7 @@ export const eventTicketTypesRouter = new Hono()
 				const user = c.get("user");
 				const { id: eventId, ticketTypeId } = c.req.valid("param");
 				const validatedData = c.req.valid("json");
+				const { priceTiers, ...ticketTypeData } = validatedData;
 
 				// 验证票种是否存在且属于该活动
 				const ticketType = await db.eventTicketType.findFirst({
@@ -159,14 +197,41 @@ export const eventTicketTypesRouter = new Hono()
 				}
 
 				// 更新票种
-				const updatedTicketType = await db.eventTicketType.update({
-					where: { id: ticketTypeId },
-					data: validatedData,
-					include: {
-						_count: {
-							select: { registrations: true },
+				const updatedTicketType = await db.$transaction(async (tx) => {
+					await tx.eventTicketType.update({
+						where: { id: ticketTypeId },
+						data: ticketTypeData,
+					});
+
+					if (priceTiers) {
+						await tx.eventTicketPriceTier.deleteMany({
+							where: { ticketTypeId },
+						});
+
+						if (priceTiers.length > 0) {
+							await tx.eventTicketPriceTier.createMany({
+								data: priceTiers.map((tier) => ({
+									quantity: tier.quantity,
+									price: tier.price,
+									currency: tier.currency ?? "CNY",
+									ticketTypeId,
+								})),
+							});
+						}
+					}
+
+					return await tx.eventTicketType.findUnique({
+						where: { id: ticketTypeId },
+						include: {
+							_count: {
+								select: { registrations: true },
+							},
+							priceTiers: {
+								where: { isActive: true },
+								orderBy: { quantity: "asc" },
+							},
 						},
-					},
+					});
 				});
 
 				return c.json({

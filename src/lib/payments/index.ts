@@ -1,13 +1,9 @@
 export * from "./provider";
 export * from "./lib/customer";
 
-import { logger } from "@/lib/logs";
 import * as stripeProvider from "./provider/stripe";
 import * as wechatpayProvider from "./provider/wechatpay";
 import type { PaymentProvider } from "./types";
-
-const WECHAT_DISABLED_WARNING =
-	"WeChat Pay provider is disabled; falling back to placeholder implementation.";
 
 export function getPaymentProvider(): PaymentProvider {
 	const preferredProvider =
@@ -15,7 +11,6 @@ export function getPaymentProvider(): PaymentProvider {
 
 	switch (preferredProvider.toLowerCase()) {
 		case "wechatpay":
-			logger.warn(WECHAT_DISABLED_WARNING);
 			return {
 				createCheckoutLink: wechatpayProvider.createCheckoutLink,
 				createCustomerPortalLink:

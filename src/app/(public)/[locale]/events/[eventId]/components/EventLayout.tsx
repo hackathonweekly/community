@@ -17,6 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 import { Trophy } from "lucide-react";
+import type { EventRegistration } from "@/modules/public/events/components/types";
 
 // Local page components
 import { BackToEventsLink } from "./BackToEventsLink";
@@ -400,7 +401,8 @@ export function EventLayout({
 	const canShowFeedback =
 		existingRegistration?.status === "APPROVED" && !event.isExternalEvent;
 
-	const [latestRegistration, setLatestRegistration] = useState<any>(null);
+	const [latestRegistration, setLatestRegistration] =
+		useState<EventRegistration | null>(null);
 
 	// Event registration mutations
 	const {
@@ -432,7 +434,7 @@ export function EventLayout({
 		}
 	};
 
-	const handleRegistrationComplete = (registration: any) => {
+	const handleRegistrationComplete = (registration: EventRegistration) => {
 		setLatestRegistration(registration);
 		setShowSuccessInfo(true);
 		toast.success(t("events.registrationSuccess"));

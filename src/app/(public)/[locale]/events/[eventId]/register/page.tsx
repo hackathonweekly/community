@@ -74,8 +74,16 @@ export default async function EventRegistrationRoute({
 			...ticketType,
 			description: ticketType.description || undefined,
 			price: ticketType.price || undefined,
+			priceTiers: ticketType.priceTiers?.map((tier) => ({
+				quantity: tier.quantity,
+				price: tier.price,
+				currency: tier.currency || undefined,
+			})),
 			maxQuantity: ticketType.maxQuantity || undefined,
-			currentQuantity: ticketType._count?.registrations || 0,
+			currentQuantity:
+				ticketType.currentQuantity ??
+				ticketType._count?.registrations ??
+				0,
 		})),
 	};
 

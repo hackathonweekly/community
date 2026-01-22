@@ -28,7 +28,15 @@ import { ProfileSection } from "./ProfileSection";
 import { ProjectSection } from "./ProjectSection";
 import { TicketSelection } from "./TicketSelection";
 import { QuestionsForm } from "./QuestionsForm";
-import type { Project, Question, TicketType, UserProfile } from "./types";
+import type {
+	EventRegistration,
+	Project,
+	Question,
+	TicketType,
+	UserProfile,
+} from "./types";
+import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
+import { useTicketSelection } from "./useTicketSelection";
 
 const getFirstErrorMessage = (value: unknown): string | null => {
 	if (!value) return null;
@@ -118,9 +126,10 @@ interface EventRegistrationFormProps {
 	};
 	isSubmitting: boolean;
 	onSubmittingChange: (isSubmitting: boolean) => void;
-	onRegistrationComplete: (registration: any) => void;
+	onRegistrationComplete: (registration: EventRegistration) => void;
 	onCancel: () => void;
 	inviteCode?: string;
+	giftCode?: string;
 }
 
 export function EventRegistrationForm({
@@ -130,6 +139,7 @@ export function EventRegistrationForm({
 	onRegistrationComplete,
 	onCancel,
 	inviteCode,
+	giftCode,
 }: EventRegistrationFormProps) {
 	const t = useTranslations("events.registration");
 	const router = useRouter();
@@ -143,6 +153,11 @@ export function EventRegistrationForm({
 	const participationAgreementEnabled = event.type === "HACKATHON";
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
+	const [selectedQuantity, setSelectedQuantity] = useState(1);
+	const [paymentOrder, setPaymentOrder] = useState<PaymentOrderData | null>(
+		null,
+	);
+	const [paymentOpen, setPaymentOpen] = useState(false);
 	const [allowDigitalCardDisplay, setAllowDigitalCardDisplay] = useState<
 		boolean | null
 	>(null);
@@ -532,13 +547,14 @@ export function EventRegistrationForm({
 		await saveProject();
 	};
 
-	// Get available ticket types
-	const availableTicketTypes = event.ticketTypes.filter(
-		(ticket) =>
-			ticket?.isActive &&
-			(!ticket.maxQuantity ||
-				ticket.currentQuantity < ticket.maxQuantity),
-	);
+	const { availableTicketTypes, selectedTicket, selectedTier, isPaidTicket } =
+		useTicketSelection({
+			ticketTypes: event.ticketTypes,
+			selectedTicketType,
+			selectedQuantity,
+			onQuantityChange: setSelectedQuantity,
+			disableSelection: Boolean(giftCode),
+		});
 
 	const handleAnswerChange = (questionId: string, answer: string) => {
 		setAnswers((prev) => ({
@@ -551,7 +567,7 @@ export function EventRegistrationForm({
 		e.preventDefault();
 
 		if (participationAgreementEnabled && !agreedParticipationAgreement) {
-			toast.error("需同意《参赛协议》后才能报名");
+			toast.error(t("validation.acceptParticipationAgreement"));
 			return;
 		}
 
@@ -570,16 +586,22 @@ export function EventRegistrationForm({
 		}
 
 		// Validate ticket type selection if there are multiple types
-		if (availableTicketTypes.length > 1 && !selectedTicketType) {
+		if (
+			!giftCode &&
+			availableTicketTypes.length > 1 &&
+			!selectedTicketType
+		) {
 			toast.error(t("validation.selectTicketType"));
 			return;
 		}
 
+		if (!giftCode && selectedTicket?.priceTiers?.length && !selectedTier) {
+			toast.error(t("validation.selectTierQuantity"));
+			return;
+		}
 		// Validate digital card consent if required
 		if (event.askDigitalCardConsent && allowDigitalCardDisplay === null) {
-			toast.error(
-				"请选择是否愿意在现场屏幕公开自我介绍并展示数字名片信息",
-			);
+			toast.error(t("validation.selectDigitalCardConsent"));
 			return;
 		}
 
@@ -751,24 +773,78 @@ export function EventRegistrationForm({
 		}
 	};
 
-	const performRegistration = async () => {
+	const resolveTicketTypeId = () => {
+		if (availableTicketTypes.length === 0) {
+			return undefined;
+		}
+		if (availableTicketTypes.length === 1) {
+			return availableTicketTypes[0].id;
+		}
+		return selectedTicketType || undefined;
+	};
+
+	const buildAnswersPayload = () =>
+		Object.entries(answers).map(([questionId, answer]) => ({
+			questionId,
+			answer,
+		}));
+
+	const performGiftRedemption = async () => {
 		try {
-			const response = await fetch(`/api/events/${event.id}/register`, {
+			const response = await fetch(
+				`/api/events/${event.id}/orders/invites/${giftCode}/redeem`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						answers: buildAnswersPayload(),
+						...(event.requireProjectSubmission && {
+							projectId: selectedProjectId,
+						}),
+						...(event.askDigitalCardConsent &&
+							allowDigitalCardDisplay !== null && {
+								allowDigitalCardDisplay:
+									allowDigitalCardDisplay,
+							}),
+					}),
+				},
+			);
+
+			if (!response.ok) {
+				const errorMessage = await parseRegistrationError(
+					response,
+					defaultRegistrationError,
+				);
+				throw new Error(errorMessage);
+			}
+
+			const result = await response.json();
+			onRegistrationComplete(result.data);
+		} catch (error) {
+			console.error("Error redeeming invite:", error);
+			toast.error(
+				resolveRegistrationErrorMessage(
+					error,
+					defaultRegistrationError,
+				),
+			);
+		}
+	};
+
+	const performPaidOrder = async () => {
+		try {
+			const ticketTypeId = resolveTicketTypeId();
+			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({
-					ticketTypeId:
-						availableTicketTypes.length === 1
-							? availableTicketTypes[0].id
-							: selectedTicketType,
-					answers: Object.entries(answers).map(
-						([questionId, answer]) => ({
-							questionId,
-							answer,
-						}),
-					),
+					ticketTypeId,
+					quantity: selectedQuantity,
+					answers: buildAnswersPayload(),
 					...(event.requireProjectSubmission && {
 						projectId: selectedProjectId,
 					}),
@@ -789,7 +865,50 @@ export function EventRegistrationForm({
 			}
 
 			const result = await response.json();
-			// Pass the registration data (including status) to parent
+			setPaymentOrder(result.data as PaymentOrderData);
+			setPaymentOpen(true);
+		} catch (error) {
+			console.error("Error creating paid order:", error);
+			toast.error(
+				resolveRegistrationErrorMessage(
+					error,
+					defaultRegistrationError,
+				),
+			);
+		}
+	};
+
+	const performFreeRegistration = async () => {
+		try {
+			const ticketTypeId = resolveTicketTypeId();
+			const response = await fetch(`/api/events/${event.id}/register`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					ticketTypeId,
+					answers: buildAnswersPayload(),
+					...(event.requireProjectSubmission && {
+						projectId: selectedProjectId,
+					}),
+					...(event.askDigitalCardConsent &&
+						allowDigitalCardDisplay !== null && {
+							allowDigitalCardDisplay: allowDigitalCardDisplay,
+						}),
+					...(inviteCode ? { inviteCode } : {}),
+				}),
+			});
+
+			if (!response.ok) {
+				const errorMessage = await parseRegistrationError(
+					response,
+					defaultRegistrationError,
+				);
+				throw new Error(errorMessage);
+			}
+
+			const result = await response.json();
 			onRegistrationComplete(result.data);
 		} catch (error) {
 			console.error("Error registering for event:", error);
@@ -802,255 +921,305 @@ export function EventRegistrationForm({
 		}
 	};
 
-	const formatPrice = (price?: number) => {
-		if (!price) {
-			return t("free");
+	const performRegistration = async () => {
+		if (giftCode) {
+			await performGiftRedemption();
+			return;
 		}
-		return `¥${price.toFixed(2)}`;
+		if (isPaidTicket) {
+			await performPaidOrder();
+			return;
+		}
+		await performFreeRegistration();
+	};
+
+	const handlePaymentSuccess = (registration: EventRegistration) => {
+		setPaymentOpen(false);
+		setPaymentOrder(null);
+		onRegistrationComplete(registration);
 	};
 
 	return (
-		<form onSubmit={handleSubmit} className="space-y-6">
-			{/* Profile Section */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-lg">个人信息</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<ProfileSection
-						userProfile={userProfile}
-						showInlineProfileEdit={showInlineProfileEdit}
-						editingProfile={editingProfile}
-						phoneValidation={phoneValidation}
-						emailError={emailError}
-						savingProfile={savingProfile}
-						profileLoading={profileLoading}
-						fieldConfig={fieldConfig}
-						onToggleInlineEdit={setShowInlineProfileEdit}
-						onSaveProfile={handleSaveProfile}
-						onUpdateEditingProfile={(profile) =>
-							setEditingProfile((prev) => ({
-								...prev,
-								...profile,
-							}))
-						}
-						onPhoneNumberChange={handlePhoneNumberChange}
-						onEmailChange={(value) => {
-							setEmailError(null);
-							setEditingProfile((prev) => ({
-								...prev,
-								email: value,
-							}));
-						}}
-						onLifeStatusChange={(value) =>
-							setEditingProfile((prev) => ({
-								...prev,
-								lifeStatus: value,
-							}))
-						}
-					/>
-				</CardContent>
-			</Card>
-
-			{/* Project Selection - Only show if required */}
-			{event.requireProjectSubmission && (
+		<>
+			<form onSubmit={handleSubmit} className="space-y-6">
+				{/* Profile Section */}
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-lg">项目选择</CardTitle>
+						<CardTitle className="text-lg">个人信息</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<ProjectSection
-							projects={projects}
-							projectsLoading={projectsLoading}
-							selectedProjectId={selectedProjectId}
-							showInlineProjectEdit={showInlineProjectEdit}
-							editingProject={editingProject}
-							savingProject={savingProject}
-							onProjectSelect={setSelectedProjectId}
-							onRefreshProjects={fetchUserProjects}
-							onCreateNewProject={() => {
-								router.push(
-									`/app/projects/create?returnTo=${encodeURIComponent(pathname)}`,
-								);
-							}}
-							onToggleInlineEdit={setShowInlineProjectEdit}
-							onSaveProject={handleSaveProject}
-							onUpdateEditingProject={(project) =>
-								setEditingProject((prev) => ({
+						<ProfileSection
+							userProfile={userProfile}
+							showInlineProfileEdit={showInlineProfileEdit}
+							editingProfile={editingProfile}
+							phoneValidation={phoneValidation}
+							emailError={emailError}
+							savingProfile={savingProfile}
+							profileLoading={profileLoading}
+							fieldConfig={fieldConfig}
+							onToggleInlineEdit={setShowInlineProfileEdit}
+							onSaveProfile={handleSaveProfile}
+							onUpdateEditingProfile={(profile) =>
+								setEditingProfile((prev) => ({
 									...prev,
-									...project,
+									...profile,
+								}))
+							}
+							onPhoneNumberChange={handlePhoneNumberChange}
+							onEmailChange={(value) => {
+								setEmailError(null);
+								setEditingProfile((prev) => ({
+									...prev,
+									email: value,
+								}));
+							}}
+							onLifeStatusChange={(value) =>
+								setEditingProfile((prev) => ({
+									...prev,
+									lifeStatus: value,
 								}))
 							}
 						/>
 					</CardContent>
 				</Card>
-			)}
 
-			{/* Ticket Type Selection */}
-			{availableTicketTypes.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">票种选择</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<TicketSelection
-							availableTicketTypes={availableTicketTypes}
-							selectedTicketType={selectedTicketType}
-							onTicketTypeChange={setSelectedTicketType}
-						/>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Digital Card Consent */}
-			{event.askDigitalCardConsent && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">数字名片展示</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="space-y-3">
-							<Label className="text-sm font-medium">
-								是否愿意在现场屏幕中公开自我介绍并展示数字名片
-								<span className="text-red-500 ml-1">*</span>
-							</Label>
-							<RadioGroup
-								value={
-									allowDigitalCardDisplay === null
-										? ""
-										: String(allowDigitalCardDisplay)
-								}
-								onValueChange={(value) =>
-									setAllowDigitalCardDisplay(value === "true")
-								}
-							>
-								<div className="flex items-center space-x-2">
-									<RadioGroupItem
-										value="true"
-										id="consent-yes"
-									/>
-									<Label
-										htmlFor="consent-yes"
-										className="font-normal cursor-pointer"
-									>
-										非常愿意
-									</Label>
-								</div>
-								<div className="flex items-center space-x-2">
-									<RadioGroupItem
-										value="false"
-										id="consent-no"
-									/>
-									<Label
-										htmlFor="consent-no"
-										className="font-normal cursor-pointer"
-									>
-										下次一定
-									</Label>
-								</div>
-							</RadioGroup>
-						</div>
-					</CardContent>
-				</Card>
-			)}
-
-			{/* Questions */}
-			{event.questions.length > 0 && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">报名信息</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<QuestionsForm
-							questions={event.questions}
-							answers={answers}
-							onAnswerChange={handleAnswerChange}
-						/>
-					</CardContent>
-				</Card>
-			)}
-
-			{participationAgreementEnabled && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-lg">参赛协议</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="flex items-start gap-3">
-							<Checkbox
-								id="participation-agreement"
-								checked={agreedParticipationAgreement}
-								onCheckedChange={(checked) =>
-									setAgreedParticipationAgreement(
-										checked === true,
-									)
+				{/* Project Selection - Only show if required */}
+				{event.requireProjectSubmission && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">项目选择</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<ProjectSection
+								projects={projects}
+								projectsLoading={projectsLoading}
+								selectedProjectId={selectedProjectId}
+								showInlineProjectEdit={showInlineProjectEdit}
+								editingProject={editingProject}
+								savingProject={savingProject}
+								onProjectSelect={setSelectedProjectId}
+								onRefreshProjects={fetchUserProjects}
+								onCreateNewProject={() => {
+									router.push(
+										`/app/projects/create?returnTo=${encodeURIComponent(pathname)}`,
+									);
+								}}
+								onToggleInlineEdit={setShowInlineProjectEdit}
+								onSaveProject={handleSaveProject}
+								onUpdateEditingProject={(project) =>
+									setEditingProject((prev) => ({
+										...prev,
+										...project,
+									}))
 								}
 							/>
-							<div className="space-y-1">
-								<Label
-									htmlFor="participation-agreement"
-									className="cursor-pointer"
-								>
-									我已阅读并同意《参赛协议》
+						</CardContent>
+					</Card>
+				)}
+
+				{giftCode && (
+					<Card>
+						<CardContent className="pt-6">
+							<div className="text-sm text-muted-foreground">
+								当前使用赠票链接报名，票种与数量已由赠票确定。
+							</div>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Ticket Type Selection */}
+				{!giftCode && availableTicketTypes.length > 0 && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">票种选择</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<TicketSelection
+								availableTicketTypes={availableTicketTypes}
+								selectedTicketType={selectedTicketType}
+								onTicketTypeChange={setSelectedTicketType}
+								selectedQuantity={selectedQuantity}
+								onQuantityChange={setSelectedQuantity}
+							/>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Digital Card Consent */}
+				{event.askDigitalCardConsent && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">
+								数字名片展示
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="space-y-3">
+								<Label className="text-sm font-medium">
+									是否愿意在现场屏幕中公开自我介绍并展示数字名片
 									<span className="text-red-500 ml-1">*</span>
 								</Label>
-								<Button
-									type="button"
-									variant="link"
-									className="h-auto p-0 text-sm"
-									onClick={() =>
-										setParticipationAgreementDialogOpen(
-											true,
+								<RadioGroup
+									value={
+										allowDigitalCardDisplay === null
+											? ""
+											: String(allowDigitalCardDisplay)
+									}
+									onValueChange={(value) =>
+										setAllowDigitalCardDisplay(
+											value === "true",
 										)
 									}
 								>
-									查看《参赛协议》
-								</Button>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="true"
+											id="consent-yes"
+										/>
+										<Label
+											htmlFor="consent-yes"
+											className="font-normal cursor-pointer"
+										>
+											非常愿意
+										</Label>
+									</div>
+									<div className="flex items-center space-x-2">
+										<RadioGroupItem
+											value="false"
+											id="consent-no"
+										/>
+										<Label
+											htmlFor="consent-no"
+											className="font-normal cursor-pointer"
+										>
+											下次一定
+										</Label>
+									</div>
+								</RadioGroup>
 							</div>
-						</div>
+						</CardContent>
+					</Card>
+				)}
 
-						<Dialog
-							open={participationAgreementDialogOpen}
-							onOpenChange={setParticipationAgreementDialogOpen}
-						>
-							<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-								<DialogHeader>
-									<DialogTitle>参赛协议</DialogTitle>
-								</DialogHeader>
-								<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
-									<ReactMarkdown remarkPlugins={[remarkGfm]}>
-										{participationAgreementMarkdown}
-									</ReactMarkdown>
+				{/* Questions */}
+				{event.questions.length > 0 && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">报名信息</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<QuestionsForm
+								questions={event.questions}
+								answers={answers}
+								onAnswerChange={handleAnswerChange}
+							/>
+						</CardContent>
+					</Card>
+				)}
+
+				{participationAgreementEnabled && (
+					<Card>
+						<CardHeader>
+							<CardTitle className="text-lg">参赛协议</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="flex items-start gap-3">
+								<Checkbox
+									id="participation-agreement"
+									checked={agreedParticipationAgreement}
+									onCheckedChange={(checked) =>
+										setAgreedParticipationAgreement(
+											checked === true,
+										)
+									}
+								/>
+								<div className="space-y-1">
+									<Label
+										htmlFor="participation-agreement"
+										className="cursor-pointer"
+									>
+										我已阅读并同意《参赛协议》
+										<span className="text-red-500 ml-1">
+											*
+										</span>
+									</Label>
+									<Button
+										type="button"
+										variant="link"
+										className="h-auto p-0 text-sm"
+										onClick={() =>
+											setParticipationAgreementDialogOpen(
+												true,
+											)
+										}
+									>
+										查看《参赛协议》
+									</Button>
 								</div>
-							</DialogContent>
-						</Dialog>
-					</CardContent>
-				</Card>
-			)}
+							</div>
 
-			{/* Form Actions */}
-			<div className="flex gap-4 pt-4 sticky bottom-0 bg-gray-50 pb-safe-bottom">
-				<Button
-					type="button"
-					variant="outline"
-					onClick={onCancel}
-					disabled={isSubmitting}
-					className="flex-1"
-				>
-					取消
-				</Button>
-				<Button
-					type="submit"
-					disabled={isSubmitting}
-					className="flex-1"
-				>
-					{isSubmitting
-						? t("submitting")
-						: event.requireApproval
-							? "提交申请"
-							: "确认报名"}
-				</Button>
-			</div>
-		</form>
+							<Dialog
+								open={participationAgreementDialogOpen}
+								onOpenChange={
+									setParticipationAgreementDialogOpen
+								}
+							>
+								<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+									<DialogHeader>
+										<DialogTitle>参赛协议</DialogTitle>
+									</DialogHeader>
+									<div className="prose prose-gray dark:prose-invert max-w-none prose-pre:overflow-x-auto prose-pre:max-w-full prose-code:break-words prose-p:break-words">
+										<ReactMarkdown
+											remarkPlugins={[remarkGfm]}
+										>
+											{participationAgreementMarkdown}
+										</ReactMarkdown>
+									</div>
+								</DialogContent>
+							</Dialog>
+						</CardContent>
+					</Card>
+				)}
+
+				{/* Form Actions */}
+				<div className="flex gap-4 pt-4 sticky bottom-0 bg-gray-50 pb-safe-bottom">
+					<Button
+						type="button"
+						variant="outline"
+						onClick={onCancel}
+						disabled={isSubmitting}
+						className="flex-1"
+					>
+						取消
+					</Button>
+					<Button
+						type="submit"
+						disabled={isSubmitting}
+						className="flex-1"
+					>
+						{isSubmitting
+							? t("submitting")
+							: event.requireApproval
+								? "提交申请"
+								: "确认报名"}
+					</Button>
+				</div>
+			</form>
+
+			{paymentOrder && (
+				<PaymentModal
+					open={paymentOpen}
+					onOpenChange={(open) => {
+						setPaymentOpen(open);
+						if (!open) {
+							setPaymentOrder(null);
+						}
+					}}
+					eventId={event.id}
+					order={paymentOrder}
+					onPaymentSuccess={handlePaymentSuccess}
+				/>
+			)}
+		</>
 	);
 }

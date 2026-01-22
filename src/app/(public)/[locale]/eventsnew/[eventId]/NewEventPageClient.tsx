@@ -24,6 +24,7 @@ import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 import { RegistrationSuccessModal } from "@/modules/public/events/components/registration-success-modal";
+import type { EventRegistration } from "@/modules/public/events/components/types";
 
 import { Hero } from "./components/Hero";
 import { AnchorNav } from "./components/common/AnchorNav";
@@ -89,7 +90,8 @@ export function NewEventPageClient({
 	const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 	const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
-	const [latestRegistration, setLatestRegistration] = useState<any>(null);
+	const [latestRegistration, setLatestRegistration] =
+		useState<EventRegistration | null>(null);
 
 	const hasImportantInfo = Boolean(
 		event.registrationSuccessInfo ||
@@ -352,7 +354,7 @@ export function NewEventPageClient({
 		handleRegister(() => setShowRegistrationForm(true));
 	};
 
-	const handleRegistrationComplete = (registration: any) => {
+	const handleRegistrationComplete = (registration: EventRegistration) => {
 		setLatestRegistration(registration);
 		setShowSuccessInfo(true);
 		toast.success("报名成功！");

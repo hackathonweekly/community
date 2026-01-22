@@ -282,6 +282,14 @@ const eventByIdBaseInclude = Prisma.validator<Prisma.EventInclude>()({
 					registrations: true,
 				},
 			},
+			priceTiers: {
+				where: {
+					isActive: true,
+				},
+				orderBy: {
+					quantity: "asc",
+				},
+			},
 		},
 		orderBy: {
 			sortOrder: "asc",
@@ -1372,13 +1380,44 @@ export async function updateEventRegistration(
 }
 
 export async function deleteEventRegistration(eventId: string, userId: string) {
-	return await db.eventRegistration.delete({
+	const registration = await db.eventRegistration.findUnique({
 		where: {
 			eventId_userId: {
 				eventId,
 				userId,
 			},
 		},
+		select: {
+			id: true,
+			ticketTypeId: true,
+			orderId: true,
+		},
+	});
+
+	if (!registration) {
+		return null;
+	}
+
+	if (registration.orderId) {
+		throw new Error("Paid registrations must be cancelled via the order.");
+	}
+
+	return await db.$transaction(async (tx) => {
+		const updated = await tx.eventRegistration.update({
+			where: { id: registration.id },
+			data: { status: "CANCELLED" },
+		});
+
+		if (registration.ticketTypeId) {
+			await tx.eventTicketType.update({
+				where: { id: registration.ticketTypeId },
+				data: {
+					currentQuantity: { decrement: 1 },
+				},
+			});
+		}
+
+		return updated;
 	});
 }
 
@@ -1620,7 +1659,7 @@ export async function registerForEvent(data: {
 	const {
 		eventId,
 		userId,
-		status = "APPROVED",
+		status,
 		ticketTypeId,
 		inviteId,
 		allowDigitalCardDisplay,
@@ -1646,21 +1685,6 @@ export async function registerForEvent(data: {
 		throw new Error("User is already registered for this event");
 	}
 
-	// If user had a cancelled registration, delete it before creating new one
-	if (existingRegistration && existingRegistration.status === "CANCELLED") {
-		await db.eventRegistration.delete({
-			where: {
-				id: existingRegistration.id,
-			},
-		});
-		// Also delete any associated answers
-		await db.eventAnswer.deleteMany({
-			where: {
-				registrationId: existingRegistration.id,
-			},
-		});
-	}
-
 	// Check if event exists and get approval requirement
 	const event = await db.event.findUnique({
 		where: { id: eventId },
@@ -1675,9 +1699,19 @@ export async function registerForEvent(data: {
 					id: true,
 					name: true,
 					maxQuantity: true,
-					_count: {
+					currentQuantity: true,
+					price: true,
+					priceTiers: {
+						where: {
+							isActive: true,
+						},
 						select: {
-							registrations: true,
+							quantity: true,
+							price: true,
+							currency: true,
+						},
+						orderBy: {
+							quantity: "asc",
 						},
 					},
 				},
@@ -1702,38 +1736,44 @@ export async function registerForEvent(data: {
 
 	// Handle ticket type validation
 	let validTicketTypeId = ticketTypeId;
+	let selectedTicket: (typeof event.ticketTypes)[number] | undefined;
 
 	if (event.ticketTypes.length > 0) {
 		// If ticketTypeId is provided, validate it
 		if (ticketTypeId) {
-			const selectedTicket = event.ticketTypes.find(
-				(t) => t.id === ticketTypeId,
+			selectedTicket = event.ticketTypes.find(
+				(ticket) => ticket.id === ticketTypeId,
 			);
 			if (!selectedTicket) {
 				throw new Error("Invalid ticket type selected");
 			}
-
-			// Check if ticket type is available
-			if (
-				selectedTicket.maxQuantity &&
-				selectedTicket._count.registrations >=
-					selectedTicket.maxQuantity
-			) {
-				throw new Error(
-					`Ticket type "${selectedTicket.name}" is sold out`,
-				);
-			}
 		} else {
 			// If no ticketTypeId provided but event has ticket types, use the first available one
-			const availableTicket = event.ticketTypes.find(
-				(t) => !t.maxQuantity || t._count.registrations < t.maxQuantity,
+			selectedTicket = event.ticketTypes.find(
+				(ticket) =>
+					!ticket.maxQuantity ||
+					ticket.currentQuantity < ticket.maxQuantity,
 			);
 
-			if (!availableTicket) {
+			if (!selectedTicket) {
 				throw new Error("All ticket types are sold out");
 			}
 
-			validTicketTypeId = availableTicket.id;
+			validTicketTypeId = selectedTicket.id;
+		}
+
+		// Check if ticket type is available
+		if (
+			selectedTicket.maxQuantity &&
+			selectedTicket.currentQuantity >= selectedTicket.maxQuantity
+		) {
+			throw new Error(`Ticket type "${selectedTicket.name}" is sold out`);
+		}
+
+		const hasTierPricing = selectedTicket.priceTiers.length > 0;
+		const basePrice = selectedTicket.price ?? 0;
+		if (hasTierPricing || basePrice > 0) {
+			throw new Error("该票种需要支付，请完成支付后报名。");
 		}
 	} else {
 		// Event has no ticket types, ticketTypeId should be null
@@ -1741,114 +1781,178 @@ export async function registerForEvent(data: {
 	}
 
 	// Check if event is full
-	if (
-		event.maxAttendees &&
-		event._count.registrations >= event.maxAttendees
-	) {
-		throw new Error("Event is full");
+	if (event.maxAttendees) {
+		const totalRegistrations =
+			event.ticketTypes.length > 0
+				? event.ticketTypes.reduce(
+						(sum, ticket) => sum + ticket.currentQuantity,
+						0,
+					)
+				: event._count.registrations;
+
+		if (totalRegistrations >= event.maxAttendees) {
+			throw new Error("Event is full");
+		}
 	}
 
-	// Set status based on approval requirement
-	const registrationStatus = event.requireApproval ? "PENDING" : "APPROVED";
+	// Set status based on approval requirement (or provided status)
+	const registrationStatus =
+		status ?? (event.requireApproval ? "PENDING" : "APPROVED");
 
-	return await db.eventRegistration
-		.create({
-			data: {
-				eventId,
-				userId,
-				status: registrationStatus,
-				ticketTypeId: validTicketTypeId,
-				inviteId,
-				allowDigitalCardDisplay,
-			},
-			include: {
-				event: {
-					select: {
-						id: true,
-						title: true,
-						startTime: true,
-						endTime: true,
-						isOnline: true,
-						address: true,
-					},
-				},
-				user: {
-					select: {
-						id: true,
-						name: true,
-						email: true,
-						image: true,
-						username: true,
-					},
-				},
-				answers: {
-					include: {
-						question: true,
-					},
-				},
-			},
-		})
-		.then(async (registration) => {
-			let result = registration;
+	return await db.$transaction(async (tx) => {
+		const baseRegistrationData = {
+			eventId,
+			userId,
+			status: registrationStatus,
+			ticketTypeId: validTicketTypeId,
+			inviteId,
+			allowDigitalCardDisplay,
+		};
 
-			// Create answers after registration is created
-			if (answers.length > 0) {
-				await db.eventAnswer.createMany({
-					data: answers.map((answer) => ({
-						questionId: answer.questionId,
-						answer: answer.answer,
-						userId,
-						eventId,
-						registrationId: registration.id,
-					})),
-				});
+		let registration;
+		if (existingRegistration?.status === "CANCELLED") {
+			await tx.eventAnswer.deleteMany({
+				where: {
+					registrationId: existingRegistration.id,
+				},
+			});
 
-				// Refetch with answers to return hydrated payload
-				const refreshed = await db.eventRegistration.findUnique({
-					where: { id: registration.id },
-					include: {
-						event: {
-							select: {
-								id: true,
-								title: true,
-								startTime: true,
-								endTime: true,
-								isOnline: true,
-								address: true,
-							},
-						},
-						user: {
-							select: {
-								id: true,
-								name: true,
-								email: true,
-								image: true,
-								username: true,
-							},
-						},
-						answers: {
-							include: {
-								question: true,
-							},
+			registration = await tx.eventRegistration.update({
+				where: { id: existingRegistration.id },
+				data: {
+					...baseRegistrationData,
+					registeredAt: new Date(),
+					reviewedAt: null,
+					reviewedBy: null,
+					reviewNote: null,
+					orderId: null,
+					orderInviteId: null,
+				},
+				include: {
+					event: {
+						select: {
+							id: true,
+							title: true,
+							startTime: true,
+							endTime: true,
+							isOnline: true,
+							address: true,
 						},
 					},
-				});
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							image: true,
+							username: true,
+						},
+					},
+					answers: {
+						include: {
+							question: true,
+						},
+					},
+				},
+			});
+		} else {
+			registration = await tx.eventRegistration.create({
+				data: baseRegistrationData,
+				include: {
+					event: {
+						select: {
+							id: true,
+							title: true,
+							startTime: true,
+							endTime: true,
+							isOnline: true,
+							address: true,
+						},
+					},
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							image: true,
+							username: true,
+						},
+					},
+					answers: {
+						include: {
+							question: true,
+						},
+					},
+				},
+			});
+		}
 
-				if (refreshed) {
-					result = refreshed;
-				}
+		if (validTicketTypeId) {
+			await tx.eventTicketType.update({
+				where: { id: validTicketTypeId },
+				data: {
+					currentQuantity: { increment: 1 },
+				},
+			});
+		}
+
+		// Create answers after registration is created
+		if (answers.length > 0) {
+			await tx.eventAnswer.createMany({
+				data: answers.map((answer) => ({
+					questionId: answer.questionId,
+					answer: answer.answer,
+					userId,
+					eventId,
+					registrationId: registration.id,
+				})),
+			});
+
+			const refreshed = await tx.eventRegistration.findUnique({
+				where: { id: registration.id },
+				include: {
+					event: {
+						select: {
+							id: true,
+							title: true,
+							startTime: true,
+							endTime: true,
+							isOnline: true,
+							address: true,
+						},
+					},
+					user: {
+						select: {
+							id: true,
+							name: true,
+							email: true,
+							image: true,
+							username: true,
+						},
+					},
+					answers: {
+						include: {
+							question: true,
+						},
+					},
+				},
+			});
+
+			if (refreshed) {
+				registration = refreshed;
 			}
+		}
 
-			// Update invite usage timestamp if applicable
-			if (inviteId) {
-				await db.eventInvite.update({
-					where: { id: inviteId },
-					data: { lastUsedAt: new Date() },
-				});
-			}
+		// Update invite usage timestamp if applicable
+		if (inviteId) {
+			await tx.eventInvite.update({
+				where: { id: inviteId },
+				data: { lastUsedAt: new Date() },
+			});
+		}
 
-			return result;
-		});
+		return registration;
+	});
 }
 
 export async function getRegistrationByUserAndEvent(

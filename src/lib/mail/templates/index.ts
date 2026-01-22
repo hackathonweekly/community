@@ -11,6 +11,7 @@ import { OrganizationApplicationRejected } from "./OrganizationApplicationReject
 import { EventRegistrationConfirmation } from "./EventRegistrationConfirmation";
 import { EventRegistrationApproved } from "./EventRegistrationApproved";
 import { EventRegistrationRejected } from "./EventRegistrationRejected";
+import { EventOrderCancelled } from "./EventOrderCancelled";
 import { EventReminder } from "./EventReminder";
 import { EventUpdate } from "./EventUpdate";
 import { EventFeedbackRequest } from "./EventFeedbackRequest";
@@ -41,6 +42,7 @@ export const mailTemplates = {
 	eventRegistrationConfirmation: EventRegistrationConfirmation,
 	eventRegistrationApproved: EventRegistrationApproved,
 	eventRegistrationRejected: EventRegistrationRejected,
+	eventOrderCancelled: EventOrderCancelled,
 	eventReminder: EventReminder,
 	eventUpdate: EventUpdate,
 	eventFeedbackRequest: EventFeedbackRequest,

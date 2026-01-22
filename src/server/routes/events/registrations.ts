@@ -59,6 +59,7 @@ const registerSchema = z.object({
 
 const updateRegistrationSchema = z.object({
 	status: z.enum([
+		"PENDING_PAYMENT",
 		"PENDING",
 		"APPROVED",
 		"WAITLISTED",
@@ -70,7 +71,14 @@ const updateRegistrationSchema = z.object({
 
 const getRegistrationsSchema = z.object({
 	status: z
-		.enum(["PENDING", "APPROVED", "WAITLISTED", "REJECTED", "CANCELLED"])
+		.enum([
+			"PENDING_PAYMENT",
+			"PENDING",
+			"APPROVED",
+			"WAITLISTED",
+			"REJECTED",
+			"CANCELLED",
+		])
 		.optional(),
 	page: z
 		.string()
@@ -371,6 +379,16 @@ app.delete("/:eventId/register", async (c) => {
 				{
 					success: false,
 					error: "You are not registered for this event",
+				},
+				400,
+			);
+		}
+
+		if (registration.orderId) {
+			return c.json(
+				{
+					success: false,
+					error: "该报名包含支付订单，请先取消订单。",
 				},
 				400,
 			);

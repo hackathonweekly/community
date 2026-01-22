@@ -175,6 +175,7 @@ export const config = {
 			},
 			wechatpay: {
 				enabled: true,
+				orderExpireMinutes: 30,
 			},
 		},
 	},
