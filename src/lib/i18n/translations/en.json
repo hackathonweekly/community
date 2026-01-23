@@ -1577,6 +1577,15 @@
 				"statusFetchRetry": "Failed to fetch order status. Retrying...",
 				"statusFetchFailed": "Failed to fetch order status. Please try again later."
 			},
+			"wechatBinding": {
+				"title": "Bind WeChat to continue",
+				"description": "Your account hasn't bound a WeChat OpenID yet. Please bind it before paying.",
+				"note": "You'll be returned to this page after binding.",
+				"bindNow": "Bind WeChat",
+				"binding": "Redirecting...",
+				"cancel": "Not now",
+				"linkFailed": "Failed to start binding. Please try again."
+			},
 			"toasts": {
 				"projectsFetchError": "Failed to load projects",
 				"invalidPhone": "Invalid phone number format",

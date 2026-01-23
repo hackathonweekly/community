@@ -37,76 +37,11 @@ import type {
 } from "./types";
 import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
 import { useTicketSelection } from "./useTicketSelection";
-
-const getFirstErrorMessage = (value: unknown): string | null => {
-	if (!value) return null;
-	if (typeof value === "string") {
-		const trimmed = value.trim();
-		return trimmed.length > 0 ? trimmed : null;
-	}
-	if (Array.isArray(value)) {
-		for (const item of value) {
-			const message = getFirstErrorMessage(item);
-			if (message) {
-				return message;
-			}
-		}
-		return null;
-	}
-	if (typeof value === "object") {
-		const record = value as Record<string, unknown>;
-		for (const key of ["message", "error", "detail"]) {
-			if (key in record) {
-				const nestedMessage = getFirstErrorMessage(record[key]);
-				if (nestedMessage) {
-					return nestedMessage;
-				}
-			}
-		}
-	}
-	return null;
-};
-
-const parseRegistrationError = async (
-	response: Response,
-	fallbackMessage: string,
-): Promise<string> => {
-	try {
-		const errorData = await response.json();
-		const parsed = getFirstErrorMessage(errorData);
-		if (parsed) {
-			return parsed;
-		}
-	} catch {
-		// Ignore JSON parsing errors and fall back to status text/default message
-	}
-	const statusMessage = response.statusText?.trim();
-	if (statusMessage) {
-		return statusMessage;
-	}
-	return fallbackMessage;
-};
-
-const resolveRegistrationErrorMessage = (
-	error: unknown,
-	fallbackMessage: string,
-): string => {
-	if (error instanceof Error) {
-		const message = error.message.trim();
-		return message ? message : fallbackMessage;
-	}
-	if (typeof error === "string") {
-		const trimmed = error.trim();
-		return trimmed ? trimmed : fallbackMessage;
-	}
-	if (error && typeof error === "object") {
-		const parsed = getFirstErrorMessage(error);
-		if (parsed) {
-			return parsed;
-		}
-	}
-	return fallbackMessage;
-};
+import { WeChatBindingPrompt } from "./WeChatBindingPrompt";
+import {
+	parseRegistrationErrorPayload,
+	resolveRegistrationErrorMessage,
+} from "./registrationErrorUtils";
 
 interface EventRegistrationFormProps {
 	event: {
@@ -158,6 +93,10 @@ export function EventRegistrationForm({
 		null,
 	);
 	const [paymentOpen, setPaymentOpen] = useState(false);
+	const [wechatBindingOpen, setWechatBindingOpen] = useState(false);
+	const [wechatBindingMessage, setWechatBindingMessage] = useState<
+		string | null
+	>(null);
 	const [allowDigitalCardDisplay, setAllowDigitalCardDisplay] = useState<
 		boolean | null
 	>(null);
@@ -857,10 +796,19 @@ export function EventRegistrationForm({
 			});
 
 			if (!response.ok) {
-				const errorMessage = await parseRegistrationError(
+				const errorPayload = await parseRegistrationErrorPayload(
 					response,
 					defaultRegistrationError,
 				);
+				const errorMessage = errorPayload.message;
+				const shouldPromptWechatBinding =
+					errorPayload.code === "WECHAT_OPENID_REQUIRED" ||
+					errorMessage.toLowerCase().includes("openid");
+				if (shouldPromptWechatBinding) {
+					setWechatBindingMessage(errorMessage);
+					setWechatBindingOpen(true);
+					return;
+				}
 				throw new Error(errorMessage);
 			}
 
@@ -1220,6 +1168,16 @@ export function EventRegistrationForm({
 					onPaymentSuccess={handlePaymentSuccess}
 				/>
 			)}
+			<WeChatBindingPrompt
+				open={wechatBindingOpen}
+				onOpenChange={(open) => {
+					setWechatBindingOpen(open);
+					if (!open) {
+						setWechatBindingMessage(null);
+					}
+				}}
+				message={wechatBindingMessage}
+			/>
 		</>
 	);
 }

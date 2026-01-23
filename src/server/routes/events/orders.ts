@@ -319,6 +319,7 @@ app.post(
 					{
 						success: false,
 						error: "未绑定微信 OpenID，无法使用 JSAPI 支付",
+						code: "WECHAT_OPENID_REQUIRED",
 					},
 					400,
 				);

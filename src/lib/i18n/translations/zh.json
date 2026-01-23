@@ -1639,6 +1639,15 @@
 				"statusFetchRetry": "订单状态获取失败，正在重试...",
 				"statusFetchFailed": "订单状态获取失败，请稍后重试"
 			},
+			"wechatBinding": {
+				"title": "绑定微信后继续支付",
+				"description": "检测到你的账号尚未绑定微信 OpenID，需先完成绑定才能使用微信支付。",
+				"note": "绑定完成后会自动返回当前页面。",
+				"bindNow": "去绑定微信",
+				"binding": "正在跳转...",
+				"cancel": "稍后再说",
+				"linkFailed": "绑定失败，请稍后重试"
+			},
 			"toasts": {
 				"projectsFetchError": "获取作品列表失败",
 				"invalidPhone": "手机号格式不正确",
