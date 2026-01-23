@@ -36,6 +36,7 @@ import {
 	ExclamationTriangleIcon,
 	UsersIcon,
 	XCircleIcon,
+	BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
@@ -80,6 +81,11 @@ const registrationStatusColors: Record<
 		text: "text-green-800",
 		icon: CheckCircleIcon,
 	},
+	PENDING_PAYMENT: {
+		bg: "bg-orange-100",
+		text: "text-orange-800",
+		icon: BanknotesIcon,
+	},
 	PENDING: { bg: "bg-yellow-100", text: "text-yellow-800", icon: ClockIcon },
 	WAITLISTED: {
 		bg: "bg-blue-100",
@@ -106,6 +112,14 @@ export function EventRegistrationsTab({
 	const [selectedRegistrationIndex, setSelectedRegistrationIndex] = useState<
 		number | null
 	>(null);
+	const statusLabels: Record<string, string> = {
+		PENDING_PAYMENT: t("registrations.filter.pendingPayment"),
+		PENDING: t("registrations.filter.pending"),
+		APPROVED: t("registrations.filter.confirmed"),
+		WAITLISTED: t("registrations.filter.waitlisted"),
+		REJECTED: t("registrations.filter.rejected"),
+		CANCELLED: t("registrations.filter.cancelled"),
+	};
 
 	const handleNavigate = (direction: "prev" | "next") => {
 		if (selectedRegistrationIndex === null) return;
@@ -157,6 +171,9 @@ export function EventRegistrationsTab({
 							<SelectContent>
 								<SelectItem value="all">
 									{t("registrations.filter.all")}
+								</SelectItem>
+								<SelectItem value="PENDING_PAYMENT">
+									{t("registrations.filter.pendingPayment")}
 								</SelectItem>
 								<SelectItem value="PENDING">
 									{t("registrations.filter.pending")}
@@ -251,7 +268,8 @@ export function EventRegistrationsTab({
 										const statusInfo =
 											registrationStatusColors[
 												registration.status
-											];
+											] ||
+											registrationStatusColors.PENDING;
 										const StatusIcon = statusInfo.icon;
 
 										return (
@@ -392,7 +410,10 @@ export function EventRegistrationsTab({
 														className={`${statusInfo.bg} ${statusInfo.text} flex items-center gap-1 w-fit`}
 													>
 														<StatusIcon className="w-3 h-3" />
-														{registration.status}
+														{statusLabels[
+															registration.status
+														] ||
+															registration.status}
 													</Badge>
 												</TableCell>
 												<TableCell>

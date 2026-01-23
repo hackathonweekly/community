@@ -10,14 +10,42 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getLifeStatusLabel } from "@/lib/utils/life-status";
 import { useTranslations } from "next-intl";
+import { format } from "date-fns";
+import { toast } from "sonner";
+
+const currencyFormatter = new Intl.NumberFormat("zh-CN", {
+	style: "currency",
+	currency: "CNY",
+	minimumFractionDigits: 0,
+	maximumFractionDigits: 2,
+});
+
+const registrationDateFormat = "yyyy-MM-dd HH:mm";
 
 export interface EventRegistration {
 	id: string;
-	status: "PENDING" | "APPROVED" | "WAITLISTED" | "REJECTED" | "CANCELLED";
+	status:
+		| "PENDING_PAYMENT"
+		| "PENDING"
+		| "APPROVED"
+		| "WAITLISTED"
+		| "REJECTED"
+		| "CANCELLED";
+	eventId: string;
 	registeredAt: string;
 	note?: string;
 	reviewedAt?: string;
@@ -70,6 +98,20 @@ export interface EventRegistration {
 			url?: string;
 		};
 	} | null;
+	order?: {
+		id: string;
+		orderNo: string;
+		status:
+			| "PENDING"
+			| "PAID"
+			| "CANCELLED"
+			| "REFUND_PENDING"
+			| "REFUNDED";
+		totalAmount: number;
+		expiredAt: string;
+		paidAt?: string | null;
+		paymentMethod?: string | null;
+	} | null;
 }
 
 interface RegistrationDetailsDialogProps {
@@ -102,6 +144,8 @@ export function RegistrationDetailsDialog({
 	const t = useTranslations("events.manage");
 	const [cancelReason, setCancelReason] = useState("");
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
+	const [markingPaid, setMarkingPaid] = useState(false);
+	const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
 
 	// Create a map of questionId -> answer for quick lookup
 	const answersMap = new Map(
@@ -111,6 +155,65 @@ export function RegistrationDetailsDialog({
 	// Get all questions to display (either from eventQuestions prop or from registration.answers)
 	const questionsToDisplay =
 		eventQuestions || registration.answers?.map((a) => a.question) || [];
+
+	const orderStatusLabels = {
+		PENDING: t("registrations.dialog.order.status.pending"),
+		PAID: t("registrations.dialog.order.status.paid"),
+		CANCELLED: t("registrations.dialog.order.status.cancelled"),
+		REFUND_PENDING: t("registrations.dialog.order.status.refundPending"),
+		REFUNDED: t("registrations.dialog.order.status.refunded"),
+	} as const;
+
+	const paymentMethodLabels = {
+		WECHAT_NATIVE: t(
+			"registrations.dialog.order.paymentMethod.wechatNative",
+		),
+		WECHAT_JSAPI: t("registrations.dialog.order.paymentMethod.wechatJsapi"),
+		STRIPE: t("registrations.dialog.order.paymentMethod.stripe"),
+		FREE: t("registrations.dialog.order.paymentMethod.free"),
+	} as const;
+
+	const resolveOrderStatusLabel = (
+		status?: NonNullable<EventRegistration["order"]>["status"],
+	) => (status ? orderStatusLabels[status] || status : "-");
+
+	const resolvePaymentMethodLabel = (
+		method?: NonNullable<EventRegistration["order"]>["paymentMethod"],
+	) => (method ? paymentMethodLabels[method] || method : "-");
+
+	const handleManualMarkPaid = async () => {
+		if (!registration.order) return;
+		setShowMarkPaidDialog(false);
+		setMarkingPaid(true);
+		try {
+			const response = await fetch(
+				`/api/events/${registration.eventId}/orders/${registration.order.id}/mark-paid`,
+				{ method: "POST" },
+			);
+			const payload = await response.json();
+			if (!response.ok) {
+				throw new Error(
+					payload?.error ||
+						t("registrations.dialog.order.markPaidFailed"),
+				);
+			}
+			toast.success(t("registrations.dialog.order.markPaidSuccess"));
+			if (payload?.data?.registrationStatus) {
+				onUpdateStatus(
+					registration.user.id,
+					payload.data.registrationStatus,
+				);
+			}
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: t("registrations.dialog.order.markPaidFailed");
+			toast.error(message);
+		} finally {
+			setMarkingPaid(false);
+		}
+	};
 
 	return (
 		<>
@@ -245,6 +348,99 @@ export function RegistrationDetailsDialog({
 								</p>
 							</div>
 						</div>
+
+						{registration.order && (
+							<div>
+								<h4 className="font-medium mb-2">
+									{t("registrations.dialog.order.title")}
+								</h4>
+								<div className="space-y-1 text-sm">
+									<p>
+										<strong>
+											{t(
+												"registrations.dialog.order.number",
+											)}
+										</strong>{" "}
+										{registration.order.orderNo}
+									</p>
+									<p>
+										<strong>
+											{t(
+												"registrations.dialog.order.amount",
+											)}
+										</strong>{" "}
+										{currencyFormatter.format(
+											registration.order.totalAmount,
+										)}
+									</p>
+									<p>
+										<strong>
+											{t(
+												"registrations.dialog.order.statusLabel",
+											)}
+										</strong>{" "}
+										{resolveOrderStatusLabel(
+											registration.order.status,
+										)}
+									</p>
+									<p>
+										<strong>
+											{t(
+												"registrations.dialog.order.paymentMethodLabel",
+											)}
+										</strong>{" "}
+										{resolvePaymentMethodLabel(
+											registration.order.paymentMethod ??
+												undefined,
+										)}
+									</p>
+									<p>
+										<strong>
+											{t(
+												"registrations.dialog.order.expiredAt",
+											)}
+										</strong>{" "}
+										{format(
+											new Date(
+												registration.order.expiredAt,
+											),
+											registrationDateFormat,
+										)}
+									</p>
+									{registration.order.paidAt && (
+										<p>
+											<strong>
+												{t(
+													"registrations.dialog.order.paidAt",
+												)}
+											</strong>{" "}
+											{format(
+												new Date(
+													registration.order.paidAt,
+												),
+												registrationDateFormat,
+											)}
+										</p>
+									)}
+								</div>
+								{registration.order.status === "PENDING" && (
+									<div className="pt-2">
+										<Button
+											variant="outline"
+											size="sm"
+											onClick={() =>
+												setShowMarkPaidDialog(true)
+											}
+											disabled={markingPaid}
+										>
+											{t(
+												"registrations.dialog.order.markPaid",
+											)}
+										</Button>
+									</div>
+								)}
+							</div>
+						)}
 
 						{questionsToDisplay.length > 0 && (
 							<div>
@@ -390,6 +586,29 @@ export function RegistrationDetailsDialog({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+
+			{/* 手动标记已支付确认对话框 */}
+			<AlertDialog
+				open={showMarkPaidDialog}
+				onOpenChange={setShowMarkPaidDialog}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							{t("registrations.dialog.order.markPaid")}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{t("registrations.dialog.order.markPaidConfirm")}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>取消</AlertDialogCancel>
+						<AlertDialogAction onClick={handleManualMarkPaid}>
+							确认
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	);
 }

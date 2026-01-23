@@ -1451,6 +1451,7 @@ export async function getEventRegistrations(
 				userId: true,
 				eventId: true,
 				ticketTypeId: true,
+				orderId: true,
 				user: {
 					select: {
 						id: true,
@@ -1480,6 +1481,17 @@ export async function getEventRegistrations(
 						name: true,
 						description: true,
 						price: true,
+					},
+				},
+				order: {
+					select: {
+						id: true,
+						orderNo: true,
+						status: true,
+						totalAmount: true,
+						expiredAt: true,
+						paidAt: true,
+						paymentMethod: true,
 					},
 				},
 				answers: {

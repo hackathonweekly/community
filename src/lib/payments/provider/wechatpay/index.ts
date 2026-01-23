@@ -280,6 +280,9 @@ const buildJsapiParams = (params: { prepayId: string }) => {
 	};
 };
 
+export const buildWechatJsapiParams = (prepayId: string) =>
+	buildJsapiParams({ prepayId });
+
 export const createWechatJsapiOrder = async (params: {
 	outTradeNo: string;
 	description: string;
@@ -315,6 +318,28 @@ export const createWechatJsapiOrder = async (params: {
 	return {
 		prepayId: response.prepay_id,
 		jsapiParams: buildJsapiParams({ prepayId: response.prepay_id }),
+	};
+};
+
+export const queryWechatOrderStatus = async (outTradeNo: string) => {
+	const { mchId } = resolveConfig();
+	const response = await wechatRequest<{
+		trade_state: string;
+		trade_state_desc: string;
+		transaction_id?: string;
+		success_time?: string;
+		amount?: { total: number };
+	}>({
+		method: "GET",
+		path: `/v3/pay/transactions/out-trade-no/${outTradeNo}?mchid=${mchId}`,
+	});
+
+	return {
+		tradeState: response.trade_state,
+		tradeStateDesc: response.trade_state_desc,
+		transactionId: response.transaction_id,
+		successTime: response.success_time,
+		amount: response.amount?.total,
 	};
 };
 

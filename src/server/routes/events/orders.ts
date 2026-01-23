@@ -7,16 +7,20 @@ import {
 	resolveTicketPricing,
 	redeemOrderInvite,
 	listOrderInvites,
+	markEventOrderPaid,
 } from "@/lib/events/event-orders";
 import { db } from "@/lib/database/prisma/client";
 import { canManageEvent } from "@/features/permissions/events";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
+import { nanoid } from "nanoid";
 import { z } from "zod";
 import {
 	createWechatJsapiOrder,
 	createWechatNativeOrder,
+	buildWechatJsapiParams,
 	requestWechatRefund,
+	queryWechatOrderStatus,
 } from "@/lib/payments/provider/wechatpay";
 
 const isWechatBrowser = (userAgent?: string | null) =>
@@ -52,6 +56,36 @@ const refundSchema = z.object({
 });
 
 const app = new Hono();
+
+const buildOrderResponse = (
+	order: {
+		id: string;
+		orderNo: string;
+		totalAmount: number;
+		expiredAt: Date;
+		codeUrl: string | null;
+		prepayId: string | null;
+		paymentMethod: string | null;
+		quantity: number;
+	},
+	isExisting = false,
+) => {
+	const jsapiParams =
+		order.paymentMethod === "WECHAT_JSAPI" && order.prepayId
+			? buildWechatJsapiParams(order.prepayId)
+			: undefined;
+
+	return {
+		orderId: order.id,
+		orderNo: order.orderNo,
+		totalAmount: order.totalAmount,
+		expiredAt: order.expiredAt.toISOString(),
+		codeUrl: order.codeUrl ?? undefined,
+		jsapiParams,
+		quantity: order.quantity,
+		...(isExisting ? { isExisting: true } : {}),
+	};
+};
 
 const ensureEventAvailableForRegistration = async (eventId: string) => {
 	const event = await db.event.findUnique({
@@ -93,6 +127,72 @@ const ensureEventAvailableForRegistration = async (eventId: string) => {
 	return event;
 };
 
+app.get("/:eventId/orders/pending", async (c) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: c.req.raw.headers,
+		});
+
+		if (!session) {
+			return c.json(
+				{ success: false, error: "Authentication required" },
+				401,
+			);
+		}
+
+		const eventId = c.req.param("eventId");
+		const now = new Date();
+
+		// 先清理过期订单
+		const expiredOrders = await db.eventOrder.findMany({
+			where: {
+				eventId,
+				userId: session.user.id,
+				status: "PENDING",
+				expiredAt: { lte: now },
+			},
+			select: { id: true },
+		});
+
+		for (const expiredOrder of expiredOrders) {
+			await cancelEventOrder(expiredOrder.id, "EXPIRED");
+		}
+
+		// 查询未过期的待支付订单
+		const pendingOrder = await db.eventOrder.findFirst({
+			where: {
+				eventId,
+				userId: session.user.id,
+				status: "PENDING",
+				expiredAt: { gt: now },
+			},
+			select: {
+				id: true,
+				orderNo: true,
+				totalAmount: true,
+				expiredAt: true,
+				codeUrl: true,
+				prepayId: true,
+				paymentMethod: true,
+				quantity: true,
+			},
+			orderBy: { createdAt: "desc" },
+		});
+
+		if (!pendingOrder) {
+			return c.json({ success: true, data: null });
+		}
+
+		return c.json({
+			success: true,
+			data: buildOrderResponse(pendingOrder, true),
+		});
+	} catch (error) {
+		console.error("Error fetching pending order:", error);
+		return c.json({ success: false, error: "获取待支付订单失败" }, 500);
+	}
+});
+
 app.post(
 	"/:eventId/orders",
 	zValidator("json", createOrderSchema),
@@ -118,6 +218,49 @@ app.post(
 				allowDigitalCardDisplay,
 				answers,
 			} = c.req.valid("json");
+
+			const now = new Date();
+			const existingPendingOrder = await db.eventOrder.findFirst({
+				where: {
+					eventId,
+					userId: session.user.id,
+					status: "PENDING",
+					expiredAt: { gt: now },
+				},
+				select: {
+					id: true,
+					orderNo: true,
+					totalAmount: true,
+					expiredAt: true,
+					codeUrl: true,
+					prepayId: true,
+					paymentMethod: true,
+					quantity: true,
+				},
+				orderBy: { createdAt: "desc" },
+			});
+
+			if (existingPendingOrder) {
+				return c.json({
+					success: true,
+					data: buildOrderResponse(existingPendingOrder, true),
+				});
+			}
+
+			const expiredPendingOrder = await db.eventOrder.findFirst({
+				where: {
+					eventId,
+					userId: session.user.id,
+					status: "PENDING",
+					expiredAt: { lte: now },
+				},
+				select: { id: true },
+				orderBy: { createdAt: "desc" },
+			});
+
+			if (expiredPendingOrder) {
+				await cancelEventOrder(expiredPendingOrder.id, "EXPIRED");
+			}
 
 			const event = await ensureEventAvailableForRegistration(eventId);
 
@@ -394,24 +537,27 @@ app.post(
 				);
 			}
 
-			await db.eventOrder.update({
+			const updatedOrder = await db.eventOrder.update({
 				where: { id: order.id },
 				data: {
 					prepayId: paymentResult.prepayId,
 					codeUrl: paymentResult.codeUrl ?? null,
 				},
+				select: {
+					id: true,
+					orderNo: true,
+					totalAmount: true,
+					expiredAt: true,
+					codeUrl: true,
+					prepayId: true,
+					paymentMethod: true,
+					quantity: true,
+				},
 			});
 
 			return c.json({
 				success: true,
-				data: {
-					orderId: order.id,
-					orderNo: order.orderNo,
-					totalAmount: pricing.totalAmount,
-					expiredAt: expiredAt.toISOString(),
-					codeUrl: paymentResult.codeUrl,
-					jsapiParams: paymentResult.jsapiParams,
-				},
+				data: buildOrderResponse(updatedOrder),
 			});
 		} catch (error: any) {
 			console.error("Error creating event order:", error);
@@ -471,6 +617,79 @@ app.get("/:eventId/orders/:orderId", async (c) => {
 		});
 	} catch (error) {
 		console.error("Error fetching order status:", error);
+		return c.json({ success: false, error: "查询订单失败" }, 500);
+	}
+});
+
+app.post("/:eventId/orders/:orderId/query", async (c) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: c.req.raw.headers,
+		});
+
+		if (!session) {
+			return c.json(
+				{ success: false, error: "Authentication required" },
+				401,
+			);
+		}
+
+		const { eventId, orderId } = c.req.param();
+
+		const order = await db.eventOrder.findFirst({
+			where: { id: orderId, eventId, userId: session.user.id },
+			select: {
+				id: true,
+				status: true,
+				orderNo: true,
+				transactionId: true,
+			},
+		});
+
+		if (!order) {
+			return c.json({ success: false, error: "订单不存在" }, 404);
+		}
+
+		if (order.status !== "PENDING") {
+			return c.json({
+				success: true,
+				data: { status: order.status, alreadyProcessed: true },
+			});
+		}
+
+		const wechatStatus = await queryWechatOrderStatus(order.orderNo);
+
+		if (wechatStatus.tradeState === "SUCCESS") {
+			const updated = await markEventOrderPaid({
+				orderNo: order.orderNo,
+				transactionId:
+					wechatStatus.transactionId ||
+					order.transactionId ||
+					`MANUAL-${Date.now()}`,
+				paidAt: wechatStatus.successTime
+					? new Date(wechatStatus.successTime)
+					: new Date(),
+			});
+
+			return c.json({
+				success: true,
+				data: {
+					status: "PAID",
+					registrationStatus: updated?.registrationStatus,
+				},
+			});
+		}
+
+		return c.json({
+			success: true,
+			data: {
+				status: order.status,
+				wechatStatus: wechatStatus.tradeState,
+				wechatStatusDesc: wechatStatus.tradeStateDesc,
+			},
+		});
+	} catch (error) {
+		console.error("Error querying order status:", error);
 		return c.json({ success: false, error: "查询订单失败" }, 500);
 	}
 });
@@ -547,6 +766,62 @@ app.post("/:eventId/orders/:orderId/cancel", async (c) => {
 	} catch (error) {
 		console.error("Error cancelling order:", error);
 		return c.json({ success: false, error: "取消订单失败" }, 500);
+	}
+});
+
+app.post("/:eventId/orders/:orderId/mark-paid", async (c) => {
+	try {
+		const session = await auth.api.getSession({
+			headers: c.req.raw.headers,
+		});
+
+		if (!session) {
+			return c.json(
+				{ success: false, error: "Authentication required" },
+				401,
+			);
+		}
+
+		const eventId = c.req.param("eventId");
+		const orderId = c.req.param("orderId");
+
+		const hasPermission = await canManageEvent(eventId, session.user.id);
+		if (!hasPermission) {
+			return c.json({ success: false, error: "没有权限" }, 403);
+		}
+
+		const order = await db.eventOrder.findFirst({
+			where: { id: orderId, eventId },
+			select: { id: true, status: true, orderNo: true },
+		});
+
+		if (!order) {
+			return c.json({ success: false, error: "订单不存在" }, 404);
+		}
+
+		if (order.status !== "PENDING") {
+			return c.json({
+				success: true,
+				data: { status: order.status, alreadyProcessed: true },
+			});
+		}
+
+		const updated = await markEventOrderPaid({
+			orderNo: order.orderNo,
+			transactionId: `MANUAL-${nanoid(12)}`,
+			paidAt: new Date(),
+		});
+
+		return c.json({
+			success: true,
+			data: {
+				status: "PAID",
+				registrationStatus: updated?.registrationStatus,
+			},
+		});
+	} catch (error) {
+		console.error("Error marking order paid:", error);
+		return c.json({ success: false, error: "标记订单失败" }, 500);
 	}
 });
 

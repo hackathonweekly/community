@@ -13,13 +13,23 @@ import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import type { EventRegistration } from "./types";
+import {
+	CheckCircleIcon,
+	ExclamationTriangleIcon,
+	QrCodeIcon,
+	XCircleIcon,
+} from "@heroicons/react/24/outline";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface PaymentOrderData {
 	orderId: string;
 	orderNo: string;
 	expiredAt: string;
 	totalAmount: number;
+	quantity?: number;
 	codeUrl?: string;
+	isExisting?: boolean;
 	jsapiParams?: {
 		appId: string;
 		timeStamp: string;
@@ -60,6 +70,8 @@ interface PaymentModalProps {
 	order: PaymentOrderData;
 	onPaymentSuccess: (registration: EventRegistration) => void;
 }
+
+type PaymentPhase = "waiting" | "polling" | "success" | "failed" | "expired";
 
 const invokeWechatPay = (params: PaymentOrderData["jsapiParams"]) => {
 	return new Promise<void>((resolve, reject) => {
@@ -110,6 +122,9 @@ export function PaymentModal({
 	const [invites, setInvites] = useState<InviteInfo[]>([]);
 	const [remainingSeconds, setRemainingSeconds] = useState<number>(0);
 	const [pollingError, setPollingError] = useState<string | null>(null);
+	const [isQuerying, setIsQuerying] = useState(false);
+	const [invitesFetched, setInvitesFetched] = useState(false);
+	const [jsapiInvoked, setJsapiInvoked] = useState(false);
 	const successHandledRef = useRef(false);
 	const jsapiInvokedRef = useRef(false);
 	const invitesLoadedRef = useRef(false);
@@ -121,11 +136,24 @@ export function PaymentModal({
 		[order.expiredAt],
 	);
 
+	const paymentPhase = useMemo<PaymentPhase>(() => {
+		if (status === "PAID") return "success";
+		if (status === "CANCELLED") {
+			return remainingSeconds <= 0 ? "expired" : "failed";
+		}
+		if (remainingSeconds <= 0) return "expired";
+		if (isQuerying || jsapiInvoked) return "polling";
+		return "waiting";
+	}, [status, remainingSeconds, isQuerying, jsapiInvoked]);
+
 	useEffect(() => {
 		if (!open) return;
 		setStatus("PENDING");
 		setInvites([]);
 		setPollingError(null);
+		setIsQuerying(false);
+		setInvitesFetched(false);
+		setJsapiInvoked(false);
 		successHandledRef.current = false;
 		jsapiInvokedRef.current = false;
 		invitesLoadedRef.current = false;
@@ -191,10 +219,55 @@ export function PaymentModal({
 					const inviteData = await invitesResponse.json();
 					setInvites(inviteData.data || []);
 				}
+				setInvitesFetched(true);
 			}
 		} catch (error) {
 			console.error("Failed to fetch order status", error);
 			handlePollFailure();
+		}
+	};
+
+	const handleManualQuery = async () => {
+		setIsQuerying(true);
+		try {
+			const response = await fetch(
+				`/api/events/${eventId}/orders/${order.orderId}/query`,
+				{ method: "POST" },
+			);
+			const result = await response.json();
+			if (!response.ok) {
+				throw new Error(result?.error || t("statusFetchFailed"));
+			}
+
+			if (result.data?.status === "PAID") {
+				setStatus("PAID");
+				toast.success(t("paidSuccess"));
+				await fetchOrderStatus();
+				return;
+			}
+
+			if (
+				result.data?.wechatStatus === "CLOSED" ||
+				result.data?.wechatStatus === "REVOKED"
+			) {
+				setStatus("CANCELLED");
+				toast.error(t("orderClosed"));
+				return;
+			}
+
+			if (result.data?.wechatStatus === "NOTPAY") {
+				toast.info(t("paymentNotDetected"));
+				return;
+			}
+
+			if (result.data?.wechatStatusDesc) {
+				toast.info(result.data.wechatStatusDesc);
+			}
+		} catch (error) {
+			console.error("Manual order query failed", error);
+			toast.error(t("statusFetchFailed"));
+		} finally {
+			setIsQuerying(false);
 		}
 	};
 
@@ -208,6 +281,7 @@ export function PaymentModal({
 	useEffect(() => {
 		if (!open || !order.jsapiParams || jsapiInvokedRef.current) return;
 		jsapiInvokedRef.current = true;
+		setJsapiInvoked(true);
 		invokeWechatPay(order.jsapiParams)
 			.then(() => fetchOrderStatus())
 			.catch((error) => {
@@ -225,6 +299,16 @@ export function PaymentModal({
 			setStatus("CANCELLED");
 		}
 	}, [remainingSeconds, status, open, eventId, order.orderId, expiresAt]);
+
+	useEffect(() => {
+		if (!open || status !== "PAID") return;
+		if ((order.quantity ?? 1) > 1) return;
+		if (!invitesFetched) return;
+		const timeoutId = window.setTimeout(() => {
+			onOpenChange(false);
+		}, 3500);
+		return () => window.clearTimeout(timeoutId);
+	}, [open, status, order.quantity, invitesFetched, onOpenChange]);
 
 	const handleCancel = async () => {
 		await fetch(`/api/events/${eventId}/orders/${order.orderId}/cancel`, {
@@ -255,6 +339,50 @@ export function PaymentModal({
 					<div className="text-sm">
 						{t("amount")}：¥{order.totalAmount.toFixed(2)}
 					</div>
+					<div className="rounded-md border bg-muted/40 px-3 py-2">
+						<div className="flex items-center justify-center gap-2 text-sm">
+							{paymentPhase === "waiting" && (
+								<>
+									<QrCodeIcon className="w-5 h-5 text-blue-500" />
+									<span className="text-muted-foreground">
+										{t("scanToPay")}
+									</span>
+								</>
+							)}
+							{paymentPhase === "polling" && (
+								<>
+									<Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+									<span className="text-blue-600">
+										{t("polling")}
+									</span>
+								</>
+							)}
+							{paymentPhase === "success" && (
+								<>
+									<CheckCircleIcon className="w-5 h-5 text-green-500" />
+									<span className="text-green-600 font-medium">
+										{t("paidSuccess")}
+									</span>
+								</>
+							)}
+							{paymentPhase === "failed" && (
+								<>
+									<XCircleIcon className="w-5 h-5 text-red-500" />
+									<span className="text-red-600">
+										{t("orderCancelled")}
+									</span>
+								</>
+							)}
+							{paymentPhase === "expired" && (
+								<>
+									<ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
+									<span className="text-red-600">
+										{t("orderExpired")}
+									</span>
+								</>
+							)}
+						</div>
+					</div>
 					{status === "PENDING" && order.codeUrl && (
 						<div className="flex flex-col items-center space-y-3">
 							<QRCode value={order.codeUrl} size={200} />
@@ -270,24 +398,44 @@ export function PaymentModal({
 								{t("invoking")}
 							</div>
 						)}
-					{status === "PAID" && (
-						<div className="text-sm text-green-600">
-							{t("paidSuccess")}
-						</div>
-					)}
-					{status === "CANCELLED" && (
-						<div className="text-sm text-red-600">
-							{t("orderCancelled")}
-						</div>
-					)}
 
 					{status === "PENDING" && (
-						<div className="flex items-center justify-between text-sm">
+						<div
+							className={cn(
+								"flex items-center justify-between text-sm",
+								remainingSeconds < 300 && "text-red-600",
+							)}
+						>
 							<span>{t("remainingTime")}</span>
 							<span className="font-medium">
 								{formatCountdown()}
 							</span>
 						</div>
+					)}
+
+					{status === "PENDING" &&
+						remainingSeconds < 300 &&
+						remainingSeconds > 0 && (
+							<div className="text-xs text-red-500">
+								{t("expiringWarning")}
+							</div>
+						)}
+
+					{status === "PENDING" && (
+						<Button
+							variant="outline"
+							onClick={handleManualQuery}
+							disabled={isQuerying}
+						>
+							{isQuerying ? (
+								<>
+									<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+									{t("querying")}
+								</>
+							) : (
+								t("queryPayment")
+							)}
+						</Button>
 					)}
 
 					{pollingError && status === "PENDING" && (
@@ -332,7 +480,9 @@ export function PaymentModal({
 					<div className="flex justify-end gap-2">
 						{status === "PENDING" && (
 							<Button variant="outline" onClick={handleCancel}>
-								{t("cancelOrder")}
+								{order.isExisting
+									? t("cancelOrderAndRetry")
+									: t("cancelOrder")}
 							</Button>
 						)}
 						<Button onClick={() => onOpenChange(false)}>

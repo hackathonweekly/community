@@ -10,6 +10,7 @@ import {
 	ClockIcon,
 	XCircleIcon,
 	ExclamationTriangleIcon,
+	BanknotesIcon,
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
@@ -53,6 +54,11 @@ const registrationStatusColors: Record<
 		text: "text-green-800",
 		icon: CheckCircleIcon,
 	},
+	PENDING_PAYMENT: {
+		bg: "bg-orange-100",
+		text: "text-orange-800",
+		icon: BanknotesIcon,
+	},
 	PENDING: { bg: "bg-yellow-100", text: "text-yellow-800", icon: ClockIcon },
 	WAITLISTED: {
 		bg: "bg-blue-100",
@@ -75,7 +81,17 @@ export function RegistrationMobileCard({
 	setCurrentIndex,
 }: RegistrationMobileCardProps) {
 	const t = useTranslations("events.manage");
-	const statusInfo = registrationStatusColors[registration.status];
+	const statusLabels: Record<string, string> = {
+		PENDING_PAYMENT: t("registrations.filter.pendingPayment"),
+		PENDING: t("registrations.filter.pending"),
+		APPROVED: t("registrations.filter.confirmed"),
+		WAITLISTED: t("registrations.filter.waitlisted"),
+		REJECTED: t("registrations.filter.rejected"),
+		CANCELLED: t("registrations.filter.cancelled"),
+	};
+	const statusInfo =
+		registrationStatusColors[registration.status] ||
+		registrationStatusColors.PENDING;
 	const StatusIcon = statusInfo.icon;
 
 	return (
@@ -105,7 +121,8 @@ export function RegistrationMobileCard({
 						>
 							<StatusIcon className="w-3 h-3" />
 							<span className="text-xs">
-								{registration.status}
+								{statusLabels[registration.status] ||
+									registration.status}
 							</span>
 						</Badge>
 					</div>

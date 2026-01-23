@@ -148,6 +148,7 @@ export function EventRegistrationModal({
 		null,
 	);
 	const [paymentOpen, setPaymentOpen] = useState(false);
+	const [pendingOrderChecked, setPendingOrderChecked] = useState(false);
 	const [allowDigitalCardDisplay, setAllowDigitalCardDisplay] = useState<
 		boolean | null
 	>(null);
@@ -244,6 +245,38 @@ export function EventRegistrationModal({
 			setEmailError(null);
 		}
 	}, [isOpen]);
+
+	useEffect(() => {
+		if (!isOpen) {
+			setPendingOrderChecked(false);
+			return;
+		}
+		if (pendingOrderChecked || paymentOpen || paymentOrder) return;
+
+		const fetchPendingOrder = async () => {
+			try {
+				const response = await fetch(
+					`/api/events/${event.id}/orders/pending`,
+				);
+				if (!response.ok) {
+					return;
+				}
+				const result = await response.json();
+				if (result?.data) {
+					toast.info(t("payment.existingOrderFound"));
+					setPaymentOrder(result.data as PaymentOrderData);
+					setPaymentOpen(true);
+				}
+			} catch (error) {
+				console.error("Error checking pending order:", error);
+			} finally {
+				setPendingOrderChecked(true);
+			}
+		};
+
+		fetchPendingOrder();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isOpen, pendingOrderChecked, event.id, paymentOpen, paymentOrder]);
 
 	// Initialize editing profile when user profile is loaded
 	useEffect(() => {
@@ -786,6 +819,9 @@ export function EventRegistrationModal({
 			}
 
 			const result = await response.json();
+			if (result.data?.isExisting) {
+				toast.info(t("payment.existingOrderFound"));
+			}
 			setPaymentOrder(result.data as PaymentOrderData);
 			setPaymentOpen(true);
 		} catch (error) {
