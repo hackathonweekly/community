@@ -119,6 +119,9 @@ const wechatRequest = async <T>(params: {
 			Authorization: authorization,
 			"Content-Type": "application/json",
 			Accept: "application/json",
+			// WeChat Pay v3 only accepts specific language values.
+			// Explicitly set one to avoid unsupported defaults from the runtime.
+			"Accept-Language": "zh-CN",
 		},
 		body: bodyString || undefined,
 	});
