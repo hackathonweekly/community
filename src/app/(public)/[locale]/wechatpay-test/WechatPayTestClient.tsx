@@ -170,6 +170,11 @@ export function WechatPayTestClient() {
 								</li>
 								<li>
 									<code className="bg-gray-100 px-1 rounded text-xs">
+										WECHAT_PAY_PLATFORM_PUBLIC_KEY
+									</code>
+								</li>
+								<li>
+									<code className="bg-gray-100 px-1 rounded text-xs">
 										WECHAT_PAY_API_V3_KEY
 									</code>
 								</li>

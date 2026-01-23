@@ -1,5 +1,6 @@
 import {
 	createDecipheriv,
+	createPublicKey,
 	createPrivateKey,
 	createSign,
 	createVerify,
@@ -75,6 +76,41 @@ const resolvePrivateKey = () => {
 
 	const normalizedKey = normalizePrivateKey(rawKey);
 	return validatePrivateKey(normalizedKey);
+};
+
+const normalizePublicKey = (value: string) =>
+	value.replace(/\\n/g, "\n").trim();
+
+const isPemPublicKey = (value: string) =>
+	/-----BEGIN PUBLIC KEY-----/.test(value) &&
+	/-----END PUBLIC KEY-----/.test(value);
+
+const validatePublicKey = (value: string) => {
+	if (!isPemPublicKey(value)) {
+		throw new Error(
+			"WECHAT_PAY_PLATFORM_PUBLIC_KEY must be a valid PEM-encoded public key.",
+		);
+	}
+	try {
+		createPublicKey(value);
+	} catch {
+		throw new Error("WECHAT_PAY_PLATFORM_PUBLIC_KEY format is invalid.");
+	}
+	return value;
+};
+
+const resolvePlatformPublicKey = () => {
+	const rawKey = process.env.WECHAT_PAY_PLATFORM_PUBLIC_KEY;
+	if (!rawKey) {
+		return null;
+	}
+
+	if (!rawKey.includes("BEGIN") && fs.existsSync(rawKey)) {
+		const fileKey = fs.readFileSync(rawKey, "utf8");
+		return validatePublicKey(normalizePublicKey(fileKey));
+	}
+
+	return validatePublicKey(normalizePublicKey(rawKey));
 };
 
 const buildAuthorizationHeader = (params: {
@@ -205,6 +241,15 @@ const verifyWechatSignature = async (params: {
 	serial: string;
 	body: string;
 }) => {
+	const platformPublicKey = resolvePlatformPublicKey();
+	if (platformPublicKey) {
+		const message = `${params.timestamp}\n${params.nonce}\n${params.body}\n`;
+		const verifier = createVerify("RSA-SHA256");
+		verifier.update(message);
+		verifier.end();
+		return verifier.verify(platformPublicKey, params.signature, "base64");
+	}
+
 	let certs = await loadPlatformCertificates();
 	let certificate = certs.get(params.serial);
 	if (!certificate) {
