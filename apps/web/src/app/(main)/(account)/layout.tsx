@@ -19,7 +19,7 @@ export default function UserLayout({ children }: PropsWithChildren) {
 	return (
 		<SidebarProvider>
 			<AppSidebar />
-			<main className="flex-1 min-h-screen w-full">{children}</main>
+			<main className="flex-1 min-h-screen min-w-0">{children}</main>
 			<TabBar />
 		</SidebarProvider>
 	);

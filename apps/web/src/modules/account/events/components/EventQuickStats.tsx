@@ -54,20 +54,20 @@ export function EventQuickStats({
 	];
 
 	return (
-		<div className="mb-3 lg:mb-6 rounded-lg bg-muted/50 py-3 lg:border lg:bg-transparent lg:shadow-sm lg:p-4">
-			<div className="grid grid-cols-4 gap-1 lg:gap-4">
+		<div className="mb-4 rounded-xl border bg-card/70 p-2 shadow-sm lg:mb-6 lg:p-3">
+			<div className="grid grid-cols-4 gap-1.5 lg:gap-3">
 				{stats.map((stat) => (
 					<div
 						key={stat.label}
-						className="flex flex-col items-center gap-0.5 py-1 min-w-0"
+						className="flex min-w-0 flex-col items-center gap-1 rounded-lg bg-background/70 px-1.5 py-2 text-center"
 					>
 						<stat.icon
-							className={`w-4 h-4 shrink-0 ${stat.color}`}
+							className={`h-4 w-4 shrink-0 ${stat.color}`}
 						/>
-						<span className="text-sm font-semibold">
+						<span className="text-sm font-semibold lg:text-base">
 							{stat.value}
 						</span>
-						<span className="text-muted-foreground text-[10px] lg:text-xs leading-tight truncate w-full text-center">
+						<span className="w-full truncate text-[11px] leading-tight text-muted-foreground lg:text-xs">
 							{stat.label}
 						</span>
 					</div>

@@ -77,23 +77,23 @@ export function EventManageHeader({
 	};
 
 	return (
-		<div className="mb-4 md:mb-8">
-			<div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+		<div className="mb-5 md:mb-8">
+			<div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 				<div className="flex-1 min-w-0">
 					<h1 className="text-2xl md:text-3xl font-bold tracking-tight break-words">
 						{event.title}
 					</h1>
-					<p className="text-muted-foreground mt-2">
+					<p className="mt-1.5 text-sm text-muted-foreground md:mt-2 md:text-base">
 						{t("manageEvent")}
 					</p>
 				</div>
-				<div className="flex flex-col gap-2 md:flex-shrink-0">
+				<div className="flex flex-col gap-2 md:shrink-0">
 					{/* Mobile layout: simplified with dropdown */}
-					<div className="flex gap-2 lg:hidden">
+					<div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 rounded-xl border bg-card/70 p-2 shadow-sm lg:hidden">
 						<Button
 							size="sm"
 							asChild
-							className="flex-1 touch-manipulation"
+							className="h-9 touch-manipulation"
 						>
 							<Link
 								href={`/events/${event.shortId || event.id}/edit`}
@@ -106,7 +106,7 @@ export function EventManageHeader({
 							variant="outline"
 							size="sm"
 							onClick={onQRScannerOpen}
-							className="flex-1 touch-manipulation"
+							className="h-9 touch-manipulation"
 						>
 							<QrCodeIcon className="w-4 h-4 mr-1" />
 							扫码签到
@@ -121,7 +121,7 @@ export function EventManageHeader({
 									<EllipsisVerticalIcon className="w-5 h-5" />
 								</Button>
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="w-48">
+							<DropdownMenuContent align="end" className="w-52">
 								<DropdownMenuItem onClick={onRefresh}>
 									<ArrowPathIcon className="w-4 h-4 mr-2" />
 									{t("refresh")}
@@ -172,14 +172,14 @@ export function EventManageHeader({
 					</div>
 
 					{/* Desktop layout: two rows */}
-					<div className="hidden lg:flex flex-col gap-2">
+					<div className="hidden lg:flex flex-col items-end gap-2">
 						{/* First row: refresh, share, QR codes */}
-						<div className="flex gap-2">
+						<div className="flex flex-wrap justify-end gap-2">
 							<Button
 								variant="outline"
 								size="sm"
 								onClick={onRefresh}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								<ArrowPathIcon className="w-4 h-4" />
 								<span>{t("refresh")}</span>
@@ -188,7 +188,7 @@ export function EventManageHeader({
 								variant="outline"
 								size="sm"
 								onClick={onShareOpen}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								<ShareIcon className="w-4 h-4" />
 								<span>{t("share")}</span>
@@ -197,7 +197,7 @@ export function EventManageHeader({
 								variant="outline"
 								size="sm"
 								onClick={onQRScannerOpen}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								<QrCodeIcon className="w-4 h-4" />
 								<span>{t("scanUserQR")}</span>
@@ -206,7 +206,7 @@ export function EventManageHeader({
 								variant="outline"
 								size="sm"
 								onClick={onEventQRGeneratorOpen}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								<QrCodeIcon className="w-4 h-4" />
 								{t("eventQRCode")}
@@ -214,7 +214,7 @@ export function EventManageHeader({
 						</div>
 
 						{/* Second row: registration controls, notifications, view, edit, delete */}
-						<div className="flex gap-2">
+						<div className="flex flex-wrap justify-end gap-2">
 							<Button
 								variant={
 									event.status === "REGISTRATION_CLOSED"
@@ -223,7 +223,7 @@ export function EventManageHeader({
 								}
 								size="sm"
 								onClick={handleToggleRegistration}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								{event.status === "REGISTRATION_CLOSED" ? (
 									<PlayIcon className="w-4 h-4" />
@@ -242,7 +242,7 @@ export function EventManageHeader({
 									variant="outline"
 									size="sm"
 									asChild
-									className="flex items-center gap-1"
+									className="h-9 px-3"
 								>
 									<Link
 										href={`/events/${event.shortId || event.id}/communications`}
@@ -252,14 +252,19 @@ export function EventManageHeader({
 									</Link>
 								</Button>
 							)}
-							<Button variant="outline" size="sm" asChild>
+							<Button
+								variant="outline"
+								size="sm"
+								asChild
+								className="h-9 px-3"
+							>
 								<Link
 									href={`/events/${event.shortId || event.id}`}
 								>
 									<span>{t("viewPublicPage")}</span>
 								</Link>
 							</Button>
-							<Button size="sm" asChild>
+							<Button size="sm" asChild className="h-9 px-3">
 								<Link
 									href={`/events/${event.shortId || event.id}/edit`}
 								>
@@ -271,7 +276,7 @@ export function EventManageHeader({
 								variant="destructive"
 								size="sm"
 								onClick={handleDelete}
-								className="flex items-center gap-1"
+								className="h-9 px-3"
 							>
 								<TrashIcon className="w-4 h-4" />
 								<span>删除活动</span>

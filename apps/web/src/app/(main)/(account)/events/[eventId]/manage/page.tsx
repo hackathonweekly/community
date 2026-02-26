@@ -35,7 +35,7 @@ export default function EventManagePage() {
 	const t = useTranslations("events.manage");
 	const searchParams = useSearchParams();
 	const tabTriggerClass =
-		"!flex-none px-3 py-1.5 lg:min-w-[120px] lg:px-3 lg:py-2 text-xs lg:text-sm font-medium touch-manipulation";
+		"!flex-none min-w-[76px] px-3 py-2 text-xs font-medium touch-manipulation lg:min-w-0 lg:px-2.5 lg:py-2 lg:text-sm";
 	const {
 		event,
 		registrations,
@@ -117,11 +117,16 @@ export default function EventManagePage() {
 		);
 	}
 
+	const hasHackathonTab = event.type === "HACKATHON";
+	const hasSubmissionTab = isEventSubmissionsEnabled(event as any);
+	const desktopTabCount =
+		7 + Number(hasHackathonTab) + Number(hasSubmissionTab);
+
 	return (
 		<>
 			<MobilePageHeader title={t("title")} />
-			<div className="container mx-auto px-3 lg:px-4 py-2 lg:py-8">
-				<div className="max-w-6xl mx-auto overflow-hidden">
+			<div className="container mx-auto px-3 py-3 lg:px-4 lg:py-8">
+				<div className="mx-auto max-w-6xl">
 					<EventManageHeader
 						event={event}
 						onQRScannerOpen={() => setIsQRScannerOpen(true)}
@@ -156,118 +161,105 @@ export default function EventManagePage() {
 							}
 						}}
 					>
-						<div className="max-w-full overflow-x-auto pb-1 no-scrollbar lg:pb-0">
-							<TabsList className="w-max h-auto flex-nowrap gap-0.5 bg-muted rounded-lg p-1 lg:w-full lg:grid lg:grid-cols-9 lg:gap-0">
+						<TabsList
+							className="-mx-1 h-auto w-[calc(100%+8px)] flex-nowrap gap-1 overflow-x-auto rounded-xl border border-border/60 bg-muted/40 p-1.5 no-scrollbar lg:mx-0 lg:w-full lg:grid lg:gap-1"
+							style={{
+								gridTemplateColumns: `repeat(${desktopTabCount}, minmax(0, 1fr))`,
+							}}
+						>
+							<TabsTrigger
+								value="overview"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">总览</span>
+								<span className="hidden lg:inline">
+									{t("tabs.overview")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="registrations"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">报名</span>
+								<span className="hidden lg:inline">
+									{t("tabs.registrations")} (
+									{event._count?.registrations || 0})
+								</span>
+							</TabsTrigger>
+							{hasHackathonTab && (
 								<TabsTrigger
-									value="overview"
+									value="hackathon"
 									className={tabTriggerClass}
 								>
-									<span className="lg:hidden">总览</span>
+									<span className="lg:hidden">黑客松</span>
 									<span className="hidden lg:inline">
-										{t("tabs.overview")}
+										黑客松管理 (
+										{event._count?.hackathonProjects || 0})
 									</span>
 								</TabsTrigger>
+							)}
+							{hasSubmissionTab && (
 								<TabsTrigger
-									value="registrations"
+									value="submissions"
 									className={tabTriggerClass}
 								>
-									<span className="lg:hidden">
-										报名 ({event._count?.registrations || 0}
-										)
-									</span>
+									<span className="lg:hidden">作品</span>
 									<span className="hidden lg:inline">
-										{t("tabs.registrations")} (
-										{event._count?.registrations || 0})
+										作品管理
 									</span>
 								</TabsTrigger>
-								{event.type === "HACKATHON" && (
-									<TabsTrigger
-										value="hackathon"
-										className={tabTriggerClass}
-									>
-										<span className="lg:hidden">
-											黑客松 (
-											{event._count?.hackathonProjects ||
-												0}
-											)
-										</span>
-										<span className="hidden lg:inline">
-											黑客松管理 (
-											{event._count?.hackathonProjects ||
-												0}
-											)
-										</span>
-									</TabsTrigger>
-								)}
-								{isEventSubmissionsEnabled(event as any) && (
-									<TabsTrigger
-										value="submissions"
-										className={tabTriggerClass}
-									>
-										<span className="lg:hidden">作品</span>
-										<span className="hidden lg:inline">
-											作品管理
-										</span>
-									</TabsTrigger>
-								)}
-								<TabsTrigger
-									value="invites"
-									className={tabTriggerClass}
-								>
-									<span className="lg:hidden">邀请</span>
-									<span className="hidden lg:inline">
-										{t("tabs.invites")}
-									</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="volunteers"
-									className={tabTriggerClass}
-								>
-									<span className="lg:hidden">
-										志愿 (
-										{event.volunteerRoles?.length || 0})
-									</span>
-									<span className="hidden lg:inline">
-										{t("tabs.volunteers")} (
-										{event.volunteerRoles?.length || 0})
-									</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="checkin"
-									className={tabTriggerClass}
-								>
-									<span className="lg:hidden">签到</span>
-									<span className="hidden lg:inline">
-										{t("tabs.checkin")}
-									</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="feedback"
-									className={tabTriggerClass}
-								>
-									<span className="lg:hidden">
-										反馈 ({event._count?.feedbacks || 0}/
-										{event._count?.registrations || 0})
-									</span>
-									<span className="hidden lg:inline">
-										{t("tabs.feedback")} (
-										{event._count?.feedbacks || 0}/
-										{event._count?.registrations || 0})
-									</span>
-								</TabsTrigger>
-								<TabsTrigger
-									value="admins"
-									className={tabTriggerClass}
-								>
-									<span className="lg:hidden">管理</span>
-									<span className="hidden lg:inline">
-										{t("tabs.admins")}
-									</span>
-								</TabsTrigger>
-							</TabsList>
-						</div>
+							)}
+							<TabsTrigger
+								value="invites"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">邀请</span>
+								<span className="hidden lg:inline">
+									{t("tabs.invites")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="volunteers"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">志愿者</span>
+								<span className="hidden lg:inline">
+									{t("tabs.volunteers")} (
+									{event.volunteerRoles?.length || 0})
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="checkin"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">签到</span>
+								<span className="hidden lg:inline">
+									{t("tabs.checkin")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="feedback"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">反馈</span>
+								<span className="hidden lg:inline">
+									{t("tabs.feedback")} (
+									{event._count?.feedbacks || 0}/
+									{event._count?.registrations || 0})
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
+								value="admins"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">管理员</span>
+								<span className="hidden lg:inline">
+									{t("tabs.admins")}
+								</span>
+							</TabsTrigger>
+						</TabsList>
 
-						<TabsContent value="overview" className="mt-2 lg:mt-6">
+						<TabsContent value="overview" className="mt-3 lg:mt-6">
 							<EventOverviewTab
 								event={event}
 								confirmedCount={confirmedCount}
@@ -276,7 +268,7 @@ export default function EventManagePage() {
 
 						<TabsContent
 							value="registrations"
-							className="mt-2 lg:mt-6"
+							className="mt-3 lg:mt-6"
 						>
 							<EventRegistrationsTab
 								registrations={registrations}
@@ -295,10 +287,10 @@ export default function EventManagePage() {
 							/>
 						</TabsContent>
 
-						{event.type === "HACKATHON" && (
+						{hasHackathonTab && (
 							<TabsContent
 								value="hackathon"
-								className="mt-2 lg:mt-6"
+								className="mt-3 lg:mt-6"
 							>
 								<HackathonManagement
 									eventId={eventId}
@@ -307,10 +299,10 @@ export default function EventManagePage() {
 							</TabsContent>
 						)}
 
-						{isEventSubmissionsEnabled(event as any) && (
+						{hasSubmissionTab && (
 							<TabsContent
 								value="submissions"
-								className="mt-2 lg:mt-6"
+								className="mt-3 lg:mt-6"
 							>
 								<EventSubmissionsManager
 									eventId={eventId}
@@ -322,13 +314,13 @@ export default function EventManagePage() {
 							</TabsContent>
 						)}
 
-						<TabsContent value="invites" className="mt-2 lg:mt-6">
+						<TabsContent value="invites" className="mt-3 lg:mt-6">
 							<EventInvitesTab eventId={eventId} />
 						</TabsContent>
 
 						<TabsContent
 							value="volunteers"
-							className="mt-2 lg:mt-6"
+							className="mt-3 lg:mt-6"
 						>
 							<VolunteerManagement
 								eventId={eventId}
@@ -338,7 +330,7 @@ export default function EventManagePage() {
 							/>
 						</TabsContent>
 
-						<TabsContent value="checkin" className="mt-2 lg:mt-6">
+						<TabsContent value="checkin" className="mt-3 lg:mt-6">
 							<EventCheckIn
 								eventId={eventId}
 								eventStatus={event.status}
@@ -350,7 +342,7 @@ export default function EventManagePage() {
 							/>
 						</TabsContent>
 
-						<TabsContent value="feedback" className="mt-2 lg:mt-6">
+						<TabsContent value="feedback" className="mt-3 lg:mt-6">
 							<EventFeedback
 								eventId={eventId}
 								eventStatus={event.status}
@@ -364,7 +356,7 @@ export default function EventManagePage() {
 							/>
 						</TabsContent>
 
-						<TabsContent value="admins" className="mt-2 lg:mt-6">
+						<TabsContent value="admins" className="mt-3 lg:mt-6">
 							<EventAdminManager eventId={eventId} />
 						</TabsContent>
 					</Tabs>
