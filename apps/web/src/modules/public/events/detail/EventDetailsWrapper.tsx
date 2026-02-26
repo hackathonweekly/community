@@ -20,6 +20,8 @@ export function EventDetailsWrapper({
 	const previousUserRef = useRef(user);
 
 	// 使用服务端数据作为初始数据，然后在客户端重新获取最新数据
+	// initialDataUpdatedAt: 0 确保初始数据被视为过期，立即触发后台 refetch
+	// 这样可以尽快获取到 isEventAdmin 等需要登录态的数据
 	const { data: event, refetch } = useQuery({
 		queryKey: eventKeys.detail(initialEvent.id),
 		queryFn: async () => {
@@ -37,11 +39,21 @@ export function EventDetailsWrapper({
 			return data.data;
 		},
 		initialData: initialEvent,
-		staleTime: 10 * 1000, // 缩短到10秒以获得更及时的数据
+		initialDataUpdatedAt: 0,
+		staleTime: 10 * 1000,
 		refetchOnWindowFocus: true,
 		refetchOnReconnect: true,
 		refetchInterval: 60 * 1000, // 每分钟自动刷新一次
 	});
+
+	// 当 session 加载完成时，确保 refetch 一次以获取正确的 admin 状态
+	const hasRefetchedOnLoad = useRef(false);
+	useEffect(() => {
+		if (loaded && !hasRefetchedOnLoad.current) {
+			hasRefetchedOnLoad.current = true;
+			refetch();
+		}
+	}, [loaded, refetch]);
 
 	// 监听用户登录状态变化，当从未登录变为已登录时重新获取事件数据
 	useEffect(() => {
