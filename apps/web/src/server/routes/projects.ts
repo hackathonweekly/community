@@ -17,92 +17,9 @@ import {
 import { NotificationService } from "@/features/notifications/service";
 import { getCachedOrganizations } from "@community/lib-server/cache/organizations";
 import { ContributionType } from "@prisma/client";
-import { PricingType, ProjectStage } from "@prisma/client";
 import { Hono } from "hono";
 import { z } from "zod";
-
-const createProjectSchema = z.object({
-	// Basic information
-	title: z
-		.string()
-		.min(1, "Project title is required")
-		.max(100, "Title too long"),
-	subtitle: z
-		.string()
-		.min(1, "一句话介绍是必需的")
-		.max(200, "一句话介绍过长"),
-	description: z.string().max(2000, "作品描述过长").optional().nullable(),
-	detailedDescription: z.string().optional().nullable(),
-	url: z
-		.string()
-		.optional()
-		.nullable()
-		.refine((val) => !val || z.string().url().safeParse(val).success, {
-			message: "Invalid URL",
-		}),
-	demoVideoUrl: z
-		.string()
-		.optional()
-		.nullable()
-		.refine((val) => !val || z.string().url().safeParse(val).success, {
-			message: "Invalid video URL",
-		}),
-
-	// Media
-	screenshots: z.array(z.string()).max(8, "Too many screenshots").default([]),
-
-	// Classification
-	projectTags: z
-		.array(z.string())
-		.max(10, "Too many project tags")
-		.default([]),
-	stage: z.nativeEnum(ProjectStage),
-	pricingType: z.nativeEnum(PricingType).optional().nullable(),
-
-	// Milestones
-	milestones: z.array(z.string()).max(20, "Too many milestones").default([]),
-	currentMilestone: z.string().optional().nullable(),
-
-	// Settings
-	featured: z.boolean().default(false),
-
-	// Legacy fields (for backwards compatibility)
-	imageUrl: z
-		.string()
-		.url("Invalid image URL")
-		.optional()
-		.nullable()
-		.or(z.literal("")),
-	tags: z.array(z.string()).max(10, "Too many tags").default([]),
-
-	// Team recruitment fields
-	isRecruiting: z.boolean().default(false),
-	recruitmentStatus: z.string().optional().nullable(),
-	recruitmentTags: z
-		.array(z.string())
-		.max(10, "Too many recruitment tags")
-		.default([]),
-	teamDescription: z.string().optional().nullable(),
-	teamSkills: z
-		.array(z.string())
-		.max(20, "Too many required skills")
-		.default([]),
-	teamSize: z.number().min(1).max(20).optional().nullable(),
-	contactInfo: z.string().optional().nullable(),
-
-	// Creation experience sharing
-	creationExperience: z.string().optional().nullable(),
-
-	// Team members
-	teamMembers: z
-		.array(
-			z.object({
-				userId: z.string(),
-				role: z.enum(["LEADER", "MEMBER"]).default("MEMBER"),
-			}),
-		)
-		.default([]),
-});
+import { createProjectSchema, updateProjectSchema } from "./projects-schemas";
 
 // 作品完成度计算函数
 function calculateProjectCompletion(data: {
@@ -137,23 +54,6 @@ const createCommentSchema = z.object({
 		.string()
 		.min(1, "Comment cannot be empty")
 		.max(1000, "Comment too long"),
-});
-
-const updateProjectSchema = createProjectSchema.partial().extend({
-	id: z.string(),
-	subtitle: z
-		.string()
-		.min(1, "Subtitle is required")
-		.max(200, "Subtitle too long")
-		.optional(),
-	teamMembers: z
-		.array(
-			z.object({
-				userId: z.string(),
-				role: z.enum(["LEADER", "MEMBER"]).default("MEMBER"),
-			}),
-		)
-		.optional(),
 });
 
 const updateProjectOrderSchema = z.object({
@@ -730,6 +630,21 @@ export const projectsRouter = new Hono()
 
 			const { id, ...updateData } = validatedData;
 
+			const resolvedProjectTags =
+				updateData.projectTags !== undefined
+					? updateData.projectTags
+					: updateData.tags;
+
+			// Backward compatibility: old clients may still send imageUrl.
+			const resolvedScreenshots =
+				updateData.screenshots !== undefined
+					? updateData.screenshots
+					: updateData.imageUrl !== undefined
+						? updateData.imageUrl
+							? [updateData.imageUrl]
+							: []
+						: undefined;
+
 			// 获取更新后的完整数据用于重新计算完成度
 			const updatedProjectData = {
 				title: updateData.title ?? existingProject.title,
@@ -742,10 +657,8 @@ export const projectsRouter = new Hono()
 					updateData.url !== undefined
 						? updateData.url
 						: existingProject.url,
-				screenshots:
-					updateData.screenshots ?? existingProject.screenshots,
-				projectTags:
-					updateData.projectTags ?? existingProject.projectTags,
+				screenshots: resolvedScreenshots ?? existingProject.screenshots,
+				projectTags: resolvedProjectTags ?? existingProject.projectTags,
 				stage: updateData.stage ?? existingProject.stage,
 				milestones: updateData.milestones ?? existingProject.milestones,
 				creationExperience:
@@ -773,8 +686,8 @@ export const projectsRouter = new Hono()
 				};
 			}
 
-			if (updateData.screenshots) {
-				for (const screenshot of updateData.screenshots) {
+			if (resolvedScreenshots !== undefined) {
+				for (const screenshot of resolvedScreenshots) {
 					const moderation = await ensureImageSafe(
 						screenshot,
 						"content",
@@ -802,31 +715,6 @@ export const projectsRouter = new Hono()
 				}
 			}
 
-			if (updateData.imageUrl !== undefined) {
-				const coverModeration = await ensureImageSafe(
-					updateData.imageUrl,
-					"content",
-					{ skipIfEmpty: true },
-				);
-				if (!coverModeration.isApproved) {
-					console.warn(
-						"Project imageUrl moderation rejected on update",
-						{
-							userId: session.user.id,
-							projectId,
-							imageUrl: updateData.imageUrl,
-							result: coverModeration.result,
-						},
-					);
-					return c.json(
-						{
-							error: coverModeration.reason ?? "图片未通过审核",
-						},
-						400,
-					);
-				}
-			}
-
 			const project = await db.project.update({
 				where: { id: existingProject.id },
 				data: {
@@ -848,13 +736,13 @@ export const projectsRouter = new Hono()
 					}),
 
 					// Media
-					...(updateData.screenshots !== undefined && {
-						screenshots: updateData.screenshots,
+					...(resolvedScreenshots !== undefined && {
+						screenshots: resolvedScreenshots,
 					}),
 
 					// Classification
-					...(updateData.projectTags !== undefined && {
-						projectTags: updateData.projectTags,
+					...(resolvedProjectTags !== undefined && {
+						projectTags: resolvedProjectTags,
 					}),
 					...(updateData.stage !== undefined && {
 						stage: updateData.stage,
@@ -867,21 +755,10 @@ export const projectsRouter = new Hono()
 					...(updateData.milestones !== undefined && {
 						milestones: updateData.milestones,
 					}),
-					...(updateData.currentMilestone !== undefined && {
-						currentMilestone: updateData.currentMilestone || null,
-					}),
 
 					// Settings
 					...(updateData.featured !== undefined && {
 						featured: updateData.featured,
-					}),
-
-					// Legacy fields
-					...(updateData.imageUrl !== undefined && {
-						imageUrl: updateData.imageUrl || null,
-					}),
-					...(updateData.tags !== undefined && {
-						tags: updateData.tags,
 					}),
 
 					// Team recruitment
