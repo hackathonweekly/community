@@ -1439,7 +1439,8 @@
 			"stats": {
 				"confirmed": "Confirmed",
 				"pending": "Pending",
-				"views": "Views"
+				"views": "Views",
+				"feedback": "Feedback"
 			},
 			"invites": {
 				"title": "Invite Tracking",

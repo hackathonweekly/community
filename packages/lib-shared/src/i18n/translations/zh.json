@@ -1491,7 +1491,8 @@
 			"stats": {
 				"confirmed": "已确认",
 				"pending": "待审核",
-				"views": "浏览量"
+				"views": "浏览量",
+				"feedback": "反馈"
 			},
 			"invites": {
 				"title": "邀请统计",

@@ -11,6 +11,7 @@ import {
 import { useTranslations } from "next-intl";
 
 import { QRGenerator } from "@shared/events/components/QRGenerator";
+import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
@@ -41,7 +42,6 @@ import { SectionCard } from "./components/common/SectionCard";
 import type { EventData } from "./components/types";
 import { useEventDetailsState } from "./hooks/useEventDetailsState";
 import { useEventActions } from "./hooks/useEventActions";
-import { EventShareModal } from "@shared/events/components/EventShareModal";
 
 export interface EventDetailsProps {
 	event: EventData;
@@ -64,6 +64,7 @@ export function EventDetailsClient({
 	locale = "zh",
 }: EventDetailsClientProps) {
 	const t = useTranslations();
+	const eventIdentifier = event.shortId || event.id;
 	const state = useEventDetailsState(event, locale);
 	const actions = useEventActions(event, state);
 	const [showShareModal, setShowShareModal] = useState(false);
@@ -271,7 +272,7 @@ export function EventDetailsClient({
 				likeCount={likeCount}
 				registerDisabled={registerDisabledDisplay}
 				isEventAdmin={event.isEventAdmin}
-				eventId={event.id}
+				eventId={eventIdentifier}
 				onContact={handleOpenContact}
 				onFeedback={handleOpenFeedback}
 				onShowSuccessInfo={handleShowSuccessInfo}
@@ -472,7 +473,7 @@ export function EventDetailsClient({
 											<AlbumSection
 												photos={photos}
 												locale={locale}
-												eventId={event.id}
+												eventId={eventIdentifier}
 											/>
 										)}
 									</TabsContent>
@@ -487,7 +488,7 @@ export function EventDetailsClient({
 													projectSubmissions
 												}
 												locale={locale}
-												eventId={event.id}
+												eventId={eventIdentifier}
 												userId={user?.id}
 												onRequireLogin={redirectToLogin}
 												onSubmitWork={handleSubmitWork}
@@ -589,7 +590,7 @@ export function EventDetailsClient({
 								likeCount={likeCount}
 								registerDisabled={registerDisabledDisplay}
 								isEventAdmin={event.isEventAdmin}
-								eventId={event.id}
+								eventId={eventIdentifier}
 								onContact={handleOpenContact}
 								onFeedback={handleOpenFeedback}
 								onShowSuccessInfo={handleShowSuccessInfo}
@@ -622,7 +623,7 @@ export function EventDetailsClient({
 
 			<MobileCTA
 				locale={locale}
-				eventId={event.id}
+				eventId={eventIdentifier}
 				isEventAdmin={event.isEventAdmin}
 				submissionsEnabled={showWorks}
 				registerLabel={registerLabelDisplay}
@@ -648,7 +649,7 @@ export function EventDetailsClient({
 				<QRGenerator
 					isOpen={showQRGenerator}
 					onClose={() => setShowQRGenerator(false)}
-					eventId={event.id}
+					eventId={eventIdentifier}
 					userId={user.id}
 					eventTitle={event.title}
 					userName={user.name || "Unknown User"}
@@ -707,7 +708,7 @@ export function EventDetailsClient({
 					open={isFeedbackDialogOpen}
 					onOpenChange={setIsFeedbackDialogOpen}
 					eventTitle={event.title}
-					eventId={event.id}
+					eventId={eventIdentifier}
 					onSubmit={handleFeedbackSubmit}
 					existingFeedback={userFeedback}
 					isEditing={hasSubmittedFeedback}
@@ -717,7 +718,7 @@ export function EventDetailsClient({
 			<EventShareModal
 				isOpen={showShareModal}
 				onClose={() => setShowShareModal(false)}
-				eventId={event.id}
+				eventId={eventIdentifier}
 				eventTitle={event.title}
 				event={{
 					startTime: event.startTime,
