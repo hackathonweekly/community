@@ -42,7 +42,7 @@ import {
 	VISITOR_RESTRICTION_GROUPS,
 	VISITOR_RESTRICTION_OPTIONS,
 } from "./system-config-constants";
-import { RestrictedAction } from "@/features/permissions/visitor-restrictions";
+import type { RestrictedAction } from "@/features/permissions/visitor-restrictions";
 
 export function SystemConfigCenter() {
 	const [configs, setConfigs] = useState<SystemConfig[]>([]);

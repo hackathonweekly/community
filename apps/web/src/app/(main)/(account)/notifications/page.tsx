@@ -1,7 +1,6 @@
 import { db } from "@community/lib-server/database";
 import { getSession } from "@shared/auth/lib/server";
 import { redirect } from "next/navigation";
-import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
 import { NotificationsMessageCenter } from "./NotificationsMessageCenter";
 
 export async function generateMetadata() {

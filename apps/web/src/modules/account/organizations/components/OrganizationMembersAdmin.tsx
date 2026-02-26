@@ -67,7 +67,6 @@ import { OrganizationFunctionalRolesPanel } from "@account/organizations/compone
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Checkbox } from "@community/ui/ui/checkbox";
-import { Textarea } from "@community/ui/ui/textarea";
 import { SendMessageModal } from "./SendMessageModal";
 
 interface OrganizationMember {
