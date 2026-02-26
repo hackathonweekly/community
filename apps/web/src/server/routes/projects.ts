@@ -1132,7 +1132,7 @@ export const projectsRouter = new Hono()
 				// 不给自己发通知
 				if (project.userId !== session.user.id) {
 					await NotificationService.notifyProjectLike(
-						project.id,
+						project.shortId || project.id,
 						project.title,
 						project.userId,
 						session.user.id,
@@ -1407,7 +1407,7 @@ export const projectsRouter = new Hono()
 				// 不给自己发通知
 				if (project.userId !== session.user.id) {
 					await NotificationService.notifyProjectComment(
-						project.id,
+						project.shortId || project.id,
 						project.title,
 						project.userId,
 						session.user.id,
