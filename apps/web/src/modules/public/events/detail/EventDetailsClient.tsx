@@ -674,6 +674,12 @@ export function EventDetailsClient({
 					pendingInfo={event.registrationPendingInfo}
 					pendingImage={event.registrationPendingImage}
 					onShowQR={() => setShowQRGenerator(true)}
+					eventInfo={{
+						startTime: event.startTime,
+						endTime: event.endTime,
+						isOnline: event.isOnline,
+						address: event.address,
+					}}
 				/>
 			)}
 

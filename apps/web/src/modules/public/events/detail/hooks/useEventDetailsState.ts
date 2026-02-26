@@ -124,7 +124,7 @@ export function useEventDetailsState(event: EventData, locale: string) {
 		if (existingRegistration) {
 			switch (existingRegistration.status) {
 				case "APPROVED":
-					return hasImportantInfo ? "查看须知" : "查看门票";
+					return "查看须知";
 				case "PENDING":
 					return "审核中";
 				case "WAITLISTED":
@@ -139,7 +139,6 @@ export function useEventDetailsState(event: EventData, locale: string) {
 		event.externalUrl,
 		event.isExternalEvent,
 		existingRegistration,
-		hasImportantInfo,
 		registrationDisabledReason,
 		user,
 	]);
