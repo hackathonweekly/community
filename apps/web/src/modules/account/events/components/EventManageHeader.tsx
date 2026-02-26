@@ -89,11 +89,20 @@ export function EventManageHeader({
 				</div>
 				<div className="flex flex-col gap-2 md:shrink-0">
 					{/* Mobile layout: simplified with dropdown */}
-					<div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 rounded-xl border bg-card/70 p-2 shadow-sm lg:hidden">
+					<div className="grid grid-cols-[1.15fr_1fr_auto] items-center gap-2 rounded-xl bg-muted/35 p-1.5 lg:hidden">
 						<Button
 							size="sm"
-							asChild
+							onClick={onEventQRGeneratorOpen}
 							className="h-9 touch-manipulation"
+						>
+							<QrCodeIcon className="w-4 h-4 mr-1" />
+							签到二维码
+						</Button>
+						<Button
+							variant="secondary"
+							size="sm"
+							asChild
+							className="h-9 touch-manipulation shadow-none"
 						>
 							<Link
 								href={`/events/${event.shortId || event.id}/edit`}
@@ -101,15 +110,6 @@ export function EventManageHeader({
 								<PencilIcon className="w-4 h-4 mr-1" />
 								编辑
 							</Link>
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={onQRScannerOpen}
-							className="h-9 touch-manipulation"
-						>
-							<QrCodeIcon className="w-4 h-4 mr-1" />
-							扫码签到
 						</Button>
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
@@ -129,6 +129,10 @@ export function EventManageHeader({
 								<DropdownMenuItem onClick={onShareOpen}>
 									<ShareIcon className="w-4 h-4 mr-2" />
 									{t("share")}
+								</DropdownMenuItem>
+								<DropdownMenuItem onClick={onQRScannerOpen}>
+									<QrCodeIcon className="w-4 h-4 mr-2" />
+									扫码签到
 								</DropdownMenuItem>
 								<DropdownMenuItem
 									onClick={onEventQRGeneratorOpen}
@@ -176,6 +180,14 @@ export function EventManageHeader({
 						{/* First row: refresh, share, QR codes */}
 						<div className="flex flex-wrap justify-end gap-2">
 							<Button
+								size="sm"
+								onClick={onEventQRGeneratorOpen}
+								className="h-9 px-3"
+							>
+								<QrCodeIcon className="w-4 h-4" />
+								<span>签到二维码</span>
+							</Button>
+							<Button
 								variant="outline"
 								size="sm"
 								onClick={onRefresh}
@@ -201,15 +213,6 @@ export function EventManageHeader({
 							>
 								<QrCodeIcon className="w-4 h-4" />
 								<span>{t("scanUserQR")}</span>
-							</Button>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={onEventQRGeneratorOpen}
-								className="h-9 px-3"
-							>
-								<QrCodeIcon className="w-4 h-4" />
-								{t("eventQRCode")}
 							</Button>
 						</div>
 
