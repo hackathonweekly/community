@@ -2167,10 +2167,55 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 		});
 	} catch (error) {
 		console.error("Error updating event:", error);
+
+		if (error instanceof z.ZodError) {
+			return c.json(
+				{
+					success: false,
+					error: `Validation failed: ${error.message}`,
+				},
+				400,
+			);
+		}
+
+		const { Prisma } = await import("@prisma/client");
+		if (error instanceof Prisma.PrismaClientValidationError) {
+			return c.json(
+				{
+					success: false,
+					error: "Invalid data: please check your input fields",
+				},
+				400,
+			);
+		}
+		if (error instanceof Prisma.PrismaClientKnownRequestError) {
+			if (error.code === "P2002") {
+				return c.json(
+					{
+						success: false,
+						error: "A record with this value already exists",
+					},
+					409,
+				);
+			}
+			if (error.code === "P2025") {
+				return c.json(
+					{
+						success: false,
+						error: "Event not found or already deleted",
+					},
+					404,
+				);
+			}
+		}
+
 		return c.json(
 			{
 				success: false,
-				error: "Failed to update event",
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to update event",
 			},
 			500,
 		);

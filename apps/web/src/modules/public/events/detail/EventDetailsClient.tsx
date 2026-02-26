@@ -6,6 +6,7 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useState,
 } from "react";
 import { useTranslations } from "next-intl";
 
@@ -40,6 +41,7 @@ import { SectionCard } from "./components/common/SectionCard";
 import type { EventData } from "./components/types";
 import { useEventDetailsState } from "./hooks/useEventDetailsState";
 import { useEventActions } from "./hooks/useEventActions";
+import { EventShareModal } from "@shared/events/components/EventShareModal";
 
 export interface EventDetailsProps {
 	event: EventData;
@@ -64,6 +66,7 @@ export function EventDetailsClient({
 	const t = useTranslations();
 	const state = useEventDetailsState(event, locale);
 	const actions = useEventActions(event, state);
+	const [showShareModal, setShowShareModal] = useState(false);
 
 	const {
 		user,
@@ -260,7 +263,7 @@ export function EventDetailsClient({
 				onRegister={handleRegister}
 				canCancel={canCancel}
 				onCancel={handleCancelRegistration}
-				onShare={handleShareCopyLink}
+				onShare={() => setShowShareModal(true)}
 				onToggleBookmark={handleBookmark}
 				onToggleLike={handleLike}
 				isBookmarked={isBookmarked}
@@ -280,7 +283,7 @@ export function EventDetailsClient({
 			<div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
 				<div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12">
 					{/* Left Column: Header + Content */}
-					<div className="lg:col-span-8 space-y-4 lg:space-y-6">
+					<div className="lg:col-span-8 space-y-3 lg:space-y-4">
 						{/* Header: Badges + Title + Description */}
 						<div className="pb-4 border-b border-border/40">
 							<div className="mb-2 flex flex-wrap items-center gap-2">
@@ -431,7 +434,7 @@ export function EventDetailsClient({
 										</TabsTrigger>
 										<TabsTrigger
 											value="organizer"
-											className={`lg:hidden ${TAB_TRIGGER_CLASS}`}
+											className={TAB_TRIGGER_CLASS}
 										>
 											主办方
 										</TabsTrigger>
@@ -524,7 +527,7 @@ export function EventDetailsClient({
 
 									<TabsContent
 										value="organizer"
-										className="focus:outline-none lg:hidden mt-2 md:mt-4"
+										className="focus:outline-none mt-2 md:mt-4"
 									>
 										<HostsSection
 											event={event}
@@ -578,7 +581,7 @@ export function EventDetailsClient({
 								}
 								canCancel={canCancel}
 								onCancel={handleCancelRegistration}
-								onShare={handleShareCopyLink}
+								onShare={() => setShowShareModal(true)}
 								onToggleBookmark={handleBookmark}
 								onToggleLike={handleLike}
 								isBookmarked={isBookmarked}
@@ -628,7 +631,7 @@ export function EventDetailsClient({
 				}
 				onShowSuccessInfo={handleShowSuccessInfo}
 				onCancel={handleCancelRegistration}
-				onShare={handleShareCopyLink}
+				onShare={() => setShowShareModal(true)}
 				onFeedback={handleOpenFeedback}
 				onContact={handleOpenContact}
 				onShowQR={() => setShowQRGenerator(true)}
@@ -710,6 +713,22 @@ export function EventDetailsClient({
 					isEditing={hasSubmittedFeedback}
 				/>
 			)}
+
+			<EventShareModal
+				isOpen={showShareModal}
+				onClose={() => setShowShareModal(false)}
+				eventId={event.id}
+				eventTitle={event.title}
+				event={{
+					startTime: event.startTime,
+					endTime: event.endTime,
+					address: event.address ?? undefined,
+					isOnline: event.isOnline,
+					onlineUrl: event.onlineUrl ?? undefined,
+					coverImage: event.coverImage ?? undefined,
+					richContent: event.richContent,
+				}}
+			/>
 		</div>
 	);
 }
