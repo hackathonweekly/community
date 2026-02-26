@@ -914,7 +914,7 @@ export async function getEvents(params: {
 }
 
 export async function updateEvent(
-	id: string,
+	identifier: string,
 	data: Partial<{
 		title: string;
 		richContent: string;
@@ -979,6 +979,17 @@ export async function updateEvent(
 		submissionFormConfig: Prisma.InputJsonValue | null;
 	}>,
 ) {
+	// Resolve identifier (could be shortId or CUID) to the actual event record ID
+	const whereClause = resolveEventIdentifier(identifier);
+	const existingRecord = await db.event.findUnique({
+		where: whereClause,
+		select: { id: true },
+	});
+	if (!existingRecord) {
+		throw new Error(`Event not found: ${identifier}`);
+	}
+	const id = existingRecord.id;
+
 	const {
 		ticketTypes,
 		volunteerRoles,
@@ -1285,15 +1296,17 @@ export async function updateEvent(
 	});
 }
 
-export async function deleteEvent(id: string) {
+export async function deleteEvent(identifier: string) {
+	const where = resolveEventIdentifier(identifier);
 	return await db.event.delete({
-		where: { id },
+		where,
 	});
 }
 
-export async function incrementEventViewCount(id: string) {
+export async function incrementEventViewCount(identifier: string) {
+	const where = resolveEventIdentifier(identifier);
 	return await db.event.update({
-		where: { id },
+		where,
 		data: {
 			viewCount: {
 				increment: 1,
