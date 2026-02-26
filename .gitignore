@@ -1,0 +1,106 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+draft/
+devdocs/
+output/
+.vscode/
+
+.history/
+temp/
+tmp/
+temp.md
+.kiro/
+
+# events - ignore generated files but keep source files
+events/**/*.pptx
+events/**/*.pdf
+events/**/*.xlsx
+events/**/*.docx
+events/**/~$*
+events/**/assets/*.png
+events/**/assets/*.jpg
+events/**/assets/*.jpeg
+!events/templates/
+
+# deploy related
+.env.deploy
+.env.deploy.prd
+.env.prd
+deploys/
+deploy/
+deploy-*.tar.gz
+.deploy/
+*.tar.gz
+database_backup*
+
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# test
+coverage
+
+# next.js
+.next/
+apps/web/.next/
+out/
+build
+.swc/
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.local
+.env.build
+.env.deploy.prd
+.env.prd
+.env.production
+
+# buildpack backups
+.cnb.yml.*
+
+# turbo
+.turbo
+
+# ui
+dist/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# prisma generated files
+packages/lib/src/database/prisma/zod/
+
+# i18n reports and analysis
+reports/
+*-report.json
+*-report.txt
+*-report.md
+*-keys.json
+*-keys.txt
+i18n-*.json
+missing-*.txt
+unused-*.txt
+duplicate-*.txt
+analysis-results.json
+
+# other
+.react-email/
+.content-collections/
+apps/web/.content-collections/
+.vercel
+
+# platform verification files
+public/*.txt
+!public/robots.txt
+apps/web/public/*.txt
+!apps/web/public/robots.txt

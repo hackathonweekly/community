@@ -1,0 +1,54 @@
+---
+title: "AI 辅助开发"
+description: "使用 AI 工具高效参与项目开发"
+---
+
+## CLAUDE.md 和 AGENTS.md
+
+项目根目录包含 AI 助手的指导文件：
+
+- **`CLAUDE.md`** — AI 编码助手的项目上下文（symlink 到 `AGENTS.md`），包含项目结构、命名规范、命令列表等
+- **`openspec/AGENTS.md`** — OpenSpec 工作流说明，用于规范化的功能规划
+
+AI 助手（如 Claude Code、Cursor、GitHub Copilot）在读取这些文件后，能更准确地理解项目约定并生成符合规范的代码。
+
+## 推荐 AI 编码工具
+
+- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** — Anthropic 官方 CLI，支持 plan mode 和自动化开发
+- **[Cursor](https://cursor.sh/)** — AI-first 代码编辑器
+- **GitHub Copilot** — VS Code / JetBrains 插件
+
+## OpenSpec 工作流
+
+对于较大的功能开发，项目使用 **OpenSpec** 工作流进行规范化规划：
+
+### 三阶段流程
+
+1. **Creating（创建提案）**
+   - 在 `openspec/changes/` 下创建 `.md` 提案文件
+   - 描述功能目标、技术方案、影响范围
+   - 使用 `/openspec:proposal` 命令辅助生成
+
+2. **Implementing（实施）**
+   - 根据提案进行开发
+   - 使用 `/openspec:apply` 命令执行变更
+
+3. **Archiving（归档）**
+   - 完成后归档提案
+   - 使用 `/openspec:archive` 命令归档
+
+### 适用场景
+
+- 涉及多个模块的大功能
+- 架构变更或重构
+- 需要团队讨论的技术决策
+
+## Claude Code Plan Mode
+
+对于较小的任务，可以直接使用 Claude Code 的 plan mode：
+
+1. 描述任务需求
+2. Claude Code 分析代码库并生成实施计划
+3. 确认计划后自动执行
+
+适合：Bug 修复、小功能添加、文档更新、代码重构等。

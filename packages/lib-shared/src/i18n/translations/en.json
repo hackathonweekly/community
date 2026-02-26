@@ -1,0 +1,4713 @@
+{
+	"admin": {
+		"description": "Manage your application.",
+		"menu": {
+			"organizations": "Organizations",
+			"users": "Users"
+		},
+		"organizations": {
+			"backToList": "Back to organizations",
+			"confirmDelete": {
+				"confirm": "Delete",
+				"message": "Are you sure you want to delete this organization? This action cannot be undone.",
+				"title": "Delete organization"
+			},
+			"create": "Create",
+			"delete": "Delete",
+			"deleteOrganization": {
+				"deleted": "Organization has been deleted successfully!",
+				"deleting": "Deleting organization...",
+				"notDeleted": "Organization could not be deleted. Please try again."
+			},
+			"edit": "Edit",
+			"form": {
+				"createTitle": "Create an organization",
+				"name": "Organization name",
+				"notifications": {
+					"error": "Could not save the organization. Please try again later.",
+					"success": "Organization has been saved."
+				},
+				"save": "Save",
+				"updateTitle": "Edit organization"
+			},
+			"loading": "Loading organizations...",
+			"membersCount": "{count} {count, plural, one {member} other {members}}",
+			"search": "Search for an organization...",
+			"title": "Manage organizations"
+		},
+		"title": "Administration",
+		"users": {
+			"assignAdminRole": "Assign admin role",
+			"confirmDelete": {
+				"confirm": "Delete",
+				"message": "Are you sure you want to delete this user? This action cannot be undone.",
+				"title": "Delete user"
+			},
+			"delete": "Delete",
+			"deleteUser": {
+				"deleted": "User has been deleted successfully!",
+				"deleting": "Deleting user...",
+				"notDeleted": "User could not be deleted. Please try again."
+			},
+			"emailVerified": {
+				"verified": "Email verified",
+				"waiting": "Email waiting for verification"
+			},
+			"impersonate": "Impersonate",
+			"impersonation": {
+				"impersonating": "Impersonating as {name}..."
+			},
+			"loading": "Loading users...",
+			"removeAdminRole": "Remove admin role",
+			"resendVerificationMail": {
+				"error": "Could not resend verification mail. Please try again.",
+				"submitting": "Resending verification mail...",
+				"success": "Verification mail has been sent.",
+				"title": "Resend verification mail"
+			},
+			"search": "Search for name or email...",
+			"title": "Manage users"
+		}
+	},
+	"app": {
+		"contributions": {
+			"autoRecord": "Auto Record",
+			"cancel": "Cancel",
+			"contributionPoints": "Contribution Points:",
+			"contributionRecords": "Contribution Records",
+			"contributionType": "Contribution Type",
+			"cpDescription": "The system has set default values based on contribution type, you can adjust according to actual contribution value",
+			"cpPlaceholder": "Apply for points value based on contribution value",
+			"createTime": "Create Time",
+			"currentLevel": "Current Level: {level}",
+			"declareContribution": "Declare Contribution",
+			"declareNow": "Declare Contribution",
+			"defaultCp": "Default: {cp}",
+			"descriptionPlaceholder": "Describe your contribution in detail (at least 10 characters)",
+			"detailedDescription": "Detailed Description",
+			"dialogDescription": "Declare your contribution to the community, you will receive corresponding contribution points after review",
+			"dialogTitle": "Declare Contribution",
+			"evidenceLink": "Evidence Link",
+			"evidenceLinks": "Evidence Links (Optional)",
+			"evidencePlaceholder": "Provide relevant evidence links, such as articles, projects, event pages, etc.",
+			"fillCompleteInfo": "Please fill in complete information",
+			"levelProgress": "Level Progress",
+			"loginNow": "Login Now",
+			"loginRequired": "You need to login to view contribution records",
+			"networkError": "Network error, please try again",
+			"nextLevelDistance": "Distance to {nextLevel}: {points} points",
+			"noRecords": "No contribution records yet",
+			"noRecordsInStatus": "No contribution records in this status yet",
+			"pleaseLogin": "Please login first",
+			"referenceCp": "Reference points: {cpRange}",
+			"requestedCp": "Requested points Value",
+			"reviewFeedback": "Review Feedback",
+			"reviewTime": "Review Time",
+			"selectType": "Select contribution type",
+			"startContributing": "Start contributing to the community and get your first contribution point",
+			"status": {
+				"approved": "Approved",
+				"pending": "Pending",
+				"rejected": "Rejected"
+			},
+			"submit": "Submit Declaration",
+			"submitFailed": "Submission failed",
+			"submitSuccess": "Contribution declaration submitted successfully, pending review",
+			"subtitle": "Manage my contribution records and declare new contributions",
+			"tabs": {
+				"all": "All Records",
+				"approved": "Approved",
+				"pending": "Pending",
+				"rejected": "Rejected"
+			},
+			"title": "My Contribution Points",
+			"totalContributions": "Total Contributions",
+			"totalPoints": "Total Contribution Points"
+		},
+		"menu": {
+			"accountSettings": "Account settings",
+			"admin": "Admin",
+			"aiChatbot": "AI Chatbot",
+			"bookmarks": "My Bookmarks",
+			"contributionManagement": "Contribution Management",
+			"eventManagement": "Event Management",
+			"memberManagement": "Member Management",
+			"organizationAdmin": "Organization Admin",
+			"organizationEvents": "Organization Events",
+			"organizationMembers": "Organization Members",
+			"organizationSettings": "Organization settings",
+			"profile": "Profile",
+			"projects": "Projects",
+			"start": "Start",
+			"superAdminCenter": "Super Admin Center",
+			"taskManagement": "Task Management"
+		},
+		"notifications": {
+			"delete": "Delete",
+			"deleteError": "Failed to delete notification",
+			"deleteSuccess": "Notification deleted successfully",
+			"fetchError": "Failed to fetch notifications",
+			"loading": "Loading...",
+			"loadMore": "Load more",
+			"markAllRead": "Mark all as read",
+			"markAllReadError": "Failed to mark all notifications as read",
+			"markAllReadSuccess": "All notifications marked as read",
+			"markAsRead": "Mark as read",
+			"markReadError": "Failed to mark notification as read",
+			"markReadSuccess": "Notification marked as read",
+			"noNotifications": "No notifications",
+			"operationError": "Operation failed",
+			"settings": {
+				"categories": {
+					"event": {
+						"description": "Event registration, reminders, and update notifications",
+						"title": "Event Notifications"
+					},
+					"organization": {
+						"description": "Notifications related to organizations you belong to or manage",
+						"title": "Organization Notifications"
+					},
+					"project": {
+						"description": "Notifications related to your project activities",
+						"title": "Project Notifications"
+					},
+					"social": {
+						"description": "User interactions, bookmarks and other social-related notifications",
+						"title": "Social Notifications"
+					},
+					"system": {
+						"description": "Important notifications about account security and system announcements",
+						"title": "System Notifications"
+					}
+				},
+				"description": "Manage your notification preferences",
+				"form": {
+					"emailNotifications": "Email notifications",
+					"inAppNotifications": "In-app notifications",
+					"items": {
+						"eventNotification": {
+							"description": "Registration results, schedule changes, cancellations, etc.",
+							"title": "Event Notifications"
+						},
+						"eventReminder": {
+							"description": "Reminder notifications before events start",
+							"title": "Event Reminders"
+						},
+						"organizationActivity": {
+							"description": "Member applications, role changes, announcements, etc.",
+							"title": "Organization Activity"
+						},
+						"projectComment": {
+							"description": "When someone comments on your project",
+							"title": "Project Comments"
+						},
+						"projectLike": {
+							"description": "When someone likes your project",
+							"title": "Project Likes"
+						},
+						"socialInteraction": {
+							"description": "User bookmarks, messages, and other social-related notifications",
+							"title": "Social Interactions"
+						},
+						"systemNotification": {
+							"description": "Important notifications about account security, system announcements, etc.",
+							"title": "System Notifications"
+						}
+					},
+					"saved": "Notification preferences saved",
+					"saveFailed": "Failed to save, please try again",
+					"saveSettings": "Save Settings",
+					"saving": "Saving..."
+				},
+				"subtitle": "Customize the types and methods of notifications you want to receive",
+				"title": "Notification Settings"
+			},
+			"title": "Notification Center",
+			"viewAll": "View all notifications"
+		},
+		"users": {
+			"follow": {
+				"loginRequired": "Please sign in to follow users",
+				"updateError": "Failed to update follow status",
+				"alreadyFollowing": "This user is already in your following list",
+				"followSuccess": "Followed successfully",
+				"unfollowSuccess": "Unfollowed successfully"
+			},
+			"like": {
+				"loginRequired": "Please sign in to like users",
+				"alreadyLiked": "You've already liked this user",
+				"cannotLikeSelf": "You cannot like yourself",
+				"likeSuccess": "Liked successfully",
+				"unlikeSuccess": "Like removed",
+				"updateError": "Failed to update like status"
+			}
+		},
+		"userMenu": {
+			"accountSettings": "Account settings",
+			"colorMode": "Color mode",
+			"themeSystem": "System",
+			"themeLight": "Light",
+			"themeDark": "Dark",
+			"documentation": "Documentation",
+			"home": "Home",
+			"profile": "Profile",
+			"settings": "Settings",
+			"logout": "Log out"
+		}
+	},
+	"auth": {
+		"agreementDialog": {
+			"confirm": "Agree and Continue",
+			"cancel": "Not now",
+			"defaultTitle": "Privacy Policy & Terms",
+			"description": "Please read and agree to our Privacy Policy and Terms of Service before continuing.",
+			"title": "Sign in with {provider}"
+		},
+		"errors": {
+			"accountNotFound": "Account not found",
+			"credentialAccountNotFound": "Account not found.",
+			"emailCanNotBeUpdated": "Email could not be updated. Please try again.",
+			"emailNotVerified": "Please verify your email first before logging in.",
+			"failedToCreateSession": "Could not create a session. Please try again.",
+			"failedToCreateUser": "Could not create user. Please try again.",
+			"failedToGetSession": "Could not get the session.",
+			"failedToGetUserInfo": "Could not load user information.",
+			"failedToUnlinkLastAccount": "Failed to unlink account",
+			"failedToUpdateUser": "Could not update user. Please try again.",
+			"idTokenNotSupported": "ID token is not supported.",
+			"invalidEmail": "The entered email is invalid.",
+			"invalidEmailOrPassword": "The credentials you entered are invalid. Please check them and try again.",
+			"invalidInvitation": "The invitation is invalid or expired.",
+			"invalidPassword": "The entered password is incorrect.",
+			"invalidToken": "The token you entered is invalid or has expired.",
+			"passwordTooLong": "Password is too long.",
+			"passwordTooShort": "Password is too short.",
+			"providerNotFound": "This provider is not suppported.",
+			"sessionExpired": "The session has expired.",
+			"socialAccountAlreadyLinked": "This account is already linked to a user.",
+			"unknown": "Something went wrong. Please try again.",
+			"userAlreadyExists": "This email is already registered. Please sign in directly.",
+			"userEmailNotFound": "Email not found.",
+			"userNotFound": "This user does not exists"
+		},
+		"forgotPassword": {
+			"backToSignin": "Back to signin",
+			"email": "Email",
+			"hints": {
+				"linkNotSent": {
+					"message": "We are sorry, but we were unable to send you a link to reset your password. Please try again later.",
+					"title": "Link not sent"
+				},
+				"linkSent": {
+					"message": "We have sent you a link to continue. Please check your inbox.",
+					"title": "Link sent"
+				}
+			},
+			"message": "Please enter your email address and we will send you a link to reset your password.",
+			"submit": "Send link",
+			"title": "Forgot your password?"
+		},
+		"login": {
+			"acceptAgreements": {
+				"and": "and",
+				"label": "I have read and agree to the",
+				"privacyPolicy": "Privacy Policy",
+				"terms": "Terms of Service"
+			},
+			"backToModifyPhone": "← Back to modify phone number",
+			"continueWith": "Or continue with",
+			"createAnAccount": "Create an account",
+			"dontHaveAnAccount": "Don't have an account yet?",
+			"email": "Email",
+			"emailUsernameInputPlaceholder": "Enter email or username",
+			"emailUsernameLogin": "Email/Username Login",
+			"enterVerificationCode": "Please enter verification code",
+			"errors": {
+				"accountNotExist": "Account does not exist, please check email/username or register first",
+				"codeExpiredOrIncorrect": "Verification code is incorrect or expired, please get a new one",
+				"emailNotVerified": "Please verify your email before logging in",
+				"emailUsernameOrPasswordIncorrect": "Email/username or password is incorrect, please check and try again",
+				"enterSixDigitCode": "Please enter 6-digit verification code",
+				"invalidPhoneNumber": "Phone number format is incorrect",
+				"loginFailedGeneral": "Login failed, please check if email/username and password are correct",
+				"networkError": "Network connection error, please check network and try again",
+				"phoneNotAvailable": "Phone verification feature is temporarily unavailable, please try again later",
+				"sendCodeFailed": "Failed to send verification code, please try again",
+				"sendCodeTooFrequent": "Verification code sent too frequently, please try again later",
+				"serverError": "Server temporarily unavailable, please try again later",
+				"sessionExpired": "Login session has expired, please log in again",
+				"smsServiceNotConfigured": "SMS service is not fully configured, please contact administrator",
+				"tooManyAttempts": "Too many login attempts, please try again later",
+				"phoneRequired": "Please enter your phone number"
+			},
+			"forgotPassword": "Forgot password?",
+			"hints": {
+				"acceptAgreements": "Please accept the privacy policy and terms of service before continuing with social login",
+				"invalidCredentials": "The email or password you entered are invalid. Please try again.",
+				"linkSent": {
+					"message": "We have sent you a link to continue. Please check your inbox.",
+					"title": "Link sent"
+				}
+			},
+			"loginWithPasskey": "Login with passkey",
+			"modes": {
+				"magicLink": "Magic link",
+				"password": "Password",
+				"phone": "Phone"
+			},
+			"otherLoginMethods": "Other login methods",
+			"phoneInputPlaceholder": "Enter phone number",
+			"phoneLogin": "Phone Login",
+			"phoneNumber": "Phone Number",
+			"resendCodeIn": "seconds until resend available",
+			"resendVerificationCode": "Resend verification code",
+			"sendMagicLink": "Send magic link",
+			"sendVerificationCode": "Send Verification Code",
+			"submit": "Sign in",
+			"subtitle": "Please enter your credentials to sign in.",
+			"title": "Welcome back",
+			"username": "Username",
+			"verificationCodeSentTo": "Verification code sent to",
+			"verifyAndLogin": "Verify & Login",
+			"wechatLogin": "WeChat Login",
+			"wechatRecommended": "Recommended for quick login",
+			"orUseOtherMethods": "Or use other methods",
+			"moreLoginMethods": "More login methods",
+			"toasts": {
+				"codeSent": "Verification code sent",
+				"loginSuccess": "Login successful"
+			}
+		},
+		"bindPhone": {
+			"title": "Bind Phone Number",
+			"subtitle": "To protect your account and enable full features, we recommend binding a phone number. You can skip for now, but some features may be limited.",
+			"phoneNumber": "Phone Number",
+			"phoneInputPlaceholder": "Enter phone number",
+			"sendVerificationCode": "Send Verification Code",
+			"enterVerificationCode": "Please enter verification code",
+			"verificationCodeSentTo": "Verification code sent to",
+			"backToModifyPhone": "← Back to modify phone number",
+			"resendCodeIn": "seconds until resend available",
+			"resendVerificationCode": "Resend verification code",
+			"verifyAndBind": "Verify & Bind",
+			"skipForNow": "Skip for now",
+			"bindingSuccess": "Phone number bound successfully!",
+			"redirecting": "Redirecting...",
+			"errors": {
+				"sendCodeFailed": "Failed to send verification code, please try again",
+				"sendCodeTooFrequent": "Verification code sent too frequently, please try again later",
+				"invalidPhoneNumber": "Phone number format is incorrect",
+				"smsServiceNotConfigured": "SMS service is not fully configured, please contact administrator",
+				"enterSixDigitCode": "Please enter 6-digit verification code",
+				"codeExpiredOrIncorrect": "Verification code is incorrect or expired, please get a new one",
+				"bindingFailed": "Binding failed, please try again"
+			}
+		},
+		"phoneBindingPrompt": {
+			"title": "Bind a phone number",
+			"description": "You signed in with WeChat but haven’t bound a phone number yet.",
+			"note": "Binding helps with account recovery, event updates, and contact/teaming up. Skipping may limit some features.",
+			"skip": "Skip for now",
+			"bindNow": "Bind now"
+		},
+		"resetPassword": {
+			"backToSignin": "Back to signin",
+			"hints": {
+				"error": "We are sorry, but we were unable to reset your password. Please try again.",
+				"success": "Your password has been reset successfully."
+			},
+			"message": "Please enter a new password.",
+			"newPassword": "New password",
+			"submit": "Reset password",
+			"title": "Reset your password"
+		},
+		"signup": {
+			"acceptAgreements": {
+				"and": "and",
+				"label": "I agree to the",
+				"privacyPolicy": "Privacy Policy",
+				"terms": "Terms of Service"
+			},
+			"acceptPrivacyPolicy": {
+				"label": "I agree to the",
+				"link": "Privacy Policy"
+			},
+			"acceptTerms": {
+				"label": "I agree to the",
+				"link": "Terms of Service"
+			},
+			"alreadyHaveAccount": "Already have an account?",
+			"goToSignIn": "Sign in here",
+			"backToModifyPhone": "← Back to modify phone number",
+			"email": "Email",
+			"emailInputPlaceholder": "Enter email",
+			"emailUsernameSignup": "Email/Username Registration",
+			"enterVerificationCode": "Please enter verification code",
+			"errors": {
+				"agreeToTermsRequired": "Please agree to the terms of service and privacy policy",
+				"codeExpiredOrIncorrect": "Verification code is incorrect or expired, please get a new one",
+				"emailOrUsernameExists": "Email or username already exists, please use a different one or sign in",
+				"enterSixDigitCode": "Please enter 6-digit verification code",
+				"invalidPhoneNumber": "Phone number format is incorrect",
+				"networkError": "Network connection error, please check network and try again",
+				"phoneNotAvailable": "Phone verification feature is temporarily unavailable, please try again later",
+				"phoneNumberExists": "Phone number is already registered, please sign in directly",
+				"sendCodeFailed": "Failed to send verification code, please try again",
+				"sendCodeTooFrequent": "Verification code sent too frequently, please try again later",
+				"serverError": "Server temporarily unavailable, please try again later",
+				"signupFailedGeneral": "Registration failed, please check your information and try again",
+				"smsServiceNotConfigured": "SMS service is not fully configured, please contact administrator",
+				"weakPassword": "Password is not strong enough, please use at least 8 characters"
+			},
+			"hints": {
+				"acceptAgreements": "Please accept the privacy policy and terms of service before continuing with social registration",
+				"checkEmailAndSignIn": "Please check your email and click the verification link. After verification, you can sign in to your account.",
+				"signupFailed": "Sorry, we couldn't create your account. Please try again later.",
+				"verifyEmail": "We've sent you a link to verify your email. Please check your inbox."
+			},
+			"message": "We're excited to have you join the community. Please fill out the form below to create your account.",
+			"name": "Name",
+			"otherSignupMethods": "Other registration methods",
+			"password": "Password",
+			"phoneInputPlaceholder": "Enter phone number",
+			"phoneNumber": "Phone Number",
+			"phoneSignup": "Phone Registration",
+			"resendCodeIn": "seconds until resend available",
+			"resendVerificationCode": "Resend verification code",
+			"sendVerificationCode": "Send Verification Code",
+			"signIn": "Sign in",
+			"submit": "Create account",
+			"title": "Create account",
+			"username": "Username",
+			"usernameInputPlaceholder": "Enter username",
+			"verificationCodeSentTo": "Verification code sent to",
+			"verifyAndSignup": "Verify & Sign Up",
+			"wechatSignup": "WeChat Registration"
+		},
+		"verify": {
+			"backToSignin": "Back to Sign In",
+			"code": "Code",
+			"message": "Please enter the verification code you received to verify your account.",
+			"submit": "Verify",
+			"title": "Verify Your Account"
+		},
+		"emailVerified": {
+			"goHome": "Go Home",
+			"message": "Your email has been successfully verified! You can now use this email to sign in.",
+			"signIn": "Sign In Now",
+			"title": "Email Verified Successfully"
+		}
+	},
+	"beta": {
+		"close": "Close",
+		"label": "BETA",
+		"message": "This platform is in beta testing, data may be lost"
+	},
+	"blog": {
+		"back": "Back to Blog",
+		"description": "Read the latest news from our community",
+		"title": "Community blog"
+	},
+	"bookmarks": {
+		"addBookmark": "Add Bookmark",
+		"bookmarkDescription": "Description",
+		"bookmarkedUsers": "Bookmarked Users",
+		"userFollowing": "Following Users",
+		"eventBookmarks": "Event Bookmarks",
+		"bookmarkTitle": "Bookmark Title",
+		"bookmarkUrl": "URL",
+		"cpValue": "CP Value",
+		"createdAt": "Created At",
+		"deleteBookmark": "Delete Bookmark",
+		"description": "Manage your bookmarked content and links",
+		"discoverProjects": "Discover Projects",
+		"discoverUsers": "Discover Users",
+		"editBookmark": "Edit Bookmark",
+		"location": "Location",
+		"noBookmarks": "No bookmarks yet",
+		"noBookmarksDescription": "Click the bookmark button when browsing user profiles to add them here",
+		"noProjectBookmarks": "No bookmarked projects yet",
+		"noUserBookmarks": "No bookmarked users yet",
+		"noUserFollowing": "No following users yet",
+		"searchPlaceholder": "Search following users...",
+		"projectBookmarks": "Project Bookmarks",
+		"role": "Role",
+		"stage": "Stage",
+		"status": "Status",
+		"timesViewed": "times viewed",
+		"title": "My Bookmarks",
+		"userBookmarks": "User Bookmarks",
+		"viewProfile": "View Profile",
+		"viewProject": "View Project",
+		"work": "Work"
+	},
+	"callToActionV2": {
+		"bottom": {
+			"subtitle": "Meet like-minded creators here and turn ideas into reality together",
+			"title": "You Don't Have to Create Alone"
+		},
+		"bottomSubtitle": "Meet like-minded creators here and turn ideas into reality together",
+		"bottomTitle": "You Don't Have to Create Alone",
+		"cards": {
+			"creation": {
+				"color": "green",
+				"cta": "Publish My Work",
+				"description": "Share your product creations, whether prototypes or MVPs, to gain exposure and attract seed users and potential partners",
+				"icon": "🚀",
+				"title": "Showcase Your Work"
+			},
+			"freedom": {
+				"color": "blue",
+				"cta": "Explore Local Chapters",
+				"description": "Join local chapters, participate in long-term collaborations, connect with more resources, and expand opportunities for deep cooperation",
+				"icon": "🏢",
+				"title": "Join Community Chapters"
+			},
+			"love": {
+				"color": "purple",
+				"cta": "View Upcoming Events",
+				"description": "Join mini hackathons, Demo Shows, and workshops to exchange and showcase in a relaxed atmosphere, gaining genuine feedback and inspiration",
+				"icon": "🎪",
+				"title": "Attend Events"
+			}
+		},
+		"subtitle": "Whether your project is in the startup or growth stage, you can find support and partners here",
+		"tagline": "🎯 Three Ways to Participate",
+		"title": "Find the Participation Path That Suits You Best"
+	},
+	"changelog": {
+		"description": "Stay up to date with the latest changes in our product.",
+		"title": "Changelog"
+	},
+	"choosePlan": {
+		"description": "Choose the plan that best fits your needs",
+		"title": "Choose a Plan"
+	},
+	"common": {
+		"clickHere": "click here to unsubscribe",
+		"loadMore": "Load more",
+		"from": "From",
+		"needHelp": "Need help?",
+		"contactSupport": "Contact support",
+		"emailSupport": "Email support",
+		"helpCenter": "Help center",
+		"sentAt": "Sent on",
+		"official": "Official communication from",
+		"openLinkInBrowser": "If you want to open the link in a different browser than your default one, copy and paste this link:",
+		"otp": "One-time password",
+		"unsubscribe": "Don't want to receive these emails?",
+		"useLink": "or use the following link:",
+		"copy": "Copy",
+		"save": "Save",
+		"share": "Share",
+		"like": "Like",
+		"actions": {
+			"continue": "Continue",
+			"verify": "Verify",
+			"add": "Add"
+		},
+		"banner": {
+			"developmentNotice": "The Hackathon Weekly Community website is under development"
+		},
+		"confirmation": {
+			"cancel": "Cancel",
+			"confirm": "Confirm"
+		},
+		"consent": {
+			"description": "By continuing, you agree to our terms and conditions."
+		},
+		"menu": {
+			"allrights": "All Rights Reserved.",
+			"blog": "Blog",
+			"changelog": "Changelog",
+			"contact": "Contact",
+			"dashboard": "Dashboard",
+			"docs": "Docs",
+			"faq": "FAQ",
+			"features": "Features",
+			"feishuKnowledgeBase": "Feishu Knowledge Base",
+			"icp": "ICP Filing",
+			"icpNumber": "Record No. 2025000000-1",
+			"login": "Login",
+			"pricing": "Pricing",
+			"privacy": "Privacy Policy",
+			"terms": "Terms of Service"
+		},
+		"reset": "Reset",
+		"saveChanges": "Save changes",
+		"tableOfContents": {
+			"title": "On this page"
+		},
+		"toasts": {
+			"shareSuccess": "Shared successfully",
+			"linkCopied": "Link copied to clipboard",
+			"shareFailed": "Share failed, please copy the link manually"
+		}
+	},
+	"eventHostSubscription": {
+		"description": "Receive an email whenever {hostName} publishes a new event.",
+		"error": "Something went wrong. Please try again.",
+		"login": "Log in to subscribe",
+		"subscribe": "Subscribe to future events",
+		"successSubscribe": "You will receive updates from {hostName}.",
+		"successUnsubscribe": "You won't receive updates from {hostName} anymore.",
+		"unsubscribe": "Unsubscribe"
+	},
+	"communityFeatures": {
+		"features": {
+			"activities": {
+				"description": "AI co-learning workshops, creator meetups, mini hackathons, and more to normalize innovation",
+				"title": "Weekly Activities"
+			},
+			"cities": {
+				"description": "Beijing, Shanghai, Guangzhou, Shenzhen, Hangzhou, Chiang Mai (continuously expanding...)",
+				"title": "Multi-city Coverage"
+			},
+			"creators": {
+				"description": "Cross-field collaboration among developers, entrepreneurs, product managers, designers, operators, and professionals",
+				"title": "Creator Network"
+			},
+			"mvp": {
+				"description": "Providing systematic methodologies, knowledge base, open-source tools, and case support to complete an MVP in 7 days",
+				"title": "Focus on MVP"
+			}
+		},
+		"label": "Community Features",
+		"mission": {
+			"description": "Accelerate idea implementation through AI, helping millions of creators build valuable, meaningful, and interesting products",
+			"title": "Mission"
+		},
+		"title": "Core Community Features",
+		"values": {
+			"creation": "Creation",
+			"freedom": "Freedom",
+			"love": "Love"
+		},
+		"vision": {
+			"description": "To become the most vibrant and warm AI product creator community globally",
+			"title": "Vision"
+		}
+	},
+	"contact": {
+		"contactInfo": {
+			"title": "Contact Information"
+		},
+		"description": "We are here to help you. Please use the form below to get in touch with us.",
+		"form": {
+			"email": "Email",
+			"emailPlaceholder": "Enter your email",
+			"message": "Message",
+			"messagePlaceholder": "How can we help you?",
+			"name": "Name",
+			"namePlaceholder": "Enter your name",
+			"notifications": {
+				"error": "We are sorry, but we were unable to send your message. Please try again later.",
+				"success": "Your message has been sent successfully. We will get back to you as soon as possible."
+			},
+			"subject": "Subject",
+			"subjectPlaceholder": "What is this regarding?",
+			"submit": "Send message",
+			"submitting": "Sending...",
+			"title": "Send a Message"
+		},
+		"info": {
+			"email": {
+				"title": "Email"
+			},
+			"location": {
+				"title": "Location",
+				"value": "Shenzhen, Guangdong, China"
+			},
+			"wechat": {
+				"title": "WeChat",
+				"value": "Scan the QR code below"
+			}
+		},
+		"label": "Get in Touch",
+		"qrCodes": {
+			"title": "Connect on WeChat",
+			"wechatGroup": "WeChat Group",
+			"wechatOfficial": "Official Account"
+		},
+		"title": "Contact us"
+	},
+	"dashboard": {
+		"advancedGuide": {
+			"createOrganization": {
+				"description": "Build your local community and gather like-minded partners",
+				"title": "Create Organization"
+			},
+			"description": "Ready to take on more responsibility? Become a community builder and contributor",
+			"organizeEvent": {
+				"description": "Host events to connect more creators",
+				"title": "Organize Event"
+			},
+			"title": "Advanced Guide"
+		},
+		"myOrganizations": {
+			"createNew": "Create Organization",
+			"description": "Community organizations you're part of",
+			"findOrganizations": "Find Organizations",
+			"memberRole": "Organization Member",
+			"noOrganizations": "No organizations yet",
+			"noOrganizationsDesc": "Join or create an organization to collaborate",
+			"title": "My Organizations",
+			"viewAll": "View All {count} Organizations"
+		},
+		"myProjects": {
+			"createFirst": "Create First Project",
+			"createNew": "Create New Project",
+			"description": "Showcase your creative works",
+			"featured": "Featured",
+			"likes": "likes",
+			"noProjects": "No projects yet",
+			"noProjectsDesc": "Start by creating your first project",
+			"title": "My Projects",
+			"viewAll": "View All {count} Projects",
+			"views": "views"
+		},
+		"newUser": {
+			"completeProfile": "Complete Profile",
+			"description": "Complete your profile and start your first creative journey",
+			"viewEvents": "View Events",
+			"welcome": "Welcome to the Creator Community!"
+		},
+		"notifications": {
+			"daysAgo": "{count} days ago",
+			"description": "View latest system messages and interaction notifications",
+			"hoursAgo": "{count} hours ago",
+			"justNow": "Just now",
+			"minutesAgo": "{count} minutes ago",
+			"noNotifications": "No new notifications",
+			"title": "Notifications",
+			"viewAll": "View All",
+			"viewMore": "View {count} more notifications"
+		},
+		"personalCenter": {
+			"accountSettings": {
+				"description": "Security settings, notification preferences, etc.",
+				"title": "Account Settings"
+			},
+			"communityDocs": {
+				"description": "View guides and community guidelines",
+				"title": "Community Docs"
+			},
+			"description": "Manage your personal profile and account settings",
+			"editProfile": {
+				"description": "Complete your personal information and skills",
+				"title": "Edit Profile"
+			},
+			"eventManagement": {
+				"description": "Manage events you participate in or organize",
+				"title": "Event Management"
+			},
+			"myBookmarks": {
+				"description": "View your saved projects and events",
+				"title": "My Bookmarks"
+			},
+			"myContributions": {
+				"description": "View and apply for community contributions",
+				"title": "Contributions"
+			},
+			"title": "Personal Center"
+		},
+		"projectStages": {
+			"COMPLETED": "🎯 Completed",
+			"DEVELOPMENT": "🔧 Development",
+			"FUNDING": "💼 Funding",
+			"GROWTH": "📈 Growth",
+			"IDEA_VALIDATION": "💡 Idea Validation",
+			"LAUNCH": "🚀 Launch",
+			"MONETIZATION": "💰 Monetization"
+		},
+		"quickActions": {
+			"createProject": {
+				"description": "Start your first creative project",
+				"title": "Create Project"
+			},
+			"description": "Begin your creative journey",
+			"joinEvent": {
+				"description": "Participate in community online/offline events",
+				"title": "Join Event"
+			},
+			"title": "Quick Start"
+		},
+		"stats": {
+			"contributionPoints": "Contribution Points",
+			"projectsCount": "Projects Count",
+			"totalLikes": "Total Likes",
+			"totalViews": "Total Views"
+		},
+		"subtitle": "Manage your projects, track your progress, and connect with the community",
+		"title": "Creator Dashboard",
+		"userOverview": {
+			"daysActive": "days creating",
+			"memberSince": "Member Since"
+		},
+		"values": {
+			"creation": "Creation",
+			"description": "Spend 1 week creating 1 minimum viable product to solve 1 life pain point",
+			"freedom": "Freedom",
+			"love": "Love",
+			"title": "Core Values"
+		},
+		"events": {
+			"copyLink": "Copy Link",
+			"hackathonManagement": {
+				"stage": {
+					"currentStageLabel": "Current Stage: {stage}",
+					"title": "Stage Management",
+					"description": "Manage hackathon stage transitions",
+					"previous": "Previous Stage",
+					"next": "Next Stage",
+					"jumpLabel": "Jump to Stage",
+					"jumpPlaceholder": "Select stage",
+					"lastUpdated": "Last updated: {time}",
+					"updateSuccess": "Stage updated to: {stage}",
+					"updateFailed": "Failed to update stage",
+					"historyTitle": "Stage Change History",
+					"historyUnknownTime": "Unknown time",
+					"historyBy": "Changed by: {user}",
+					"setCurrent": "Set as current",
+					"descriptions": {
+						"registration": "Participants can register for the hackathon",
+						"development": "Teams start developing their projects",
+						"submission": "Teams submit their final projects",
+						"voting": "Judges and public vote for projects",
+						"results": "Winners are announced"
+					}
+				},
+				"toasts": {
+					"saveSuccess": "Configuration saved",
+					"saveFailed": "Failed to save configuration"
+				}
+			}
+		}
+	},
+	"documentation": {
+		"title": "Documentation"
+	},
+	"eventManagement": {
+		"allEvents": "All Events",
+		"checkedIn": "checked in",
+		"createEvent": "Create Event",
+		"exploreEvents": "Explore Events",
+		"manage": "Manage",
+		"myEvents": "My Events",
+		"myEventsDescription": "Manage your event registrations and organized events",
+		"noEvents": "No events yet",
+		"noOrganizedEvents": "You haven't organized any events yet. Start by creating your first event.",
+		"noRegisteredEvents": "You haven't registered for any events yet. Discover amazing events in our community.",
+		"online": "Online",
+		"organizedEvents": "Organized Events",
+		"organizer": "Organizer",
+		"refresh": "Refresh",
+		"registered": "registered",
+		"registeredEvents": "Registered Events",
+		"upcomingOnly": "Upcoming Events",
+		"viewEvent": "View Event",
+		"viewMore": "View More",
+		"views": "views"
+	},
+	"events": {
+		"viewMode": {
+			"card": "Card View",
+			"compact": "Compact View"
+		},
+		"tabs": {
+			"intro": "Intro",
+			"works": "Works",
+			"participants": "Participants",
+			"organizer": "Organizer"
+		},
+		"manageEventShort": "Manage",
+		"awardsWall": "Awards Wall",
+		"aboutThisEvent": "About This Event",
+		"organizedBy": "Organized by",
+		"hackathon": {
+			"phases": {
+				"registration": "Registration Phase",
+				"development": "Development Phase",
+				"submission": "Submission Phase",
+				"voting": "Voting Phase",
+				"results": "Results"
+			},
+			"status": {
+				"registration": "Registration Open",
+				"development": "Development Phase Underway",
+				"submission": "Project submissions open",
+				"voting": "Voting in progress",
+				"resultsPublished": "Winners announced"
+			},
+			"tabs": {
+				"overview": "Overview",
+				"projects": "Projects",
+				"resources": "Resources",
+				"awards": "Awards",
+				"results": "Results"
+			},
+			"resources": {
+				"noResources": "No resources available"
+			},
+			"awards": {
+				"title": "Awards & Prizes",
+				"description": "Explore the award categories and recognition for this hackathon",
+				"categories": "Award Categories",
+				"judgeAward": "Judges' Award",
+				"publicAward": "People's Choice",
+				"winner": "winner",
+				"winners": "winners",
+				"currentWinners": "Current Winners",
+				"noWinnersYet": "Winners will be announced after judging",
+				"judgeAwards": "Judged Awards",
+				"judgeAwardsDesc": "Selected by the judging panel based on criteria",
+				"publicAwards": "Public Awards",
+				"publicAwardsDesc": "Voted by the community",
+				"recognition": "Recognition Levels",
+				"recognitionDesc": "Gold, Silver and Bronze distinctions highlight excellence",
+				"first": "First Prize",
+				"firstDesc": "Top recognition for outstanding projects",
+				"second": "Second Prize",
+				"secondDesc": "Recognizing excellent work",
+				"third": "Third Prize",
+				"thirdDesc": "Honoring promising projects",
+				"noAwards": "No awards available",
+				"noAwardsDesc": "No awards have been configured for this hackathon"
+			},
+			"gallery": {
+				"title": "Project Gallery",
+				"sortRecent": "Most Recent",
+				"sortPopular": "Most Popular",
+				"sortScore": "By Score",
+				"noProjects": "No Projects",
+				"noProjectsDesc": "No projects have been submitted yet. Submit your creative project now!"
+			},
+			"results": {
+				"notReady": "Voting results will appear here once the voting stage begins."
+			},
+			"voting": {
+				"configuration": "Voting Configuration",
+				"configurationDesc": "Configure voting rules and parameters",
+				"results": "Voting Results ({count})",
+				"resultsDesc": "View voting result statistics",
+				"noResults": "No voting results yet",
+				"noResultsDesc": "Results will be displayed here after voting ends",
+				"liveMessage": "Voting is live now — cast your vote!",
+				"notOpenMessage": "Voting will open once the event enters the voting stage.",
+				"closedMessage": "Voting has ended for this hackathon.",
+				"modes": {
+					"fixedQuota": "Fixed Quota (N votes per person)",
+					"perProjectLike": "Per-Project Like (1 vote per project)"
+				},
+				"modeLabels": {
+					"title": "Voting Mode",
+					"description": "Choose how voters can vote: fixed quota or per-project likes"
+				},
+				"quotaLabel": "Vote Quota per Person",
+				"quotaDescription": "Maximum number of votes each eligible voter can cast in this event",
+				"errors": {
+					"votesFull": "All available votes used",
+					"votesFullWithQuota": "All available votes used (max {quota} votes per person)",
+					"ownSubmission": "Cannot vote for your own submission",
+					"alreadyVoted": "You have already voted for this project",
+					"votingClosed": "Voting is closed or not yet open",
+					"votingEnded": "Voting has ended",
+					"notVoted": "You have not voted for this project",
+					"operationFailed": "Operation failed, please retry"
+				},
+				"messages": {
+					"remainingVotes": "You have {count} votes left",
+					"perProjectMode": "Per-project like (max 1 per project)",
+					"votedCount": "Voted for {count} projects",
+					"voteSuccess": "Vote successful",
+					"voteSuccessUnlimited": "Voted for this project, you can continue supporting others",
+					"voteSuccessWithRemaining": "{count} votes remaining",
+					"unvoteSuccess": "Vote removed",
+					"unvoteSuccessUnlimited": "Vote removed from this project",
+					"unvoteSuccessWithRemaining": "{count} votes remaining"
+				},
+				"submissions": {
+					"viewAll": "All Submissions"
+				}
+			},
+			"description": {
+				"title": "Event Details"
+			},
+			"features": {
+				"title": "Hackathon Features",
+				"teamwork": "Team Collaboration",
+				"soloOrTeam": "Solo or team participation supported, up to {max} members per team",
+				"teamOnly": "Team Only",
+				"learning": "Learning Opportunities",
+				"learningDesc": "Learn and exchange with other developers to improve technical skills",
+				"innovation": "Innovation Challenge",
+				"innovationDesc": "Solve real problems and challenge innovative thinking",
+				"recognition": "Recognition",
+				"recognitionDesc": "Outstanding works will receive awards and community recognition"
+			},
+			"registration": {
+				"title": "Event Registration",
+				"joinToParticipate": "Join the hackathon and showcase your creativity",
+				"register": "Register Now",
+				"stageClosed": "Registration is closed during this stage."
+			},
+			"actions": {
+				"submitProject": "Submit My Project"
+			}
+		},
+		"addressTBD": "Address TBD",
+		"associatedProject": "Associated Project",
+		"attendeesLabel": " attendees",
+		"backToEventsList": "Back to Events",
+		"card": {
+			"addressTBD": "Address TBD",
+			"featured": "Featured",
+			"more": "More",
+			"onlineEvent": "Online Event",
+			"registered": "Registered",
+			"viewDetails": "View Details",
+			"views": "views"
+		},
+		"checkIn": {
+			"active": "Active",
+			"adminCanCheckInAnytime": "Admins can check in participants anytime",
+			"alreadyCheckedIn": "Already Checked In",
+			"backToEvents": "Back to Events",
+			"cameraInitError": "Failed to initialize camera. Please check camera permissions.",
+			"cameraPermissionDenied": "Camera permission denied. Please allow camera access to scan QR codes.",
+			"cameraPermissionHelp": "Please ensure your device has a camera and grant permissions.",
+			"cancel": "Cancel",
+			"cancelCheckInError": "Failed to cancel check-in",
+			"cancelCheckInSuccess": "Check-in canceled successfully",
+			"cannotCheckIn": "Cannot Check In",
+			"checkedInAt": "Checked in at: {time}",
+			"checkedInList": "Checked-in ({count})",
+			"checkIn": "Check In",
+			"checkInError": "Failed to check in user",
+			"checking": "Checking...",
+			"checkingIn": "Checking in...",
+			"checkInManagement": "Check-in Management",
+			"checkInManagementDesc": "Manage all participants and check-in status",
+			"checkInNow": "Check In Now",
+			"checkInStatus": "Check-in Status",
+			"checkInSuccess": "{name} {statusPrefix}checked in at {time}",
+			"date": "Date",
+			"error": "Error",
+			"errorLoadCheckInStatus": "Unable to load check-in information",
+			"eventCheckIn": "Event Check-in",
+			"eventDetails": "Event Details",
+			"fetchCheckInsError": "Failed to fetch check-ins",
+			"fetchParticipantsError": "Failed to fetch registered participants",
+			"initializingCamera": "Initializing camera...",
+			"invalidQRFormat": "Invalid QR code format. Please scan a valid check-in QR code.",
+			"lastHour": "Last Hour",
+			"loadingCheckIn": "Loading check-in page...",
+			"location": "Location",
+			"noCameraAvailable": "No camera available",
+			"noCameraFound": "No camera found. Please ensure your device has a camera.",
+			"noCheckInsYet": "No check-ins yet",
+			"onlineEvent": "Online Event",
+			"pendingCheckIn": "Pending Check-in ({count})",
+			"preEvent": "Pre-event",
+			"processingCheckIn": "Processing check-in...",
+			"qrProcessError": "Error processing QR code. Please try again.",
+			"readyToCheckIn": "Ready to Check In",
+			"refreshParticipants": "Refresh Participants",
+			"scanInstruction": "Point your camera at a QR code to scan",
+			"scanQRDescription": "Position the QR code within the frame to check in an attendee.",
+			"scanQRTitle": "Scan QR Code",
+			"scanSuccess": "QR code scanned successfully!",
+			"searchParticipants": "Search participants...",
+			"successfullyCheckedIn": "Successfully checked in!",
+			"time": "Time",
+			"totalCheckIns": "Total check-ins: {count}",
+			"totalCheckInsLabel": "Total Check-ins",
+			"unableToLoadCheckIn": "Unable to load check-in information",
+			"user": "User",
+			"userCanCheckInTwoHoursBefore": "Participants can check in 2 hours before event starts",
+			"viewEventDetails": "View Event Details",
+			"wrongEventQR": "This QR code is for a different event. Please scan the correct QR code.",
+			"pleaseLoginFirst": "Please log in first",
+			"loginRequiredMessage": "You need to log in to check in",
+			"goToLogin": "Go to Login",
+			"notRegisteredTitle": "Not registered yet",
+			"notRegisteredDescription": "You haven't signed up for this event yet. Please register first to continue check-in.",
+			"notRegisteredGuide": "Jump straight to the registration entry below, finish signup and come back to scan again.",
+			"notRegisteredCtaHint": "Complete registration and reopen the check-in QR afterwards",
+			"goToRegistration": "Go to registration",
+			"registrationPendingHelp": "You can check in after approval. We'll notify you once your registration is confirmed."
+		},
+		"copy": "Copy",
+		"copyFailed": "Copy failed, please manually copy the link",
+		"copyShareText": "Copy Share Text",
+		"createEvent": "Create Event",
+		"downloadQRCode": "Download QR Code",
+		"emptyState": {
+			"noEventsYet": "No events have been published yet.",
+			"title": "No events found",
+			"tryAdjustFilters": "Try adjusting your filters to see more events."
+		},
+		"pastEventsFallback": {
+			"title": "Here are some past events:",
+			"viewAll": "View All"
+		},
+		"eventDetails": "Event Details",
+		"eventEnded": "Event has ended",
+		"eventFeedback": "Event Feedback",
+		"eventFull": "Event is full",
+		"eventInfoTitle": "Event Info",
+		"eventNotAvailable": "Event not available",
+		"eventTitle": "Event Title",
+		"eventLabel": "Event",
+		"feedbackLinkCopied": "Feedback link copied to clipboard",
+		"hideQRCode": "Hide QR Code",
+		"shareFeedbackDescription": "Share this link with participants so they can directly access the feedback page",
+		"shareFeedbackLink": "Share Feedback Link",
+		"showQRCode": "Show QR Code",
+		"feedback": {
+			"averageRating": "Average Rating",
+			"cancel": "Cancel",
+			"clickToRecommend": "Click to select whether you would recommend to friends",
+			"comment": "Comment:",
+			"currentFeeling": "How are you feeling about the event currently?*",
+			"currentFeelingsQuestion": "How do you feel about the event so far?*",
+			"edit": "Edit",
+			"editFeedback": "Edit Your Feedback",
+			"editYourFeedback": "Edit your feedback",
+			"eventRating": "How would you rate this event?*",
+			"eventRatingQuestion": "What's your rating for this event?*",
+			"eventReviews": "Event reviews ({count})",
+			"eventThoughts": "What are your thoughts on this event?",
+			"eventThoughtsQuestion": "What are your thoughts about this event?",
+			"experiencePlaceholder": "Share your experience, what you liked, what could be improved...",
+			"feedbackUpdated": "Feedback updated!",
+			"notifications": {
+				"submitError": "Failed to submit feedback"
+			},
+			"helpUsImprove": "Help us improve, share your feedback on this event",
+			"improvementPlaceholder": "Any suggestions to make future events better...",
+			"improvementSuggestions": "Improvement suggestions",
+			"improvementSuggestionsLabel": "Improvement suggestions:",
+			"leaveFeedback": "Leave Feedback",
+			"noReviews": "No reviews yet",
+			"participantReviews": "Participant reviews for this event",
+			"pleaseProvideRating": "Please provide a rating",
+			"rating": "Rating:",
+			"realTimeFeedback": "Real-time Feedback",
+			"realTimeFeelings": "Real-time feelings and thoughts",
+			"realTimePlaceholder": "Share your real-time feelings, any thoughts or suggestions...",
+			"realTimeThoughts": "Real-time feelings and thoughts",
+			"recommend": "Recommend:",
+			"recommendationRate": "Recommendation Rate",
+			"recommendClick": "Click to choose whether to recommend to friends",
+			"recommendEvent": "I would recommend this event to others",
+			"reviewsWillAppear": "Participant feedback will appear here",
+			"shareExperience": "Share Your Event Experience",
+			"shareExperiencePlaceholder": "Share your experience, what did you like, what could be improved...",
+			"shareRealTimePlaceholder": "Share your real-time feelings, any thoughts or suggestions...",
+			"shareThoughts": "Share your thoughts and suggestions",
+			"shareYourExperience": "Share your event experience",
+			"submitFeedback": "Submit feedback",
+			"submittedAt": "Submitted at:",
+			"submitting": "Submitting...",
+			"suggestions": "Suggestions:",
+			"suggestionsPlaceholder": "Any suggestions to make future events even better...",
+			"thankYou": "Thank you for your valuable feedback!",
+			"thankYouForFeedback": "Thank you for your feedback!",
+			"totalReviews": "Total Reviews",
+			"updateFeedback": "Update your feedback information",
+			"updateYourFeedback": "Update your feedback information",
+			"updating": "Updating...",
+			"wouldNotRecommend": "Would not recommend",
+			"wouldRecommend": "Would recommend",
+			"yourFeedback": "Your Feedback",
+			"toasts": {
+				"linkCopied": "Feedback link copied. Share it with others!",
+				"copyFailed": "Failed to copy. Please try again later."
+			}
+		},
+		"filters": {
+			"activeFilters": "Active filters",
+			"advancedFilters": "Advanced Filters",
+			"allLocations": "All Locations",
+			"allOrganizations": "All Organizations",
+			"allStatus": "All Status",
+			"allTypes": "All Types",
+			"clearAll": "Clear all",
+			"clearFilters": "Clear filters",
+			"description": "Search and filter events that match your interests",
+			"includingExpired": "Including expired events",
+			"inPerson": "In Person",
+			"locationLabel": "Location",
+			"more": "More Filters",
+			"online": "Online",
+			"hostType": "Host Type",
+			"hostTypeSelect": "Host Type",
+			"hostOrganizations": "Community Organizations",
+			"hostIndividuals": "Individual Hosts",
+			"hostAll": "All Hosts",
+			"organization": "Host Organization",
+			"organizationLabel": "Organization",
+			"searchLabel": "Search",
+			"apply": "Apply Filters",
+			"searchPlaceholder": "Search event names, keywords...",
+			"showExpired": "Show expired events",
+			"title": "Find Events",
+			"typeLabel": "Type",
+			"typeSelect": "Event Type",
+			"findEvents": "Find Events",
+			"active": " active filters"
+		},
+		"goToExternalPlatform": "Go to external platform to register",
+		"hasProject": "Has project",
+		"joinOnlineMeeting": "Join Online Meeting",
+		"linkCopied": "Link copied",
+		"linkCopyFailed": "Copy failed, please try again",
+		"registrationSuccess": "Registered successfully!",
+		"registrationSuccessInfo": {
+			"requiresRegistration": "Please register before viewing the registration instructions."
+		},
+		"loginRequiredVolunteer": "Please log in to apply as volunteer",
+		"loginToRegister": "Log in to register",
+		"toasts": {
+			"loginRequired": "Please log in to register for events"
+		},
+		"manage": {
+			"actions": {
+				"checkInAlready": "This user has already checked in to this event",
+				"checkInFailed": "Failed to check in user",
+				"checkInFailedDescription": "Unable to complete check-in",
+				"checkInNotConfirmed": "This user's registration is not confirmed yet",
+				"checkInNotRegistered": "This user is not registered for this event",
+				"checkInSuccess": "{name} checked in successfully!",
+				"checkInSuccessDescription": "Scanned QR code at {time}",
+				"defaultAttendeeName": "Guest",
+				"deleteError": "Failed to delete event",
+				"deleteSuccess": "Event deleted successfully",
+				"duplicateCheckInDescription": "QR code scan detected duplicate check-in",
+				"exportError": "Failed to export registrations",
+				"exportSuccess": "Registrations exported successfully",
+				"fetchError": "Failed to fetch event details",
+				"fetchRegistrationsError": "Failed to fetch registrations",
+				"loadTemplatesError": "Failed to load event templates",
+				"networkErrorDescription": "Network error or server unavailable",
+				"registrationSuccess": "Registration {status} successfully",
+				"registrationUpdateSuccess": "Registration status updated",
+				"timeout": "Request timed out. Please try again.",
+				"updateError": "Failed to update registration",
+				"cancelSuccess": "Registration cancelled successfully",
+				"cancelError": "Failed to cancel registration"
+			},
+			"backToEvents": "← Back to My Events",
+			"dashboard": {
+				"projectStages": {
+					"COMPLETED": "🎯 项目完结",
+					"DEVELOPMENT": "🔧 产品开发",
+					"FUNDING": "💼 融资扩张",
+					"GROWTH": "📈 用户增长",
+					"IDEA_VALIDATION": "💡 想法验证",
+					"LAUNCH": "🚀 产品发布",
+					"MONETIZATION": "💰 商业变现"
+				}
+			},
+			"editEvent": "Edit Event",
+			"editPage": {
+				"backToManagement": "← Back to Event Management",
+				"deleteEvent": "Delete Event",
+				"editEvent": "Edit Event",
+				"eventNotVisible": "This event is {status} and not visible to the public.",
+				"publishEvent": "Publish Event",
+				"updateDescription": "Update your event details and settings",
+				"viewPublicPage": "View Public Page"
+			},
+			"eventQR": {
+				"description": "Share this QR code with attendees for self-service check-in",
+				"shareDesc": "Users can scan this QR code to check themselves in to the event",
+				"title": "Event Check-in QR Code"
+			},
+			"eventQRCode": "CheckIn QR Code",
+			"eventStatus": {
+				"cancelled": "This event is cancelled and not visible to the public.",
+				"draft": "This event is draft and not visible to the public.",
+				"published": "This event is published and not visible to the public.",
+				"publishEvent": "Publish Event"
+			},
+			"manageEvent": "Manage your event registrations and settings",
+			"overview": {
+				"attendees": "attendees",
+				"capacity": "Capacity",
+				"description": "Description",
+				"endTime": "End Time",
+				"eventDetails": "Event Details",
+				"location": "Location",
+				"noCustomQuestions": "No custom questions configured",
+				"noQuestionsConfigured": "No custom questions configured",
+				"onlineEvent": "Online Event",
+				"options": "Options:",
+				"questionsConfigured": "{count} questions configured",
+				"questionType": "Type",
+				"registrationQuestions": "Registration Questions",
+				"required": "*",
+				"startTime": "Start Time"
+			},
+			"qrGenerator": {
+				"description": "Use this QR code to check in to...",
+				"downloadPNG": "Download PNG",
+				"downloadSVG": "Download SVG",
+				"keepPrivate": "Keep it private and don't share with others.",
+				"qrCodeInfo": "This QR code contains your user ID and event information.",
+				"title": "Your Check-in QR Code"
+			},
+			"qrScanner": {
+				"description": "Scan a user's QR code to check them in to the event",
+				"initializing": "Initializing camera...",
+				"noCamera": "No camera available",
+				"noCameraDesc": "Please ensure your device has a camera and grant permissions.",
+				"scanError": "Failed to scan QR code",
+				"title": "Scan User QR Code"
+			},
+			"refresh": "Refresh",
+			"registrations": {
+				"dialog": {
+					"approveRegistration": "Approve Registration",
+					"bio": "Bio:",
+					"city": "City:",
+					"contactInformation": "Contact Information",
+					"email": "Email:",
+					"noAnswerProvided": "No answer provided",
+					"questionAnswers": "Question Answers",
+					"order": {
+						"title": "Order Details",
+						"number": "Order number:",
+						"amount": "Amount:",
+						"statusLabel": "Order status:",
+						"status": {
+							"pending": "Pending payment",
+							"paid": "Paid",
+							"cancelled": "Cancelled",
+							"refundPending": "Refund in progress",
+							"refunded": "Refunded"
+						},
+						"paymentMethodLabel": "Payment method:",
+						"paymentMethod": {
+							"wechatNative": "WeChat QR",
+							"wechatJsapi": "WeChat in-app",
+							"stripe": "Stripe",
+							"free": "Free"
+						},
+						"expiredAt": "Expires at:",
+						"paidAt": "Paid at:",
+						"markPaid": "Mark as paid",
+						"markPaidConfirm": "Mark this order as paid manually?",
+						"markPaidSuccess": "Order marked as paid",
+						"markPaidFailed": "Failed to mark as paid"
+					},
+					"rejectRegistration": "Reject Registration",
+					"title": "Registration Details",
+					"undoRejectApprove": "Undo Reject & Approve"
+				},
+				"export": "Export",
+				"filter": {
+					"all": "All",
+					"cancelled": "Cancelled",
+					"confirmed": "Confirmed",
+					"pendingPayment": "Pending payment",
+					"pending": "Pending",
+					"rejected": "Rejected",
+					"status": "Status",
+					"waitlisted": "Waitlisted"
+				},
+				"noRegistrations": "No registrations yet",
+				"noRegistrationsDesc": "Registrations will appear here once people sign up for your event.",
+				"subtitle": "Manage participant registrations and approvals",
+				"table": {
+					"actions": "Actions",
+					"approve": "Approve",
+					"noTicketType": "No ticket type",
+					"participant": "Participant",
+					"registered": "Registered",
+					"reject": "Reject",
+					"status": "Status",
+					"ticketType": "Ticket Type",
+					"undoReject": "Undo Reject",
+					"view": "View"
+				},
+				"title": "Event Registrations"
+			},
+			"scanUserQR": "Scan QR",
+			"share": "Share",
+			"stats": {
+				"confirmed": "Confirmed",
+				"pending": "Pending",
+				"views": "Views"
+			},
+			"invites": {
+				"title": "Invite Tracking",
+				"description": "Generate personalized links for partners and track sign-ups in one place.",
+				"channelSectionTitle": "Channel Invites",
+				"channelSectionDescription": "Create a dedicated link for each partner channel to measure registrations.",
+				"channelNamePlaceholder": "Channel name (e.g. Community A)",
+				"channelNameRequired": "Please enter a channel name",
+				"createButton": "Create Channel Link",
+				"createSuccess": "Channel invite created",
+				"refresh": "Refresh",
+				"loading": "Loading invitations…",
+				"error": "Failed to load invitations",
+				"noData": "No invitations yet.",
+				"type": {
+					"CHANNEL": "Channel",
+					"USER_SHARE": "Personal Share"
+				},
+				"table": {
+					"type": "Type",
+					"label": "Label / User",
+					"registrations": "Registrations",
+					"newUsers": "New Users",
+					"lastRegistration": "Last Registration",
+					"actions": "Actions"
+				},
+				"copyLink": "Copy Link",
+				"copySuccess": "Link copied",
+				"copyFailed": "Failed to copy link",
+				"viewQr": "View QR",
+				"downloadQr": "Download QR",
+				"qrTitle": "Invite QR Code",
+				"qrDescription": "Share or download this QR code. It embeds the invite code automatically.",
+				"newUserTag": "{count} new",
+				"createdAt": "Created {date}",
+				"noRegistrations": "No registrations yet"
+			},
+			"tabs": {
+				"admins": "Admins",
+				"checkin": "Check-in",
+				"invites": "Invites",
+				"feedback": "Feedback",
+				"overview": "Overview",
+				"registrations": "Registrations",
+				"volunteers": "Volunteers"
+			},
+			"title": "Event Management",
+			"viewPublicPage": "View Public Page"
+		},
+		"manageEvent": "manage event",
+		"max": "max",
+		"myEvents": {
+			"label": "My Events",
+			"emptyState": {
+				"title": "Log in to view your events"
+			}
+		},
+		"onlineEvent": "Online Event",
+		"onlineLinkWillBeProvided": "Online (link will be provided)",
+		"onlineMeeting": "Online Meeting",
+		"organization": "Organization",
+		"organizer": "Organizer",
+		"pageDescription": "Discover and join exciting community events, hackathons, workshops, and meetups",
+		"participantDetails": "Participant Details",
+		"participants": "Participants",
+		"photoUploadError": "Failed to save photo: {error}",
+		"photoUploadSuccess": "Photo uploaded successfully",
+		"qrCodeDownloaded": "QR Code downloaded",
+		"registered": "registered",
+		"registerNow": "Register now",
+		"registerOn": "Register on {platform}",
+		"registration": {
+			"answerPlaceholder": "Please enter your answer",
+			"buttons": {
+				"createNewProject": "Create New Project",
+				"refreshProjectList": "Refresh project list",
+				"selectExistingProjects": "Select existing projects:"
+			},
+			"cancel": "Cancel",
+			"confirmRegistration": "Confirm Registration",
+			"deadline": "Registration Deadline",
+			"description": "Please fill in the following information to complete registration",
+			"detailedAnswerPlaceholder": "Please enter a detailed answer",
+			"eventQuestions": "Event Questions",
+			"free": "Free",
+			"logInToRegister": "Log in to register",
+			"projects": {
+				"createNewProject": "Create New Project",
+				"loadingProjects": "Loading project list...",
+				"needProjectToRegister": "You need to share a project or idea first to register for this event",
+				"noProjectsYet": "No projects yet",
+				"profileCompletion": {
+					"completeProfile": "Complete Profile Now",
+					"description": "A complete personal profile can improve approval rates and help other participants get to know you better. This will increase your chances of connecting and collaborating with other participants.",
+					"suggestion": "💡 Suggest completing your profile"
+				},
+				"projectRequiredExplanation": "This is a product sharing event. Associating a project helps:\n• Other participants better understand your work and ideas\n• Facilitate collaboration and communication between projects\n• Get feedback and suggestions from the community",
+				"refreshProjects": "Refresh project list",
+				"selectExistingProject": "Select existing project:",
+				"selectProject": "Share your project or idea",
+				"whyProjectRequired": "Why is project association required?"
+			},
+			"registering": "Registering...",
+			"registerNow": "Register Now",
+			"remaining": "Remaining: {count} tickets",
+			"ticketType": "Ticket Type",
+			"required": "*",
+			"requiresApproval": "(requires organizer approval)",
+			"selectTicketType": "Select ticket type *",
+			"submitting": "Submitting...",
+			"title": "Register for event",
+			"validation": {
+				"acceptParticipationAgreement": "Please accept the participation agreement before registering.",
+				"missingAnswers": "Please answer all required questions: {questions}",
+				"selectDigitalCardConsent": "Please choose whether you agree to show your introduction and digital card on-site.",
+				"selectProject": "Please share a project or idea",
+				"selectTierQuantity": "Please choose a valid ticket quantity",
+				"selectTicketType": "Please select a ticket type"
+			},
+			"payment": {
+				"title": "WeChat Pay",
+				"orderNumber": "Order number",
+				"amount": "Amount",
+				"scanToPay": "Scan with WeChat to pay",
+				"polling": "Checking payment status...",
+				"invoking": "Launching WeChat Pay...",
+				"paidSuccess": "Payment successful!",
+				"orderCancelled": "Order cancelled",
+				"orderExpired": "Order expired",
+				"remainingTime": "Time remaining",
+				"expiringWarning": "Order is about to expire. Please complete payment soon.",
+				"giftLinks": "Gift invite links",
+				"copyInvite": "Copy",
+				"inviteCopied": "Invite link copied",
+				"cancelOrder": "Cancel order",
+				"cancelOrderAndRetry": "Cancel order and register again",
+				"queryPayment": "I've paid, check status",
+				"querying": "Checking...",
+				"close": "Close",
+				"existingOrderFound": "Found a pending order. Resuming payment...",
+				"paymentNotDetected": "Payment not detected yet. Please confirm payment is complete.",
+				"orderClosed": "Order closed",
+				"wechatPayIncomplete": "WeChat Pay was not completed. Please try again.",
+				"statusFetchRetry": "Failed to fetch order status. Retrying...",
+				"statusFetchFailed": "Failed to fetch order status. Please try again later."
+			},
+			"wechatBinding": {
+				"title": "Bind WeChat to continue",
+				"description": "Your account hasn't bound a WeChat OpenID yet. Please bind it before paying.",
+				"note": "You'll be returned to this page after binding.",
+				"bindNow": "Bind WeChat",
+				"binding": "Redirecting...",
+				"cancel": "Not now",
+				"linkFailed": "Failed to start binding. Please try again."
+			},
+			"toasts": {
+				"projectsFetchError": "Failed to load projects",
+				"invalidPhone": "Invalid phone number format",
+				"profileSaved": "Profile saved successfully",
+				"profileSaveFailed": "Failed to save profile. Please try again.",
+				"projectCreated": "Project created successfully",
+				"projectCreateFailed": "Failed to create project. Please try again.",
+				"profileBioRequired": "Please complete your bio before registering",
+				"bioTooShort": "Bio must be at least 15 characters",
+				"roleRequired": "Please fill in your role",
+				"currentWorkRequired": "Please describe what you are currently working on",
+				"lifeStatusRequired": "Please choose your current status",
+				"phoneRequired": "Please provide a phone number so organizers can reach you",
+				"registrationFailed": "Registration failed, please try again"
+			}
+		},
+		"registrationCancelFailed": "Failed to cancel registration",
+		"registrationCancelled": "Registration was cancelled",
+		"registrationCancelledSuccess": "Registration cancelled successfully",
+		"registrationClosed": "Registration closed",
+		"registrationLabel": "Registration",
+		"registrationPending": "Registration pending approval",
+		"registrationRejected": "Registration was rejected",
+		"registrationRejectedMessage": "Your registration request has been rejected. Please contact the event organizer if you need to know the reason or want to reapply.",
+		"registrationStatusUnknown": "Registration status unknown",
+		"scanQRToShare": "Scan QR to Share Event",
+		"invite": {
+			"generating": "Generating personalized link…",
+			"fetchFailed": "Failed to load invite link. Using the default event link instead.",
+			"codeLabel": "Invite code: {code}"
+		},
+		"shareEvent": "Share Event",
+		"shareEventDescription": "Share this event with friends",
+		"shareLink": "Share Link",
+		"shareText": "Share Text",
+		"generatePoster": "Generate Poster",
+		"posterStyleLabel": "Poster Style",
+		"posterStyles": {
+			"aurora": {
+				"label": "Vibrant Gradient",
+				"description": "Bold gradient background that highlights your event"
+			},
+			"minimal": {
+				"label": "Clean Minimal",
+				"description": "Lightweight layout ideal for corporate or sharing events"
+			},
+			"bold": {
+				"label": "Night Focus",
+				"description": "Dark canvas with bright accents for high contrast"
+			}
+		},
+		"showLess": "Show Less",
+		"status": {
+			"active": "Ongoing",
+			"cancelled": "Cancelled",
+			"completed": "Completed",
+			"draft": "Draft",
+			"ongoing": "Ongoing",
+			"published": "Published",
+			"registrationClosed": "Registration Closed",
+			"registration_closed": "Registration Closed",
+			"upcoming": "Upcoming"
+		},
+		"tags": "Tags",
+		"to": "to",
+		"types": {
+			"conference": "Conference",
+			"demoDay": "Demo Day",
+			"hackathon": "Hackathon",
+			"meetup": "Meetup",
+			"networking": "Networking",
+			"other": "Other",
+			"studyGroup": "Study Group",
+			"workshop": "Workshop"
+		},
+		"unknownError": "Unknown error",
+		"viewAll": "View All",
+		"viewAllParticipants": "View All Participants",
+		"viewParticipantProjects": "View Participant Projects",
+		"participantProjects": "Participant Projects",
+		"viewProfile": "View Profile",
+		"viewProject": "View Project",
+		"volunteerApplicationFailed": "Failed to apply as volunteer",
+		"volunteerApplicationSubmitted": "Volunteer application submitted, pending review",
+		"volunteerRecruitment": "Volunteer Recruitment",
+		"youAreOrganizer": "You are the organizer",
+		"youAreRegistered": "You're registered!",
+		"youAreWaitlisted": "You're on the waitlist",
+		"volunteer": {
+			"application": {
+				"noteRequired": "Please enter an application note",
+				"applySuccess": "Volunteer application submitted. Awaiting review.",
+				"applyError": "Failed to submit volunteer application"
+			},
+			"list": {
+				"applicationSuccess": "Volunteer application submitted successfully",
+				"cancelSuccess": "Application cancelled",
+				"cancelError": "Failed to cancel application",
+				"cancelRetry": "Failed to cancel. Please try again later."
+			}
+		},
+		"adminManager": {
+			"toasts": {
+				"fetchFailed": "Failed to load admin list",
+				"addSuccess": "Admin added successfully",
+				"addFailed": "Failed to add admin",
+				"removeSuccess": "Admin removed",
+				"removeFailed": "Failed to remove admin"
+			}
+		},
+		"adminInvitations": {
+			"toasts": {
+				"fetchFailed": "Failed to load invitations",
+				"acceptSuccess": "Invitation accepted",
+				"acceptFailed": "Failed to accept invitation",
+				"rejectSuccess": "Invitation rejected",
+				"rejectFailed": "Failed to reject invitation"
+			}
+		},
+		"projectList": {
+			"toasts": {
+				"fetchFailed": "Failed to load submissions",
+				"reviewApproved": "Submission approved",
+				"reviewRejected": "Submission rejected",
+				"reviewFailed": "Failed to update submission",
+				"deleteSuccess": "Submission deleted",
+				"deleteFailed": "Failed to delete submission"
+			}
+		},
+		"projectSubmissionForm": {
+			"toasts": {
+				"fetchFailed": "Failed to load projects"
+			}
+		},
+		"hackathonManagement": {
+			"toasts": {
+				"saveSuccess": "Hackathon configuration saved",
+				"saveFailed": "Failed to save configuration"
+			},
+			"stage": {
+				"title": "Stage Management",
+				"description": "Advance the hackathon step by step. Switch stages when you're ready and the right actions and messaging will follow.",
+				"previous": "Previous Stage",
+				"next": "Next Stage",
+				"jumpLabel": "Jump to",
+				"jumpPlaceholder": "Select a stage",
+				"lastUpdated": "Last updated {{time}}",
+				"currentStageLabel": "Current stage: {{stage}}",
+				"descriptions": {
+					"registration": "Open registrations and promote your hackathon to gather participants.",
+					"development": "Participants are forming teams and building. Share resources and keep momentum high.",
+					"submission": "Collect final project submissions and ensure every team uploads their work.",
+					"voting": "Enable public or judge voting to evaluate submissions and gather feedback.",
+					"results": "Close the hackathon, publish winners, and celebrate the achievements together."
+				},
+				"historyTitle": "Stage history",
+				"historyUnknownTime": "Unknown time",
+				"historyBy": "by {{user}}",
+				"updateSuccess": "Stage switched to {{stage}}",
+				"updateFailed": "Failed to update stage. Please retry."
+			}
+		},
+		"certificateManagement": {
+			"toasts": {
+				"awardSuccess": "Award issued successfully",
+				"awardFailed": "Failed to issue award",
+				"deleteSuccess": "Award record deleted",
+				"deleteFailed": "Failed to delete award record"
+			}
+		},
+		"checkInComments": {
+			"toasts": {
+				"fetchFailed": "Failed to load comments",
+				"loginRequired": "Please log in first",
+				"contentRequired": "Please enter a comment",
+				"submitSuccess": "Comment posted",
+				"submitFailed": "Failed to submit comment"
+			}
+		},
+		"organizerContact": {
+			"copySuccess": "Contact info copied",
+			"copyFailed": "Copy failed. Please copy it manually."
+		},
+		"bookmark": {
+			"loginRequired": "Please log in to bookmark events",
+			"alreadyBookmarked": "This event is already in your bookmarks",
+			"bookmarkSuccess": "Added to bookmarks",
+			"unbookmarkSuccess": "Removed from bookmarks",
+			"updateError": "Failed to update bookmark"
+		},
+		"like": {
+			"loginRequired": "Please log in to like events",
+			"alreadyLiked": "You've already liked this event",
+			"likeSuccess": "Liked",
+			"unlikeSuccess": "Like removed",
+			"updateError": "Failed to update like"
+		}
+	},
+	"featuredProjects": {
+		"tagline": "Community Project Showcase",
+		"title": "From Idea to Product",
+		"subtitle": "These projects are continuously showcased and discussed within the community, continuously refined, gradually evolving from ideas to usable products",
+		"founderPrefix": "Project Founder -",
+		"cta": "View More Projects"
+	},
+	"communityChapters": {
+		"tagline": "Nationwide Chapter Network",
+		"title1": "Making Creation Happen",
+		"title2": "Right Where You Are",
+		"subtitle": "We have active chapters in multiple cities nationwide for face-to-face communication and collaboration with local creators",
+		"cities": {
+			"shenzhen": {
+				"name": "Shenzhen",
+				"members": "120+",
+				"status": "Active",
+				"description": "Hardware innovation city, perfect combination of AI + hardware"
+			},
+			"hangzhou": {
+				"name": "Hangzhou",
+				"members": "80+",
+				"status": "Active",
+				"description": "Internet city, cradle of e-commerce and innovation"
+			},
+			"beijing": {
+				"name": "Beijing",
+				"members": "50+",
+				"status": "Active",
+				"description": "Technology innovation center, gathering top talent"
+			}
+		},
+		"chapterSuffix": "Chapter",
+		"membersSuffix": "members",
+		"ctaTitle": "Want to learn about the chapter in your city?",
+		"ctaDescription": "View detailed chapter information, event schedules, and joining methods",
+		"ctaButton": "View All Chapters"
+	},
+	"featuredActivities1": {
+		"activities": {
+			"first": {
+				"description": "Learn to build AI-powered products with practical, hands-on guidance",
+				"location": "China",
+				"participants": "30-50 participants",
+				"tags": {
+					"tag1": "Workshop",
+					"tag2": "AI"
+				},
+				"title": "AI Product Workshop"
+			},
+			"second": {
+				"date": "Monthly",
+				"description": "Successful creators share their journey from idea to product launch",
+				"location": "Multiple cities",
+				"participants": "80-100 participants",
+				"tags": {
+					"tag1": "Sharing",
+					"tag2": "Networking"
+				},
+				"title": "Creator Sharing Session"
+			},
+			"third": {
+				"date": "Bi-weekly",
+				"description": "Build a prototype in 48 hours with like-minded creators",
+				"location": "Online & Offline",
+				"participants": "50-70 participants",
+				"tags": {
+					"tag1": "Hackathon",
+					"tag2": "Prototyping"
+				},
+				"title": "Weekend Mini Hackathon"
+			},
+			"viewMore": "View More Activities"
+		},
+		"description": "Join our diverse range of learning, sharing, and creating activities",
+		"imagePlaceholder": "Activity Image",
+		"label": "Featured Activities",
+		"title": "Exciting Community Events",
+		"viewMore": "View More Activities"
+	},
+	"featuredActivities2": {
+		"activities": {
+			"first": {
+				"date": "Quarterly",
+				"description": "Deep dive into the latest AI tools for product development",
+				"location": "Online",
+				"participants": "200+ participants",
+				"tags": {
+					"tag1": "Masterclass",
+					"tag2": "Tools"
+				},
+				"title": "AI Tools Masterclass"
+			},
+			"second": {
+				"date": "Monthly",
+				"description": "Strategies and tactics for launching products in global markets",
+				"location": "Shanghai & Online",
+				"participants": "60-80 participants",
+				"tags": {
+					"tag1": "Global",
+					"tag2": "Market Entry"
+				},
+				"title": "Global Market Entry Workshop"
+			},
+			"third": {
+				"date": "Seasonal",
+				"description": "Intensive camp on finding and validating product-market fit",
+				"location": "Beijing, Shenzhen",
+				"participants": "40-50 participants",
+				"tags": {
+					"tag1": "PMF",
+					"tag2": "Validation"
+				},
+				"title": "Product-Market Fit Camp"
+			}
+		},
+		"description": "Mark your calendar for these special events and workshops",
+		"imagePlaceholder": "Activity Image",
+		"label": "More Activities",
+		"title": "Special Events Calendar",
+		"viewAllButton": "View All Activities"
+	},
+	"features": {
+		"description": "We're dedicated to creating an environment that encourages continuous creation, technical exchange, and personal growth, helping more people transform ideas into real products.",
+		"tagline": "Regular Activities",
+		"title1": "Every Week Has",
+		"title2": "Exciting Activities",
+		"subtitle": "From product showcases to skill learning, from themed hackathons to DemoShow, there's something for everyone",
+		"demoShow": {
+			"title": "Demo Show Living Room Demo",
+			"description": "Monthly Demo exchange sessions, whether prototype or MVP. Embrace every sharing with an encouraging and supportive mindset, giving sincere advice based on support.",
+			"cta": "Apply to Present",
+			"stats": "50+ audience per session"
+		},
+		"hackathon": {
+			"title": "Mini Hackathon",
+			"description": "Monthly themed intensive learning using AI tools, team up to create, develop and showcase a working product prototype (MVP) in a short time.",
+			"cta": "Join Hackathon",
+			"stats": "50+ sessions completed"
+		},
+		"cowork": {
+			"title": "Weekend Co-creation CoWork",
+			"description": "Offline co-creation office every weekend, fill in project goals when registering. Improve efficiency in a companion atmosphere, promote cross-border cooperation through weak connections.",
+			"cta": "Register for Co-creation",
+			"stats": "Average 30+ participants"
+		},
+		"ctaTitle": "Ready to participate in our activities?",
+		"ctaDescription": "Follow our activity calendar to get activity information first",
+		"ctaButton": "View Activity Calendar",
+		"tabs": {
+			"communityActivities": {
+				"description": "We provide rich community activities, including online exchanges and offline gatherings, to promote interaction and learning among members.",
+				"highlights": {
+					"offlineMeetup": {
+						"description": "Regularly organizing offline activities for face-to-face exchanges, establishing closer connections and collaboration opportunities.",
+						"title": "Offline Meetups"
+					},
+					"sharing": {
+						"description": "Inviting industry experts and community members to share technology, product, and entrepreneurship experiences to broaden horizons.",
+						"title": "Themed Sharing"
+					},
+					"showcase": {
+						"description": "Displaying excellent works by community members, sharing creation experiences and technical implementations, inspiring and learning from each other.",
+						"title": "Project Showcase"
+					}
+				},
+				"subtitle": "Diverse online and offline activities",
+				"title": "Community Activities"
+			},
+			"techGrowth": {
+				"description": "Through practical project exercises and professional guidance, we help members improve their technical abilities and master cutting-edge technologies and methods.",
+				"highlights": {
+					"cuttingEdge": {
+						"description": "Keeping up with industry trends, learning and applying advanced technologies like AI and blockchain to maintain technological competitiveness.",
+						"title": "Cutting-edge Technology"
+					},
+					"mentoring": {
+						"description": "Senior developers and product experts providing guidance, helping solve technical challenges and optimize product design.",
+						"title": "Mentor Guidance"
+					},
+					"practicalProjects": {
+						"description": "Strengthening technical capabilities through actual projects, solving real problems, and accumulating valuable development experience.",
+						"title": "Practical Projects"
+					}
+				},
+				"subtitle": "Enhance technical capabilities, achieve personal growth",
+				"title": "Technical Growth"
+			},
+			"weeklyCreation": {
+				"description": "The Hackathon Weekly community encourages members to complete the entire process from idea to product in one week, cultivating the habit and ability of continuous creation.",
+				"highlights": {
+					"continuous": {
+						"description": "The rhythm of weekly creation cultivates good product thinking and execution, constantly refining and optimizing products.",
+						"title": "Continuous Iteration"
+					},
+					"teamwork": {
+						"description": "Cross-domain teamwork, mutual learning, combining respective expertise to create valuable products together.",
+						"title": "Team Collaboration"
+					},
+					"timeEfficient": {
+						"description": "Short-term sprints with focused input, completing the process from idea to product in one week, turning ideas into reality quickly.",
+						"title": "Time Efficient"
+					}
+				},
+				"subtitle": "Spend 1 week creating 1 minimum viable product",
+				"title": "Weekly Creation"
+			}
+		},
+		"title": "Community Features"
+	},
+	"footer": {
+		"community": "Community",
+		"legal": "Legal",
+		"links": {
+			"about": "About",
+			"contact": "Contact",
+			"faq": "FAQ",
+			"features": "Features",
+			"github": "GitHub",
+			"pricing": "Pricing",
+			"privacy": "Privacy",
+			"terms": "Terms"
+		},
+		"rights": "All rights reserved.",
+		"tagline": "A community for creators who build products in one week."
+	},
+	"hero": {
+		"description": "Join our community of passionate creators who challenge themselves to build a minimum viable product every week. Turn your ideas into reality through rapid prototyping, collaboration, and continuous learning.",
+		"features": {
+			"item1": "Weekly hackathons and challenges",
+			"item2": "Supportive community of makers",
+			"item3": "Project showcases and feedback",
+			"item4": "Networking with fellow creators",
+			"title": "Why join us?"
+		},
+		"primaryCta": "Join Us",
+		"qrCodeTitle": "Join our community",
+		"secondaryCta": "Learn More",
+		"tagline": "Weekly",
+		"taglineDesc": "Build Better Together",
+		"title": "Build an MVP in one week",
+		"v2": {
+			"communityTag": "🌱 Sustainable Creator Ecosystem",
+			"primaryCta": "Join Community",
+			"secondaryCta": "Learn More",
+			"socialProof": "The choice of 6000+ creators",
+			"subtitle1": "Building a sustainable AI creator ecosystem",
+			"subtitle2": "Giving every city a 'home for creators' — find partners, build MVPs, validate fast",
+			"titlePart1": "Let every good idea",
+			"titlePart2": "take root within weeks",
+			"year": "2026"
+		},
+		"wechatGroup": "WeChat Group",
+		"wechatOfficial": "Official Account"
+	},
+	"joinCommunity": {
+		"badgeText": "Join Our Creator Community",
+		"title": {
+			"part1": "Creation is No Longer",
+			"part2": "a Lonely Journey"
+		},
+		"subtitle": "Find your creative partners here and turn ideas into reality together",
+		"entryOptions": {
+			"register": {
+				"title": "Register Now, Start Creating",
+				"description": "Experience full community features, publish works, find collaborators",
+				"cta": "Register Now"
+			},
+			"events": {
+				"title": "View Event Calendar",
+				"description": "Browse upcoming events and participate in those that interest you",
+				"cta": "View Events"
+			},
+			"wechat": {
+				"title": "Follow Official Account",
+				"description": "Get the latest community updates and event notifications",
+				"cta": "Scan to Follow"
+			}
+		},
+		"communityStats": {
+			"title": "Community Highlights",
+			"projects": "Completed {count}+ project works",
+			"events": "Hosted {count}+ events",
+			"members": "Gathered {count}+ members"
+		},
+		"wechatSection": {
+			"title": "Follow Official Account for Latest Updates",
+			"qrAlt": "WeChat Official Account QR Code",
+			"accountName": "Scan to follow 「HackathonWeekly」 Official Account",
+			"description": "Get event notifications and community news first"
+		},
+		"encouragement": {
+			"text": "Every product that changes the world starts with a simple idea, every successful creator was once a beginner.",
+			"callToAction": "Don't let ideas stay in your mind, let's create the future together."
+		}
+	},
+	"faq": {
+		"badge": "FAQ",
+		"title": {
+			"part1": "What You Might Want to Know",
+			"part2": "Before Joining"
+		},
+		"description": "We've compiled the most frequently asked questions to help you better understand our community",
+		"expandQuestion": "Expand question: {question}",
+		"viewGuideLink": "→ View Complete Hackathon Guide",
+		"categories": {
+			"basic": "Basic Concepts",
+			"friendly": "Beginner Friendly",
+			"concept": "Philosophy",
+			"activities": "Activities",
+			"collaboration": "Collaboration",
+			"cost": "Cost Related"
+		},
+		"questions": {
+			"what": {
+				"question": "What is a hackathon? Am I suitable to participate?",
+				"answer": "A hackathon is an event where participants form teams to rapidly turn ideas into reality within a limited time (usually 1-3 days). Now there are many Vibe Coding hackathons that lower the technical barrier through AI programming tools (like Cursor, GitHub Copilot), allowing non-professional programmers to participate. Whether you're a developer, designer, product manager, or complete beginner, you can join!"
+			},
+			"nonTech": {
+				"question": "I don't have a technical background, can I join?",
+				"answer": "Absolutely! We need members with various backgrounds including designers, product managers, operations, marketing, etc. Many successful products are created by cross-disciplinary teams. The community has special guidance activities to help newcomers find partners."
+			},
+			"mvp": {
+				"question": "What is MVP?",
+				"answer": "MVP stands for Minimum Viable Product, referring to a functional prototype with minimal features that demonstrates core value. In our community, MVP is more of an action philosophy—creating a useful product that solves real pain points within a week."
+			},
+			"activities": {
+				"question": "What are the core activities of the community?",
+				"answer": "We have 3 core activities: 1) Demo Show Living Room Demo Session (monthly) - showcase 30% completed works for feedback; 2) Mini Hackathons (monthly) - rapid learning and creation around themes; 3) Weekend CoWork (every weekend) - offline collaboration and brainstorming."
+			},
+			"collaborate": {
+				"question": "Can I find collaborators in the community?",
+				"answer": "This is one of the core values of our community! We encourage cross-disciplinary collaboration, and many members have found technical partners, designers, or product managers through the community."
+			},
+			"fee": {
+				"question": "Is the community free?",
+				"answer": "The community itself is free to join! Basic activity participation, work sharing, and finding partners are completely free. Community events are free or at-cost for members. The community sustains itself through commercial project revenue sharing and sponsorships, with all income going toward operating costs, contributor compensation, and community building."
+			}
+		},
+		"moreQuestions": {
+			"title": "Have Other Questions?",
+			"description": "We're happy to answer more questions, or you can experience our activities first",
+			"joinEvent": "Join Next Event",
+			"emailConsult": "Email Consultation"
+		}
+	},
+	"mail": {
+		"announcement": {
+			"actionRequired": "Action Required",
+			"contactSupport": "Our support team is here to help you with any questions.",
+			"deadline": "Action Deadline",
+			"effectiveDate": "Effective Date",
+			"emailSupport": "Email Support",
+			"footer": "This announcement was sent on",
+			"from": "From",
+			"helpCenter": "Help Center",
+			"maintenanceSchedule": {
+				"description": "Please note the following during maintenance:",
+				"impact": "Some features may be temporarily unavailable",
+				"support": "Contact support for urgent issues",
+				"title": "Maintenance Schedule",
+				"updates": "Follow our status page for real-time updates"
+			},
+			"needHelp": "Need Help?",
+			"official": "Official communication from HackathonWeekly",
+			"securityReminder": {
+				"point1": "Never share your login credentials with anyone",
+				"point2": "Enable two-factor authentication if available",
+				"point3": "Report suspicious activity immediately",
+				"title": "Security Best Practices"
+			},
+			"systemEmailNote": "This is a critical system notification and cannot be unsubscribed from.",
+			"type": {
+				"feature": "New Feature",
+				"general": "General Announcement",
+				"maintenance": "System Maintenance",
+				"policy": "Policy Update",
+				"security": "Security Notice"
+			}
+		},
+		"common": {
+			"clickHere": "click here to unsubscribe",
+			"openLinkInBrowser": "If you want to open the link in a different browser than your default one, copy and paste this link:",
+			"otp": "One-time password",
+			"unsubscribe": "Don't want to receive these emails?",
+			"useLink": "or use the following link:"
+		},
+		"emailVerification": {
+			"body": "Hey,\nplease click the link below to verify this new email address.",
+			"confirmEmail": "Verify email",
+			"subject": "Verify your email"
+		},
+		"eventRegistrationApproved": {
+			"eventDate": "Event Date",
+			"eventDetails": "Event Details",
+			"eventLocation": "Event Location",
+			"eventTitle": "Event Title",
+			"footer": "Thank you for participating in our events! Please feel free to contact us if you have any questions.",
+			"greeting": "Hello {name},",
+			"message": "Congratulations! Your registration for the event \"{eventTitle}\" has been approved.",
+			"preview": "Your event registration has been approved",
+			"subject": "Event Registration Approved",
+			"viewEvent": "View Event Details"
+		},
+		"eventRegistrationConfirmation": {
+			"eventDate": "Event Date",
+			"eventDetails": "Event Details",
+			"eventLocation": "Event Location",
+			"eventTitle": "Event Title",
+			"footer": "We look forward to seeing you at the event! Please feel free to contact us if you have any questions.",
+			"greeting": "Hello {name},",
+			"message": "Thank you for registering for the event \"{eventTitle}\"! We have received your registration information.",
+			"preview": "Event registration confirmation",
+			"subject": "Event Registration Confirmed",
+			"viewEvent": "View Event Details"
+		},
+		"eventOrderCancelled": {
+			"eventDate": "Event Date",
+			"eventDetails": "Event Details",
+			"eventLocation": "Event Location",
+			"eventTitle": "Event Title",
+			"footer": "If you have any questions, just reply to this email.",
+			"greeting": "Hello {name},",
+			"message": "Your order for \"{eventTitle}\" has been cancelled.",
+			"orderNumber": "Order Number",
+			"preview": "Your event order was cancelled",
+			"subject": "Event Order Cancelled",
+			"viewEvent": "View Event Details"
+		},
+		"eventReminder": {
+			"eventDate": "Event Date",
+			"eventDetails": "Event Details",
+			"eventLocation": "Event Location",
+			"eventTitle": "Event Title",
+			"footer": "We look forward to seeing you at the event!",
+			"greeting": "Hello {name},",
+			"message": "Reminder: The event \"{eventTitle}\" will take place in {daysUntilEvent} days.",
+			"preview": "Event reminder",
+			"subject": "Event Reminder",
+			"viewEvent": "View Event Details"
+		},
+		"eventHostNewEvent": {
+			"announcement": "{hostName} just published a new event \"{eventTitle}\".",
+			"eventDateLabel": "Date",
+			"eventDetails": "Event details",
+			"eventLocationLabel": "Location",
+			"eventTitleLabel": "Event",
+			"footer": "Thank you for following {hostName}'s events!",
+			"greeting": "Hi there,",
+			"managePreferences": "You can manage your email preferences in your Hackathon Weekly account settings.",
+			"preview": "{hostName} just announced \"{eventTitle}\"",
+			"subject": "New event from your subscribed host",
+			"viewEvent": "View event"
+		},
+		"forgotPassword": {
+			"body": "Hey,\nyou requested a password reset.\n\nClick the button below to reset your password.",
+			"resetPassword": "Reset password",
+			"subject": "Reset your password"
+		},
+		"magicLink": {
+			"body": "Hey,\nyou requested a login email from hackathonweekly.\n\nClick the link below to login.",
+			"login": "Login",
+			"subject": "Login to hackathonweekly"
+		},
+		"marketing": {
+			"ctaDescription": "Join thousands of innovators building the future.",
+			"ctaTitle": "Ready to Get Started?",
+			"featuresTitle": "Why You'll Love This",
+			"from": "From",
+			"questions": "Questions?",
+			"shareText": "Share this with your network:",
+			"testimonialsTitle": "What Our Community Says"
+		},
+		"newsletterSignup": {
+			"body": "Thank you for signing up for the hackathonweekly newsletter. We will keep you updated with the latest news and updates.",
+			"subject": "Welcome to our newsletter"
+		},
+		"newUser": {
+			"body": "Hey,\nthanks for signing up for hackathonweekly.\n\nTo start using our app, please confirm your email address by clicking the link below.",
+			"confirmEmail": "Confirm email",
+			"subject": "Confirm your email"
+		},
+		"notification": {
+			"footer": "Notification sent on",
+			"from": "From:",
+			"importance": {
+				"high": "Important Notice",
+				"urgent": "Urgent Action Required"
+			},
+			"importanceDescription": {
+				"high": "This is an important notification that requires your attention.",
+				"urgent": "This requires immediate action. Please read carefully and take necessary steps."
+			},
+			"priority": {
+				"high": "Important",
+				"low": "Info",
+				"normal": "Notification",
+				"urgent": "Urgent"
+			},
+			"questions": "Questions? Contact us:"
+		},
+		"organizationInvitation": {
+			"body": "You have been invited to join the organization {organizationName}. Click the button below or copy and paste the link into your browser of choice to accept the invitation and join the organization.",
+			"headline": "Join the organization {organizationName}",
+			"join": "Join the organization",
+			"subject": "You have been invited to join an organization"
+		},
+		"shared": {
+			"openLinkInBrowser": "If you want to open the link in a different browser than your default one, copy and paste this link:",
+			"otp": "One-time password",
+			"useLink": "or use the following link:"
+		},
+		"weeklyReport": {
+			"global": {
+				"by": "by",
+				"cta": {
+					"button": "Get Started",
+					"description": "Ready to contribute to our thriving community?",
+					"title": "Join the Action!"
+				},
+				"featuredProjects": "Featured Projects",
+				"footer": "Thank you for being part of HackathonWeekly community!",
+				"newOrganizations": "New Organizations",
+				"newUsers": "New Members",
+				"online": "Online",
+				"overview": "This Week in Numbers",
+				"subtitle": "Your weekly dose of community updates",
+				"title": "Weekly Community Report",
+				"topContributions": "Top Contributors",
+				"totalEvents": "Total Events",
+				"upcomingEvents": "Upcoming Events",
+				"viewProject": "View Project"
+			},
+			"organization": {
+				"attendees": "attendees",
+				"by": "by",
+				"cta": {
+					"button": "View Organization",
+					"description": "Continue contributing to your organization's success",
+					"title": "Keep the Momentum Going!"
+				},
+				"eventReview": "Event Review",
+				"events": "Events This Week",
+				"footer": "From your {organizationName} team",
+				"memberContributions": "Member Contributions",
+				"memberHighlights": "Member Highlights",
+				"newMembers": "New Members",
+				"overview": "Organization Overview",
+				"projectProgress": "Project Updates",
+				"projectStage": {
+					"developing": "Developing",
+					"idea": "Idea",
+					"launched": "Launched",
+					"prototyping": "Prototyping"
+				},
+				"status": {
+					"completed": "Completed",
+					"ongoing": "Ongoing",
+					"upcoming": "Upcoming"
+				},
+				"subtitle": "Your organization's weekly highlights",
+				"title": "Weekly Report",
+				"totalCP": "Total points Earned"
+			}
+		}
+	},
+	"milestones": {
+		"label": "Community Development",
+		"stats": {
+			"articles": {
+				"label": "Knowledge Base Articles",
+				"value": "100+"
+			},
+			"cities": {
+				"label": "Cities",
+				"value": "6"
+			},
+			"events": {
+				"label": "Activities Held",
+				"value": "100+"
+			},
+			"members": {
+				"label": "Community Members",
+				"value": "6000+"
+			},
+			"organizers": {
+				"label": "Organizers",
+				"value": "30+"
+			},
+			"projects": {
+				"label": "Startup Projects",
+				"value": "50+"
+			}
+		},
+		"timeline": {
+			"fifth": {
+				"date": "2024.12",
+				"description": "Nationwide exploration of AI games, 3D printing, innovative gaming and various activity formats",
+				"title": "Ecosystem Building"
+			},
+			"first": {
+				"date": "2024.05",
+				"description": "HackathonWeekly established! Small partners gathered to develop together",
+				"title": "First Event"
+			},
+			"fourth": {
+				"date": "2024.10",
+				"description": "Expanded to health, robotics, global SEO exploring AI applications, AI education, DemoDay",
+				"title": "Diversified Themes"
+			},
+			"second": {
+				"date": "2024.06",
+				"description": "In just 2 months, participation exceeded 500 entrepreneurs, building global/AI projects",
+				"title": "Global/AI/Startup"
+			},
+			"sixth": {
+				"date": "2025.02",
+				"description": "Partnered with Z·Pilot for Shanghai Developer Pioneer Conference, exchanging with creators nationwide",
+				"title": "Developer Pioneer Conference"
+			},
+			"third": {
+				"date": "2024.08",
+				"description": "Spontaneous branches formed in Shenzhen, Guangzhou, Shanghai, Beijing, Hangzhou, Chiang Mai",
+				"title": "National Expansion"
+			}
+		},
+		"title": "From Shenzhen to the World"
+	},
+	"nav": {
+		"dashboard": "Dashboard",
+		"faq": "FAQ",
+		"features": "Features",
+		"home": "Home",
+		"pricing": "Pricing"
+	},
+	"page": {
+		"home": {
+			"title": "Home - HackathonWeekly Community",
+			"description": "Welcome to HackathonWeekly — The Hub for AI Product Creators. Turn every pain point in life into a starting point for creation.",
+			"feed": {
+				"count": "{count} items",
+				"events": "Latest Events",
+				"organizations": "Active Organizations",
+				"projects": "Featured Projects",
+				"searchPlaceholder": "Search events, projects, organizations, and tasks...",
+				"tasks": "Tasks",
+				"docs": "Docs",
+				"members": "Members",
+				"viewAll": "View All",
+				"aboutCommunity": "About this community →",
+				"leaderboard": "Leaderboard",
+				"leaderboardDesc": "See community contributor rankings"
+			}
+		}
+	},
+	"navBar": {
+		"contributionManagement": "Contribution Management",
+		"eventManagement": "Event Management",
+		"superAdminCenter": "Super Admin Center",
+		"taskManagement": "Task Management"
+	},
+	"mePage": {
+		"darkMode": "Dark mode",
+		"discoverOrganizations": "Discover Organizations",
+		"language": "Language",
+		"logout": "Log out",
+		"messages": "Messages",
+		"myContent": "My Content",
+		"myFavorites": "My Favorites",
+		"myOrganizations": "My Organizations",
+		"noOrganizations": "You haven't joined any organizations yet",
+		"organizationRole": {
+			"admin": "Admin",
+			"member": "Member",
+			"owner": "Owner",
+			"unknown": "Member"
+		},
+		"settingsAndHelp": "Settings",
+		"viewAll": "View All"
+	},
+	"newsletter": {
+		"button": "Subscribe",
+		"description": "Stay updated with the latest news, events, and projects from the Hackathon Weekly community.",
+		"disclaimer": "We respect your privacy. You can unsubscribe at any time.",
+		"email": "Email Address",
+		"emailPlaceholder": "Enter your email",
+		"error": "Please enter a valid email address.",
+		"hints": {
+			"error": {
+				"message": "Failed to subscribe. Please try again."
+			},
+			"success": {
+				"message": "Thank you for subscribing to our newsletter!",
+				"title": "Subscription Successful"
+			}
+		},
+		"submit": "Subscribe",
+		"subtitle": "Get the latest updates",
+		"success": "Thank you for subscribing! You'll start receiving our updates soon.",
+		"title": "Subscribe to Our Newsletter"
+	},
+	"onboarding": {
+		"account": {
+			"avatar": "Avatar",
+			"avatarDescription": "Click the circle or drop an image to it to upload your avatar.",
+			"name": "Name"
+		},
+		"continue": "Continue",
+		"message": "Just a few quick steps to get you started.",
+		"notifications": {
+			"accountSetupFailed": "We are sorry, but we were unable to set up your account. Please try again later."
+		},
+		"step": "Step {step} / {total}",
+		"title": "Set up your account"
+	},
+	"organizations": {
+		"createForm": {
+			"name": "Organization name",
+			"notifications": {
+				"error": "We are sorry, but we were unable to create your organization. Please try again later.",
+				"success": "Your organization has been created. You can now invite members."
+			},
+			"submit": "Create organization",
+			"subtitle": "Enter a name for your organization to get started. You can change the name later in the organization settings.",
+			"title": "Create an organization"
+		},
+		"invitationAlert": {
+			"description": "You need to sign in or create an account to join the organization.",
+			"title": "You have been invited to join an organization."
+		},
+		"invitationModal": {
+			"accept": "Accept",
+			"decline": "Decline",
+			"description": "You have been invited to join the organization {organizationName}. Do you want to accept the invitation and join the organization?",
+			"title": "Join the organization"
+		},
+		"organizationSelect": {
+			"createNewOrganization": "Create new organization",
+			"organizations": "Organizations",
+			"personalAccount": "Personal account"
+		},
+		"organizationsGrid": {
+			"createNewOrganization": "Create new organization",
+			"title": "Your organizations"
+		},
+		"public": {
+			"aboutUs": "About Us",
+			"alreadyMember": "✓ Already a {role}",
+			"application": {
+				"backToDetails": "Back to organization details",
+				"contact": {
+					"email": "Email",
+					"tip": "After submitting your application, it is recommended to proactively contact the administrator:",
+					"title": "Contact Administrator",
+					"wechat": "WeChat"
+				},
+				"error": {
+					"submitFailed": "Application submission failed, please try again later"
+				},
+				"form": {
+					"title": "Application",
+					"description": "Your application uses your profile information.",
+					"profileChecklistTitle": "Profile details to be used",
+					"profileChecklistDescription": "Make sure the information is accurate and complete.",
+					"activityRequirement": "Attend at least two activities.",
+					"profileIncompleteTitle": "Profile incomplete",
+					"profileIncompleteHint": "Please complete your profile before submitting.",
+					"submitFailedTitle": "Submission failed",
+					"notSet": "Not set",
+					"profileFields": {
+						"name": "Name",
+						"username": "Username",
+						"region": "Region",
+						"gender": "Gender",
+						"phoneNumber": "Phone",
+						"wechatId": "WeChat ID",
+						"email": "Email",
+						"bio": "Bio",
+						"userRoleString": "Primary Role",
+						"currentWorkOn": "Currently Working On",
+						"lifeStatus": "Current Status"
+					},
+					"genderOptions": {
+						"female": "Female",
+						"male": "Male",
+						"other": "Other",
+						"preferNotToSay": "Prefer not to say"
+					},
+					"introduction": "Self introduction & goals *",
+					"reason": "Self introduction & goals *",
+					"reasonHelp": "Admins review contributions, offline events, inviter and introduction together—be concrete and clear",
+					"reasonPlaceholder": "Share a short intro and what you hope to get from joining...",
+					"contributionsTitle": "Past contributions (min 1)",
+					"contributionsHelp": "Examples: volunteering, offline talk, bug fix, sponsorship—briefly note what you did and the impact",
+					"contributionPlaceholder": "e.g., volunteered at Sept Shanghai meetup for check-in and guidance",
+					"addContribution": "Add a contribution",
+					"removeField": "Remove",
+					"offlineEventsTitle": "Offline events attended (min 2)",
+					"offlineEventsHelp": "List event name/city/date so we can verify attendance",
+					"offlineEventsPlaceholder": "e.g., 2024-07 Guangzhou | Hackathon Weekly Meetup",
+					"addOfflineEvent": "Add another event",
+					"inviterTitle": "Inviter (community member level)",
+					"inviterHelp": "Choose a community member (not yourself)",
+					"inviterLockedHint": "Inviter comes from the invite link and cannot be changed",
+					"inviterSearchPlaceholder": "Search by member name or username",
+					"inviterPlaceholder": "Choose inviter",
+					"inviterLockedLabel": "Inviter locked",
+					"inviterSearchEmpty": "No matching member found; please confirm they are member level",
+					"inviterSearchFailed": "Inviter search failed, try again later",
+					"changeInviter": "Change inviter",
+					"availability": "Availability in the next week",
+					"availabilityPlaceholder": "e.g., Tue/Thu 19:00-21:00, weekend afternoons",
+					"availabilityHelp": "We will schedule a 15-30 minute online interview based on these slots",
+					"errorReasonTooShort": "Introduction should be at least {min} characters",
+					"errorReasonTooLong": "Introduction should not exceed {max} characters",
+					"errorContributions": "Add at least {min} contribution, each at least {minDetail} characters",
+					"errorOfflineEvents": "Add at least {min} offline events, each at least {minDetail} characters",
+					"errorInviterRequired": "Choose an inviter",
+					"errorAvailability": "Add your availability for the next week ({min}-{max} characters)",
+					"errorApplicationTooLong": "Application is too long, keep it under {max} characters",
+					"submit": "Submit Application",
+					"submitting": "Submitting...",
+					"submitHintPrefix": "You can submit once these are complete:",
+					"submitHintReason": "Intro and goals at least {min} characters",
+					"submitHintIntroMax": "Intro stays under {max} characters",
+					"submitHintContributions": "At least {min} past contribution(s), {minDetail}+ characters each",
+					"submitHintOfflineEvents": "At least {min} offline events, {minDetail}+ characters each",
+					"submitHintInviter": "Choose an inviter",
+					"submitHintAvailability": "Add your availability for the next week ({min}-{max} characters)",
+					"submitHintReasonMax": "Overall application stays under {max} characters",
+					"submitHintProfile": "Complete profile: {fields}"
+				},
+				"profileAlert": {
+					"description": "A complete profile helps organization administrators better understand you. It is recommended to optimize your personal information first.",
+					"optimizeProfile": "Optimize Profile",
+					"title": "Increase application approval rate:"
+				},
+				"qrCode": {
+					"alt": "Member group QR code",
+					"scanToContact": "Scan to contact administrator",
+					"title": "Member QR Code"
+				},
+				"submitted": {
+					"contactAdmin": "Contact Administrator",
+					"contactTip": "To expedite the review process, please proactively contact the organization administrator:",
+					"description": "Your membership application has been successfully submitted to {name}.<br />The organization administrator will review your personal information and application reason.",
+					"email": "Email:",
+					"memberQR": "Member QR Code",
+					"scanToContact": "Scan to contact administrator",
+					"title": "Application submitted!",
+					"wechat": "WeChat:"
+				},
+				"subtitle": "Complete your profile to submit the application",
+				"title": "Apply to join {name}",
+				"userInfo": {
+					"adminWillSee": "Administrators will see your complete profile information",
+					"bio": "Bio",
+					"nameNotSet": "Name not set",
+					"skills": "Skill Tags",
+					"title": "Your Application Information"
+				}
+			},
+			"applyToJoin": "Apply to Join",
+			"contactInfo": "Contact Information",
+			"coreMembers": "Core Members",
+			"description": "Community organization homepage",
+			"email": "Email",
+			"enterOrganization": "View Members",
+			"events": "Events",
+			"eventsCount": "Events Count",
+			"founded": "Founded",
+			"joinCommunity": "Join {name} community and grow together!",
+			"linkCopied": "Link copied to clipboard",
+			"loginToApply": "Login to Apply",
+			"loginToViewMembers": "Login to view all {count} members",
+			"manageOrganization": "Manage Organization",
+			"members": "Members",
+			"membershipRequirements": "Membership Requirements",
+			"organizationStats": "Organization Statistics",
+			"roles": {
+				"admin": "Administrator",
+				"member": "Member",
+				"owner": "Creator"
+			},
+			"scanToJoin": "Scan to join audience group",
+			"share": "Share",
+			"title": "Organization Homepage",
+			"totalMembers": "Total Members",
+			"upcomingEvents": "Upcoming Events",
+			"viewAllMembers": "View all {count} members",
+			"visit": "Visit",
+			"website": "Website",
+			"wechat": "WeChat",
+			"wechatGroup": "WeChat Group"
+		},
+		"roles": {
+			"admin": "Admin",
+			"member": "Member",
+			"owner": "Owner"
+		},
+		"settings": {
+			"account": {
+				"avatar": {
+					"description": "To change your avatar click the picture in this block and select a file from your computer to upload.",
+					"notifications": {
+						"error": "Could not update avatar",
+						"success": "Avatar was updated successfully"
+					},
+					"title": "Your avatar"
+				},
+				"changeEmail": {
+					"description": "Enter a new email and click save. We'll send you a confirmation link and the address won't change until you verify it.",
+					"notifications": {
+						"error": "Could not update email, please try again later",
+						"emailAlreadyExists": "This email address {email} is already in use, please use a different email",
+						"invalidEmail": "Please enter a valid email address",
+						"success": "We sent a verification link to {email}. Please confirm it to finish updating your email."
+					},
+					"title": "Your email"
+				},
+				"changeName": {
+					"notifications": {
+						"error": "Could not update name",
+						"success": "Name was updated successfully"
+					},
+					"title": "Your name"
+				},
+				"deleteAccount": {
+					"confirmation": "Are you sure you want to delete your account?",
+					"description": "Permanently delete your account. Once you delete your account, there is no going back. To confirm, please enter your password below:",
+					"notifications": {
+						"error": "Could not delete account",
+						"success": "Account was deleted successfully"
+					},
+					"submit": "Delete account",
+					"title": "Delete account"
+				},
+				"language": {
+					"description": "To change the language of the app for your account, select a language from the list and click save.",
+					"notifications": {
+						"error": "Could not update language",
+						"success": "Language was updated successfully"
+					},
+					"title": "Your language"
+				},
+				"security": {
+					"activeSessions": {
+						"currentSession": "Current Session",
+						"description": "These are all the active sessions of your account. Click the X to end a specifc session.",
+						"notifications": {
+							"revokeSession": {
+								"success": "Session revoked"
+							}
+						},
+						"title": "Active sessions"
+					},
+					"changePassword": {
+						"currentPassword": "Current password",
+						"newPassword": "New password",
+						"notifications": {
+							"error": "Could not update password",
+							"success": "Password was updated successfully"
+						},
+						"title": "Your password"
+					},
+					"connectedAccounts": {
+						"connect": "Connect",
+						"disconnect": "Disconnect",
+						"title": "Connected accounts"
+					},
+					"passkeys": {
+						"description": "Use passkeys as a secure alternative to passwords.",
+						"notifications": {
+							"addPasskey": {
+								"error": {
+									"title": "Could not add passkey"
+								},
+								"success": {
+									"title": "Passkey added"
+								}
+							},
+							"deletePasskey": {
+								"error": {
+									"title": "Could not delete passkey"
+								},
+								"loading": {
+									"title": "Deleting passkey..."
+								},
+								"success": {
+									"title": "Passkey deleted"
+								}
+							}
+						},
+						"title": "Passkeys"
+					},
+					"eventsToken": {
+						"title": "Events token",
+						"description": "Generate a personal API token so trusted tools can call POST /api/events on your behalf. Tokens only create personal events.",
+						"empty": {
+							"title": "No events token yet",
+							"description": "Issue a token to allow verified automations to create events from your account. Tokens only support personal hosts and respect your membership limits."
+						},
+						"status": {
+							"active": "Active token ending with {lastFour}",
+							"neverUsed": "Never used yet",
+							"lastUsed": "Last used {date}",
+							"createdAt": "Created {date}",
+							"lastUsedIp": "Last used from {ip}"
+						},
+						"eligibility": {
+							"blocked": "You need permission to create events before issuing an events token."
+						},
+						"actions": {
+							"generate": "Generate token",
+							"regenerate": "Regenerate token",
+							"revoke": "Revoke token",
+							"copied": "Token copied",
+							"usageHeading": "API usage",
+							"usageSteps": {
+								"post": "Send POST /api/events with your payload.",
+								"header": "Add header Authorization: EventsToken '<'token'>'.",
+								"personalOnly": "organizationId is ignored so requests always create personal events.",
+								"limit": "Events tokens are limited to 60 calls every 5 minutes."
+							}
+						},
+						"tokenReveal": {
+							"title": "Save this token",
+							"description": "The token value is only shown once. Store it securely."
+						},
+						"notifications": {
+							"generate": {
+								"success": "Events token ready",
+								"error": "Failed to create token"
+							},
+							"revoke": {
+								"success": "Events token revoked",
+								"error": "Failed to revoke token"
+							}
+						}
+					},
+					"setPassword": {
+						"description": "You have not set a password yet. To set one, you need to go through the password reset flow. Click the button below to send an email to reset your password and follow the instructions in the email.",
+						"descriptionNeedEmail": "To set a password, you need to first bind and verify a real email address. Please go to the Email settings page to add and verify your email.",
+						"notifications": {
+							"error": "Could not send password setup email",
+							"success": "Password setup email sent, please check your inbox",
+							"needVerifiedEmail": "Please bind and verify your email address first, then set your password"
+						},
+						"submit": "Set password",
+						"submitNeedEmail": "Go to Email Settings",
+						"title": "Your password"
+					},
+					"title": "Security",
+					"twoFactor": {
+						"description": "Add an extra layer of security to your account.",
+						"dialog": {
+							"password": {
+								"description": "Please enter your password to continue.",
+								"label": "Password",
+								"title": "Confirm Password"
+							},
+							"totpUrl": {
+								"code": "Verification Code",
+								"description": "Scan this QR code with your authenticator app.",
+								"title": "Setup Two-Factor Authentication"
+							}
+						},
+						"disable": "Disable Two-Factor Authentication",
+						"enable": "Enable Two-Factor Authentication",
+						"enabled": "Two-Factor Authentication Enabled",
+						"notifications": {
+							"disable": {
+								"success": {
+									"title": "Two-Factor Authentication Disabled"
+								}
+							},
+							"enable": {
+								"error": {
+									"title": "Failed to Enable Two-Factor Authentication"
+								}
+							},
+							"verify": {
+								"success": {
+									"title": "Two-Factor Authentication Verified"
+								}
+							}
+						},
+						"title": "Two-Factor Authentication"
+					}
+				},
+				"subtitle": "Manage the settings of your personal account.",
+				"title": "Account settings"
+			},
+			"billing": {
+				"activePlan": {
+					"status": {
+						"active": "Active",
+						"canceled": "Canceled",
+						"expired": "Expired",
+						"incomplete": "Incomplete",
+						"past_due": "Past due",
+						"paused": "Paused",
+						"trialing": "Trialing",
+						"unpaid": "Unpaid"
+					},
+					"title": "Your plan"
+				},
+				"changePlan": {
+					"description": "Choose a plan to subscribe to.",
+					"title": "Change your plan"
+				},
+				"createCustomerPortal": {
+					"label": "Manage billing",
+					"notifications": {
+						"error": {
+							"title": "Could not create a customer portal session. Please try again."
+						}
+					}
+				},
+				"title": "Billing"
+			},
+			"changeName": {
+				"title": "Organization name"
+			},
+			"dangerZone": {
+				"title": "Danger zone"
+			},
+			"deleteOrganization": {
+				"confirmation": "Are you sure you want to delete your organization?",
+				"description": "Permanently delete your organization. Once you delete your organization, there is no going back. To confirm, please enter your password below:",
+				"submit": "Delete organization",
+				"title": "Delete organization"
+			},
+			"logo": {
+				"description": "Upload a logo for your organization.",
+				"title": "Organization logo"
+			},
+			"members": {
+				"activeMembers": "Active members",
+				"description": "See all active members and the pending invites of your organization.",
+				"invitations": {
+					"empty": "You have not invited any members yet.",
+					"expiresAt": "Expires at {date}",
+					"invitationStatus": {
+						"accepted": "Accepted",
+						"canceled": "Canceled",
+						"pending": "Pending",
+						"rejected": "Rejected"
+					},
+					"resend": "Resend invitation",
+					"revoke": "Revoke invitation"
+				},
+				"inviteMember": {
+					"description": "To invite a new member, send them an invitation.",
+					"email": "Email",
+					"notifications": {
+						"error": {
+							"description": "We were unable to invite the member. Please try again later.",
+							"title": "Could not invite member"
+						},
+						"success": {
+							"description": "The member has been invited.",
+							"title": "Member invited"
+						}
+					},
+					"role": "Role",
+					"submit": "Invite",
+					"title": "Invite member"
+				},
+				"leaveOrganization": "Leave organization",
+				"notifications": {
+					"removeMember": {
+						"error": {
+							"description": "Could not remove the member from your organization. Please try again."
+						},
+						"loading": {
+							"description": "Removing member from organization..."
+						},
+						"success": {
+							"description": "The member has been successfully removed from your organization."
+						}
+					},
+					"resendInvitation": {
+						"error": {
+							"description": "Could not sent invitation. Please try again."
+						},
+						"loading": {
+							"description": "Resending invitation..."
+						},
+						"success": {
+							"description": "Invitation sent"
+						}
+					},
+					"revokeInvitation": {
+						"error": {
+							"description": "The invitation could not be revoked. Please try again later."
+						},
+						"loading": {
+							"description": "Revoking invitation..."
+						},
+						"success": {
+							"description": "The invitation has been revoked."
+						}
+					},
+					"updateMembership": {
+						"error": {
+							"description": "Could not update organization membership. Please try again."
+						},
+						"loading": {
+							"description": "Updating membership..."
+						},
+						"success": {
+							"description": "Membership was updated successfully"
+						}
+					}
+				},
+				"pendingInvitations": "Pending invitations",
+				"removeMember": "Remove member",
+				"title": "Members"
+			},
+			"menu": {
+				"account": {
+					"billing": "Billing",
+					"dangerZone": "Danger zone",
+					"general": "General",
+					"profile": "Profile",
+					"security": "Security",
+					"title": "Account"
+				},
+				"organization": {
+					"billing": "Billing",
+					"dangerZone": "Danger zone",
+					"general": "General",
+					"members": "Members",
+					"title": "Organization"
+				}
+			},
+			"notifications": {
+				"organizationDeleted": "Your organization has been deleted.",
+				"organizationNameNotUpdated": "We were unable to update your organization name. Please try again later.",
+				"organizationNameUpdated": "Your organization name has been updated.",
+				"organizationNotDeleted": "We were unable to delete your organization. Please try again later."
+			},
+			"profileSettings": {
+				"description": "Manage your profile information and preferences",
+				"goToProfile": "Go to Profile",
+				"title": "Profile Settings"
+			},
+			"save": "Save",
+			"subtitle": "Manage the settings of the organization.",
+			"title": "Organization"
+		}
+	},
+	"partners": {
+		"becomePartner": "Become a Partner",
+		"companies": {
+			"becomePartner": "Become a Partner",
+			"contactUs": "Contact Us",
+			"fifth": {
+				"description": "Product development and go-to-market strategy",
+				"name": "Product Accelerator"
+			},
+			"first": {
+				"description": "Technology innovation hub providing workspace and resources",
+				"name": "TechFusion"
+			},
+			"fourth": {
+				"description": "Programming education and technical skill development",
+				"name": "CodeCraft Academy"
+			},
+			"partnerDescription": "Join our community of supporters and help empower creators",
+			"second": {
+				"description": "Early-stage venture capital firm focused on AI startups",
+				"name": "AI Ventures"
+			},
+			"sixth": {
+				"description": "Connecting entrepreneurs across Asia and globally",
+				"name": "Innovation Network"
+			},
+			"third": {
+				"description": "Helping startups expand to international markets",
+				"name": "GlobalScale"
+			}
+		},
+		"contactUs": "Contact Us",
+		"description": "Collaborating with leading organizations to support the creator community",
+		"label": "Partners & Sponsors",
+		"organizationPlaceholder": "Organization",
+		"partnerDescription": "Join our community and help empower creators",
+		"supportDescription": "These organizations provide resources, mentorship, and support to our community",
+		"supportTitle": "With Support From",
+		"title": "Our Valued Partners",
+		"ecosystem": "Partnership Ecosystem",
+		"collaboration": "Collaborating with Quality Partners",
+		"together": "Moving Forward Together",
+		"supportCommunity": "Building an innovation ecosystem together, providing venues, technology, resources and comprehensive support for creators",
+		"becomePartnerCta": "Want to become our partner?",
+		"partnershipInfo": "Learn about partnership methods, benefits and joining process",
+		"viewPartnership": "View Partnership Details"
+	},
+	"pricing": {
+		"choosePlan": "Choose plan",
+		"contactSales": "Contact sales",
+		"description": "Choose the plan that works best for you.",
+		"getStarted": "Get started",
+		"month": "{count, plural, one {month} other {{count} months}}",
+		"monthly": "Monthly",
+		"perSeat": "seat",
+		"products": {
+			"basic": {
+				"description": "Perfect to small teams.",
+				"features": {
+					"anotherFeature": "Another amazing feature",
+					"limitedSupport": "Limited support"
+				},
+				"title": "Basic"
+			},
+			"enterprise": {
+				"description": "Custom plan tailored to your requirements",
+				"features": {
+					"enterpriseSupport": "Enterprise support",
+					"unlimitedProjects": "Unlimited projects"
+				},
+				"title": "Enterprise"
+			},
+			"free": {
+				"description": "Start for free",
+				"features": {
+					"anotherFeature": "Another amazing feature",
+					"limitedSupport": "Limited support"
+				},
+				"title": "Free"
+			},
+			"lifetime": {
+				"description": "Buy once. Use forever.",
+				"features": {
+					"extendSupport": "Extended support",
+					"noRecurringCosts": "No recurring costs"
+				},
+				"title": "Lifetime"
+			},
+			"pro": {
+				"description": "Best for teams",
+				"features": {
+					"anotherFeature": "Another amazing feature",
+					"fiveMembers": "Up to 5 members",
+					"fullSupport": "Full support"
+				},
+				"title": "Pro"
+			}
+		},
+		"purchase": "Purchase",
+		"recommended": "Recommended",
+		"subscribe": "Subscribe",
+		"title": "Pricing",
+		"trialPeriod": "{days} {days, plural, one {day} other {days}} free trial",
+		"year": "{count, plural, one {year} other {{count} years}}",
+		"yearly": "Yearly"
+	},
+	"privacySettings": {
+		"description": "Control what information is visible to other community members on your public profile.",
+		"title": "Privacy Settings"
+	},
+	"profile": {
+		"availabilityStatus": {
+			"description": "Let others know your current availability for collaboration.",
+			"descriptions": {
+				"availableNextMonth": "Current project wrapping up, available for new projects next month",
+				"immediatelyAvailable": "Ready to start new projects or collaborations right now",
+				"networkingOnly": "Happy to share ideas and experience, but not participating in actual projects",
+				"notAvailable": "Currently busy with existing projects, not available for new commitments",
+				"weekendsOnly": "Busy on weekdays, can only participate in projects on weekends"
+			},
+			"options": {
+				"availableNextMonth": "Available Next Month",
+				"immediatelyAvailable": "Immediately Available",
+				"networkingOnly": "Networking Only",
+				"notAvailable": "Not Available",
+				"weekendsOnly": "Weekends Only"
+			},
+			"title": "Current Status"
+		},
+		"basicInfo": {
+			"description": "Update your basic information.",
+			"displayName": {
+				"description": "Display name (can use Chinese)"
+			},
+			"saveButton": "Save Basic Info",
+			"savingButton": "Saving...",
+			"username": {
+				"description": "Used in your profile URL: /u/{username}, also your login username. Please use English letters, numbers and underscores only",
+				"label": "Username",
+				"placeholder": "your_username"
+			},
+			"viewProfile": "View Profile"
+		},
+		"bio": {
+			"description": "Tell us a little bit about yourself.",
+			"label": "Bio",
+			"placeholder": "Tell us about yourself..."
+		},
+		"city": {
+			"label": "City",
+			"placeholder": "e.g. San Francisco"
+		},
+		"collaborationGoal": {
+			"label": "Collaboration Goal",
+			"placeholder": "Select your collaboration goal"
+		},
+		"collaborationGoalOptions": {
+			"exploreIdeas": "Explore Ideas",
+			"findTeam": "Find Team",
+			"joinTeam": "Join Team",
+			"networkingOnly": "Networking Only",
+			"notSpecified": "Not Specified",
+			"openToRemote": "Open to Remote"
+		},
+		"collaborationStatusCategories": {
+			"highAvailability": "High Collaboration Intent",
+			"limitedAvailability": "Limited Availability",
+			"moderateAvailability": "Moderate Collaboration Intent",
+			"other": "Other"
+		},
+		"collaborationStatusHelp": {
+			"building_mvp": "Currently focused on building own minimum viable product",
+			"consulting_only": "Only providing consultation and advice, not hands-on development",
+			"exploring_ideas": "Currently exploring and validating new startup ideas",
+			"fully_committed": "Fully committed to current project with no additional time",
+			"learning_phase": "In learning phase, accumulating skills and experience",
+			"open_to_collaborate": "Open to collaboration opportunities and interesting projects",
+			"other": "Other collaboration status, please check personal bio for details",
+			"part_time_available": "Available to participate in projects part-time with flexible hours",
+			"seeking_cofounder": "Looking for a co-founder to start a long-term partnership",
+			"seeking_team": "Recruiting team members for a project, welcoming various roles",
+			"weekends_only": "Only available for project work on weekends"
+		},
+		"commitmentLevel": {
+			"flexible": "Flexible",
+			"fullTime": "Full-time",
+			"label": "Time Commitment (if you're willing to join other teams)",
+			"notSpecified": "Not Specified",
+			"partTime": "Part-time",
+			"placeholder": "Select your commitment level",
+			"weekendWarrior": "Weekend Warrior"
+		},
+		"commitmentLevelOptions": {
+			"flexible": "Flexible",
+			"fullTime": "Full-time",
+			"notSpecified": "Not Specified",
+			"partTime": "Part-time",
+			"weekendWarrior": "Weekend Warrior"
+		},
+		"customRole": {
+			"label": "Custom Role Description",
+			"placeholder": "Describe your role (e.g., Data Scientist, Growth Hacker)"
+		},
+		"errors": {
+			"fetchFailed": "Failed to load profile",
+			"tryAgain": "Please try again later",
+			"updateFailed": "Failed to update profile"
+		},
+		"form": {
+			"reset": "Reset",
+			"saveAll": "Save All Changes",
+			"saveSection": "Save {section}",
+			"saving": "Saving...",
+			"unsavedChanges": "You have unsaved changes. Don't forget to save before leaving!"
+		},
+		"gender": {
+			"label": "Gender",
+			"placeholder": "Select your gender"
+		},
+		"genderOptions": {
+			"female": "Female",
+			"male": "Male",
+			"other": "Other",
+			"preferNotToSay": "Prefer not to say"
+		},
+		"name": {
+			"label": "Name",
+			"placeholder": "Your full name"
+		},
+		"newSkills": {
+			"categories": {
+				"businessGrowth": "Business Growth",
+				"productDesign": "Product Design",
+				"resourceNetwork": "Resource Network",
+				"technicalDevelopment": "Technical Development"
+			},
+			"primarySkills": {
+				"description": "Select your core competencies that best represent your expertise.",
+				"required": "At least one primary skill is required",
+				"title": "Primary Skills"
+			},
+			"secondarySkills": {
+				"description": "Select additional skills you possess but are not your main focus.",
+				"title": "Secondary Skills"
+			}
+		},
+		"phone": {
+			"label": "Phone",
+			"placeholder": "e.g. +1 (555) 123-4567"
+		},
+		"preferredContact": {
+			"description": "Choose which contact method to display when registering for events",
+			"options": {
+				"email": "Email",
+				"phone": "Phone Number",
+				"wechat": "WeChat ID"
+			},
+			"placeholder": "Select preferred contact method",
+			"title": "Preferred Contact Method"
+		},
+		"privacy": {
+			"contactVisibility": "Contact Information",
+			"contactVisibilityDescription": "Control which contact information is visible on your public profile",
+			"profileVisibility": "Profile Visibility",
+			"profileVisibilityDescription": "Control who can see your profile",
+			"publicProfile": "Public Profile",
+			"publicProfileDescription": "Make your profile visible to other community members",
+			"showEmail": "Show Email",
+			"showEmailDescription": "Display your email address on your public profile",
+			"showWechat": "Show WeChat",
+			"showWechatDescription": "Display your WeChat ID on your public profile"
+		},
+		"qr": {
+			"close": "Close",
+			"copyLink": "Copy Link",
+			"copyProfileLink": "Copy Profile Link",
+			"downloadPNG": "Download PNG",
+			"generateQRCode": "Generate QR Code",
+			"generateQRCodeText": "Click to generate and view your personal QR code",
+			"needPublicProfile": "Your profile is currently private. Make it public to generate your personal QR code.",
+			"needPublicProfileDesc": "Enable \"Public Profile\" in the profile settings below.",
+			"needUsername": "You need to set a username to generate your personal QR code.",
+			"needUsernameDesc": "Please update your username in the profile settings below.",
+			"notifications": {
+				"copyError": "Failed to copy link",
+				"copySuccess": "Profile link copied to clipboard",
+				"downloadError": "Failed to download QR code",
+				"downloadSuccess": "QR code downloaded successfully"
+			},
+			"personalQRCode": "Personal QR Code",
+			"openDigitalCard": "Digital Card",
+			"openDigitalCardShort": "Card",
+			"qrCodeDescription": "Your personal QR code for sharing your profile",
+			"qrCodeDescriptionFull": "Your personal QR code for sharing your profile. Perfect for business cards and networking!",
+			"scanToViewProfile": "Scan to view my profile",
+			"share": "Share",
+			"showPersonalQRCode": "Show Personal QR Code",
+			"viewDigitalCard": "Open Digital Card",
+			"thisQRCodeLinksTo": "This QR code links to:"
+		},
+		"resourceMatching": {
+			"description": "Tell the community what you can offer and what you're looking for.",
+			"needs": {
+				"collaborationOptions": {
+					"hybrid": "Hybrid",
+					"local": "Local/In-person",
+					"remote": "Remote"
+				},
+				"lookingFor": "Looking For",
+				"lookingForOptions": {
+					"feedback": "💭 Feedback",
+					"investment": "💰 Investment",
+					"mentorship": "🎓 Mentorship",
+					"projects": "🚀 Projects",
+					"teammates": "👥 Teammates"
+				},
+				"preferredCollaboration": "Preferred Collaboration",
+				"timeCommitment": "Time Commitment",
+				"timeCommitmentOptions": {
+					"flexible": "Flexible",
+					"fullTime": "Full-time",
+					"partTime": "Part-time",
+					"weekends": "Weekends"
+				},
+				"title": "What I'm Looking For"
+			},
+			"offering": {
+				"availability": "Availability",
+				"availabilityPlaceholder": "e.g., Can commit 10-15 hours per week, mainly evenings and weekends...",
+				"cooperationType": "Cooperation Type",
+				"cooperationTypes": {
+					"equity": "Equity Collaboration",
+					"exchange": "Resource Exchange",
+					"free": "Free Collaboration",
+					"paid": "Paid Service"
+				},
+				"experienceLevel": "Experience Level",
+				"experienceLevels": {
+					"advanced": "Advanced",
+					"beginner": "Beginner",
+					"expert": "Expert",
+					"intermediate": "Intermediate"
+				},
+				"skills": "Skills & Services",
+				"title": "What I Can Offer"
+			},
+			"title": "Resource Matching"
+		},
+		"role": {
+			"label": "Primary Role",
+			"placeholder": "Select your primary role"
+		},
+		"roleCategories": {
+			"businessDevelopment": "Business Development",
+			"dataAnalytics": "Data & Analytics",
+			"design": "Design",
+			"general": "General",
+			"investmentAdvisory": "Investment & Advisory",
+			"marketingGrowth": "Marketing & Growth",
+			"other": "Other",
+			"productManagement": "Product & Management",
+			"technical": "Technical"
+		},
+		"roles": {
+			"aiEngineer": "AI Engineer",
+			"backendDev": "Backend Developer",
+			"businessDev": "Business Developer",
+			"communityManager": "Community Manager",
+			"contentCreator": "Content Creator",
+			"dataAnalyst": "Data Analyst",
+			"designer": "Designer",
+			"devops": "DevOps Engineer",
+			"frontendDev": "Frontend Developer",
+			"fullstackDev": "Fullstack Developer",
+			"generalist": "Generalist",
+			"growthMarketer": "Growth Marketer",
+			"investor": "Investor",
+			"mentor": "Mentor",
+			"other": "Other",
+			"productManager": "Product Manager"
+		},
+		"systemRoles": {
+			"founder": "Founder",
+			"co_founder": "Co-founder",
+			"director": "Director",
+			"tech_lead": "Tech Lead",
+			"operations_lead": "Operations Lead",
+			"community_lead": "Community Lead",
+			"marketing_lead": "Marketing Lead",
+			"partnership_lead": "Partnership Lead",
+			"volunteer_lead": "Volunteer Lead",
+			"finance_lead": "Finance Lead",
+			"content_lead": "Content Lead",
+			"event_lead": "Event Lead",
+			"product_lead": "Product Lead",
+			"design_lead": "Design Lead",
+			"education_lead": "Education Lead",
+			"mentor_lead": "Mentor Lead",
+			"learning_lead": "Learning Lead",
+			"membership_lead": "Membership Lead"
+		},
+		"roleStatus": {
+			"description": "Manage your role status."
+		},
+		"sections": {
+			"basicInfo": "Basic Information",
+			"privacy": "Privacy Settings",
+			"projects": "Projects",
+			"roleStatus": "Role & Status",
+			"skills": "Skills",
+			"socialAccounts": "Social Accounts"
+		},
+		"skills": {
+			"addCustomSkill": "Add Custom Skill",
+			"customSkillPlaceholder": "Enter a skill (e.g., Blockchain, Game Development...)",
+			"description": "Select your skills to showcase your expertise. Choose from popular skills or add your own.",
+			"popularSkills": "Popular Skills (click to add)",
+			"saveSkills": "Save Skills",
+			"saving": "Saving...",
+			"title": "Skills & Expertise",
+			"yourSkills": "Your Skills ({count})"
+		},
+		"social": {
+			"github": "GitHub URL",
+			"githubUsername": "GitHub Username",
+			"saveSocialAccounts": "Save Social Accounts",
+			"saving": "Saving...",
+			"twitter": "Twitter URL",
+			"twitterUsername": "X (Twitter) Username",
+			"website": "Website URL",
+			"wechat": "WeChat ID",
+			"wechatPlaceholder": "your-wechat-id"
+		},
+		"socialAccounts": {
+			"description": "Connect your social accounts."
+		},
+		"subtitle": "Manage your personal information and preferences",
+		"success": {
+			"profileSaved": "Your profile has been updated successfully.",
+			"updated": "Profile updated"
+		},
+		"tabs": {
+			"basicInfo": "Basic Information",
+			"privacy": "Privacy Settings",
+			"roleStatus": "Role Status",
+			"socialAccounts": "Social Accounts"
+		},
+		"title": "Profile Settings"
+	},
+	"projects": {
+		"addProject": "Add Project",
+		"communityProjects": "Community Projects",
+		"myProjects": {
+			"title": "My Projects",
+			"noProjects": "No projects yet",
+			"noProjectsDesc": "Create your first project and share your creativity with the community",
+			"createProject": "Create Project",
+			"loadingError": "Error loading projects",
+			"reload": "Reload"
+		},
+		"create": {
+			"backToProjects": "Back to Projects",
+			"breadcrumb": {
+				"createNew": "Create New Project",
+				"projects": "Projects"
+			},
+			"encouragement": {
+				"benefits": {
+					"collaboration": "Find like-minded partners and team members",
+					"exposure": "Get more exposure and let more people discover your work",
+					"feedback": "Receive valuable feedback to help improve your product",
+					"learning": "Learn and grow through sharing and exchanging with other creators",
+					"opportunities": "Discover investment opportunities, business partnerships, and career development"
+				},
+				"callToAction": "Start sharing your creative project and join our vibrant creator community!",
+				"title": "Why share your project in the community?"
+			},
+			"notifications": {
+				"createFailed": "Failed to create project",
+				"success": "Project created successfully!"
+			},
+			"subtitle": "Share your amazing project with the community",
+			"title": "Create New Project"
+		},
+		"description": "Discover innovative projects from our community members. From early ideas to launched products.",
+		"empty": {
+			"message": "No projects yet. Create your first project to get started!",
+			"viewAll": "View All Projects"
+		},
+		"filters": {
+			"allStages": "All Stages",
+			"moreStageFilters": "More Stage Filters",
+			"organizationFilter": "Organization Filter",
+			"stage": "Filter by stage",
+			"titleArea": "Title Area"
+		},
+		"managementSubtitle": "Manage and showcase your projects",
+		"managementTitle": "My Projects",
+		"meta": {
+			"description": "Discover and explore innovative projects from our community members",
+			"title": "Community Projects | Hackathon Weekly"
+		},
+		"search": {
+			"button": "Search",
+			"placeholder": "Search projects..."
+		},
+		"stages": {
+			"archived": "Archived",
+			"idea": "Idea Stage",
+			"paused": "Paused",
+			"pivoted": "Pivoted",
+			"prototyping": "Prototyping"
+		},
+		"stage": {
+			"ideaValidation": "Idea Validation",
+			"prototyping": "Prototyping",
+			"mvp": "MVP",
+			"launched": "Launched",
+			"growth": "Growth"
+		},
+		"viewProject": "View Project",
+		"stats": {
+			"developing": "In Development",
+			"experienceSharing": "Experience Sharing",
+			"launched": "Launched",
+			"publicBuild": "Public Build",
+			"seekingTeam": "Seeking Team",
+			"successfulProjects": "Successful Projects",
+			"total": "Total Projects"
+		},
+		"title": "Community Projects",
+		"viewAllProjects": "View All Projects",
+		"visitProject": "Visit Project",
+		"bookmark": {
+			"loginRequired": "Please log in to bookmark projects",
+			"alreadyBookmarked": "This project is already in your bookmarks",
+			"cannotBookmarkOwn": "You cannot bookmark your own project",
+			"bookmarkSuccess": "Added to bookmarks",
+			"unbookmarkSuccess": "Removed from bookmarks",
+			"updateError": "Failed to update bookmark"
+		}
+	},
+	"posts": {
+		"createPost": "Create Post",
+		"description": "Share ideas, learning notes and project updates",
+		"channels": {
+			"all": "All",
+			"showcase": "Showcase",
+			"learning": "Learning",
+			"teamUp": "Team Up",
+			"announcement": "Announcement",
+			"chat": "Chat"
+		},
+		"sort": {
+			"new": "Latest",
+			"hot": "Popular"
+		},
+		"empty": "No posts yet. Be the first to share!",
+		"detail": {
+			"notFound": "Post not found or has been deleted"
+		}
+	},
+	"projectShowcase": {
+		"createdBy": "Created by",
+		"description": "Discover remarkable projects created by our community members",
+		"github": "GitHub",
+		"imagePlaceholder": "Project Image",
+		"label": "Project Showcase",
+		"projects": {
+			"first": {
+				"creator": "Team Wordcraft",
+				"description": "A tool that helps writers overcome writer's block using AI suggestions",
+				"tags": {
+					"tag1": "AI",
+					"tag2": "Productivity"
+				},
+				"title": "AI Writing Assistant"
+			},
+			"fourth": {
+				"creator": "FinTech Squad",
+				"description": "AI-powered expense tracking and financial planning assistant",
+				"tags": {
+					"tag1": "Finance",
+					"tag2": "Productivity"
+				},
+				"title": "Personal Finance Tracker"
+			},
+			"second": {
+				"creator": "MeetingMasters",
+				"description": "Automatically transcribes and summarizes meetings with action items",
+				"tags": {
+					"tag1": "AI",
+					"tag2": "Business"
+				},
+				"title": "Smart Meeting Summarizer"
+			},
+			"third": {
+				"creator": "LinguaPlay",
+				"description": "Gamified language learning with AI-powered conversational practice",
+				"tags": {
+					"tag1": "Education",
+					"tag2": "Gaming"
+				},
+				"title": "Language Learning Game"
+			}
+		},
+		"title": "Community-Built Projects",
+		"viewAllButton": "View All Projects",
+		"website": "Website"
+	},
+	"public": {
+		"organizationEvents": "Organization Events"
+	},
+	"settings": {
+		"account": {
+			"avatar": {
+				"description": "To change your avatar click the picture in this block and select a file from your computer to upload.",
+				"notifications": {
+					"error": "Could not update avatar",
+					"success": "Avatar was updated successfully"
+				},
+				"title": "Your avatar"
+			},
+			"changeEmail": {
+				"description": "Enter a new email and click save. We'll send you a confirmation link and the address won't change until you verify it.",
+				"notifications": {
+					"error": "Could not update email",
+					"success": "We sent a verification link to {email}. Please confirm it to finish updating your email."
+				},
+				"title": "Your email"
+			},
+			"changeName": {
+				"notifications": {
+					"error": "Could not update name",
+					"success": "Name was updated successfully"
+				},
+				"title": "Your name"
+			},
+			"deleteAccount": {
+				"confirmation": "Are you sure you want to delete your account?",
+				"description": "Permanently delete your account. Once you delete your account, there is no going back. To confirm, please enter your password below:",
+				"notifications": {
+					"error": "Could not delete account",
+					"success": "Account was deleted successfully"
+				},
+				"submit": "Delete account",
+				"title": "Delete account"
+			},
+			"language": {
+				"description": "To change the language of the app for your account, select a language from the list and click save.",
+				"notifications": {
+					"error": "Could not update language",
+					"success": "Language was updated successfully"
+				},
+				"title": "Your language"
+			},
+			"security": {
+				"activeSessions": {
+					"currentSession": "Current Session",
+					"description": "These are all the active sessions of your account. Click the X to end a specifc session.",
+					"notifications": {
+						"revokeSession": {
+							"success": "Session revoked"
+						}
+					},
+					"title": "Active sessions"
+				},
+				"changePassword": {
+					"currentPassword": "Current password",
+					"newPassword": "New password",
+					"notifications": {
+						"error": "Could not update password",
+						"success": "Password was updated successfully"
+					},
+					"title": "Your password"
+				},
+				"connectedAccounts": {
+					"connect": "Connect",
+					"disconnect": "Disconnect",
+					"title": "Connected accounts"
+				},
+				"passkeys": {
+					"description": "Use passkeys as a secure alternative to passwords.",
+					"notifications": {
+						"addPasskey": {
+							"error": {
+								"title": "Could not add passkey"
+							},
+							"success": {
+								"title": "Passkey added"
+							}
+						},
+						"deletePasskey": {
+							"error": {
+								"title": "Could not delete passkey"
+							},
+							"loading": {
+								"title": "Deleting passkey..."
+							},
+							"success": {
+								"title": "Passkey deleted"
+							}
+						}
+					},
+					"title": "Passkeys"
+				},
+				"setPassword": {
+					"description": "You have not set a password yet. To set one, you need to go through the password reset flow. Click the button below to send an email to reset your password and follow the instructions in the email.",
+					"descriptionNeedEmail": "To set a password, you need to first bind and verify a real email address. Please go to the Email settings page to add and verify your email.",
+					"notifications": {
+						"error": "Could not send password setup email",
+						"success": "Password setup email sent, please check your inbox",
+						"needVerifiedEmail": "Please bind and verify your email address first, then set your password"
+					},
+					"submit": "Set password",
+					"submitNeedEmail": "Go to Email Settings",
+					"title": "Your password"
+				},
+				"title": "Security",
+				"twoFactor": {
+					"description": "Add an extra layer of security to your account.",
+					"dialog": {
+						"password": {
+							"description": "Please enter your password to continue.",
+							"label": "Password",
+							"title": "Confirm Password"
+						},
+						"totpUrl": {
+							"code": "Verification Code",
+							"description": "Scan this QR code with your authenticator app.",
+							"title": "Setup Two-Factor Authentication"
+						}
+					},
+					"disable": "Disable Two-Factor Authentication",
+					"enable": "Enable Two-Factor Authentication",
+					"enabled": "Two-Factor Authentication Enabled",
+					"notifications": {
+						"disable": {
+							"success": {
+								"title": "Two-Factor Authentication Disabled"
+							}
+						},
+						"enable": {
+							"error": {
+								"title": "Failed to Enable Two-Factor Authentication"
+							}
+						},
+						"verify": {
+							"success": {
+								"title": "Two-Factor Authentication Verified"
+							}
+						}
+					},
+					"title": "Two-Factor Authentication"
+				}
+			},
+			"subtitle": "Manage the settings of your personal account.",
+			"title": "Account settings"
+		},
+		"billing": {
+			"activePlan": {
+				"status": {
+					"active": "Active",
+					"canceled": "Canceled",
+					"expired": "Expired",
+					"incomplete": "Incomplete",
+					"past_due": "Past due",
+					"paused": "Paused",
+					"trialing": "Trialing",
+					"unpaid": "Unpaid"
+				},
+				"title": "Your plan"
+			},
+			"changePlan": {
+				"description": "Choose a plan to subscribe to.",
+				"title": "Change your plan"
+			},
+			"createCustomerPortal": {
+				"label": "Manage billing",
+				"notifications": {
+					"error": {
+						"title": "Could not create a customer portal session. Please try again."
+					}
+				}
+			},
+			"title": "Billing"
+		},
+		"changeName": {
+			"title": "Organization name"
+		},
+		"dangerZone": {
+			"title": "Danger zone"
+		},
+		"deleteOrganization": {
+			"confirmation": "Are you sure you want to delete your organization?",
+			"description": "Permanently delete your organization. Once you delete your organization, there is no going back. To confirm, please enter your password below:",
+			"submit": "Delete organization",
+			"title": "Delete organization"
+		},
+		"logo": {
+			"description": "Upload a logo for your organization.",
+			"title": "Organization logo"
+		},
+		"members": {
+			"activeMembers": "Active members",
+			"description": "See all active members and the pending invites of your organization.",
+			"invitations": {
+				"empty": "You have not invited any members yet.",
+				"expiresAt": "Expires at {date}",
+				"invitationStatus": {
+					"accepted": "Accepted",
+					"canceled": "Canceled",
+					"pending": "Pending",
+					"rejected": "Rejected"
+				},
+				"resend": "Resend invitation",
+				"revoke": "Revoke invitation"
+			},
+			"inviteMember": {
+				"description": "To invite a new member, send them an invitation.",
+				"email": "Email",
+				"notifications": {
+					"error": {
+						"description": "We were unable to invite the member. Please try again later.",
+						"title": "Could not invite member"
+					},
+					"success": {
+						"description": "The member has been invited.",
+						"title": "Member invited"
+					}
+				},
+				"role": "Role",
+				"submit": "Invite",
+				"title": "Invite member"
+			},
+			"leaveOrganization": "Leave organization",
+			"notifications": {
+				"removeMember": {
+					"error": {
+						"description": "Could not remove the member from your organization. Please try again."
+					},
+					"loading": {
+						"description": "Removing member from organization..."
+					},
+					"success": {
+						"description": "The member has been successfully removed from your organization."
+					}
+				},
+				"resendInvitation": {
+					"error": {
+						"description": "Could not sent invitation. Please try again."
+					},
+					"loading": {
+						"description": "Resending invitation..."
+					},
+					"success": {
+						"description": "Invitation sent"
+					}
+				},
+				"revokeInvitation": {
+					"error": {
+						"description": "The invitation could not be revoked. Please try again later."
+					},
+					"loading": {
+						"description": "Revoking invitation..."
+					},
+					"success": {
+						"description": "The invitation has been revoked."
+					}
+				},
+				"updateMembership": {
+					"error": {
+						"description": "Could not update organization membership. Please try again."
+					},
+					"loading": {
+						"description": "Updating membership..."
+					},
+					"success": {
+						"description": "Membership was updated successfully"
+					}
+				}
+			},
+			"pendingInvitations": "Pending invitations",
+			"removeMember": "Remove member",
+			"title": "Members"
+		},
+		"menu": {
+			"account": {
+				"billing": "Billing",
+				"dangerZone": "Danger zone",
+				"general": "General",
+				"privacy": "Privacy",
+				"profile": "Profile",
+				"security": "Security",
+				"title": "Account",
+				"notifications": "Notifications"
+			},
+			"organization": {
+				"billing": "Billing",
+				"dangerZone": "Danger zone",
+				"general": "General",
+				"members": "Members",
+				"title": "Organization"
+			}
+		},
+		"notifications": {
+			"organizationDeleted": "Your organization has been deleted.",
+			"organizationNameNotUpdated": "We were unable to update your organization name. Please try again later.",
+			"organizationNameUpdated": "Your organization name has been updated.",
+			"organizationNotDeleted": "We were unable to delete your organization. Please try again later."
+		},
+		"privacy": {
+			"description": "Manage your privacy preferences",
+			"save": "Save Settings",
+			"saveError": "Save failed",
+			"saveErrorDescription": "Failed to save settings, please try again later",
+			"saveSuccess": "Settings saved",
+			"saveSuccessDescription": "Your privacy settings have been updated successfully",
+			"saving": "Saving...",
+			"title": "Privacy Settings"
+		},
+		"profileSettings": {
+			"description": "Manage your profile information and preferences",
+			"goToProfile": "Go to Profile",
+			"title": "Profile Settings"
+		},
+		"save": "Save",
+		"subtitle": "Manage the settings of the organization.",
+		"title": "Organization"
+	},
+	"start": {
+		"subtitle": "Begin your creator journey and turn ideas into reality.",
+		"welcome": "Welcome {name}!"
+	},
+	"tab_nav": {
+		"blog": "Blog",
+		"changelog": "Changelog",
+		"collab_docs": "Collaboration Docs",
+		"contributions": "Contributions",
+		"create": "Create",
+		"docs": "Docs",
+		"events": "Events",
+		"home": "Home",
+		"feed": "Feed",
+		"login": "Login",
+		"more": "More",
+		"notifications": "Messages",
+		"tools": "Tools",
+		"me": "Me",
+		"organizations": "Organizations",
+		"projects": "Projects Collection",
+		"posts": "Posts",
+		"tasks": "Tasks",
+		"members": "Members",
+		"leaderboard": "Leaderboard",
+		"weekly": "Weekly",
+		"quickStart": "Quick Start",
+		"sayHello": "Say Hello",
+		"groupWelcome": "Welcome",
+		"groupCommunity": "Community",
+		"groupResources": "Resources",
+		"groupAdmin": "Admin",
+		"groupPersonal": "Personal",
+		"myProfile": "Digital Card",
+		"myCommunity": "My Community",
+		"discoverOrgs": "Discover Orgs",
+		"settings": "Settings"
+	},
+	"tasks": {
+		"allTasks": "All Tasks",
+		"assignedTo": "Assigned To",
+		"completed": "Completed",
+		"create": {
+			"basicInfo": "Basic Information",
+			"basicInfoDesc": "Fill in the basic information of the task",
+			"categories": {
+				"COMMUNITY_SERVICE": {
+					"description": "Volunteer services, newcomer guidance, Q&A support, etc.",
+					"label": "Community Service"
+				},
+				"CONTENT_CREATION": {
+					"description": "Article writing, translation, tutorial creation, etc.",
+					"label": "Content Creation"
+				},
+				"OPERATION_PROMOTION": {
+					"description": "Partnership outreach, guest invitations, data analysis, etc.",
+					"label": "Operation Promotion"
+				},
+				"OTHER": {
+					"description": "Other types of contribution tasks",
+					"label": "Other"
+				},
+				"PRODUCT_TECH": {
+					"description": "Feature development, bug fixes, code review, etc.",
+					"label": "Product Technology"
+				}
+			},
+			"confirmDialog": {
+				"adminNotice": "Admin tasks do not consume points",
+				"cancel": "Cancel",
+				"confirm": "Confirm Publication",
+				"confirmation": "After task is published, other users can claim and complete it. Please ensure task information is accurate.",
+				"cpWarning": "This will consume {cp} points (current balance: {balance})",
+				"description": "You are about to publish the following task:",
+				"publishing": "Publishing...",
+				"taskInfo": {
+					"category": "Category",
+					"cpConsumption": "CP Consumption",
+					"cpReward": "CP Reward",
+					"title": "Title"
+				},
+				"title": "Confirm Task Publication"
+			},
+			"form": {
+				"adminBadge": "Admin (No points required)",
+				"category": "Task Category *",
+				"categoryPlaceholder": "Select task category",
+				"cpBalance": "Current points Balance: {balance}",
+				"cpPlaceholder": "CP",
+				"cpReward": "CP Reward *",
+				"cpUsage": "{isAdmin} Admin publishes official tasks{isUser} User tasks require points as rewards",
+				"deadline": "Deadline (Optional)",
+				"description": "Task Description *",
+				"descriptionLength": "{length}/2000 characters, supports Markdown format",
+				"descriptionPlaceholder": "Describe task content, requirements, deliverables, etc. in detail...",
+				"featured": "Featured Task",
+				"featuredDesc": "Prioritize display in task hall",
+				"priority": "Task Priority",
+				"tags": "Task Tags",
+				"tagsCount": "{count}/10 tags",
+				"tagsPlaceholder": "Enter tags, press Enter or comma to add",
+				"title": "Task Title *",
+				"titleLength": "{length}/100 characters",
+				"titlePlaceholder": "Enter task title (concise and clear)"
+			},
+			"priority": {
+				"HIGH": {
+					"description": "Important and urgent tasks",
+					"label": "High Priority"
+				},
+				"LOW": {
+					"description": "Non-urgent tasks",
+					"label": "Low Priority"
+				},
+				"NORMAL": {
+					"description": "Regular priority tasks",
+					"label": "Normal"
+				},
+				"URGENT": {
+					"description": "Tasks requiring immediate attention",
+					"label": "Urgent"
+				}
+			},
+			"publishTips": "Publishing Tips",
+			"publishTipsContent": {
+				"tip1": "After task is published, other users can claim and complete it",
+				"tip2": "Admin tasks do not consume points, user tasks require pre-consumption of points as rewards",
+				"tip3": "After task completion and approval, points will be distributed to the claimant",
+				"tip4": "It is recommended to set reasonable points rewards to attract more participants"
+			},
+			"subtitle": "Create community contribution tasks and invite other members to participate",
+			"taskPreview": "Task Preview",
+			"taskSettings": "Task Settings",
+			"taskSettingsDesc": "Set task rewards, priority, etc.",
+			"title": "Create Task",
+			"validation": {
+				"categoryRequired": "Please select task category",
+				"cpInsufficient": "Insufficient points balance, current balance: {balance}",
+				"cpMax": "Single task points reward cannot exceed 1000",
+				"cpMin": "CP reward must be greater than 0",
+				"deadlinePast": "Deadline must be later than current time",
+				"descriptionLength": "Task description requires at least 10 characters",
+				"descriptionMaxLength": "Description length cannot exceed 2000 characters",
+				"descriptionRequired": "Task description is required",
+				"tagsMax": "Maximum 10 tags allowed",
+				"titleLength": "Title length cannot exceed 100 characters",
+				"titleRequired": "Task title is required"
+			}
+		},
+		"createTask": "CreateTasks",
+		"deleteTask": "DeleteTasks",
+		"description": "Participate in community building, earn points contribution points, and help create a better hackathon ecosystem together",
+		"detail": {
+			"actions": {
+				"approveTask": "Approve Task",
+				"claiming": "Claiming...",
+				"claimTask": "Claim Task",
+				"processing": "Processing...",
+				"rejectTask": "Reject Task",
+				"submitTask": "Submit Task",
+				"submitting": "Submitting...",
+				"taskExpired": "Task Expired"
+			},
+			"backToTasks": "Back to Task Hall",
+			"basicInfo": "Basic Information",
+			"categories": {
+				"COMMUNITY_SERVICE": "Community Service",
+				"CONTENT_CREATION": "Content Creation",
+				"OPERATION_PROMOTION": "Operation Promotion",
+				"OTHER": "Other",
+				"PRODUCT_TECH": "Product Technology"
+			},
+			"cpReward": "CP Reward",
+			"deadline": "Deadline",
+			"dialogs": {
+				"reviewTask": {
+					"approveDescription": "Confirm the task has been completed as required. points rewards will be distributed to the claimant.",
+					"approveTitle": "Approve Task Review",
+					"confirmApprove": "Confirm Approval",
+					"confirmReject": "Confirm Rejection",
+					"optionalNote": "Optional",
+					"rejectDescription": "Task does not meet requirements. This submission will be rejected.",
+					"rejectReason": "Please specify rejection reason",
+					"rejectTitle": "Reject Task",
+					"reviewNote": "Review Note"
+				},
+				"submitTask": {
+					"addLink": "Add Link",
+					"cancel": "Cancel",
+					"description": "Please provide a detailed description of task completion and relevant evidence links.",
+					"evidenceLinks": "Evidence Links (Optional)",
+					"removeLink": "Remove",
+					"submissionNote": "Submission Note *",
+					"submissionPlaceholder": "Describe task completion, issues encountered, and solutions...",
+					"submit": "Confirm Submission",
+					"title": "Submit Task"
+				}
+			},
+			"evidenceLinks": "Evidence Links",
+			"expired": "Expired",
+			"expiringSoon": "Expiring Soon",
+			"priority": {
+				"HIGH": "High",
+				"LOW": "Low",
+				"NORMAL": "Normal",
+				"URGENT": "Urgent"
+			},
+			"publishedOn": "Published on",
+			"reviewedAt": "Reviewed at",
+			"reviewNote": "Review Note",
+			"reviewResult": "Review Result",
+			"status": {
+				"CANCELLED": "Cancelled",
+				"CLAIMED": "In Progress",
+				"COMPLETED": "Completed",
+				"PUBLISHED": "Available to Claim",
+				"REJECTED": "Rejected",
+				"SUBMITTED": "Under Review"
+			},
+			"submissionNote": "Submission Note",
+			"submitContent": "Submission Content",
+			"submittedAt": "Submitted at",
+			"tags": "Tags",
+			"taskDescription": "Task Description",
+			"taskDetails": "Task Details",
+			"taskNotFound": "Task Not Found",
+			"taskNotFoundDesc": "The task you are looking for may have been deleted or does not exist."
+		},
+		"dueDate": "Due Date",
+		"editTask": "EditTasks",
+		"inProgress": "In Progress",
+		"meta": {
+			"description": "Participate in community building tasks, earn contribution points, and help create a better hackathon ecosystem together",
+			"title": "Community Tasks"
+		},
+		"myTasks": {
+			"browseTasks": "Browse Tasks",
+			"categories": {
+				"COMMUNITY_SERVICE": "Community Service",
+				"CONTENT_CREATION": "Content Creation",
+				"OPERATION_PROMOTION": "Operation Promotion",
+				"OTHER": "Other",
+				"PRODUCT_TECH": "Product Technology"
+			},
+			"claimedAt": "Claimed",
+			"claimedBy": "Claimed by:",
+			"claimedTasks": "Claimed Tasks",
+			"compatibilityFormat": "Compatible with old format",
+			"createdAt": "Created",
+			"deadline": "Deadline",
+			"description": "Manage tasks I published and claimed",
+			"emptyStates": {
+				"browseTasks": "Browse Tasks",
+				"goToTaskHall": "Go to task hall to see which tasks you can claim",
+				"noClaimedTasks": "No claimed tasks yet",
+				"noPublishedTasks": "No published tasks yet",
+				"publishFirstTask": "Publish First Task",
+				"publishTasksDesc": "Publish tasks to let community members help you complete work"
+			},
+			"expired": "expired",
+			"fetchError": "Failed to fetch my tasks",
+			"goToTaskHall": "Go to task hall to see which tasks you can claim",
+			"loginNow": "Login Now",
+			"loginRequired": "You need to login to view my tasks",
+			"noClaimedTasks": "No claimed tasks yet",
+			"noPublishedTasks": "No published tasks yet",
+			"pleaseLogin": "Please login first",
+			"priority": {
+				"HIGH": "High",
+				"LOW": "Low",
+				"NORMAL": "Normal",
+				"URGENT": "Urgent"
+			},
+			"publishedBy": "Published by:",
+			"publishedTasks": "Published Tasks",
+			"publishFirstTask": "Publish First Task",
+			"publishNewTask": "Publish New Task",
+			"publishTasksDesc": "Publish tasks to let community members help you complete work",
+			"reviewedAt": "Reviewed at",
+			"reviewFeedback": "Review Feedback:",
+			"stats": {
+				"claimedTasks": "Claimed Tasks",
+				"claimedTasksDesc": "Number of tasks I claimed",
+				"completedTasks": "Completed Tasks",
+				"completedTasksDesc": "Number of completed tasks",
+				"completionRate": "Completion rate",
+				"publishedTasks": "Published Tasks",
+				"publishedTasksDesc": "Number of tasks I published"
+			},
+			"status": {
+				"CANCELLED": "Cancelled",
+				"CLAIMED": "In Progress",
+				"COMPLETED": "Completed",
+				"PUBLISHED": "Available",
+				"REJECTED": "Rejected",
+				"SUBMITTED": "Under Review"
+			},
+			"submittedAt": "Submitted at",
+			"timeInfo": {
+				"reviewedAt": "Reviewed at",
+				"submittedAt": "Submitted at"
+			},
+			"title": "My Tasks",
+			"userInfo": {
+				"claimedBy": "Claimed by:",
+				"publishedBy": "Published by:",
+				"reviewFeedback": "Review Feedback:"
+			},
+			"viewDetails": "View Details"
+		},
+		"overdue": "Overdue",
+		"pending": "Pending",
+		"priority": {
+			"high": "High",
+			"low": "Low",
+			"medium": "Medium",
+			"urgent": "Urgent"
+		},
+		"taskDescription": "Task Description",
+		"taskHall": "Task Hall",
+		"taskPriority": "Task Priority",
+		"taskStatus": "Task Status",
+		"taskTitle": "Task Title",
+		"title": "Community Contribution Tasks",
+		"userProfile": {
+			"badgeRarity": {
+				"COMMON": "Common",
+				"EPIC": "Epic",
+				"LEGENDARY": "Legendary",
+				"RARE": "Rare",
+				"UNCOMMON": "Uncommon"
+			},
+			"badgeReason": "Reason for award:",
+			"badgesSection": "Badges Collection",
+			"certificatesSection": "Certificates & Awards",
+			"collaborationInfo": "Collaboration Info",
+			"communityProfile": "Community Profile",
+			"connectionSummary": "You both participated in {count} events together - what a wonderful connection!",
+			"editProfile": "Edit Profile",
+			"eventsCreated": "Managed Events",
+			"eventStatus": {
+				"CANCELLED": "Cancelled",
+				"COMPLETED": "Completed",
+				"DRAFT": "Draft",
+				"PUBLISHED": "Published"
+			},
+			"featured": "Featured",
+			"memberSince": "Member Since",
+			"noOrganizations": "Not a member of any organizations yet",
+			"noProjects": "No projects yet",
+			"noSkills": "No skills added yet",
+			"offeringCollaboration": "Offering collaboration",
+			"organizations": "Organizations",
+			"ourConnection": "Our Connection",
+			"participants": "participants",
+			"profileViews": "Profile Views",
+			"projects": "Projects",
+			"projectStages": {
+				"COMPLETED": "🎯 Project Completed",
+				"DEVELOPMENT": "🔧 Product Development",
+				"FUNDING": "💼 Funding & Expansion",
+				"GROWTH": "📈 User Growth",
+				"IDEA_VALIDATION": "💡 Idea Validation",
+				"LAUNCH": "🚀 Product Launch",
+				"MONETIZATION": "💰 Monetization"
+			},
+			"seekingCollaboration": "Seeking collaboration",
+			"sharedEvents": "Events We Both Attended",
+			"skills": "Skills",
+			"skillsSection": "Skills",
+			"statistics": "Statistics",
+			"viewProject": "View Project",
+			"views": "views",
+			"whatIAmLookingFor": "What I'm Looking For",
+			"whatICanOffer": "What I Can Offer"
+		},
+		"valueFuture": {
+			"futurePlans": {
+				"description": "Our roadmap for expanding and enhancing the community experience",
+				"label": "Future Plans",
+				"title": "What's Coming Next"
+			},
+			"joinOrganization": "Join Organization",
+			"plans": {
+				"first": {
+					"description": "Expanding to more cities internationally, starting with Southeast Asia and North America",
+					"title": "Global Expansion"
+				},
+				"joinOrganization": "Join Organization",
+				"second": {
+					"description": "Building stronger connections with investors to support promising projects",
+					"title": "Investment Network"
+				},
+				"third": {
+					"description": "Establishing an award program to recognize outstanding community projects",
+					"title": "Recognition Program"
+				},
+				"viewProjects": "View Projects"
+			},
+			"valueProposition": {
+				"description": "We offer unique advantages for creators looking to build AI-powered products",
+				"label": "Our Value",
+				"title": "Why Join Our Community"
+			},
+			"values": {
+				"first": {
+					"description": "A positive, supportive community that celebrates creativity and experimentation",
+					"title": "Supportive Environment"
+				},
+				"second": {
+					"description": "Access to learning resources, mentorship, and growth opportunities",
+					"title": "Growth Opportunities"
+				},
+				"third": {
+					"description": "Connect with talented, like-minded creators, developers, and entrepreneurs",
+					"title": "Quality Network"
+				}
+			},
+			"viewProjects": "View Projects"
+		},
+		"zod": {
+			"errors": {
+				"invalid_arguments": "Invalid function arguments",
+				"invalid_date": "Invalid date",
+				"invalid_enum_value": "Invalid enum value. Expected {- options}, received '{received}'",
+				"invalid_intersection_types": "Intersection results could not be merged",
+				"invalid_literal": "Invalid literal value, expected {expected}",
+				"invalid_return_type": "Invalid function return type",
+				"invalid_string": {
+					"cuid": "Invalid {validation}",
+					"datetime": "Invalid {validation}",
+					"email": "Invalid {validation}",
+					"endsWith": "Invalid input: must end with \"{endsWith}\"",
+					"regex": "Invalid",
+					"startsWith": "Invalid input: must start with \"{startsWith}\"",
+					"url": "Invalid {validation}",
+					"uuid": "Invalid {validation}"
+				},
+				"invalid_type": "Expected {expected}, received {received}",
+				"invalid_type_received_undefined": "Required",
+				"invalid_union": "Invalid input",
+				"invalid_union_discriminator": "Invalid discriminator value. Expected {- options}",
+				"not_finite": "Number must be finite",
+				"not_multiple_of": "Number must be a multiple of {multipleOf}",
+				"too_big": {
+					"array": {
+						"exact": "Array must contain exactly {maximum} element(s)",
+						"inclusive": "Array must contain at most {maximum} element(s)",
+						"not_inclusive": "Array must contain less than {maximum} element(s)"
+					},
+					"date": {
+						"exact": "Date must be exactly {- maximum, datetime}",
+						"inclusive": "Date must be smaller than or equal to {- maximum, datetime}",
+						"not_inclusive": "Date must be smaller than {- maximum, datetime}"
+					},
+					"number": {
+						"exact": "Number must be exactly {maximum}",
+						"inclusive": "Number must be less than or equal to {maximum}",
+						"not_inclusive": "Number must be less than {maximum}"
+					},
+					"set": {
+						"exact": "Invalid input",
+						"inclusive": "Invalid input",
+						"not_inclusive": "Invalid input"
+					},
+					"string": {
+						"exact": "String must contain exactly {maximum} character(s)",
+						"inclusive": "String must contain at most {maximum} character(s)",
+						"not_inclusive": "String must contain under {maximum} character(s)"
+					}
+				},
+				"too_small": {
+					"array": {
+						"exact": "Array must contain exactly {minimum} element(s)",
+						"inclusive": "Array must contain at least {minimum} element(s)",
+						"not_inclusive": "Array must contain more than {minimum} element(s)"
+					},
+					"date": {
+						"exact": "Date must be exactly {- minimum, datetime}",
+						"inclusive": "Date must be greater than or equal to {- minimum, datetime}",
+						"not_inclusive": "Date must be greater than {- minimum, datetime}"
+					},
+					"number": {
+						"exact": "Number must be exactly {minimum}",
+						"inclusive": "Number must be greater than or equal to {minimum}",
+						"not_inclusive": "Number must be greater than {minimum}"
+					},
+					"set": {
+						"exact": "Invalid input",
+						"inclusive": "Invalid input",
+						"not_inclusive": "Invalid input"
+					},
+					"string": {
+						"exact": "String must contain exactly {minimum} character(s)",
+						"inclusive": "String must contain at least {minimum} character(s)",
+						"not_inclusive": "String must contain over {minimum} character(s)"
+					}
+				},
+				"unrecognized_keys": "Unrecognized key(s) in object: {- keys}"
+			},
+			"types": {
+				"array": "array",
+				"bigint": "bigint",
+				"boolean": "boolean",
+				"date": "date",
+				"float": "float",
+				"function": "function",
+				"integer": "integer",
+				"map": "map",
+				"nan": "nan",
+				"never": "never",
+				"null": "null",
+				"number": "number",
+				"object": "object",
+				"promise": "promise",
+				"set": "set",
+				"string": "string",
+				"symbol": "symbol",
+				"undefined": "undefined",
+				"unknown": "unknown",
+				"void": "void"
+			},
+			"validations": {
+				"cuid": "cuid",
+				"cuid2": "cuid2",
+				"datetime": "datetime",
+				"email": "email",
+				"emoji": "emoji",
+				"ip": "up",
+				"regex": "regex",
+				"ulid": "ulid",
+				"url": "url",
+				"uuid": "uuid"
+			}
+		}
+	},
+	"userProfile": {
+		"featured": "Featured",
+		"memberSince": "Member since",
+		"organizations": "Organizations",
+		"profileViews": "Profile Views",
+		"projects": "Projects",
+		"projectStages": {
+			"COMPLETED": "🎯 Completed",
+			"DEVELOPMENT": "🔧 Development",
+			"FUNDING": "💼 Funding",
+			"GROWTH": "📈 Growth",
+			"IDEA_VALIDATION": "💡 Idea Validation",
+			"LAUNCH": "🚀 Launch",
+			"MONETIZATION": "💰 Monetization"
+		},
+		"skills": "Skills",
+		"statistics": "Statistics",
+		"viewProject": "View Project",
+		"views": "Views"
+	},
+	"valueFuture": {
+		"futurePlans": {
+			"description": "Plans for developing technology and community",
+			"label": "Future Plans",
+			"title": "Our Vision for Tomorrow"
+		},
+		"joinOrganization": "Join Organization",
+		"plans": {
+			"first": {
+				"description": "Build cutting-edge developer tools and platforms",
+				"title": "Technology Innovation"
+			},
+			"second": {
+				"description": "Foster a vibrant community of makers and builders",
+				"title": "Community Growth"
+			},
+			"third": {
+				"description": "Create opportunities for learning and collaboration",
+				"title": "Educational Impact"
+			}
+		},
+		"valueProposition": {
+			"description": "Empowering developers to build the future",
+			"label": "Value Proposition",
+			"title": "What We Offer"
+		},
+		"values": {
+			"first": {
+				"description": "We believe in open source and transparent development",
+				"title": "Open Innovation"
+			},
+			"second": {
+				"description": "Building inclusive communities where everyone belongs",
+				"title": "Inclusivity"
+			},
+			"third": {
+				"description": "Quality and excellence in everything we create",
+				"title": "Excellence"
+			}
+		},
+		"viewProjects": "View Projects"
+	},
+	"warmCommunity": {
+		"activitiesTransition": "Let's see what exciting activities the community has prepared for you",
+		"cta": "View Recent Activities",
+		"description": "From half-day mini hackathons to monthly in-depth development, diverse activities meet different rhythms. MVP/early project friendly, even if you only have prototypes or demos, feel free to share boldly",
+		"features": {
+			"home": {
+				"description": "Offline activities in cities like Beijing, Shanghai, Guangzhou, and Shenzhen + online events, from Demo Shows to hackathons, helping you turn ideas into reality in just one day",
+				"icon": "",
+				"title": "Rich Community Activities"
+			},
+			"joy": {
+				"description": "Relaxed and comfortable like chatting in a living room, gaining real user feedback and product inspiration through communication",
+				"icon": "",
+				"title": "Creating Together, More Fun"
+			},
+			"partners": {
+				"description": "Independent developers, product managers, and tech enthusiasts gather together to find people who understand you and potential collaborators",
+				"icon": "",
+				"title": "Meet Your Fellow Travelers"
+			},
+			"support": {
+				"description": "Whether it's prototypes, code, or demo videos, you can get sincere feedback. Growing together through encouragement and support",
+				"icon": "",
+				"title": "Early Project Friendly Environment"
+			}
+		},
+		"subtitle": "No matter which city you're in, you can join weekly community activities, collaborate with partners, and quickly turn ideas into reality",
+		"tagline": "Creator Community",
+		"title": "Welcome Home, Creator"
+	},
+	"zod": {
+		"errors": {
+			"invalid_arguments": "Invalid function arguments",
+			"invalid_date": "Invalid date",
+			"invalid_enum_value": "Invalid option. Please select from available choices",
+			"invalid_intersection_types": "Could not merge input types",
+			"invalid_literal": "Invalid literal value",
+			"invalid_return_type": "Invalid return type",
+			"invalid_string": {
+				"endsWith": "String must end with \"{endsWith}\"",
+				"startsWith": "String must start with \"{startsWith}\""
+			},
+			"invalid_type": "Expected {expected}, received {received}",
+			"invalid_type_received_undefined": "Required",
+			"invalid_union": "Invalid input",
+			"invalid_union_discriminator": "Invalid discriminator value",
+			"not_finite": "Number must be finite",
+			"not_multiple_of": "Number must be a multiple of {multipleOf}",
+			"unrecognized_keys": "Unrecognized keys in object: {keys}"
+		}
+	},
+	"lifeStatus": {
+		"employed": "Employed",
+		"job_seeking": "Job Seeking",
+		"student": "Student",
+		"freelance": "Freelance",
+		"startup": "Building a Startup",
+		"exploring": "Exploring",
+		"remote_work": "Working Remotely",
+		"indie_dev": "Indie Developer",
+		"working": "Employed",
+		"job-seeking": "Job Seeking",
+		"studying": "Student",
+		"freelancing": "Freelancer",
+		"entrepreneurship": "Entrepreneur",
+		"break": "Career Break"
+	},
+	"editor": {
+		"imageUpload": {
+			"selectImage": "Please select an image file",
+			"sizeLimit": "Image size must not exceed 5MB",
+			"uploading": "Uploading image...",
+			"success": "Image uploaded successfully",
+			"failed": "Failed to upload image"
+		}
+	},
+	"uploader": {
+		"multipleImages": {
+			"unsupportedType": "Unsupported file type. Please upload: {types}",
+			"sizeLimit": "File size must not exceed {max}MB",
+			"signedUrlError": "Failed to request upload link",
+			"uploadFailed": "Upload failed. Please try again.",
+			"maxLimit": "You can upload at most {count} images",
+			"uploadSuccess": "Uploaded {count} images successfully"
+		},
+		"singleImage": {
+			"unsupportedType": "Unsupported file type. Please upload: {types}",
+			"sizeLimit": "File size must not exceed {max}MB",
+			"signedUrlError": "Failed to request upload link",
+			"uploadFailed": "Upload failed. Please try again.",
+			"uploadSuccess": "File uploaded successfully",
+			"uploading": "Uploading..."
+		}
+	},
+	"websites": {
+		"like": {
+			"loginRequired": "Please log in to like websites",
+			"alreadyLiked": "You've already liked this website",
+			"likeSuccess": "Liked",
+			"unlikeSuccess": "Like removed",
+			"updateError": "Failed to update like"
+		}
+	},
+	"tools": {
+		"agenda": {
+			"edit_tab": "Edit",
+			"preview_tab": "Preview",
+			"basic_info": "Basic Information",
+			"basic_info_desc": "Set up basic information for the event",
+			"title_label": "Event Title",
+			"subtitle_label": "Event Subtitle",
+			"date_label": "Event Date",
+			"time_label": "Event Time",
+			"location_label": "Event Location",
+			"sponsor_label": "Sponsor",
+			"partners_label": "Partners",
+			"highlights": "Event Highlights",
+			"highlights_desc": "Describe the highlights and features of this event",
+			"highlights_placeholder": "e.g., This hackathon will feature 5 teams showcasing projects covering AI, Web3, sustainable development, and more...",
+			"schedule": "Event Schedule",
+			"schedule_desc": "Set up detailed schedule for the event",
+			"time_range": "Time Range",
+			"content": "Activity Content",
+			"duration": "Duration (min)",
+			"responsible": "Responsible Person",
+			"roles": "Event Roles",
+			"roles_desc": "Set up staff roles and responsibilities",
+			"role": "Role",
+			"person": "Person",
+			"tips": "Helpful Tips",
+			"tips_desc": "Add helpful reminders for participants",
+			"preview": "Preview",
+			"preview_desc": "Preview the print effect of the agenda",
+			"download": "Download HTML"
+		}
+	}
+}

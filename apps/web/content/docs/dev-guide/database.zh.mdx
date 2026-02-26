@@ -1,0 +1,69 @@
+---
+title: "数据库"
+description: "Prisma ORM、数据模型和数据库管理"
+---
+
+## 概览
+
+项目使用 **Prisma ORM** 连接 **PostgreSQL** 数据库。
+
+- Schema 位置: `packages/lib-server/src/database/prisma/schema.prisma`
+- 客户端生成: `@prisma/client`
+- 类型生成: `zod-prisma-types`（自动生成 Zod 校验）
+
+## 常用命令
+
+```bash
+# 生成 Prisma 客户端（修改 schema 后必须执行）
+pnpm db:generate
+
+# 将 schema 变更推送到数据库（开发环境，不生成迁移文件）
+pnpm db:push
+
+# 创建迁移文件（生产环境推荐）
+pnpm db:migrate
+
+# 打开 Prisma Studio 可视化管理
+pnpm db:studio
+```
+
+## push vs migrate
+
+| 场景 | 命令 | 说明 |
+|------|------|------|
+| 本地开发、快速迭代 | `pnpm db:push` | 直接同步 schema 到数据库，不生成迁移文件 |
+| 生产部署、团队协作 | `pnpm db:migrate` | 生成 SQL 迁移文件，可追踪变更历史 |
+
+<Callout title="提示">
+开发阶段推荐使用 `db:push`，简单快速。准备上线时再切换到 `db:migrate`。
+</Callout>
+
+## 核心数据模型
+
+Schema 中的主要模型：
+
+- **User** — 用户（邮箱、密码、OAuth、微信绑定、个人资料）
+- **Organization** — 组织（社区分部）
+- **Member** — 组织成员关系和角色
+- **Event** — 活动（线上/线下、报名、签到）
+- **Project** — 项目展示
+- **Contribution** — 贡献记录
+- **Account / Session / Verification** — Better Auth 认证相关
+
+## 使用数据库客户端
+
+```typescript
+// 在服务端代码中导入
+import { db } from "@community/lib-server/database";
+
+// 查询示例
+const users = await db.user.findMany({
+  where: { emailVerified: true },
+  include: { members: true },
+});
+```
+
+## 推荐云数据库
+
+- **[Neon](https://neon.tech/)** — 免费 PostgreSQL，支持分支和自动暂停
+- **Zeabur PostgreSQL** — 与部署平台集成，一键创建

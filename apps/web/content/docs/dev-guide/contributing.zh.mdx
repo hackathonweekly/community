@@ -1,0 +1,84 @@
+---
+title: "贡献指南"
+description: "如何参与社区网站开发"
+---
+
+## 如何参与
+
+我们欢迎大家参与到社区网站的开发中来！也欢迎有相同理念的小伙伴/各地的黑客松社区在我们的基础上进行二次开发。
+
+我们将向公益组织/非盈利性活动提供技术支持和开放代码授权。商业授权需要沟通协商。
+
+### 联系方式
+
+**邮箱**: contact@HackathonWeekly.com
+
+**邮件模板**:
+- 您/您组织的自我介绍，期望的合作模式
+- 您擅长的技术栈
+- 您为什么想要加入社区网站开发 / 获取授权
+- 您的微信或其他联系方式
+
+## 贡献建议
+
+### 新人友好
+
+- 维护社区文档，修正错误和补充内容
+- 测试网站功能，寻找并报告 Bug
+- 翻译社区文档，添加多语种翻译
+- 提出改进建议
+
+### 有经验的开发者
+
+- 根据社区 roadmap 开发新功能
+- 改进用户界面和后端功能
+- 优化性能和代码质量
+- Review 其他人的 PR
+
+## 工作流程
+
+### Fork → Branch → PR
+
+```bash
+# 1. Fork 仓库到你的 GitHub 账号
+
+# 2. 克隆你的 Fork
+git clone https://github.com/YOUR_USERNAME/community.git
+cd community
+
+# 3. 创建功能分支
+git checkout -b feature/my-feature
+
+# 4. 开发并提交
+git add .
+git commit -m "feat(scope): add my feature"
+
+# 5. 推送到你的 Fork
+git push origin feature/my-feature
+
+# 6. 在 GitHub 上创建 Pull Request → 目标分支: develop
+```
+
+### PR 要求
+
+- 清晰的描述和变更说明
+- 关联相关 Issue
+- 通过 lint 和类型检查
+- UI 变更附带截图
+- 遵循 [编码规范](/docs/dev-guide/coding-standards)
+
+## 许可证
+
+- 代码: [AGPL-3.0](https://github.com/hackathonweekly/community/blob/main/LICENSE)
+- 内容: [CC BY-SA 4.0](https://github.com/hackathonweekly/community/blob/main/LICENSE-CONTENT)
+
+AGPL-3.0 要求：如果你将修改后的版本部署为网络服务，需要将修改部分以 AGPL-3.0 开源。如需闭源商业使用，请联系我们获取商业许可。
+
+详细说明请参阅 [开源许可与贡献者协议](/docs/licensing)。
+
+## 相关文档
+
+- [贡献指南 (GitHub)](https://github.com/hackathonweekly/community/blob/main/CONTRIBUTING.md)
+- [开发规范](https://github.com/hackathonweekly/community/blob/main/DEVELOPMENT.md)
+- [行为准则](https://github.com/hackathonweekly/community/blob/main/CODE_OF_CONDUCT.md)
+- [贡献者协议 (CLA)](https://github.com/hackathonweekly/community/blob/main/CLA.md)

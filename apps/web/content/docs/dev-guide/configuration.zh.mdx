@@ -1,0 +1,92 @@
+---
+title: "配置说明"
+description: "环境变量、Feature Flags 和配置管理"
+---
+
+## 环境变量
+
+环境变量文件位于 `apps/web/.env.local`（从 `.env.example` 复制）。
+
+### 必填配置
+
+```bash
+# 数据库连接字符串
+DATABASE_URL="postgresql://username:password@host:port/database"
+
+# Better Auth 密钥（用于签名 session）
+# 生成方式: openssl rand -base64 32
+BETTER_AUTH_SECRET="your-random-secret-key"
+
+# 站点公开地址
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+```
+
+### 可选配置
+
+```bash
+# S3 兼容存储（腾讯云 COS）
+NEXT_PUBLIC_BUCKET_NAME=""
+NEXT_PUBLIC_S3_ENDPOINT=""
+
+# OAuth 社交登录
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+# 微信登录
+WECHAT_APP_ID=""
+WECHAT_APP_SECRET=""
+```
+
+### 开发 vs 生产
+
+| 配置项 | 开发环境 | 生产环境 |
+|--------|----------|----------|
+| 文件位置 | `apps/web/.env.local` | Zeabur 环境变量面板 |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | `https://your-domain.com` |
+| `DATABASE_URL` | 本地或 Neon 免费版 | Zeabur/Neon 生产实例 |
+| 社交登录 | 可选（可跳过） | 建议全部配置 |
+
+<Callout title="安全提示" type="warn">
+`.env.local` 已在 `.gitignore` 中，不要将包含密钥的文件提交到 Git。
+</Callout>
+
+## Feature Flags
+
+Feature flags 集中管理在 `packages/config/src/index.ts`，控制功能开关。
+
+### 主要配置项
+
+```typescript
+// i18n 配置
+i18n: {
+  enabled: true,
+  defaultLocale: "zh",
+  locales: ["zh", "en"],
+}
+
+// 认证方式
+auth: {
+  enableMagicLink: false,
+  enableSocialLogin: true,
+  enablePasswordLogin: true,
+  enablePhoneLogin: true,
+}
+
+// 组织功能
+organizations: {
+  enable: true,
+  enableUserCreation: true,
+}
+
+// 支付
+payments: {
+  enableStripe: false,
+  enableWechatPay: true,
+}
+```
+
+### 修改 Feature Flags
+
+编辑 `packages/config/src/index.ts` 中的对应字段即可。修改后重启开发服务器生效。

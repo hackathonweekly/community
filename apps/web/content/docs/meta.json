@@ -1,0 +1,18 @@
+{
+	"title": "社区文档",
+	"pages": [
+		"index",
+		"---入门---",
+		"quick-start",
+		"hackathon-guide",
+		"---深度参与---",
+		"co-building",
+		"points-and-levels",
+		"sop",
+		"---资源---",
+		"tools",
+		"dev-guide",
+		"licensing",
+		"..."
+	]
+}

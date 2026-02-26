@@ -1,0 +1,93 @@
+---
+title: 开源许可与贡献方式
+description: 了解 HackathonWeekly 社区代码的许可证、贡献方式，以及我们为什么选择 MIT + DCO
+---
+
+## 背景
+
+周周黑客松社区是一个使命驱动的 AI 创造者社区。商业收入用于覆盖运营成本、支付核心贡献者薪酬，盈余全部再投入社区建设，公共账目定期向成员公开。
+
+## 许可证
+
+| 内容 | 许可证 | 说明 |
+|------|--------|------|
+| 代码 | [MIT](https://github.com/hackathonweekly/community/blob/main/LICENSE) | 自由使用、修改、分发，包括商业用途 |
+| 文档/文章/图片 | [CC BY-SA 4.0](https://github.com/hackathonweekly/community/blob/main/LICENSE-CONTENT) | 自由使用，需署名，修改后需以相同许可证分享 |
+
+### MIT 意味着什么？
+
+| 你想做的事 | 是否可以 |
+|-----------|---------|
+| 学习、研究代码 | ✅ 可以 |
+| 个人项目中使用 | ✅ 可以 |
+| fork 后部署自己的社区网站 | ✅ 可以，无需开源你的修改 |
+| 基于代码做商业产品 | ✅ 可以，无需开源 |
+| 移除署名 | ✅ 可以（但保留署名能帮助我们） |
+| 使用社区品牌标识 | ❌ 需要授权 |
+
+### CC BY-SA 4.0 意味着什么？
+
+项目中的非代码内容（文档、文章、图片等，位于 `apps/web/content/` 目录下）采用 CC BY-SA 4.0 许可证。
+
+| 你想做的事 | 是否可以 |
+|-----------|---------|
+| 阅读、学习文档内容 | ✅ 可以 |
+| 转载文章（注明出处） | ✅ 可以，包括商业媒体 |
+| 基于文档内容做二次创作 | ✅ 可以，但二次创作也必须以 CC BY-SA 4.0 发布 |
+| 使用社区品牌素材（logo 等） | ❌ 不可以，品牌素材不在此许可范围内 |
+
+## DCO 贡献方式
+
+我们使用 [DCO（Developer Certificate of Origin）](https://github.com/hackathonweekly/community/blob/main/DCO.md) 来管理贡献。DCO 比 CLA 更轻量：
+
+- 无需签署额外的法律文件
+- 只需在 commit 时添加 `-s` 标志
+- 表明你有权提交该贡献，且同意以项目许可证（MIT）发布
+
+```bash
+git commit -s -m "feat: your feature description"
+```
+
+这会自动在 commit message 中添加 `Signed-off-by: Your Name <your.email@example.com>`。
+
+DCO 被 Linux 内核、Kubernetes 等大型开源项目广泛采用，是业界标准的轻量级贡献声明机制。
+
+## 品牌保护
+
+以下品牌标识版权归 HackathonWeekly 社区所有：
+
+- "HackathonWeekly"、"周周黑客松" 名称
+- `public/` 目录下的品牌素材（logo、品牌设计等）
+
+未经授权，不得将上述品牌标识用于暗示官方认可、合作关系或官方版本。
+
+## Powered by 01MVP
+
+本项目由 [01MVP](https://01mvp.com) 提供支持。Jackie 是本项目的主要贡献者，01MVP 是 Jackie 的产品 —— 一个帮你从 0 到 1 实现 MVP 的教程网站。
+
+## 捐赠
+
+如果这个项目对你有帮助，欢迎通过以下方式支持我们：
+
+- [GitHub Sponsors](https://github.com/sponsors/jackiexiao)
+- [01MVP](https://01mvp.com)
+
+你的支持帮助我们持续维护和改进社区平台。
+
+## 常见问题
+
+**Q: 我可以 fork 这个项目用于自己的社区吗？**
+
+可以。MIT 许可证允许你自由使用、修改和分发，包括商业用途，无需开源你的修改。
+
+**Q: 我需要保留署名吗？**
+
+MIT 许可证要求保留版权声明和许可证文本。但如果你想移除页面上的署名文字，我们不会追究。保留署名能帮助我们，但这完全是你的选择。
+
+**Q: 我可以使用 HackathonWeekly 的 logo 吗？**
+
+品牌素材不在 MIT 或 CC BY-SA 4.0 许可范围内。如需使用，请联系 contact@hackathonweekly.com。
+
+**Q: 贡献代码后，我的代码会被如何使用？**
+
+你的代码在 MIT 许可证下对所有人开放。任何人都可以自由使用、修改、分发，包括商业用途。

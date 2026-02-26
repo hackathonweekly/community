@@ -1,0 +1,109 @@
+---
+title: "项目结构"
+description: "Monorepo 目录组织和各模块职责说明"
+---
+
+本项目采用 **Turborepo + pnpm workspace** 的 monorepo 结构。
+
+## 顶层目录
+
+```
+community/
+├── apps/web/              # Next.js 主应用
+├── packages/              # 共享工作区包
+│   ├── config/            # Feature flags 和常量配置
+│   ├── lib-client/        # 客户端共享库
+│   ├── lib-server/        # 服务端共享库（Prisma、Auth）
+│   ├── lib-shared/        # 通用共享库（i18n 翻译）
+│   └── ui/                # 共享 UI 组件
+├── openspec/              # 功能规格和变更提案
+├── scripts/               # 仓库工具脚本
+├── docs/                  # 项目文档
+└── events/                # 活动相关资源
+```
+
+## apps/web 应用结构
+
+### 路由分组 (`src/app/`)
+
+```
+src/app/
+├── (app)/                 # 需要认证的应用页面
+│   └── auth/              # 登录、注册等认证页面
+├── (main)/                # 主站页面
+│   ├── (account)/         # 账户相关（设置、贡献、活动管理）
+│   └── (public)/          # 公开页面（首页、成员、项目、活动）
+├── api/                   # API 路由入口
+└── layout.tsx             # 根布局
+```
+
+### 业务模块 (`src/modules/`)
+
+```
+src/modules/
+├── account/               # 账户功能
+│   ├── admin/             # 超级管理员
+│   ├── auth/              # 认证相关组件
+│   ├── contributions/     # 贡献管理
+│   ├── events/            # 活动管理
+│   ├── organizations/     # 组织管理
+│   ├── profile/           # 个人资料
+│   └── settings/          # 账户设置
+├── public/                # 公开页面模块
+│   ├── blog/              # 博客
+│   ├── events/            # 活动展示
+│   ├── home/              # 首页
+│   ├── organizations/     # 组织展示
+│   ├── profile/           # 公开个人主页
+│   └── projects/          # 项目展示
+├── analytics/             # 数据分析
+├── i18n/                  # 国际化配置
+├── shared/                # 共享组件和工具
+└── tools/                 # 工具模块
+```
+
+### 领域功能 (`src/features/`)
+
+```
+src/features/
+├── events/                # 活动核心逻辑
+├── event-submissions/     # 活动报名
+├── events-token/          # Events Token API
+├── functional-roles/      # 功能角色
+├── hackathon/             # 黑客松功能
+├── notifications/         # 通知系统
+├── permissions/           # 权限管理
+└── profile/               # 用户资料
+```
+
+### 服务端 (`src/server/`)
+
+```
+src/server/
+├── app.ts                 # Hono 应用入口，挂载所有路由
+├── index.ts               # 服务端导出
+├── middleware/             # 中间件（CORS、错误处理、限流）
+├── lib/                   # 服务端工具函数
+└── routes/                # 40+ API 路由模块
+```
+
+### 内容目录 (`content/`)
+
+```
+content/
+├── docs/                  # 文档 (MDX)
+│   ├── dev-guide/         # 开发指南（本文档）
+│   └── ...                # 其他文档分类
+├── legal/                 # 法律文档
+└── posts/                 # 博客文章
+```
+
+## packages 各包职责
+
+| 包名 | 路径 | 职责 |
+|------|------|------|
+| `config` | `packages/config/` | Feature flags、常量、站点配置 |
+| `lib-client` | `packages/lib-client/` | 客户端共享工具库 |
+| `lib-server` | `packages/lib-server/` | Prisma schema、Better Auth、服务端工具 |
+| `lib-shared` | `packages/lib-shared/` | i18n 翻译文件、通用类型和工具 |
+| `ui` | `packages/ui/` | 共享 UI 组件（基于 Shadcn/ui） |

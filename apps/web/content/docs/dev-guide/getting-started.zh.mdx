@@ -1,0 +1,85 @@
+---
+title: "快速开始"
+description: "5 分钟搭建本地开发环境"
+---
+
+## 前置要求
+
+- **Node.js 20+**: [下载地址](https://nodejs.org/)
+- **pnpm 9.3.0+**: `npm install -g pnpm`
+- **PostgreSQL 数据库**: 推荐 [Neon](https://neon.tech/) 或 Zeabur PostgreSQL
+
+## 快速启动
+
+```bash
+# 1. 克隆项目（源码暂未开源，敬请期待）
+git clone https://github.com/hackathonweekly/community.git
+cd community
+
+# 2. 安装依赖
+pnpm install
+
+# 3. 配置环境变量
+cp apps/web/.env.example apps/web/.env.local
+# 编辑 apps/web/.env.local，至少设置以下必填项
+```
+
+### 必填环境变量
+
+```bash
+# 数据库连接
+DATABASE_URL="postgresql://username:password@host:port/database"
+
+# Better Auth 密钥（生成方式: openssl rand -base64 32）
+BETTER_AUTH_SECRET="your-random-secret-key"
+
+# 站点地址
+NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+```
+
+```bash
+# 4. 初始化数据库
+pnpm db:push
+
+# 5. 启动开发服务器
+pnpm dev
+```
+
+访问 [http://localhost:3000](http://localhost:3000) 查看网站。
+
+## 开发工具入口
+
+| 工具 | 地址 | 说明 |
+|------|------|------|
+| 网站首页 | http://localhost:3000 | 本地开发站点 |
+| API 文档 | http://localhost:3000/api/docs | Scalar UI (OpenAPI) |
+| Prisma Studio | http://localhost:5555 | 数据库可视化管理 |
+
+启动 Prisma Studio：
+```bash
+pnpm db:studio
+```
+
+## 常见首次运行问题
+
+### `pnpm: command not found`
+```bash
+npm install -g pnpm
+```
+
+### 数据库连接失败
+- 检查 `DATABASE_URL` 格式是否正确
+- 确认数据库服务正在运行
+- 验证用户名和密码
+
+### 端口 3000 被占用
+```bash
+pnpm dev -- -p 3001
+```
+
+### TypeScript 类型错误
+```bash
+pnpm db:generate   # 重新生成 Prisma 客户端
+pnpm type-check    # 检查类型
+rm -rf .next       # 清除缓存后重试
+```

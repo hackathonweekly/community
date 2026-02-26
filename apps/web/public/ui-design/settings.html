@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '16px',
+                    },
+                    fontSize: {
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+    <div class="flex min-h-screen">
+
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden lg:flex w-60 flex-col fixed inset-y-0 left-0 border-r border-gray-200 bg-white z-50 px-4 py-5">
+            <div class="font-brand text-xl font-bold mb-6 tracking-tight pl-2">Hackathon<span class="text-gray-400">.Weekly</span></div>
+
+            <nav class="space-y-1 flex-1">
+                <a href="events.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-layer-group w-5 text-center"></i> Events
+                </a>
+                <a href="members.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-users w-5 text-center"></i> Members
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-folder w-5 text-center"></i> Projects
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-check-square w-5 text-center"></i> Tasks
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-building w-5 text-center"></i> Organizations
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-black text-white text-sm font-medium">
+                    <i class="fas fa-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+
+            <div class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <a href="design_system.html" class="hover:text-black underline">View UI Kit</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:pl-60 w-full">
+
+            <!-- MOBILE HEADER -->
+            <div class="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2 flex justify-between items-center h-12">
+                <div class="font-brand text-lg font-bold">Hackathon.Weekly</div>
+                <div class="w-7 h-7 rounded-full bg-gray-100 overflow-hidden border border-gray-200"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-20 lg:pb-16">
+
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-5 gap-3">
+                    <h1 class="font-brand text-2xl lg:text-3xl font-bold tracking-tight leading-none text-black">Settings</h1>
+                </div>
+
+                <!-- Mobile: Horizontal Tabs -->
+                <div class="lg:hidden flex gap-1 overflow-x-auto no-scrollbar pb-1 bg-gray-100/50 p-1 rounded-lg mb-4">
+                    <button class="px-3 py-1 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200 whitespace-nowrap">General</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors whitespace-nowrap">Profile</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors whitespace-nowrap">Notifications</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors whitespace-nowrap">Security</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors whitespace-nowrap">Billing</button>
+                </div>
+
+                <!-- Desktop: Sub-nav + Content -->
+                <div class="flex gap-8">
+                    <!-- Left Sub-Navigation (desktop only) -->
+                    <nav class="hidden lg:block w-48 shrink-0">
+                        <div class="sticky top-20 space-y-1">
+                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-black text-white text-sm font-medium">
+                                <i class="fas fa-sliders-h w-4 text-center"></i> General
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                                <i class="far fa-user w-4 text-center"></i> Profile
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                                <i class="far fa-bell w-4 text-center"></i> Notifications
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                                <i class="fas fa-shield-alt w-4 text-center"></i> Security
+                            </a>
+                            <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                                <i class="far fa-credit-card w-4 text-center"></i> Billing
+                            </a>
+                        </div>
+                    </nav>
+
+                    <!-- Right Content Area -->
+                    <div class="flex-1 min-w-0">
+
+                        <!-- Section: General Settings -->
+                        <div class="bg-white rounded-lg border border-gray-200 p-5">
+                            <h2 class="font-brand text-lg font-bold mb-4">General Settings</h2>
+
+                            <!-- Organization Name -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Organization Name</label>
+                                <input type="text" value="Hackathon Weekly" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition-colors" placeholder="Enter organization name">
+                            </div>
+
+                            <!-- Section Divider -->
+                            <div class="h-px bg-gray-100 my-5"></div>
+
+                            <!-- Description -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+                                <textarea rows="3" class="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-gray-400 transition-colors resize-none" placeholder="Describe your organization">A community for hackers, builders, and indie makers. We host weekly hackathons and workshops.</textarea>
+                            </div>
+
+                            <!-- Section Divider -->
+                            <div class="h-px bg-gray-100 my-5"></div>
+
+                            <!-- Logo Upload -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Logo</label>
+                                <div class="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors cursor-pointer">
+                                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+                                        <i class="fas fa-cloud-upload-alt text-gray-400"></i>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-1">Click to upload or drag and drop</p>
+                                    <p class="text-[11px] text-gray-400 font-mono">PNG, JPG up to 2MB</p>
+                                </div>
+                            </div>
+
+                            <!-- Section Divider -->
+                            <div class="h-px bg-gray-100 my-5"></div>
+
+                            <!-- Visibility Toggle -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Visibility</label>
+                                <div class="flex gap-1 bg-gray-100/50 p-1 rounded-lg w-fit">
+                                    <button class="px-3 py-1.5 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200">Public</button>
+                                    <button class="px-3 py-1.5 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Private</button>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1.5">Public organizations are visible to everyone.</p>
+                            </div>
+
+                            <!-- Section Divider -->
+                            <div class="h-px bg-gray-100 my-5"></div>
+
+                            <!-- Save Button -->
+                            <div class="flex justify-end">
+                                <button class="bg-black text-white px-4 py-2 rounded-md text-xs font-bold shadow-sm hover:bg-gray-800 transition-colors">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Back Link -->
+                <div class="py-8 text-center">
+                    <div class="text-[10px] text-gray-300">
+                        <a href="index.html">&larr; Back to Index</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 h-14 flex justify-around items-center z-50 px-2">
+            <a href="events.html" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Events</span>
+            </a>
+            <a href="members.html" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-users text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Members</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-folder text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Projects</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-black">
+                <i class="fas fa-cog text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Settings</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

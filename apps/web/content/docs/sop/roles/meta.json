@@ -1,0 +1,18 @@
+{
+	"title": "角色 SOP",
+	"defaultOpen": false,
+	"pages": [
+		"index",
+		"organizer",
+		"mc",
+		"tech-support",
+		"operator",
+		"logistics",
+		"pr",
+		"photo",
+		"speaker",
+		"sponsor",
+		"advisor",
+		"..."
+	]
+}

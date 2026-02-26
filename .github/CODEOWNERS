@@ -1,0 +1,16 @@
+# CODEOWNERS - 自动分配 PR 审核人
+# 文档：https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# 默认：所有代码由技术团队审核
+* @your-tech-lead
+
+# 活动运营文件：由运营团队审核
+/events/ @your-operations-lead
+
+# 文档和 SOP：由运营团队审核
+/docs/ @your-operations-lead
+*.md @your-operations-lead
+
+# 核心代码：需要技术负责人审核
+/apps/ @your-tech-lead
+/packages/ @your-tech-lead

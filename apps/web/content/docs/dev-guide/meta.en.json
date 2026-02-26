@@ -1,0 +1,25 @@
+{
+	"title": "Developer Guide",
+	"pages": [
+		"index",
+		"---Getting Started---",
+		"getting-started",
+		"project-structure",
+		"configuration",
+		"---Core Modules---",
+		"database",
+		"api",
+		"authentication",
+		"i18n",
+		"---Development---",
+		"ui-style",
+		"coding-standards",
+		"testing",
+		"ai-development",
+		"---Release & Collaboration---",
+		"deployment",
+		"contributing",
+		"---Other---",
+		"dev-faq"
+	]
+}

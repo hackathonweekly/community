@@ -1,0 +1,25 @@
+{
+	"title": "开发指南",
+	"pages": [
+		"index",
+		"---入门---",
+		"getting-started",
+		"project-structure",
+		"configuration",
+		"---核心模块---",
+		"database",
+		"api",
+		"authentication",
+		"i18n",
+		"---开发实践---",
+		"ui-style",
+		"coding-standards",
+		"testing",
+		"ai-development",
+		"---发布与协作---",
+		"deployment",
+		"contributing",
+		"---其他---",
+		"dev-faq"
+	]
+}

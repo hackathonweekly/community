@@ -1,0 +1,91 @@
+---
+title: "认证系统"
+description: "Better Auth 配置、登录方式和会话管理"
+---
+
+## 概览
+
+项目使用 **[Better Auth](https://www.better-auth.com/)** 作为认证框架。
+
+- 配置位置: `packages/lib-server/src/auth/auth.ts`
+- 插件目录: `packages/lib-server/src/auth/plugins/`
+
+## 支持的登录方式
+
+| 方式 | 状态 | 说明 |
+|------|------|------|
+| 邮箱 + 密码 | ✅ | 默认启用 |
+| GitHub OAuth | ✅ | 需配置 Client ID/Secret |
+| Google OAuth | ✅ | 需配置 Client ID/Secret |
+| 微信扫码（PC） | ✅ | 自定义插件 `wechat-oauth` |
+| 微信授权（手机） | ✅ | 微信内 H5 授权登录 |
+| 手机号登录 | ✅ | 短信验证码 |
+| Magic Link | ⚙️ | 可通过 feature flag 启用 |
+| 双因素认证 (2FA) | ⚙️ | 可通过 feature flag 启用 |
+
+## Better Auth 插件
+
+项目使用了以下 Better Auth 插件：
+
+- **admin** — 管理员角色和权限
+- **magic-link** — 邮件魔法链接登录
+- **openAPI** — 自动生成认证相关 OpenAPI 文档
+- **organization** — 组织管理（角色、邀请）
+- **phone-number** — 手机号登录
+- **two-factor** — 双因素认证
+- **username** — 用户名支持
+
+自定义插件：
+- **invitation-only** — 仅邀请注册模式
+- **wechat-oauth** — 微信 OAuth 登录
+
+## 微信 OAuth 流程
+
+1. PC 端：展示微信二维码 → 用户扫码 → 回调获取 code → 换取 access_token → 获取用户信息
+2. 手机端：微信内打开 → 静默授权 → 获取 code → 换取用户信息
+
+配置环境变量：
+```bash
+WECHAT_APP_ID="your-wechat-app-id"
+WECHAT_APP_SECRET="your-wechat-app-secret"
+```
+
+## 会话管理
+
+Better Auth 使用数据库存储 session，相关模型：
+- `Session` — 会话记录
+- `Account` — OAuth 账号关联
+- `Verification` — 验证令牌
+
+## 在 API 路由中使用
+
+```typescript
+// 获取当前登录用户
+const session = c.get("session");
+const user = c.get("user");
+
+if (!user) {
+  return c.json({ error: "Unauthorized" }, 401);
+}
+```
+
+## 客户端检查登录状态
+
+```typescript
+import { authClient } from "@/lib/auth-client";
+
+// 获取当前会话
+const { data: session } = await authClient.getSession();
+
+// 检查是否登录
+if (session?.user) {
+  // 已登录
+}
+```
+
+## 组织与角色
+
+通过 Better Auth 的 organization 插件管理：
+- 创建组织（社区分部）
+- 邀请成员加入
+- 角色分配：owner、admin、member

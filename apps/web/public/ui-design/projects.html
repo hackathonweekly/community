@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '16px',
+                    },
+                    fontSize: {
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+    <div class="flex min-h-screen">
+
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden lg:flex w-60 flex-col fixed inset-y-0 left-0 border-r border-gray-200 bg-white z-50 px-4 py-5">
+            <div class="font-brand text-xl font-bold mb-6 tracking-tight pl-2">Hackathon<span class="text-gray-400">.Weekly</span></div>
+
+            <nav class="space-y-1 flex-1">
+                <a href="events.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-layer-group w-5 text-center"></i> Events
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-user w-5 text-center"></i> Members
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-black text-white text-sm font-medium">
+                    <i class="fas fa-rocket w-5 text-center"></i> Projects
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-tasks w-5 text-center"></i> Tasks
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-building w-5 text-center"></i> Organizations
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+
+            <div class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <a href="design_system.html" class="hover:text-black underline">View UI Kit</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:pl-60 w-full">
+
+            <!-- MOBILE HEADER -->
+            <div class="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2 flex justify-between items-center h-12">
+                <div class="font-brand text-lg font-bold">Hackathon.Weekly</div>
+                <div class="w-7 h-7 rounded-full bg-gray-100 overflow-hidden border border-gray-200"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-20 lg:pb-16">
+
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-5 gap-3">
+                    <div class="flex items-center gap-4">
+                        <h1 class="font-brand text-2xl lg:text-3xl font-bold tracking-tight leading-none text-black">Projects</h1>
+                        <button class="bg-black text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-gray-800 transition-colors">
+                            <i class="fas fa-plus mr-1"></i> New Project
+                        </button>
+                    </div>
+                    <!-- Tabs -->
+                    <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1 text-sm bg-gray-100/50 p-1 rounded-lg">
+                        <button class="px-3 py-1 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200">All</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Active</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Completed</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Featured</button>
+                    </div>
+                </div>
+
+                <!-- Featured Hero Card -->
+                <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm mb-6 hover:shadow-md transition-shadow cursor-pointer group flex flex-col md:flex-row h-auto md:h-64">
+                    <div class="w-full md:w-2/5 h-48 md:h-full relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-3 left-3">
+                            <span class="bg-black/80 backdrop-blur text-white px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-tight shadow-sm border border-white/10">Featured</span>
+                        </div>
+                    </div>
+                    <div class="p-4 md:p-5 flex flex-col justify-center flex-1">
+                        <div class="flex items-center gap-2 mb-2 text-xs font-mono text-gray-500">
+                            <span class="text-black font-bold">GenAI S3</span>
+                            <span>/</span>
+                            <span>Started Jan 2026</span>
+                        </div>
+                        <h2 class="font-brand text-2xl lg:text-3xl font-bold leading-tight mb-2 group-hover:text-gray-700 transition-colors">AI Code Review Bot</h2>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2 md:line-clamp-3">
+                            An intelligent code review assistant powered by LLMs that analyzes pull requests, suggests improvements, and catches bugs before they reach production.
+                        </p>
+                        <div class="flex flex-wrap gap-1.5 mb-4">
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold border border-gray-200">TypeScript</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold border border-gray-200">LangChain</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold border border-gray-200">Next.js</span>
+                        </div>
+                        <div class="mt-auto flex items-center justify-between">
+                            <div class="flex -space-x-1.5">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alice" class="w-6 h-6 rounded-full border border-white bg-gray-200">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Bob" class="w-6 h-6 rounded-full border border-white bg-gray-300">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Carol" class="w-6 h-6 rounded-full border border-white bg-gray-400">
+                                <div class="w-6 h-6 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-500">+5</div>
+                            </div>
+                            <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Divider -->
+                <div class="flex items-center gap-3 mb-4">
+                    <h3 class="font-brand text-sm font-bold uppercase tracking-wide text-gray-400">All Projects</h3>
+                    <div class="h-px bg-gray-100 flex-1"></div>
+                </div>
+
+                <!-- Project Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Web App</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">DataViz Dashboard</h3>
+                                <div class="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 shrink-0 ml-2">Active</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">Real-time analytics dashboard with interactive charts and customizable widgets for monitoring key metrics.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">React</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">D3.js</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">PostgreSQL</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Dave" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Eve" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Frank" class="w-5 h-5 rounded-full border border-white bg-gray-400">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Jan 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50 bg-black">
+                            <div class="absolute inset-0 flex items-center justify-center text-white/50"><i class="fas fa-robot text-2xl"></i></div>
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">AI/ML</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">Voice Clone Studio</h3>
+                                <div class="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 shrink-0 ml-2">Active</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">Text-to-speech platform with custom voice cloning capabilities for content creators and developers.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Python</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">PyTorch</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">FastAPI</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Grace" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Hank" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Dec 2025</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85f82e?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Mobile</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">FitTrack Pro</h3>
+                                <div class="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 shrink-0 ml-2">Completed</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">Cross-platform fitness tracking app with social features, workout plans, and AI-powered form correction.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Flutter</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Firebase</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">TFLite</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Ivy" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Kate" class="w-5 h-5 rounded-full border border-white bg-gray-400">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Leo" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Nov 2025</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Web3</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">NFT Marketplace</h3>
+                                <div class="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 shrink-0 ml-2">Active</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">Decentralized marketplace for digital collectibles with low gas fees and creator royalty enforcement.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Solidity</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Next.js</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">IPFS</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mike" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nina" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Feb 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 5 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">DevTool</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">API Gateway CLI</h3>
+                                <div class="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 shrink-0 ml-2">Completed</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">Command-line tool for managing API gateways with auto-generated docs, rate limiting, and auth middleware.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Go</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">gRPC</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Redis</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Oscar" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pam" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Quinn" class="w-5 h-5 rounded-full border border-white bg-gray-400">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Oct 2025</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 6 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">IoT</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">Smart Garden Hub</h3>
+                                <div class="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 shrink-0 ml-2">Active</div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mb-2 line-clamp-2">IoT platform for automated garden management with soil sensors, weather integration, and watering schedules.</p>
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Rust</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">MQTT</span>
+                                <span class="px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[9px] font-medium">Vue.js</span>
+                            </div>
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <div class="flex -space-x-1">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Rosa" class="w-5 h-5 rounded-full border border-white bg-gray-200">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sam" class="w-5 h-5 rounded-full border border-white bg-gray-300">
+                                </div>
+                                <div class="text-[11px] text-gray-500 font-mono">Jan 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Load More -->
+                <div class="py-8 text-center">
+                    <button class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest border-b border-gray-200 pb-0.5 hover:border-black">
+                        View All Projects
+                    </button>
+                    <div class="mt-4 text-[10px] text-gray-300">
+                        <a href="index.html">← Back to Index</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 h-14 flex justify-around items-center z-50 px-2">
+            <a href="events.html" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Events</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="far fa-user text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Members</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-black">
+                <i class="fas fa-rocket text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Projects</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-tasks text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Tasks</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-cog text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Settings</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

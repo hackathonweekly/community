@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events (Compact) - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '16px', // Reduced from 24px
+                    },
+                    fontSize: {
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+    <div class="flex min-h-screen">
+        
+        <!-- DESKTOP SIDEBAR (Compact) -->
+        <aside class="hidden lg:flex w-60 flex-col fixed inset-y-0 left-0 border-r border-gray-200 bg-white z-50 px-4 py-5">
+            <div class="font-brand text-xl font-bold mb-6 tracking-tight pl-2">Hackathon<span class="text-gray-400">.Weekly</span></div>
+            
+            <nav class="space-y-1 flex-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-black text-white text-sm font-medium">
+                    <i class="fas fa-layer-group w-5 text-center"></i> Events
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-lightbulb w-5 text-center"></i> Ideas
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-comments w-5 text-center"></i> Discuss
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="far fa-user w-5 text-center"></i> Profile
+                </a>
+            </nav>
+
+            <!-- Compact Ticket Widget -->
+            <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors" onclick="location.href='event_detail.html'">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Your Ticket</div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                </div>
+                <div class="font-brand font-bold text-sm leading-tight mb-0.5">GenAI S3</div>
+                <div class="text-xs text-gray-500 mb-2 font-mono">Feb 24 • SZ</div>
+                <button class="w-full bg-white border border-gray-200 py-1 rounded-md text-[10px] font-bold shadow-sm hover:bg-gray-50">View QR</button>
+            </div>
+            <div class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <a href="design_system.html" class="hover:text-black underline">View UI Kit</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:pl-60 w-full">
+            
+            <!-- MOBILE HEADER (Compact) -->
+            <div class="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2 flex justify-between items-center h-12">
+                <div class="font-brand text-lg font-bold">Hackathon.Weekly</div>
+                <div class="w-7 h-7 rounded-full bg-gray-100 overflow-hidden border border-gray-200"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
+                
+                <!-- Page Title & Filter (Compact) -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-5 gap-3">
+                    <div>
+                        <h1 class="font-brand text-2xl lg:text-3xl font-bold tracking-tight leading-none text-black">Discover Events</h1>
+                    </div>
+                    <!-- Tabs -->
+                    <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1 text-sm bg-gray-100/50 p-1 rounded-lg">
+                        <button class="px-3 py-1 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200">All</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Hackathons</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Workshops</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Social</button>
+                    </div>
+                </div>
+
+                <!-- Featured Hero (Compact Layout) -->
+                <div class="bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm mb-6 hover:shadow-md transition-shadow cursor-pointer group flex flex-col md:flex-row h-auto md:h-64" onclick="location.href='event_detail.html'">
+                    <div class="w-full md:w-2/5 h-48 md:h-full relative overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute top-3 left-3">
+                            <span class="bg-black/80 backdrop-blur text-white px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-tight shadow-sm border border-white/10">Featured</span>
+                        </div>
+                    </div>
+                    <div class="p-4 md:p-5 flex flex-col justify-center flex-1">
+                        <div class="flex items-center gap-2 mb-2 text-xs font-mono text-gray-500">
+                            <span class="text-black font-bold">Feb 24-26</span>
+                            <span>/</span>
+                            <span>Shenzhen, CN</span>
+                        </div>
+                        <h2 class="font-brand text-2xl lg:text-3xl font-bold leading-tight mb-2 group-hover:text-gray-700 transition-colors">GenAI Agent Hackathon S3</h2>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2 md:line-clamp-3">
+                            Join 50+ developers in Shenzhen to build the next generation of AI agents. Powered by Vercel AI SDK. Only 50 spots available.
+                        </p>
+                        
+                        <div class="mt-auto flex items-center justify-between">
+                            <div class="flex -space-x-1.5">
+                                <div class="w-6 h-6 rounded-full border border-white bg-gray-200"></div>
+                                <div class="w-6 h-6 rounded-full border border-white bg-gray-300"></div>
+                                <div class="w-6 h-6 rounded-full border border-white bg-gray-400"></div>
+                                <div class="w-6 h-6 rounded-full border border-white bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-500">+142</div>
+                            </div>
+                            <button class="bg-black text-white px-4 py-1.5 rounded-full text-xs font-bold hover:bg-gray-800 transition-colors">Register</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Divider -->
+                <div class="flex items-center gap-3 mb-4">
+                    <h3 class="font-brand text-sm font-bold uppercase tracking-wide text-gray-400">Upcoming</h3>
+                    <div class="h-px bg-gray-100 flex-1"></div>
+                </div>
+
+                <!-- Event Grid (Tighter Gap) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    
+                    <!-- Card 1 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col" onclick="location.href='event_detail.html'">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Social</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">Indie Hacker Tea Party</h3>
+                                <div class="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded border border-green-100 shrink-0 ml-2">Open</div>
+                            </div>
+                            <div class="text-[11px] text-gray-500 font-mono mb-2">Feb 28 • 14:00 • Shanghai</div>
+                            
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <span class="text-[10px] text-gray-400 font-medium">Bounty: None</span>
+                                <div class="flex items-center gap-1 text-[10px] font-bold text-gray-700">
+                                    <i class="far fa-user"></i> 12
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col" onclick="location.href='event_detail.html'">
+                         <div class="h-32 overflow-hidden relative border-b border-gray-50 bg-black">
+                             <div class="absolute inset-0 flex items-center justify-center text-white/50"><i class="fas fa-terminal text-2xl"></i></div>
+                            <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Workshop</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                             <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">Rust Zero to Hero</h3>
+                                <div class="text-[10px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100 shrink-0 ml-2">Paid</div>
+                            </div>
+                            <div class="text-[11px] text-gray-500 font-mono mb-2">Mar 02 • 10:00 • Online</div>
+                            
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <span class="text-[10px] text-gray-400 font-medium">Cert: Yes</span>
+                                <div class="flex items-center gap-1 text-[10px] font-bold text-gray-700">
+                                    <i class="far fa-user"></i> 156
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- Card 3 -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col" onclick="location.href='event_detail.html'">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                             <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Hackathon</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                             <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">Web3 Gaming Jam</h3>
+                                <div class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100 shrink-0 ml-2">$$$</div>
+                            </div>
+                            <div class="text-[11px] text-gray-500 font-mono mb-2">Mar 15 • 09:00 • Hangzhou</div>
+                            
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <span class="text-[10px] text-gray-400 font-medium">Prize: $5k</span>
+                                <div class="flex items-center gap-1 text-[10px] font-bold text-gray-700">
+                                    <i class="far fa-user"></i> 89
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4 (New) -->
+                     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden hover-lift group cursor-pointer flex flex-col" onclick="location.href='event_detail.html'">
+                        <div class="h-32 overflow-hidden relative border-b border-gray-50">
+                            <img src="https://images.unsplash.com/photo-1555099962-4199c345e5dd?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                             <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight text-gray-800 border border-gray-200">Meetup</div>
+                        </div>
+                        <div class="p-3 flex-1 flex flex-col">
+                             <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-brand text-base font-bold leading-tight group-hover:text-gray-600 transition-colors line-clamp-1">AI Founders Dinner</h3>
+                                <div class="text-[10px] font-bold text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 shrink-0 ml-2">Invite</div>
+                            </div>
+                            <div class="text-[11px] text-gray-500 font-mono mb-2">Mar 20 • 19:00 • Beijing</div>
+                            
+                            <div class="mt-auto pt-2 border-t border-gray-50 flex justify-between items-center">
+                                <span class="text-[10px] text-gray-400 font-medium">Approval Req.</span>
+                                <div class="flex items-center gap-1 text-[10px] font-bold text-gray-700">
+                                    <i class="far fa-user"></i> 24
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More (Compact) -->
+                <div class="py-8 text-center">
+                    <button class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest border-b border-gray-200 pb-0.5 hover:border-black">
+                        View All Archives
+                    </button>
+                    <div class="mt-4 text-[10px] text-gray-300">
+                        <a href="index.html">← Back to Index</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- MOBILE BOTTOM NAV (Compact) -->
+         <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 h-14 flex justify-around items-center z-50 px-2">
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-black">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Feed</span>
+            </a>
+             <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="far fa-lightbulb text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Ideas</span>
+            </a>
+             <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="far fa-comments text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Chat</span>
+            </a>
+             <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="far fa-user text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Me</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

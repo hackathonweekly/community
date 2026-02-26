@@ -1,0 +1,90 @@
+---
+title: UI 设计规范
+description: Hackathon Weekly 社区的 Modern Editorial 风格指南
+---
+
+# Modern Editorial UI 风格指南
+
+我们的设计语言被称为 **"High-Density Neo-Swiss" (高密度新瑞士风格)**。它专为开发者打造，致力于在兼具杂志般排版美感的同时，提供专业工具级别的信息密度。
+
+## 核心理念
+
+1.  **High Density (高密度)**: 我们服务于不需要过多留白来“呼吸”的专家用户。信息密度就是生产力。
+2.  **Editorial Typography (编辑排版)**: 使用 `Space Grotesk` 作为标题字体，传达科技感与前卫感；`Inter` 作为正文，保证极致的可读性。
+3.  **Swiss Layout (瑞士布局)**: 严格的网格系统，清晰的层级，强调左对齐和客观性。
+
+## 如果进行 UI 开发
+
+所有最新的 UI 原型文件都已经部署在 `public/ui-design` 目录下。你可以直接点击下方的链接查看交互式原型。
+
+### 交互式原型预览 (Live Preview)
+
+Fumadocs 支持直接嵌入 HTML。你可以在下方直接与原型进行交互，或者点击链接全屏查看。
+
+#### 1. Design System (设计规范)
+包含色彩、字体、按钮、圆角等基础 Token。
+
+<iframe
+  src="/ui-design/design_system.html"
+  className="w-full h-[600px] border border-zinc-200 rounded-lg shadow-sm"
+  title="Design System Preview"
+/>
+
+[🔗 全屏查看 Design System](/ui-design/design_system.html)
+
+---
+
+#### 2. Events List (活动列表)
+响应式的活动列表页，展示了 Sidebar 和 Card Grid 的用法。
+
+<iframe
+  src="/ui-design/events.html"
+  className="w-full h-[600px] border border-zinc-200 rounded-lg shadow-sm"
+  title="Events List Preview"
+/>
+
+[🔗 全屏查看 Events List](/ui-design/events.html)
+
+---
+
+#### 3. Event Detail (活动详情)
+展示了 Sticky Sidebar 和复杂的正文排版。
+
+<iframe
+  src="/ui-design/event_detail.html"
+  className="w-full h-[600px] border border-zinc-200 rounded-lg shadow-sm"
+  title="Event Detail Preview"
+/>
+
+[🔗 全屏查看 Event Detail](/ui-design/event_detail.html)
+
+## 响应式适配（桌面端 + 手机端）
+
+本项目采用同一套代码实现桌面端和手机端的响应式适配，不存在独立的移动端应用或代码分支。核心策略是通过 Tailwind 断点 + 条件渲染来区分不同设备的 UI 表现。
+
+### 关键组件
+
+- **TabBar** (`src/modules/public/shared/components/TabBar.tsx`)：手机端底部导航栏，通过 `lg:hidden` 仅在小屏幕显示。包含首页、文档、创建、通知、个人中心等入口。内置了软键盘弹出检测（`useKeyboardDetection`）和 `visualViewport` 监听，键盘弹出时自动隐藏，避免遮挡输入区域。同时兼容微信浏览器的 safe-area 适配。
+- **MobileCategoryNav** (`src/modules/public/shared/components/MobileCategoryNav.tsx`)：手机端顶部分类横向滚动导航，同样通过 `lg:hidden` 仅在小屏幕显示。在活动、项目、组织等列表页提供快速切换，使用 `sticky top-0` 固定在顶部。
+
+### 适配原则
+
+1. **断点统一**：以 `lg`（1024px）为分界，`lg:hidden` 隐藏移动端专属组件，`hidden lg:block` 隐藏桌面端专属组件。
+2. **同一套代码**：不做平台判断分支，所有页面和组件都通过 Tailwind 响应式类名适配不同屏幕。
+3. **移动端特殊处理**：软键盘检测、`safe-area-inset-bottom` 适配、微信浏览器兼容等通过 hooks 和 CSS 环境变量处理。
+
+## 关键设计 Token (速查)
+
+### Typography
+- **Headings**: `Space Grotesk` (font-brand)
+- **Body**: `Inter` (font-sans)
+- **Code**: `JetBrains Mono` (font-mono)
+
+### Spacing
+- **Card Padding**: `p-3` (12px) - *Compact!*
+- **Grid Gap**: `gap-4` (16px)
+
+### Radius
+- **Card**: `rounded-2xl` (16px)
+- **Inner Element**: `rounded-lg` (8px)
+- **Button**: `rounded-full` (Pill shape)

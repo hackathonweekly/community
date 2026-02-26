@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Agent S3 (Compact) - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '12px', // Compact radius
+                    },
+                    fontSize: {
+                        'xs': '0.75rem',
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .sticky-card {
+            top: 4rem;
+            max-height: calc(100vh - 5rem);
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-black selection:text-white">
+
+    <!-- COMPACT NAV -->
+    <nav class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 h-12 flex items-center justify-between px-4 lg:px-8">
+        <div class="flex items-center gap-4">
+            <a href="events.html" class="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors">
+                <i class="fas fa-arrow-left text-xs"></i>
+            </a>
+            <div class="h-4 w-px bg-gray-200 hidden md:block"></div>
+            <div class="hidden md:block font-bold text-sm truncate max-w-xs">GenAI Agent Hackathon S3</div>
+        </div>
+        
+        <div class="flex gap-2">
+            <button class="px-3 py-1.5 rounded-md text-xs font-bold text-gray-500 hover:text-black hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                <i class="far fa-heart"></i> <span class="hidden sm:inline">Save</span>
+            </button>
+            <button class="px-3 py-1.5 rounded-md text-xs font-bold text-gray-500 hover:text-black hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                <i class="fas fa-share-alt"></i> <span class="hidden sm:inline">Share</span>
+            </button>
+            <button class="ml-2 px-4 py-1.5 bg-black text-white rounded-md text-xs font-bold shadow-sm hover:bg-gray-800 transition-colors lg:hidden">
+                Register
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 lg:px-8 py-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
+            
+            <!-- LEFT COLUMN: Content (lg:col-span-8) -->
+            <div class="lg:col-span-8">
+                
+                <!-- Compact Header -->
+                <div class="mb-6 pb-6 border-b border-gray-100">
+                    <div class="flex flex-wrap gap-2 mb-3">
+                        <span class="px-2 py-0.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Major</span>
+                        <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200">Offline</span>
+                         <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100 flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Open</span>
+                    </div>
+                    <h1 class="font-brand text-3xl lg:text-5xl font-bold leading-tight mb-3">GenAI Agent Hackathon S3</h1>
+                    <p class="text-base text-gray-600 leading-relaxed max-w-2xl">
+                        Build the future of autonomous agents. Join 50+ developers for a 48-hour sprint powered by Vercel AI SDK.
+                    </p>
+                </div>
+
+                <!-- Banner Image (Compact Height) -->
+                <div class="rounded-xl overflow-hidden shadow-sm border border-gray-200 h-48 lg:h-72 w-full object-cover relative mb-8 group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=1000" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+                    <button class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-md text-xs font-bold shadow-sm hover:bg-white flex items-center gap-2">
+                        <i class="fas fa-images"></i> View Gallery
+                    </button>
+                </div>
+
+                <!-- Meta Row (Authors/Host) -->
+                <div class="flex items-center gap-3 mb-8 bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                    <div class="w-10 h-10 rounded-full border border-gray-200 p-0.5 bg-white">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=HackWeekly" class="w-full h-full rounded-full">
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-bold text-sm">Hackathon Weekly</div>
+                        <div class="text-[10px] text-gray-500 uppercase tracking-wide">Organizer</div>
+                    </div>
+                    <div class="flex -space-x-2 mr-4">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" class="w-8 h-8 rounded-full border-2 border-white bg-gray-100">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=2" class="w-8 h-8 rounded-full border-2 border-white bg-gray-100">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=3" class="w-8 h-8 rounded-full border-2 border-white bg-gray-100">
+                         <div class="w-8 h-8 rounded-full border-2 border-white bg-gray-50 flex items-center justify-center text-[9px] font-bold text-gray-500">+142</div>
+                    </div>
+                </div>
+
+                <!-- Editorial Content (Prose Sm) -->
+                <div class="prose prose-sm prose-gray max-w-none font-sans leading-7">
+                    <h3 class="font-brand text-lg font-bold text-black mb-2">The Details</h3>
+                    <p class="mb-4">
+                        This isn't just another tech meetup. It's a gathering of the curious, the builders, and the dreamers. 
+                        We're bringing together 50+ developers to push the boundaries of what's possible with AI Agents.
+                    </p>
+                    <p class="mb-4">
+                        Whether you are an expert in LLMs or just getting started with LangChain, this hackathon is designed 
+                        for you to foster collaboration and ship products.
+                    </p>
+
+                    <h3 class="font-brand text-lg font-bold text-black mb-2 mt-6">Challenge Tracks</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 not-prose mb-6">
+                        <div class="bg-white border border-gray-200 p-3 rounded-lg">
+                            <div class="font-bold text-sm mb-1"><i class="fas fa-robot text-purple-600 mr-1.5"></i> Multi-Agent Systems</div>
+                            <div class="text-xs text-gray-500">Build a system where agents collaborate to solve complex tasks.</div>
+                        </div>
+                        <div class="bg-white border border-gray-200 p-3 rounded-lg">
+                            <div class="font-bold text-sm mb-1"><i class="fas fa-bolt text-yellow-500 mr-1.5"></i> Real World Action</div>
+                             <div class="text-xs text-gray-500">Agents that can actually do things via APIs (booking, buying, etc).</div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-brand text-lg font-bold text-black mb-2">Schedule (Compact)</h3>
+                    <div class="not-prose border border-gray-200 rounded-lg overflow-hidden text-sm">
+                        <div class="flex border-b border-gray-100 bg-gray-50/50">
+                            <div class="w-24 p-2.5 font-mono text-xs text-gray-500 font-bold border-r border-gray-100">Feb 24</div>
+                            <div class="p-2.5 font-medium flex-1">10:00 AM • Check-in & Team Formation</div>
+                        </div>
+                        <div class="flex border-b border-gray-100 bg-white">
+                            <div class="w-24 p-2.5 font-mono text-xs text-gray-500 font-bold border-r border-gray-100">Feb 24</div>
+                            <div class="p-2.5 font-medium flex-1">12:00 PM • Hacking Begins</div>
+                        </div>
+                        <div class="flex bg-gray-50/50">
+                            <div class="w-24 p-2.5 font-mono text-xs text-gray-500 font-bold border-r border-gray-100">Feb 25</div>
+                            <div class="p-2.5 font-medium flex-1">04:00 PM • Demo & Awards</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Sticky Sidebar (Compact) -->
+            <div class="hidden lg:block lg:col-span-4 relative">
+                <div class="sticky-card bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <div class="font-brand text-2xl font-bold mb-0.5">Free</div>
+                            <div class="text-xs font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded inline-block">50 spots left</div>
+                        </div>
+                         <!-- Icon -->
+                        <div class="text-gray-300"><i class="fas fa-ticket-alt text-2xl"></i></div>
+                    </div>
+                    
+                    <button class="w-full bg-black text-white py-2.5 rounded-md font-bold text-sm shadow-sm hover:bg-gray-800 transition-colors mb-4 flex items-center justify-center gap-2">
+                        <span>One-click Register</span>
+                        <i class="fas fa-bolt text-xs text-yellow-400"></i>
+                    </button>
+
+                    <div class="space-y-3 text-sm">
+                        <div class="flex gap-3 items-start p-2 rounded-md hover:bg-gray-50 transition-colors">
+                            <div class="w-5 text-center text-gray-400 mt-0.5"><i class="far fa-clock"></i></div>
+                            <div>
+                                <div class="font-bold text-xs text-gray-900">Feb 24 - 26</div>
+                                <div class="text-[10px] text-gray-500">48 Hours Duration</div>
+                            </div>
+                        </div>
+                         <div class="flex gap-3 items-start p-2 rounded-md hover:bg-gray-50 transition-colors">
+                            <div class="w-5 text-center text-gray-400 mt-0.5"><i class="fas fa-map-marker-alt"></i></div>
+                            <div>
+                                <div class="font-bold text-xs text-gray-900">Shenzhen, Nanshan</div>
+                                <div class="text-[10px] text-gray-500">Qianhai Dream Factory</div>
+                                <a href="#" class="text-[10px] font-bold text-blue-600 hover:underline">Get Directions</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="h-px bg-gray-100 my-4"></div>
+
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Requirements</div>
+                    </div>
+                    <ul class="text-xs text-gray-600 space-y-1.5 list-disc pl-4">
+                        <li>Bring your own laptop</li>
+                        <li>Basic GitHub knowledge</li>
+                        <li>Must check-in in person</li>
+                    </ul>
+
+                     <div class="mt-4 pt-4 border-t border-gray-100 text-center">
+                        <a href="#" class="text-xs font-bold text-gray-400 hover:text-black transition-colors">Contact Host</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

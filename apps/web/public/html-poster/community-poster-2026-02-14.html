@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>周周黑客松 - 社区共建指南 v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --page-width: 1080px;
+  --page-height: 1440px;
+  --border-thick: 8px;
+  --border-thin: 4px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', "PingFang SC", system-ui, sans-serif;
+  background: #222;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+  padding: 50px;
+}
+
+.slides-container {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+}
+
+.poster-page {
+  width: var(--page-width);
+  height: var(--page-height);
+  background: var(--bg-color);
+  position: relative;
+  overflow: hidden;
+  padding: 80px;
+  display: flex;
+  flex-direction: column;
+  border: var(--border-thick) solid var(--text-color);
+  box-shadow: 30px 30px 0 #000;
+}
+
+/* Typography */
+h1 {
+  font-size: 130px;
+  font-weight: 900;
+  line-height: 0.85;
+  letter-spacing: -4px;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+
+h2 {
+  font-size: 80px;
+  font-weight: 900;
+  border-bottom: var(--border-thick) solid #000;
+  padding-bottom: 30px;
+  margin-bottom: 50px;
+}
+
+h3 {
+  font-size: 44px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.alias-tag {
+  background: #000;
+  color: #fff;
+  font-size: 24px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  vertical-align: middle;
+  display: inline-block;
+  font-weight: 600;
+  border: 1px solid #000;
+}
+
+p {
+  font-size: 28px;
+  line-height: 1.5;
+  color: #333;
+  font-weight: 500;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.huge-text {
+  font-size: 50px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Components */
+.tagline {
+  font-size: 48px;
+  font-weight: 600;
+  margin-top: 40px;
+  border-left: var(--border-thick) solid #000;
+  padding-left: 40px;
+}
+
+.card {
+  border: var(--border-thin) solid #000;
+  padding: 30px;
+  background: #fff;
+  margin-bottom: 20px;
+}
+
+.card.black {
+  background: #000;
+  color: #fff;
+}
+.card.black p, .card.black h3, .card.black .mono {
+  color: #fff;
+}
+.card.black .alias-tag {
+  background: #fff;
+  color: #000;
+}
+.card.black strong {
+  color: #fff;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+/* Rules List */
+.rules-list li {
+  list-style: none;
+  font-size: 28px;
+  margin-bottom: 30px;
+  padding-left: 40px;
+  position: relative;
+}
+.rules-list li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 900;
+}
+
+/* Page Number */
+.page-num {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  font-size: 24px;
+  font-weight: 900;
+  border: 4px solid #000;
+  padding: 10px 20px;
+  background: #fff;
+}
+
+/* Highlight Box */
+.highlight-box {
+  background: #f0f0f0;
+  border-left: 10px solid #000;
+  padding: 30px;
+  margin-top: 20px;
+}
+
+/* Compact card for group listing */
+.group-card {
+  border: var(--border-thin) solid #000;
+  padding: 25px 30px;
+  background: #fff;
+  margin-bottom: 15px;
+}
+.group-card h3 {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+.group-card p {
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+/* New Styles for v3 Who We Are */
+.role-tag {
+  display: inline-block;
+  background: #000;
+  color: #fff;
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-size: 24px;
+  font-weight: 700;
+  margin-right: 12px;
+  margin-bottom: 12px;
+  border: 2px solid #000;
+}
+
+.quote-box {
+  border-left: 8px solid #000;
+  padding-left: 30px;
+  margin: 40px 0;
+}
+
+.value-pill {
+  border: 4px solid #000;
+  padding: 25px;
+  text-align: center;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+</style>
+</head>
+<body>
+
+<div class="slides-container">
+
+  <!-- PAGE 1: COVER -->
+  <div class="poster-page">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+      <div class="mono" style="font-size: 32px; margin-bottom: 20px;">The Playbook</div>
+      <h1>周周黑客松</h1>
+      <h1>社区共建指南</h1>
+      <div style="width: 150px; height: 20px; background: #000; margin: 30px 0;"></div>
+      <div class="tagline">
+        爱 · 自由 · 创造<br>
+        <span style="font-size: 32px; font-weight: 400;">Build for Fun, Create for Joy.</span>
+      </div>
+    </div>
+    <div style="border-top: 8px solid #000; padding-top: 40px;">
+      <p class="mono">HACKATHON WEEKLY · 周周黑客松 </p>
+      <p style="font-size: 24px; margin-top: 10px; font-weight: 600;">2026 上半年试行版 · v1.0</p>
+    </div>
+    <div class="page-num">01/05</div>
+  </div>
+
+  <!-- PAGE 2: WHO WE ARE + VALUES (IMPROVED) -->
+  <div class="poster-page">
+    <div style="height: 100%; display: flex; flex-direction: column;">
+      
+      <!-- Header -->
+      <div style="margin-bottom: 40px;">
+        <div class="mono" style="font-size: 24px; margin-bottom: 20px;">Who We Are</div>
+        <h2 style="margin-bottom: 30px;">我们是谁</h2>
+      </div>
+
+      <!-- Main Identity -->
+      <div style="margin-bottom: 40px;">
+        <p class="huge-text" style="font-size: 64px; margin-bottom: 30px; letter-spacing: -1px;">
+          一个自由、有爱的<br>创造者社区。
+        </p>
+        
+        <div style="margin-bottom: 30px;">
+          <span class="role-tag">开发者</span>
+          <span class="role-tag">设计师</span>
+          <span class="role-tag">产品经理</span>
+          <span class="role-tag">AI 玩家</span>
+          <span class="role-tag" style="background: #fff; color: #000;">...以及你</span>
+        </div>
+      </div>
+
+      <!-- Vision Quote -->
+      <div class="quote-box">
+        <p style="font-size: 30px; line-height: 1.6; font-weight: 600;">
+          每周相聚，用 AI 创造好玩的东西。<br>
+          <span style="color: #666; font-weight: 500;">在这里，找到一辈子的玩伴。</span>
+        </p>
+      </div>
+
+      <div style="flex: 1;"></div>
+
+      <!-- Values - More Visual -->
+      <div class="grid-3" style="margin-bottom: 40px;">
+        <div class="value-pill">
+          <h3 style="font-size: 42px; justify-content: center; margin-bottom: 10px;">❤️ 爱</h3>
+          <p style="font-size: 20px; color: #555;">真诚开放<br>彼此支持</p>
+        </div>
+        <div class="value-pill">
+          <h3 style="font-size: 42px; justify-content: center; margin-bottom: 10px;">🕊️ 自由</h3>
+          <p style="font-size: 20px; color: #555;">不设限<br>做喜欢的事</p>
+        </div>
+        <div class="value-pill">
+          <h3 style="font-size: 42px; justify-content: center; margin-bottom: 10px;">💡 创造</h3>
+          <p style="font-size: 20px; color: #555;">动手实操<br>想法变现实</p>
+        </div>
+      </div>
+
+      <!-- Manifesto Footer -->
+      <div style="background: #000; padding: 30px; border-radius: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="color: #fff; font-size: 32px; font-weight: 800; margin-bottom: 12px;">好玩第一，赚钱顺带。</p>
+            <div style="color: #fff; font-size: 20px; line-height: 1.5;">
+              <p style="margin-bottom: 4px; color: #fff; font-weight: 600;">社区保持非营利，但鼓励成员组队商业化。</p>
+              <p style="font-size: 18px; color: #fff; font-weight: 400;">项目收益归成员，部分反哺社区，共建可持续生态。</p>
+            </div>
+          </div>
+          <div class="mono" style="color: #555; font-size: 40px;">:)</div>
+        </div>
+      </div>
+
+    </div>
+    <div class="page-num">02/05</div>
+  </div>
+
+  <!-- PAGE 3: GROUPS 1-3 -->
+  <div class="poster-page">
+    <div>
+      <div class="mono" style="font-size: 24px; margin-bottom: 20px;">Our Teams</div>
+      <h2>六个小组</h2>
+
+      <div class="group-card">
+        <h3>对外合作组 <span class="alias-tag">挣钱组</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：Summer ｜ 招募中</p>
+        <p>统一对外合作窗口，获得资金与资源，让社区可持续运转。</p>
+      </div>
+
+      <div class="group-card">
+        <h3>活动执行组 <span class="alias-tag">玩乐保障组</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：海钊 ｜ 招募中</p>
+        <p>把想法变成一场真正发生的活动。打磨 SOP，保证好玩、不翻车。</p>
+      </div>
+
+      <div class="group-card">
+        <h3>产品技术组 <span class="alias-tag">Vibe Coding</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：Jackie ｜ 招募中</p>
+        <p>用技术让活动和社群更好用。代码开源，工具自动化。</p>
+      </div>
+    </div>
+    <div class="page-num">03/05</div>
+  </div>
+
+  <!-- PAGE 4: GROUPS 4-6 -->
+  <div class="poster-page">
+    <div>
+      <div class="mono" style="font-size: 24px; margin-bottom: 20px;">Our Teams</div>
+      <h2>六个小组</h2>
+
+      <div class="group-card">
+        <h3>内容传播组 <span class="alias-tag">好事传声筒</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：Ken ｜ 招募中</p>
+        <p>把正在发生的好事记录并传播出去，让更多同频的人看到我们。</p>
+      </div>
+
+      <div class="group-card">
+        <h3>社群连接组 <span class="alias-tag">HR 组</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：文龙 ｜ 招募中</p>
+        <p>让新人进来舒服、留下来有价值，持续产生连接。</p>
+      </div>
+
+      <div class="group-card">
+        <h3>行政后勤组 <span class="alias-tag">大管家</span></h3>
+        <p style="font-weight: 700; margin-bottom: 8px;">组长：待定 ｜ Yuri（财务）、查理（物料）</p>
+        <p>管好钱和物料，透明可控，让大家无后顾之忧。</p>
+      </div>
+
+      <div class="highlight-box" style="margin-top: 30px; padding: 35px;">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 25px; border-bottom: 2px solid #000; padding-bottom: 15px;">
+           <h3 style="font-size: 32px; margin: 0;">社区怎么走？</h3>
+           <span class="mono" style="font-size: 16px; font-weight: 700;">FUTURE & GOVERNANCE</span>
+        </div>
+        
+        <div class="grid-2" style="gap: 40px;">
+          <div>
+            <p style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">🌱 自然生长</p>
+            <p style="font-size: 20px; line-height: 1.5; color: #333;">
+              我们相信，社区是"长"出来的，不是规划出来的。随性而为，自然发展。
+            </p>
+          </div>
+          <div>
+            <p style="font-size: 24px; font-weight: 700; margin-bottom: 10px;">🤝 简单决策</p>
+            <p style="font-size: 20px; line-height: 1.5; color: #333;">
+              早期机制很简单：组长 + Jackie 商量决定，遇到分歧？随时拉群聊聊。
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page-num">04/05</div>
+  </div>
+
+  <!-- PAGE 5: JOIN US -->
+  <div class="poster-page">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+      <div class="mono" style="font-size: 24px; margin-bottom: 20px;">Join Us</div>
+      <h2>来一起玩</h2>
+
+      <div style="background: #000; color: #fff; padding: 50px; margin-bottom: 40px;">
+        <h3 style="font-size: 44px; color: #fff; margin-bottom: 25px;">想加入？</h3>
+        <div style="border-left: 6px solid #fff; padding-left: 30px;">
+          <p style="font-size: 26px; color: #ccc; margin-bottom: 10px;">找到你感兴趣的小组，联系对应组长，告诉 TA：</p>
+          <p style="font-size: 34px; font-weight: 700; color: #fff; margin: 15px 0;">
+            "我想加入，来做 [具体事情]"
+          </p>
+          <p style="font-size: 22px; color: #aaa; margin-top: 20px;">我们希望每个人在这里都玩的开心，做你喜欢的事情吧！</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 50px; text-align: center;">
+        <p class="huge-text" style="font-size: 38px;">
+          加入我们，每周一起创造点好玩的产品。
+          <br>
+          <br>
+          保持热爱！保持创造！
+        </p>
+      </div>
+    </div>
+    <div class="page-num">05/05</div>
+  </div>
+
+</div>
+
+</body>
+</html>

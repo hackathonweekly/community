@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '16px',
+                    },
+                    fontSize: {
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .hover-lift { transition: transform 0.2s, box-shadow 0.2s; }
+        .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(0,0,0,0.08); }
+    </style>
+</head>
+<body>
+
+    <div class="flex min-h-screen">
+
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden lg:flex w-60 flex-col fixed inset-y-0 left-0 border-r border-gray-200 bg-white z-50 px-4 py-5">
+            <div class="font-brand text-xl font-bold mb-6 tracking-tight pl-2">Hackathon<span class="text-gray-400">.Weekly</span></div>
+
+            <nav class="space-y-1 flex-1">
+                <a href="events.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-layer-group w-5 text-center"></i> Events
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-users w-5 text-center"></i> Members
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-folder-open w-5 text-center"></i> Projects
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-check-square w-5 text-center"></i> Tasks
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-building w-5 text-center"></i> Organizations
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-cog w-5 text-center"></i> Settings
+                </a>
+            </nav>
+
+            <div class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <a href="design_system.html" class="hover:text-black underline">View UI Kit</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:pl-60 w-full">
+
+            <!-- MOBILE HEADER -->
+            <div class="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2 flex justify-between items-center h-12">
+                <div class="font-brand text-lg font-bold">Hackathon.Weekly</div>
+                <div class="w-7 h-7 rounded-full bg-gray-100 overflow-hidden border border-gray-200"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-20 lg:pb-16">
+
+                <!-- Profile Header -->
+                <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+                    <div class="flex flex-col sm:flex-row items-start gap-5">
+                        <!-- Avatar -->
+                        <div class="w-24 h-24 rounded-full bg-gray-200 border-2 border-white shadow overflow-hidden shrink-0">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-full h-full object-cover" alt="User avatar">
+                        </div>
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-1">
+                                <h1 class="font-brand text-2xl font-bold leading-tight">Felix Chen</h1>
+                                <button class="border border-gray-200 rounded-full px-3 py-1 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors w-fit">Edit Profile</button>
+                            </div>
+                            <div class="text-gray-500 font-mono text-sm mb-2">@felixchen</div>
+                            <p class="text-sm text-gray-600 leading-relaxed mb-3 line-clamp-2">Full-stack developer passionate about AI and open source. Building tools that make developers more productive.</p>
+                            <div class="font-mono text-xs text-gray-500">12 Events · 5 Projects · 3 Organizations</div>
+                        </div>
+                    </div>
+
+                    <!-- Skill Tags -->
+                    <div class="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-gray-100">
+                        <span class="bg-gray-100 rounded-md px-2 py-0.5 text-[10px] font-bold text-gray-700">React</span>
+                        <span class="bg-gray-100 rounded-md px-2 py-0.5 text-[10px] font-bold text-gray-700">TypeScript</span>
+                        <span class="bg-gray-100 rounded-md px-2 py-0.5 text-[10px] font-bold text-gray-700">Python</span>
+                        <span class="bg-gray-100 rounded-md px-2 py-0.5 text-[10px] font-bold text-gray-700">UI Design</span>
+                        <span class="bg-gray-100 rounded-md px-2 py-0.5 text-[10px] font-bold text-gray-700">Machine Learning</span>
+                    </div>
+
+                    <!-- Social Links -->
+                    <div class="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <a href="#" class="text-gray-400 hover:text-black transition-colors"><i class="fab fa-github text-base"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-black transition-colors"><i class="fab fa-twitter text-base"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-black transition-colors"><i class="fas fa-globe text-base"></i></a>
+                    </div>
+                </div>
+
+                <!-- Tabs (Segmented Control) -->
+                <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1 text-sm bg-gray-100/50 p-1 rounded-lg mb-6 w-fit">
+                    <button class="px-3 py-1 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200">Activity</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Events</button>
+                    <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Projects</button>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+                    <!-- Activity Item 1 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-green-50 border border-green-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-calendar-check text-green-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Joined</span> GenAI Agent Hackathon S3</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">2 hours ago</div>
+                        </div>
+                    </div>
+                    <!-- Activity Item 2 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-folder-plus text-blue-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Created project</span> AI Code Review Bot</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">1 day ago</div>
+                        </div>
+                    </div>
+                    <!-- Activity Item 3 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-building text-purple-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Joined organization</span> Shenzhen AI Lab</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">3 days ago</div>
+                        </div>
+                    </div>
+                    <!-- Activity Item 4 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-green-50 border border-green-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-calendar-check text-green-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Joined</span> Indie Hacker Tea Party</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">5 days ago</div>
+                        </div>
+                    </div>
+                    <!-- Activity Item 5 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-folder-plus text-blue-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Created project</span> Smart Meeting Notes</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">1 week ago</div>
+                        </div>
+                    </div>
+                    <!-- Activity Item 6 -->
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="w-8 h-8 rounded-full bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <i class="fas fa-trophy text-orange-600 text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm text-gray-800"><span class="font-bold">Won 2nd place</span> at Web3 Gaming Jam</div>
+                            <div class="font-mono text-[11px] text-gray-400 mt-0.5">2 weeks ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More -->
+                <div class="py-8 text-center">
+                    <button class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest border-b border-gray-200 pb-0.5 hover:border-black">
+                        View All Activity
+                    </button>
+                    <div class="mt-4 text-[10px] text-gray-300">
+                        <a href="index.html">← Back to Index</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 h-14 flex justify-around items-center z-50 px-2">
+            <a href="events.html" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Events</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-users text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Members</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-folder-open text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Projects</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="far fa-user text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Me</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

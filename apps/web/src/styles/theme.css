@@ -1,0 +1,161 @@
+@theme {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--color-sidebar: var(--sidebar);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-ring: var(--sidebar-ring);
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+
+	--font-sans: var(--font-inter), "Source Han Sans CN", sans-serif;
+	--font-brand: var(--font-space-grotesk), var(--font-inter), sans-serif;
+	--font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular,
+		Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+	--text-2xs: 0.625rem;
+
+	--shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+	--shadow-lift: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+		0 2px 4px -1px rgb(0 0 0 / 0.06);
+
+	--animation-accordion-down: accordion-down 0.2s ease-out;
+	--animation-accordion-up: accordion-up 0.2s ease-out;
+
+	@keyframes accordion-down {
+		from {
+			height: 0;
+		}
+		to {
+			height: var(--radix-accordion-content-height);
+		}
+	}
+
+	@keyframes accordion-up {
+		from {
+			height: var(--radix-accordion-content-height);
+		}
+		to {
+			height: 0;
+		}
+	}
+}
+
+@layer base {
+	:root {
+		--border: #e5e7eb;
+		--input: #e5e7eb;
+		--ring: #111111;
+		--background: #fafafa;
+		--foreground: #111111;
+		--primary: #000000;
+		--primary-foreground: #ffffff;
+		--secondary: #f3f4f6;
+		--secondary-foreground: #111111;
+		--destructive: #dc2626;
+		--destructive-foreground: #ffffff;
+		--success: #166534;
+		--success-foreground: #ffffff;
+		--muted: #f9fafb;
+		--muted-foreground: #6b7280;
+		--accent: #f3f4f6;
+		--accent-foreground: #111111;
+		--popover: #ffffff;
+		--popover-foreground: #111111;
+		--card: #ffffff;
+		--card-foreground: #111111;
+		--radius: 0.75rem;
+
+		/* sidebar */
+		--sidebar: #ffffff;
+		--sidebar-foreground: #111111;
+		--sidebar-primary: #000000;
+		--sidebar-primary-foreground: #ffffff;
+		--sidebar-accent: #000000;
+		--sidebar-accent-foreground: #ffffff;
+		--sidebar-border: #e5e7eb;
+		--sidebar-ring: #111111;
+
+	}
+
+	.dark {
+		--border: #262626;
+		--input: #262626;
+		--ring: #d4d4d4;
+		--background: #0a0a0a;
+		--foreground: #fafafa;
+		--primary: #ffffff;
+		--primary-foreground: #000000;
+		--secondary: #1a1a1a;
+		--secondary-foreground: #fafafa;
+		--destructive: #ef4444;
+		--destructive-foreground: #ffffff;
+		--success: #22c55e;
+		--success-foreground: #052e16;
+		--muted: #1a1a1a;
+		--muted-foreground: #a3a3a3;
+		--accent: #1f1f1f;
+		--accent-foreground: #fafafa;
+		--popover: #141414;
+		--popover-foreground: #fafafa;
+		--card: #141414;
+		--card-foreground: #fafafa;
+
+		/* sidebar */
+		--sidebar: #0a0a0a;
+		--sidebar-foreground: #fafafa;
+		--sidebar-primary: #ffffff;
+		--sidebar-primary-foreground: #000000;
+		--sidebar-accent: #ffffff;
+		--sidebar-accent-foreground: #000000;
+		--sidebar-border: #262626;
+		--sidebar-ring: #d4d4d4;
+	}
+
+	*,
+	::after,
+	::before,
+	::backdrop,
+	::file-selector-button {
+		@apply border-border;
+	}
+}
+
+@utility container {
+	margin-inline: auto;
+	padding-inline: 1.5rem;
+	width: 100%;
+	max-width: var(--container-7xl);
+}
+
+@utility no-scrollbar {
+	&::-webkit-scrollbar {
+		display: none;
+	}
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}

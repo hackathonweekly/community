@@ -1,0 +1,84 @@
+---
+title: "测试"
+description: "单元测试和 E2E 测试指南"
+---
+
+## 测试策略
+
+| 类型 | 工具 | 覆盖目标 |
+|------|------|----------|
+| 单元测试 | Jest + Testing Library | 80%+ 覆盖率 |
+| E2E 测试 | Playwright | 核心用户流程 |
+
+## 运行测试
+
+```bash
+# E2E 测试
+pnpm e2e
+
+# CI 环境 E2E
+pnpm e2e:ci
+```
+
+## 单元测试
+
+测试文件放在对应模块的 `__tests__/` 目录下，命名为 `*.test.ts(x)`：
+
+```
+src/features/events/
+├── __tests__/
+│   └── event-utils.test.ts
+├── event-utils.ts
+└── index.ts
+```
+
+### 编写示例
+
+```typescript
+import { describe, it, expect } from "@jest/globals";
+import { formatEventDate } from "../event-utils";
+
+describe("formatEventDate", () => {
+  it("should format date correctly", () => {
+    const date = new Date("2025-07-01T10:00:00Z");
+    expect(formatEventDate(date)).toBe("2025-07-01 10:00");
+  });
+
+  it("should handle null date", () => {
+    expect(formatEventDate(null)).toBe("TBD");
+  });
+});
+```
+
+## E2E 测试
+
+Playwright 测试覆盖核心用户流程：
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("user can view events page", async ({ page }) => {
+  await page.goto("/events");
+  await expect(page.getByRole("heading", { name: /活动/ })).toBeVisible();
+});
+```
+
+### 运行单个测试文件
+
+```bash
+pnpm exec playwright test tests/events.spec.ts
+```
+
+### 调试模式
+
+```bash
+pnpm exec playwright test --debug
+```
+
+## 测试最佳实践
+
+- 单元测试关注纯函数和业务逻辑
+- E2E 测试关注用户可见的交互流程
+- 使用 `describe` 分组相关测试
+- 测试命名描述预期行为（`should ...`）
+- 避免测试实现细节，关注输入输出

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tasks - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'pill': '9999px',
+                        'card': '16px',
+                    },
+                    fontSize: {
+                        '2xs': '0.65rem',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body>
+
+    <div class="flex min-h-screen">
+
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden lg:flex w-60 flex-col fixed inset-y-0 left-0 border-r border-gray-200 bg-white z-50 px-4 py-5">
+            <div class="font-brand text-xl font-bold mb-6 tracking-tight pl-2">Hackathon<span class="text-gray-400">.Weekly</span></div>
+
+            <nav class="space-y-1 flex-1">
+                <a href="events.html" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-layer-group w-5 text-center"></i> Events
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-users w-5 text-center"></i> Members
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-diagram-project w-5 text-center"></i> Projects
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md bg-black text-white text-sm font-medium">
+                    <i class="fas fa-check-double w-5 text-center"></i> Tasks
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-building w-5 text-center"></i> Organizations
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-50 hover:text-black text-sm font-medium transition-colors">
+                    <i class="fas fa-gear w-5 text-center"></i> Settings
+                </a>
+            </nav>
+
+            <div class="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest text-center">
+                <a href="design_system.html" class="hover:text-black underline">View UI Kit</a>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 lg:pl-60 w-full">
+
+            <!-- MOBILE HEADER -->
+            <div class="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-2 flex justify-between items-center h-12">
+                <div class="font-brand text-lg font-bold">Hackathon.Weekly</div>
+                <div class="w-7 h-7 rounded-full bg-gray-100 overflow-hidden border border-gray-200"><img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"></div>
+            </div>
+
+            <div class="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-20 lg:pb-16">
+
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
+                    <div class="flex items-center gap-4">
+                        <h1 class="font-brand text-2xl lg:text-3xl font-bold tracking-tight leading-none text-black">Tasks</h1>
+                        <button class="bg-black text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-sm hover:bg-gray-800 transition-colors">
+                            <i class="fas fa-plus mr-1.5"></i>New Task
+                        </button>
+                    </div>
+                    <!-- Filter Tabs (Segmented Control) -->
+                    <div class="flex gap-1 overflow-x-auto no-scrollbar pb-1 text-sm bg-gray-100/50 p-1 rounded-lg">
+                        <button class="px-3 py-1 bg-white text-black rounded-md font-bold text-xs shadow-sm border border-gray-200">All</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Open</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">In Progress</button>
+                        <button class="px-3 py-1 text-gray-500 rounded-md font-medium text-xs hover:bg-gray-200/50 hover:text-black transition-colors">Done</button>
+                    </div>
+                </div>
+
+                <!-- Section Divider -->
+                <div class="flex items-center gap-3 mb-4">
+                    <h3 class="font-brand text-sm font-bold uppercase tracking-wide text-gray-400">8 Tasks</h3>
+                    <div class="h-px bg-gray-100 flex-1"></div>
+                </div>
+
+                <!-- Task List -->
+                <div class="space-y-2">
+
+                    <!-- Task 1: Open, High -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mt-0.5 shrink-0 group-hover:border-gray-400 transition-colors"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Set up CI/CD pipeline for staging environment</span>
+                                    <span class="px-2 py-0.5 bg-red-50 text-red-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-red-100 shrink-0">High</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Configure GitHub Actions workflow with automated tests, linting, and deployment to staging server.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Feb 18</span>
+                                    <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">Open</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 2: In Progress, High -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-orange-400 mt-0.5 shrink-0">
+                                <div class="w-full h-full rounded-full border-2 border-white bg-orange-400 scale-50"></div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Implement user authentication with OAuth2</span>
+                                    <span class="px-2 py-0.5 bg-red-50 text-red-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-red-100 shrink-0">High</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Add Google and GitHub OAuth providers, handle token refresh, and store sessions in database.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maria" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Feb 16</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100">In Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 3: Open, Medium -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mt-0.5 shrink-0 group-hover:border-gray-400 transition-colors"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Design event registration flow wireframes</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100 shrink-0">Medium</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Create Figma wireframes for the multi-step registration form including payment integration.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chen" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Feb 22</span>
+                                    <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">Open</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 4: In Progress, Medium -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-orange-400 mt-0.5 shrink-0">
+                                <div class="w-full h-full rounded-full border-2 border-white bg-orange-400 scale-50"></div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Write API documentation for event endpoints</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100 shrink-0">Medium</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Document all REST endpoints with request/response schemas using OpenAPI 3.0 specification.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Feb 20</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100">In Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 5: Done, High -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group opacity-75">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-400 bg-gray-400 mt-0.5 shrink-0 flex items-center justify-center">
+                                <i class="fas fa-check text-white text-[8px]"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-gray-400 leading-tight line-through">Configure Prisma schema for event models</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200 shrink-0">Low</span>
+                                </div>
+                                <p class="text-xs text-gray-400 line-clamp-1 mb-2">Define Event, Registration, and Ticket models with proper relations and indexes.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Feb 10</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200">Done</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 6: Open, Low -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mt-0.5 shrink-0 group-hover:border-gray-400 transition-colors"></div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Add dark mode support to landing page</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200 shrink-0">Low</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Implement dark mode toggle and ensure all components respect the dark: variant classes.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sam" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Mar 01</span>
+                                    <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100">Open</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 7: Done, Medium -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group opacity-75">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-400 bg-gray-400 mt-0.5 shrink-0 flex items-center justify-center">
+                                <i class="fas fa-check text-white text-[8px]"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-gray-400 leading-tight line-through">Set up monorepo with Turborepo and pnpm</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100 shrink-0">Medium</span>
+                                </div>
+                                <p class="text-xs text-gray-400 line-clamp-1 mb-2">Initialize workspace structure with apps/web, packages/ui, packages/lib, and shared configs.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maria" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Feb 08</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200">Done</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task 8: In Progress, Low -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-3 hover:shadow-sm transition-shadow cursor-pointer group">
+                        <div class="flex items-start gap-3">
+                            <div class="w-5 h-5 rounded-full border-2 border-orange-400 mt-0.5 shrink-0">
+                                <div class="w-full h-full rounded-full border-2 border-white bg-orange-400 scale-50"></div>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-bold text-sm text-black leading-tight">Optimize image loading with next/image</span>
+                                    <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200 shrink-0">Low</span>
+                                </div>
+                                <p class="text-xs text-gray-500 line-clamp-1 mb-2">Replace all img tags with Next.js Image component and configure remote image domains.</p>
+                                <div class="flex items-center gap-3">
+                                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chen" class="w-6 h-6 rounded-full border border-gray-200">
+                                    <span class="font-mono text-[11px] text-gray-400">Due Feb 28</span>
+                                    <span class="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-orange-100">In Progress</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Load More -->
+                <div class="py-8 text-center">
+                    <button class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest border-b border-gray-200 pb-0.5 hover:border-black">
+                        View Completed Archive
+                    </button>
+                    <div class="mt-4 text-[10px] text-gray-300">
+                        <a href="index.html">← Back to Index</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- MOBILE BOTTOM NAV -->
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur border-t border-gray-200 h-14 flex justify-around items-center z-50 px-2">
+            <a href="events.html" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-layer-group text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Events</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-users text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Members</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-black">
+                <i class="fas fa-check-double text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Tasks</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center w-14 h-full text-gray-400 hover:text-gray-600">
+                <i class="fas fa-gear text-lg mb-0.5"></i>
+                <span class="text-[9px] font-bold">Settings</span>
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

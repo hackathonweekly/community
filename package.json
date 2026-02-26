@@ -1,0 +1,43 @@
+{
+	"name": "community",
+	"private": true,
+	"license": "MIT",
+	"packageManager": "pnpm@9.12.3",
+	"engines": {
+		"node": ">=20"
+	},
+	"scripts": {
+		"dev": "turbo run dev --filter=web",
+		"build": "turbo run build --filter=web",
+		"start": "turbo run start --filter=web",
+		"lint": "turbo run lint --filter=web",
+		"type-check": "turbo run type-check --filter=web",
+		"db:generate": "turbo run db:generate --filter=web",
+		"db:push": "turbo run db:push --filter=web",
+		"db:migrate": "turbo run db:migrate --filter=web",
+		"db:studio": "turbo run db:studio --filter=web",
+		"db:seed": "turbo run db:seed --filter=web",
+		"prepare": "husky"
+	},
+	"devDependencies": {
+		"husky": "^9.1.7",
+		"playwright-core": "^1.58.2",
+		"puppeteer": "^24.37.3",
+		"turbo": "^2.5.0"
+	},
+	"pnpm": {
+		"overrides": {
+			"sharp": "0.34.4",
+			"@types/react": "19.1.3",
+			"@types/react-dom": "19.1.3"
+		},
+		"peerDependencyRules": {
+			"ignoreMissing": [],
+			"allowedVersions": {
+				"hono-openapi>zod": "4",
+				"hono-openapi>zod-openapi": "5",
+				"hono-openapi>@hono/zod-validator": "0.7"
+			}
+		}
+	}
+}
