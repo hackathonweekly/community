@@ -119,7 +119,6 @@ export function useEventDetailsState(event: EventData, locale: string) {
 
 	const registerLabel = useMemo(() => {
 		if (event.isExternalEvent && event.externalUrl) return "前往报名";
-		if (registrationDisabledReason) return registrationDisabledReason;
 		if (!user) return "登录后报名";
 		if (existingRegistration) {
 			switch (existingRegistration.status) {
@@ -133,6 +132,7 @@ export function useEventDetailsState(event: EventData, locale: string) {
 					return "重新报名";
 			}
 		}
+		if (registrationDisabledReason) return registrationDisabledReason;
 		return canRegister ? "立即报名" : "暂不可报名";
 	}, [
 		canRegister,

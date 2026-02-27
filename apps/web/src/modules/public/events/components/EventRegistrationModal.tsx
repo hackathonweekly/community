@@ -35,11 +35,16 @@ import type {
 } from "./types";
 import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
 import { useTicketSelection } from "./useTicketSelection";
+import { MiniProgramUpgradePrompt } from "./MiniProgramUpgradePrompt";
 import { WeChatBindingPrompt } from "./WeChatBindingPrompt";
 import {
 	parseRegistrationErrorPayload,
 	resolveRegistrationErrorMessage,
 } from "./registrationErrorUtils";
+import {
+	buildWechatPaymentClientContext,
+	buildWechatPaymentClientContextQuery,
+} from "./wechat-payment-client-context";
 
 interface EventRegistrationModalProps {
 	isOpen: boolean;
@@ -85,6 +90,10 @@ export function EventRegistrationModal({
 	const [paymentOpen, setPaymentOpen] = useState(false);
 	const [wechatBindingOpen, setWechatBindingOpen] = useState(false);
 	const [wechatBindingMessage, setWechatBindingMessage] = useState<
+		string | null
+	>(null);
+	const [miniProgramUpgradeOpen, setMiniProgramUpgradeOpen] = useState(false);
+	const [miniProgramUpgradeMessage, setMiniProgramUpgradeMessage] = useState<
 		string | null
 	>(null);
 	const [pendingOrderChecked, setPendingOrderChecked] = useState(false);
@@ -194,10 +203,28 @@ export function EventRegistrationModal({
 
 		const fetchPendingOrder = async () => {
 			try {
+				const clientContext = await buildWechatPaymentClientContext();
+				const contextQuery =
+					buildWechatPaymentClientContextQuery(clientContext);
 				const response = await fetch(
-					`/api/events/${event.id}/orders/pending`,
+					`/api/events/${event.id}/orders/pending${
+						contextQuery ? `?${contextQuery}` : ""
+					}`,
 				);
 				if (!response.ok) {
+					if (response.status === 400) {
+						const errorPayload =
+							await parseRegistrationErrorPayload(
+								response,
+								defaultRegistrationError,
+							);
+						if (
+							errorPayload.code === "MINI_PROGRAM_BRIDGE_REQUIRED"
+						) {
+							setMiniProgramUpgradeMessage(errorPayload.message);
+							setMiniProgramUpgradeOpen(true);
+						}
+					}
 					return;
 				}
 				const result = await response.json();
@@ -729,6 +756,7 @@ export function EventRegistrationModal({
 
 	const performPaidOrder = async () => {
 		try {
+			const clientContext = await buildWechatPaymentClientContext();
 			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
@@ -746,6 +774,7 @@ export function EventRegistrationModal({
 							allowDigitalCardDisplay: allowDigitalCardDisplay,
 						}),
 					...(inviteCode ? { inviteCode } : {}),
+					clientContext,
 				}),
 			});
 
@@ -761,6 +790,11 @@ export function EventRegistrationModal({
 				if (shouldPromptWechatBinding) {
 					setWechatBindingMessage(errorMessage);
 					setWechatBindingOpen(true);
+					return;
+				}
+				if (errorPayload.code === "MINI_PROGRAM_BRIDGE_REQUIRED") {
+					setMiniProgramUpgradeMessage(errorMessage);
+					setMiniProgramUpgradeOpen(true);
 					return;
 				}
 				throw new Error(errorMessage);
@@ -1033,6 +1067,16 @@ export function EventRegistrationModal({
 					}
 				}}
 				message={wechatBindingMessage}
+			/>
+			<MiniProgramUpgradePrompt
+				open={miniProgramUpgradeOpen}
+				onOpenChange={(open) => {
+					setMiniProgramUpgradeOpen(open);
+					if (!open) {
+						setMiniProgramUpgradeMessage(null);
+					}
+				}}
+				message={miniProgramUpgradeMessage}
 			/>
 		</>
 	);
