@@ -29,7 +29,6 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@community/ui/ui/dialog";
-import { Input } from "@community/ui/ui/input";
 import { Label } from "@community/ui/ui/label";
 import {
 	Select,
@@ -51,7 +50,6 @@ import {
 	CheckCircle,
 	Clock,
 	Mail,
-	Search,
 	Trash2,
 	UserPlus,
 	XCircle,
@@ -59,6 +57,10 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import {
+	MemberSearchInput,
+	type MemberSearchUser,
+} from "@shared/components/MemberSearchInput";
 
 interface EventAdmin {
 	id: string;
@@ -86,15 +88,6 @@ interface EventAdmin {
 	};
 }
 
-interface User {
-	id: string;
-	name: string;
-	username?: string;
-	image?: string;
-	userRoleString?: string;
-	currentWorkOn?: string;
-}
-
 interface EventAdminManagerProps {
 	eventId: string;
 }
@@ -111,54 +104,29 @@ export function EventAdminManager({ eventId }: EventAdminManagerProps) {
 		canManageAdmins: false,
 	});
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<User[]>([]);
-	const [selectedUser, setSelectedUser] = useState<User | null>(null);
-	const [isSearching, setIsSearching] = useState(false);
+	const [selectedUser, setSelectedUser] = useState<MemberSearchUser | null>(
+		null,
+	);
 	const [submitting, setSubmitting] = useState(false);
 	const [adminToRemove, setAdminToRemove] = useState<EventAdmin | null>(null);
 	const toastsT = useTranslations("dashboard.events.adminManager.toasts");
 
-	// 搜索用户
-	const searchUsers = async (query: string) => {
-		if (query.length < 2) {
-			setSearchResults([]);
-			return;
-		}
-
-		setIsSearching(true);
-		try {
-			const response = await fetch(
-				`/api/users/search?query=${encodeURIComponent(query)}`,
-			);
-			if (response.ok) {
-				const data = await response.json();
-				setSearchResults(data.data || []);
-			} else {
-				console.error("Failed to search users:", response.status);
-				setSearchResults([]);
-			}
-		} catch (error) {
-			console.error("Error searching users:", error);
-			setSearchResults([]);
-		} finally {
-			setIsSearching(false);
-		}
+	// 处理用户选择
+	const handleUserSelect = (user: MemberSearchUser) => {
+		setSelectedUser(user);
+		setInviteForm((current) => ({ ...current, userId: user.id }));
+		setSearchQuery(user.name);
 	};
 
-	// 处理用户选择
-	const handleUserSelect = (user: User) => {
-		setSelectedUser(user);
-		setInviteForm({ ...inviteForm, userId: user.id });
-		setSearchQuery(user.name);
-		setSearchResults([]);
+	const clearSelectedUser = () => {
+		setSelectedUser(null);
+		setInviteForm((current) => ({ ...current, userId: "" }));
 	};
 
 	// 清除选择
 	const clearSelection = () => {
-		setSelectedUser(null);
-		setInviteForm({ ...inviteForm, userId: "" });
+		clearSelectedUser();
 		setSearchQuery("");
-		setSearchResults([]);
 	};
 
 	useEffect(() => {
@@ -346,79 +314,18 @@ export function EventAdminManager({ eventId }: EventAdminManagerProps) {
 							>
 								<div className="space-y-2">
 									<Label htmlFor="userSearch">搜索用户</Label>
-									<div className="relative">
-										<div className="relative">
-											<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-											<Input
-												id="userSearch"
-												value={searchQuery}
-												onChange={(e) => {
-													const query =
-														e.target.value;
-													setSearchQuery(query);
-													if (selectedUser) {
-														clearSelection();
-													}
-													searchUsers(query);
-												}}
-												placeholder="输入用户名或姓名搜索..."
-												className="pl-10"
-												autoComplete="off"
-											/>
-											{isSearching && (
-												<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-													<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
-												</div>
-											)}
-										</div>
-										{searchResults.length > 0 && (
-											<div className="absolute top-full left-0 right-0 bg-card border border-border rounded-md shadow-lg z-10 mt-1 max-h-60 overflow-y-auto">
-												{searchResults.map((user) => (
-													<button
-														key={user.id}
-														type="button"
-														onClick={() =>
-															handleUserSelect(
-																user,
-															)
-														}
-														className="w-full text-left px-4 py-3 hover:bg-muted flex items-center space-x-3 border-b last:border-b-0"
-													>
-														<Avatar className="h-8 w-8">
-															<AvatarImage
-																src={user.image}
-															/>
-															<AvatarFallback>
-																{user.name[0]?.toUpperCase()}
-															</AvatarFallback>
-														</Avatar>
-														<div className="flex-1 min-w-0">
-															<div className="font-medium text-sm">
-																{user.name}
-															</div>
-															<div className="text-xs text-muted-foreground">
-																{user.username &&
-																	`@${user.username}`}
-																{user.userRoleString && (
-																	<span
-																		className={
-																			user.username
-																				? " • "
-																				: ""
-																		}
-																	>
-																		{
-																			user.userRoleString
-																		}
-																	</span>
-																)}
-															</div>
-														</div>
-													</button>
-												))}
-											</div>
-										)}
-									</div>
+									<MemberSearchInput
+										id="userSearch"
+										value={searchQuery}
+										onValueChange={(query) => {
+											setSearchQuery(query);
+											if (selectedUser) {
+												clearSelectedUser();
+											}
+										}}
+										onSelect={handleUserSelect}
+										placeholder="输入姓名、用户名或手机号搜索..."
+									/>
 									{selectedUser && (
 										<div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md flex items-center justify-between">
 											<div className="flex items-center space-x-3">

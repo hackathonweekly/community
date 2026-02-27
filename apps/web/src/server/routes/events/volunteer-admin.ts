@@ -1,5 +1,5 @@
 import { auth } from "@community/lib-server/auth";
-import { db } from "@community/lib-server/database";
+import { db, resolveEventIdentifier } from "@community/lib-server/database";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -29,14 +29,18 @@ const app = new Hono()
 		const user = session.user;
 
 		const { volunteerRegistrationId, approved, note } = await c.req.json();
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
+		if (!eventIdentifier) {
+			return c.json({ error: "活动不存在" }, 404);
+		}
 
 		try {
 			// 验证活动权限 - 只有活动组织者或组织管理员可以审核
 			const event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
+					shortId: true,
 					title: true,
 					organizerId: true,
 					organizationId: true,
@@ -95,7 +99,7 @@ const app = new Hono()
 				return c.json({ error: "志愿者申请不存在" }, 404);
 			}
 
-			if (registration.eventId !== eventId) {
+			if (registration.eventId !== event.id) {
 				return c.json({ error: "申请与活动不匹配" }, 400);
 			}
 
@@ -136,14 +140,14 @@ const app = new Hono()
 						? `您申请成为活动「${event.title}」的${registration.eventVolunteerRole.volunteerRole.name}已通过审核`
 						: `您申请成为活动「${event.title}」的${registration.eventVolunteerRole.volunteerRole.name}被拒绝${note ? `，原因：${note}` : ""}`,
 					metadata: {
-						eventId: eventId,
+						eventId: event.id,
 						volunteerRegistrationId: volunteerRegistrationId,
 						volunteerRoleName:
 							registration.eventVolunteerRole.volunteerRole.name,
 						approved: approved,
 						note: note,
 					},
-					actionUrl: `/events/${eventId}`,
+					actionUrl: `/events/${event.shortId || event.id}`,
 					relatedUserId: user.id,
 				},
 			});
@@ -173,14 +177,18 @@ const app = new Hono()
 			const user = session.user;
 
 			const { volunteerRegistrationId, completed } = await c.req.json();
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
+			if (!eventIdentifier) {
+				return c.json({ error: "活动不存在" }, 404);
+			}
 
 			try {
 				// 验证活动权限
 				const event = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdentifier),
 					select: {
 						id: true,
+						shortId: true,
 						title: true,
 						organizerId: true,
 						organizationId: true,
@@ -307,7 +315,7 @@ const app = new Hono()
 								cpValue:
 									registration.eventVolunteerRole
 										.volunteerRole.cpPoints,
-								sourceId: eventId,
+								sourceId: event.id,
 								sourceType: "EVENT_VOLUNTEER",
 								isAutomatic: true,
 								status: "APPROVED",
@@ -323,7 +331,7 @@ const app = new Hono()
 								title: "志愿者积分奖励",
 								content: `恭喜！您完成了活动「${event.title}」的${registration.eventVolunteerRole.volunteerRole.name}工作，获得了 ${registration.eventVolunteerRole.volunteerRole.cpPoints} 积分奖励`,
 								metadata: {
-									eventId: eventId,
+									eventId: event.id,
 									volunteerRegistrationId:
 										volunteerRegistrationId,
 									volunteerRoleName:
@@ -333,7 +341,7 @@ const app = new Hono()
 										registration.eventVolunteerRole
 											.volunteerRole.cpPoints,
 								},
-								actionUrl: `/events/${eventId}`,
+								actionUrl: `/events/${event.shortId || event.id}`,
 								relatedUserId: user.id,
 							},
 						});
