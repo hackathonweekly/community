@@ -10,6 +10,10 @@ import {
 	createCustomerPortalLink,
 	getCustomerIdFromEntity,
 } from "@community/lib-server/payments";
+import {
+	prepareEventTicketWechatPayment,
+	type WechatPrepareHttpStatus,
+} from "./lib/wechat-prepare";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -22,6 +26,66 @@ import { getPurchases } from "./lib/purchases";
 // Subscription billing has been removed
 export const paymentsRouter = new Hono()
 	.basePath("/payments")
+	.post(
+		"/wechat/prepare",
+		authMiddleware,
+		validator(
+			"json",
+			z.object({
+				bizType: z.literal("EVENT_TICKET"),
+				bizId: z.string(),
+				clientContext: z
+					.object({
+						environmentType: z
+							.enum(["miniprogram", "wechat", "none"])
+							.optional(),
+						miniProgramBridgeSupported: z.boolean().optional(),
+						miniProgramBridgeVersion: z.string().optional(),
+						shellVersion: z.string().optional(),
+					})
+					.optional(),
+			}),
+		),
+		describeRoute({
+			tags: ["Payments"],
+			summary: "Prepare WeChat payment payload",
+			description:
+				"Returns channelized WeChat payment payload for a business order (initially EVENT_TICKET).",
+			responses: {
+				200: {
+					description: "Prepared WeChat payment payload",
+				},
+			},
+		}),
+		async (c) => {
+			const user = c.get("user");
+			const payload = c.req.valid("json");
+			const result = await prepareEventTicketWechatPayment({
+				orderId: payload.bizId,
+				userId: user.id,
+				userAgent: c.req.header("user-agent"),
+				clientContext: payload.clientContext,
+			});
+
+			if (!result.success) {
+				return c.json(
+					{
+						success: false,
+						error: result.error,
+						code: result.code,
+						requiresUpgrade: result.requiresUpgrade,
+						minBridgeVersion: result.minBridgeVersion,
+					},
+					result.status as WechatPrepareHttpStatus,
+				);
+			}
+
+			return c.json({
+				success: true,
+				data: result.data,
+			});
+		},
+	)
 	.get(
 		"/purchases",
 		authMiddleware,

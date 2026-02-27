@@ -1634,6 +1634,7 @@
 				"scanToPay": "请使用微信扫码支付",
 				"polling": "正在检测支付结果...",
 				"invoking": "正在唤起微信支付...",
+				"invokingMiniProgram": "正在唤起小程序支付...",
 				"paidSuccess": "支付成功！",
 				"orderCancelled": "订单已取消",
 				"orderExpired": "订单已过期",
@@ -1651,8 +1652,16 @@
 				"paymentNotDetected": "暂未检测到支付，请确认是否已完成支付",
 				"orderClosed": "订单已关闭",
 				"wechatPayIncomplete": "微信支付未完成，请重新尝试",
+				"miniProgramBridgeRequired": "当前小程序版本不支持支付，请升级后重试",
+				"miniProgramPayCancelled": "你已取消支付",
 				"statusFetchRetry": "订单状态获取失败，正在重试...",
 				"statusFetchFailed": "订单状态获取失败，请稍后重试"
+			},
+			"miniProgramUpgrade": {
+				"title": "请升级小程序后支付",
+				"description": "当前小程序版本暂不支持该支付能力，请升级到最新版本后重试。",
+				"note": "升级完成后重新打开当前页面即可继续支付。",
+				"confirm": "我知道了"
 			},
 			"wechatBinding": {
 				"title": "绑定微信后继续支付",
