@@ -804,10 +804,18 @@ async function processEmailQueue(campaignId: string) {
 				});
 
 				// 发送邮件
+				const emailContext = {
+					...(job.context as Record<string, unknown>),
+					subject: job.campaign.subject,
+					title:
+						(job.context as Record<string, unknown>).title ??
+						job.campaign.title,
+				};
+
 				await sendEmail({
 					to: job.recipient,
 					templateId: job.campaign.templateId as any,
-					context: job.context as Omit<
+					context: emailContext as Omit<
 						unknown,
 						"locale" | "translations"
 					>,
