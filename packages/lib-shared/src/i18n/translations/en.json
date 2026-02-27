@@ -1566,6 +1566,7 @@
 				"scanToPay": "Scan with WeChat to pay",
 				"polling": "Checking payment status...",
 				"invoking": "Launching WeChat Pay...",
+				"invokingMiniProgram": "Launching Mini Program payment...",
 				"paidSuccess": "Payment successful!",
 				"orderCancelled": "Order cancelled",
 				"orderExpired": "Order expired",
@@ -1583,8 +1584,16 @@
 				"paymentNotDetected": "Payment not detected yet. Please confirm payment is complete.",
 				"orderClosed": "Order closed",
 				"wechatPayIncomplete": "WeChat Pay was not completed. Please try again.",
+				"miniProgramBridgeRequired": "Your Mini Program version does not support this payment yet. Please upgrade and try again.",
+				"miniProgramPayCancelled": "Payment was cancelled.",
 				"statusFetchRetry": "Failed to fetch order status. Retrying...",
 				"statusFetchFailed": "Failed to fetch order status. Please try again later."
+			},
+			"miniProgramUpgrade": {
+				"title": "Upgrade Mini Program to continue",
+				"description": "This Mini Program version does not support the required payment capability.",
+				"note": "Please upgrade to the latest version and reopen this page.",
+				"confirm": "Got it"
 			},
 			"wechatBinding": {
 				"title": "Bind WeChat to continue",

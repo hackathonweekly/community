@@ -10,21 +10,27 @@ import {
 	markEventOrderPaid,
 } from "@community/lib-server/events/event-orders";
 import { db } from "@community/lib-server/database/prisma/client";
+import { logger } from "@community/lib-server/logs";
 import { canManageEvent } from "@/features/permissions/events";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import {
-	createWechatJsapiOrder,
-	createWechatNativeOrder,
-	buildWechatJsapiParams,
 	requestWechatRefund,
 	queryWechatOrderStatus,
 } from "@community/lib-server/payments/provider/wechatpay";
-
-const isWechatBrowser = (userAgent?: string | null) =>
-	!!userAgent && /MicroMessenger/i.test(userAgent);
+import {
+	isWechatChannel,
+	resolveWechatPaymentChannel,
+	type WechatPaymentChannel,
+	WECHAT_PAYMENT_CHANNELS,
+} from "@community/lib-shared/payments/wechat-payment";
+import {
+	parseWechatClientContextFromQuery,
+	prepareEventTicketWechatPayment,
+	type WechatPrepareHttpStatus,
+} from "../payments/lib/wechat-prepare";
 
 const registerAnswersSchema = z
 	.array(
@@ -42,6 +48,16 @@ const createOrderSchema = z.object({
 	projectId: z.string().optional(),
 	allowDigitalCardDisplay: z.boolean().optional(),
 	answers: registerAnswersSchema,
+	clientContext: z
+		.object({
+			environmentType: z
+				.enum(["miniprogram", "wechat", "none"])
+				.optional(),
+			miniProgramBridgeSupported: z.boolean().optional(),
+			miniProgramBridgeVersion: z.string().optional(),
+			shellVersion: z.string().optional(),
+		})
+		.optional(),
 });
 
 const redeemInviteSchema = z.object({
@@ -57,35 +73,10 @@ const refundSchema = z.object({
 
 const app = new Hono();
 
-const buildOrderResponse = (
-	order: {
-		id: string;
-		orderNo: string;
-		totalAmount: number;
-		expiredAt: Date;
-		codeUrl: string | null;
-		prepayId: string | null;
-		paymentMethod: string | null;
-		quantity: number;
-	},
-	isExisting = false,
-) => {
-	const jsapiParams =
-		order.paymentMethod === "WECHAT_JSAPI" && order.prepayId
-			? buildWechatJsapiParams(order.prepayId)
-			: undefined;
-
-	return {
-		orderId: order.id,
-		orderNo: order.orderNo,
-		totalAmount: order.totalAmount,
-		expiredAt: order.expiredAt.toISOString(),
-		codeUrl: order.codeUrl ?? undefined,
-		jsapiParams,
-		quantity: order.quantity,
-		...(isExisting ? { isExisting: true } : {}),
-	};
-};
+const mapChannelToPaymentMethod = (channel: WechatPaymentChannel) =>
+	channel === WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE
+		? "WECHAT_NATIVE"
+		: "WECHAT_JSAPI";
 
 const ensureEventAvailableForRegistration = async (eventId: string) => {
 	const event = await db.event.findUnique({
@@ -141,6 +132,7 @@ app.get("/:eventId/orders/pending", async (c) => {
 		}
 
 		const eventId = c.req.param("eventId");
+		const clientContext = parseWechatClientContextFromQuery(c.req.query());
 		const now = new Date();
 
 		// 先清理过期订单
@@ -168,13 +160,6 @@ app.get("/:eventId/orders/pending", async (c) => {
 			},
 			select: {
 				id: true,
-				orderNo: true,
-				totalAmount: true,
-				expiredAt: true,
-				codeUrl: true,
-				prepayId: true,
-				paymentMethod: true,
-				quantity: true,
 			},
 			orderBy: { createdAt: "desc" },
 		});
@@ -182,13 +167,33 @@ app.get("/:eventId/orders/pending", async (c) => {
 		if (!pendingOrder) {
 			return c.json({ success: true, data: null });
 		}
+		const prepareResult = await prepareEventTicketWechatPayment({
+			orderId: pendingOrder.id,
+			userId: session.user.id,
+			userAgent: c.req.header("user-agent"),
+			clientContext,
+			isExisting: true,
+		});
+
+		if (!prepareResult.success) {
+			return c.json(
+				{
+					success: false,
+					error: prepareResult.error,
+					code: prepareResult.code,
+					requiresUpgrade: prepareResult.requiresUpgrade,
+					minBridgeVersion: prepareResult.minBridgeVersion,
+				},
+				prepareResult.status as WechatPrepareHttpStatus,
+			);
+		}
 
 		return c.json({
 			success: true,
-			data: buildOrderResponse(pendingOrder, true),
+			data: prepareResult.data,
 		});
 	} catch (error) {
-		console.error("Error fetching pending order:", error);
+		logger.error("Error fetching pending order:", error);
 		return c.json({ success: false, error: "获取待支付订单失败" }, 500);
 	}
 });
@@ -217,6 +222,7 @@ app.post(
 				projectId,
 				allowDigitalCardDisplay,
 				answers,
+				clientContext,
 			} = c.req.valid("json");
 
 			const now = new Date();
@@ -229,21 +235,38 @@ app.post(
 				},
 				select: {
 					id: true,
-					orderNo: true,
-					totalAmount: true,
-					expiredAt: true,
-					codeUrl: true,
-					prepayId: true,
-					paymentMethod: true,
-					quantity: true,
 				},
 				orderBy: { createdAt: "desc" },
 			});
 
 			if (existingPendingOrder) {
+				const prepareExistingResult =
+					await prepareEventTicketWechatPayment({
+						orderId: existingPendingOrder.id,
+						userId: session.user.id,
+						userAgent: c.req.header("user-agent"),
+						clientContext,
+						isExisting: true,
+					});
+
+				if (!prepareExistingResult.success) {
+					return c.json(
+						{
+							success: false,
+							error: prepareExistingResult.error,
+							code: prepareExistingResult.code,
+							requiresUpgrade:
+								prepareExistingResult.requiresUpgrade,
+							minBridgeVersion:
+								prepareExistingResult.minBridgeVersion,
+						},
+						prepareExistingResult.status as WechatPrepareHttpStatus,
+					);
+				}
+
 				return c.json({
 					success: true,
-					data: buildOrderResponse(existingPendingOrder, true),
+					data: prepareExistingResult.data,
 				});
 			}
 
@@ -298,14 +321,29 @@ app.post(
 			}
 
 			const userAgent = c.req.header("user-agent");
-			const useJsapi = isWechatBrowser(userAgent);
+			const channelResult = resolveWechatPaymentChannel({
+				userAgent,
+				clientContext,
+			});
+
+			if (!channelResult.ok) {
+				return c.json(
+					{
+						success: false,
+						error: "当前小程序版本不支持支付，请升级后重试",
+						code: channelResult.errorCode,
+						requiresUpgrade: channelResult.requiresUpgrade,
+						minBridgeVersion: channelResult.minBridgeVersion,
+					},
+					400,
+				);
+			}
+			const selectedChannel = channelResult.channel;
 
 			const user = await db.user.findUnique({
 				where: { id: session.user.id },
 				select: {
 					id: true,
-					name: true,
-					email: true,
 					wechatOpenId: true,
 				},
 			});
@@ -314,7 +352,7 @@ app.post(
 				return c.json({ success: false, error: "用户不存在" }, 404);
 			}
 
-			if (useJsapi && !user.wechatOpenId) {
+			if (isWechatChannel(selectedChannel) && !user.wechatOpenId) {
 				return c.json(
 					{
 						success: false,
@@ -328,242 +366,212 @@ app.post(
 			const orderNo = generateEventOrderNo();
 			const expiredAt = buildOrderExpiration();
 
-			const { order, registration, pricing } = await db.$transaction(
-				async (tx) => {
-					const ticketType = await tx.eventTicketType.findFirst({
+			const { order } = await db.$transaction(async (tx) => {
+				const ticketType = await tx.eventTicketType.findFirst({
+					where: {
+						id: ticketTypeId,
+						eventId,
+						isActive: true,
+					},
+					include: {
+						priceTiers: {
+							where: { isActive: true },
+							orderBy: { quantity: "asc" },
+						},
+					},
+				});
+
+				if (!ticketType) {
+					throw new Error("票种不存在或已下架");
+				}
+
+				const existingRegistration =
+					await tx.eventRegistration.findUnique({
 						where: {
-							id: ticketTypeId,
-							eventId,
-							isActive: true,
-						},
-						include: {
-							priceTiers: {
-								where: { isActive: true },
-								orderBy: { quantity: "asc" },
+							eventId_userId: {
+								eventId,
+								userId: user.id,
 							},
+						},
+						select: { id: true, status: true },
+					});
+
+				if (
+					existingRegistration &&
+					existingRegistration.status !== "CANCELLED"
+				) {
+					throw new Error("你已报名该活动。");
+				}
+
+				const pricing = resolveTicketPricing({
+					basePrice: ticketType.price,
+					priceTiers: ticketType.priceTiers,
+					quantity,
+				});
+
+				if (pricing.totalAmount <= 0) {
+					throw new Error("免费票无需支付，请直接报名");
+				}
+
+				const hasTicketLimit =
+					typeof ticketType.maxQuantity === "number";
+				if (
+					hasTicketLimit &&
+					ticketType.currentQuantity + quantity >
+						ticketType.maxQuantity!
+				) {
+					throw new Error("库存不足");
+				}
+
+				if (event.maxAttendees) {
+					const totalQuantity = await tx.eventTicketType.aggregate({
+						where: { eventId },
+						_sum: { currentQuantity: true },
+					});
+
+					const currentTotal =
+						totalQuantity._sum.currentQuantity ?? 0;
+					if (currentTotal + quantity > event.maxAttendees) {
+						throw new Error("活动报名名额已满");
+					}
+				}
+
+				if (hasTicketLimit) {
+					const updated = await tx.eventTicketType.updateMany({
+						where: {
+							id: ticketType.id,
+							currentQuantity: {
+								lte: ticketType.maxQuantity! - quantity,
+							},
+						},
+						data: {
+							currentQuantity: { increment: quantity },
 						},
 					});
 
-					if (!ticketType) {
-						throw new Error("票种不存在或已下架");
-					}
-
-					const existingRegistration =
-						await tx.eventRegistration.findUnique({
-							where: {
-								eventId_userId: {
-									eventId,
-									userId: user.id,
-								},
-							},
-							select: { id: true, status: true },
-						});
-
-					if (
-						existingRegistration &&
-						existingRegistration.status !== "CANCELLED"
-					) {
-						throw new Error("你已报名该活动。");
-					}
-
-					const pricing = resolveTicketPricing({
-						basePrice: ticketType.price,
-						priceTiers: ticketType.priceTiers,
-						quantity,
-					});
-
-					if (pricing.totalAmount <= 0) {
-						throw new Error("免费票无需支付，请直接报名");
-					}
-
-					const hasTicketLimit =
-						typeof ticketType.maxQuantity === "number";
-					if (
-						hasTicketLimit &&
-						ticketType.currentQuantity + quantity >
-							ticketType.maxQuantity!
-					) {
+					if (updated.count === 0) {
 						throw new Error("库存不足");
 					}
-
-					if (event.maxAttendees) {
-						const totalQuantity =
-							await tx.eventTicketType.aggregate({
-								where: { eventId },
-								_sum: { currentQuantity: true },
-							});
-
-						const currentTotal =
-							totalQuantity._sum.currentQuantity ?? 0;
-						if (currentTotal + quantity > event.maxAttendees) {
-							throw new Error("活动报名名额已满");
-						}
-					}
-
-					if (hasTicketLimit) {
-						const updated = await tx.eventTicketType.updateMany({
-							where: {
-								id: ticketType.id,
-								currentQuantity: {
-									lte: ticketType.maxQuantity! - quantity,
-								},
-							},
-							data: {
-								currentQuantity: { increment: quantity },
-							},
-						});
-
-						if (updated.count === 0) {
-							throw new Error("库存不足");
-						}
-					} else {
-						await tx.eventTicketType.update({
-							where: { id: ticketType.id },
-							data: {
-								currentQuantity: { increment: quantity },
-							},
-						});
-					}
-
-					const order = await tx.eventOrder.create({
+				} else {
+					await tx.eventTicketType.update({
+						where: { id: ticketType.id },
 						data: {
-							orderNo,
-							eventId,
-							userId: user.id,
-							ticketTypeId: ticketType.id,
-							quantity,
-							unitPrice: pricing.unitPrice,
-							totalAmount: pricing.totalAmount,
-							currency: pricing.currency,
-							expiredAt,
-							paymentMethod: useJsapi
-								? "WECHAT_JSAPI"
-								: "WECHAT_NATIVE",
+							currentQuantity: { increment: quantity },
 						},
 					});
+				}
 
-					let registration;
-					if (existingRegistration) {
-						await tx.eventAnswer.deleteMany({
-							where: { registrationId: existingRegistration.id },
-						});
+				const order = await tx.eventOrder.create({
+					data: {
+						orderNo,
+						eventId,
+						userId: user.id,
+						ticketTypeId: ticketType.id,
+						quantity,
+						unitPrice: pricing.unitPrice,
+						totalAmount: pricing.totalAmount,
+						currency: pricing.currency,
+						expiredAt,
+						paymentMethod:
+							mapChannelToPaymentMethod(selectedChannel),
+					},
+				});
 
-						registration = await tx.eventRegistration.update({
-							where: { id: existingRegistration.id },
-							data: {
-								eventId,
-								userId: user.id,
-								status: "PENDING_PAYMENT",
-								ticketTypeId: ticketType.id,
-								orderId: order.id,
-								orderInviteId: null,
-								inviteId,
-								allowDigitalCardDisplay,
-								reviewedAt: null,
-								reviewedBy: null,
-								reviewNote: null,
-								registeredAt: new Date(),
-							},
-						});
-					} else {
-						registration = await tx.eventRegistration.create({
-							data: {
-								eventId,
-								userId: user.id,
-								status: "PENDING_PAYMENT",
-								ticketTypeId: ticketType.id,
-								orderId: order.id,
-								inviteId,
-								allowDigitalCardDisplay,
-							},
-						});
-					}
-
-					if (answers.length > 0) {
-						await tx.eventAnswer.createMany({
-							data: answers.map((answer) => ({
-								questionId: answer.questionId,
-								answer: answer.answer,
-								userId: user.id,
-								eventId,
-								registrationId: registration.id,
-							})),
-						});
-					}
-
-					if (quantity > 1) {
-						await tx.eventOrderInvite.createMany({
-							data: Array.from({ length: quantity - 1 }, () => ({
-								orderId: order.id,
-								code: generateOrderInviteCode(),
-							})),
-						});
-					}
-
-					if (inviteId) {
-						await tx.eventInvite.update({
-							where: { id: inviteId },
-							data: { lastUsedAt: new Date() },
-						});
-					}
-
-					return { order, registration, pricing };
-				},
-			);
-
-			const amountInCents = Math.round(pricing.totalAmount * 100);
-			const description = `${event.title} 门票`;
-
-			const paymentResult = useJsapi
-				? await createWechatJsapiOrder({
-						outTradeNo: order.orderNo,
-						description,
-						amount: amountInCents,
-						payerOpenId: user.wechatOpenId!,
-					})
-				: await createWechatNativeOrder({
-						outTradeNo: order.orderNo,
-						description,
-						amount: amountInCents,
+				let registration;
+				if (existingRegistration) {
+					await tx.eventAnswer.deleteMany({
+						where: { registrationId: existingRegistration.id },
 					});
 
-			if (!paymentResult) {
+					registration = await tx.eventRegistration.update({
+						where: { id: existingRegistration.id },
+						data: {
+							eventId,
+							userId: user.id,
+							status: "PENDING_PAYMENT",
+							ticketTypeId: ticketType.id,
+							orderId: order.id,
+							orderInviteId: null,
+							inviteId,
+							allowDigitalCardDisplay,
+							reviewedAt: null,
+							reviewedBy: null,
+							reviewNote: null,
+							registeredAt: new Date(),
+						},
+					});
+				} else {
+					registration = await tx.eventRegistration.create({
+						data: {
+							eventId,
+							userId: user.id,
+							status: "PENDING_PAYMENT",
+							ticketTypeId: ticketType.id,
+							orderId: order.id,
+							inviteId,
+							allowDigitalCardDisplay,
+						},
+					});
+				}
+
+				if (answers.length > 0) {
+					await tx.eventAnswer.createMany({
+						data: answers.map((answer) => ({
+							questionId: answer.questionId,
+							answer: answer.answer,
+							userId: user.id,
+							eventId,
+							registrationId: registration.id,
+						})),
+					});
+				}
+
+				if (quantity > 1) {
+					await tx.eventOrderInvite.createMany({
+						data: Array.from({ length: quantity - 1 }, () => ({
+							orderId: order.id,
+							code: generateOrderInviteCode(),
+						})),
+					});
+				}
+
+				if (inviteId) {
+					await tx.eventInvite.update({
+						where: { id: inviteId },
+						data: { lastUsedAt: new Date() },
+					});
+				}
+
+				return { order };
+			});
+
+			const prepareResult = await prepareEventTicketWechatPayment({
+				orderId: order.id,
+				userId: session.user.id,
+				userAgent,
+				clientContext,
+			});
+
+			if (!prepareResult.success) {
 				await cancelEventOrder(order.id);
 				return c.json(
 					{
 						success: false,
-						error: "微信支付订单创建失败",
+						error: prepareResult.error,
+						code: prepareResult.code,
+						requiresUpgrade: prepareResult.requiresUpgrade,
+						minBridgeVersion: prepareResult.minBridgeVersion,
 					},
-					500,
+					prepareResult.status as WechatPrepareHttpStatus,
 				);
 			}
 
-			const codeUrl =
-				"codeUrl" in paymentResult ? paymentResult.codeUrl : null;
-			const updatedOrder = await db.eventOrder.update({
-				where: { id: order.id },
-				data: {
-					prepayId: paymentResult.prepayId,
-					codeUrl,
-				},
-				select: {
-					id: true,
-					orderNo: true,
-					totalAmount: true,
-					expiredAt: true,
-					codeUrl: true,
-					prepayId: true,
-					paymentMethod: true,
-					quantity: true,
-				},
-			});
-
 			return c.json({
 				success: true,
-				data: buildOrderResponse(updatedOrder),
+				data: prepareResult.data,
 			});
 		} catch (error: any) {
-			console.error("Error creating event order:", error);
+			logger.error("Error creating event order:", error);
 			return c.json(
 				{
 					success: false,
@@ -619,7 +627,7 @@ app.get("/:eventId/orders/:orderId", async (c) => {
 			},
 		});
 	} catch (error) {
-		console.error("Error fetching order status:", error);
+		logger.error("Error fetching order status:", error);
 		return c.json({ success: false, error: "查询订单失败" }, 500);
 	}
 });
@@ -696,7 +704,7 @@ app.post("/:eventId/orders/:orderId/query", async (c) => {
 			},
 		});
 	} catch (error) {
-		console.error("Error querying order status:", error);
+		logger.error("Error querying order status:", error);
 		return c.json({ success: false, error: "查询订单失败" }, 500);
 	}
 });
@@ -733,7 +741,7 @@ app.get("/:eventId/orders", async (c) => {
 
 		return c.json({ success: true, data: orders });
 	} catch (error) {
-		console.error("Error fetching orders:", error);
+		logger.error("Error fetching orders:", error);
 		return c.json({ success: false, error: "获取订单失败" }, 500);
 	}
 });
@@ -771,7 +779,7 @@ app.post("/:eventId/orders/:orderId/cancel", async (c) => {
 
 		return c.json({ success: true });
 	} catch (error) {
-		console.error("Error cancelling order:", error);
+		logger.error("Error cancelling order:", error);
 		return c.json({ success: false, error: "取消订单失败" }, 500);
 	}
 });
@@ -831,7 +839,7 @@ app.post("/:eventId/orders/:orderId/mark-paid", async (c) => {
 			},
 		});
 	} catch (error) {
-		console.error("Error marking order paid:", error);
+		logger.error("Error marking order paid:", error);
 		return c.json({ success: false, error: "标记订单失败" }, 500);
 	}
 });
@@ -905,7 +913,7 @@ app.post(
 
 			return c.json({ success: true });
 		} catch (error: any) {
-			console.error("Error refunding order:", error);
+			logger.error("Error refunding order:", error);
 			return c.json(
 				{ success: false, error: error.message || "退款失败" },
 				500,
@@ -943,7 +951,7 @@ app.get("/:eventId/orders/:orderId/invites", async (c) => {
 
 		return c.json({ success: true, data: invites });
 	} catch (error) {
-		console.error("Error fetching order invites:", error);
+		logger.error("Error fetching order invites:", error);
 		return c.json({ success: false, error: "获取邀请链接失败" }, 500);
 	}
 });
@@ -1045,7 +1053,7 @@ app.post(
 
 			return c.json({ success: true, data: registration });
 		} catch (error: any) {
-			console.error("Error redeeming invite:", error);
+			logger.error("Error redeeming invite:", error);
 			return c.json(
 				{ success: false, error: error.message || "兑换失败" },
 				500,

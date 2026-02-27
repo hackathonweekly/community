@@ -7,7 +7,7 @@ import {
 	DialogTitle,
 } from "@community/ui/ui/dialog";
 import { Button } from "@community/ui/ui/button";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -20,6 +20,14 @@ import {
 } from "@heroicons/react/24/outline";
 import { Loader2 } from "lucide-react";
 import { cn } from "@community/lib-shared/utils";
+import {
+	WECHAT_PAYMENT_CHANNELS,
+	WECHAT_BRIDGE_ERROR_CODES,
+	WechatBridgeError,
+	type WechatMiniProgramRequestPaymentParams,
+	type WechatPayPayload,
+	type WechatPaymentChannel,
+} from "@community/lib-shared/payments/wechat-payment";
 
 export interface PaymentOrderData {
 	orderId: string;
@@ -27,6 +35,8 @@ export interface PaymentOrderData {
 	expiredAt: string;
 	totalAmount: number;
 	quantity?: number;
+	channel?: WechatPaymentChannel;
+	payPayload?: WechatPayPayload;
 	codeUrl?: string;
 	isExisting?: boolean;
 	jsapiParams?: {
@@ -108,6 +118,33 @@ const invokeWechatPay = (params: PaymentOrderData["jsapiParams"]) => {
 	});
 };
 
+const invokeMiniProgramBridgePay = async (
+	params: WechatMiniProgramRequestPaymentParams,
+) => {
+	if (typeof window === "undefined") {
+		throw new WechatBridgeError(
+			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
+			"Window not available",
+		);
+	}
+
+	const requestPayment = window.__HWMiniAppBridge__?.requestPayment;
+	if (!requestPayment) {
+		throw new WechatBridgeError(
+			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
+		);
+	}
+
+	const result = await requestPayment(params);
+	if (!result.ok) {
+		const code =
+			result.errCode === "PAY_CANCELLED"
+				? WECHAT_BRIDGE_ERROR_CODES.PAY_CANCELLED
+				: WECHAT_BRIDGE_ERROR_CODES.PAY_FAILED;
+		throw new WechatBridgeError(code, result.errMsg);
+	}
+};
+
 export function PaymentModal({
 	open,
 	onOpenChange,
@@ -133,6 +170,40 @@ export function PaymentModal({
 		() => new Date(order.expiredAt),
 		[order.expiredAt],
 	);
+
+	const resolvedChannel = useMemo(() => {
+		if (order.channel) {
+			return order.channel;
+		}
+		if (order.codeUrl) {
+			return WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE;
+		}
+		if (order.jsapiParams) {
+			return WECHAT_PAYMENT_CHANNELS.WECHAT_JSAPI;
+		}
+		return undefined;
+	}, [order.channel, order.codeUrl, order.jsapiParams]);
+
+	const resolvedCodeUrl = useMemo(() => {
+		if (order.payPayload && "codeUrl" in order.payPayload) {
+			return order.payPayload.codeUrl;
+		}
+		return order.codeUrl;
+	}, [order.codeUrl, order.payPayload]);
+
+	const resolvedJsapiParams = useMemo(() => {
+		if (order.payPayload && "jsapiParams" in order.payPayload) {
+			return order.payPayload.jsapiParams;
+		}
+		return order.jsapiParams;
+	}, [order.jsapiParams, order.payPayload]);
+
+	const miniProgramRequestPaymentParams = useMemo(() => {
+		if (order.payPayload && "requestPaymentParams" in order.payPayload) {
+			return order.payPayload.requestPaymentParams;
+		}
+		return undefined;
+	}, [order.payPayload]);
 
 	const paymentPhase = useMemo<PaymentPhase>(() => {
 		if (status === "PAID") return "success";
@@ -179,7 +250,7 @@ export function PaymentModal({
 		}
 	};
 
-	const fetchOrderStatus = async () => {
+	const fetchOrderStatus = useCallback(async () => {
 		try {
 			const response = await fetch(
 				`/api/events/${eventId}/orders/${order.orderId}`,
@@ -223,7 +294,7 @@ export function PaymentModal({
 			console.error("Failed to fetch order status", error);
 			handlePollFailure();
 		}
-	};
+	}, [eventId, order.orderId, onPaymentSuccess]);
 
 	const handleManualQuery = async () => {
 		setIsQuerying(true);
@@ -274,19 +345,63 @@ export function PaymentModal({
 		fetchOrderStatus();
 		const interval = window.setInterval(fetchOrderStatus, 3000);
 		return () => window.clearInterval(interval);
-	}, [open, order.orderId, eventId]);
+	}, [open, fetchOrderStatus]);
 
 	useEffect(() => {
-		if (!open || !order.jsapiParams || jsapiInvokedRef.current) return;
-		jsapiInvokedRef.current = true;
-		setJsapiInvoked(true);
-		invokeWechatPay(order.jsapiParams)
-			.then(() => fetchOrderStatus())
-			.catch((error) => {
-				console.error("WeChat JSAPI error", error);
-				toast.error(t("wechatPayIncomplete"));
-			});
-	}, [open, order.jsapiParams]);
+		if (!open || jsapiInvokedRef.current) return;
+
+		if (
+			resolvedChannel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE &&
+			miniProgramRequestPaymentParams
+		) {
+			jsapiInvokedRef.current = true;
+			setJsapiInvoked(true);
+			invokeMiniProgramBridgePay(miniProgramRequestPaymentParams)
+				.then(() => fetchOrderStatus())
+				.catch((error) => {
+					console.error("Mini Program bridge payment error", error);
+					if (error instanceof WechatBridgeError) {
+						if (
+							error.code ===
+							WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED
+						) {
+							toast.error(t("miniProgramBridgeRequired"));
+							return;
+						}
+						if (
+							error.code ===
+							WECHAT_BRIDGE_ERROR_CODES.PAY_CANCELLED
+						) {
+							toast.info(t("miniProgramPayCancelled"));
+							return;
+						}
+					}
+					toast.error(t("wechatPayIncomplete"));
+				});
+			return;
+		}
+
+		if (
+			resolvedChannel === WECHAT_PAYMENT_CHANNELS.WECHAT_JSAPI &&
+			resolvedJsapiParams
+		) {
+			jsapiInvokedRef.current = true;
+			setJsapiInvoked(true);
+			invokeWechatPay(resolvedJsapiParams)
+				.then(() => fetchOrderStatus())
+				.catch((error) => {
+					console.error("WeChat JSAPI error", error);
+					toast.error(t("wechatPayIncomplete"));
+				});
+		}
+	}, [
+		open,
+		resolvedChannel,
+		resolvedJsapiParams,
+		miniProgramRequestPaymentParams,
+		t,
+		fetchOrderStatus,
+	]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -341,9 +456,20 @@ export function PaymentModal({
 						<div className="flex items-center justify-center gap-2 text-sm">
 							{paymentPhase === "waiting" && (
 								<>
-									<QrCodeIcon className="w-5 h-5 text-blue-500" />
+									{resolvedChannel ===
+									WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE ? (
+										<QrCodeIcon className="w-5 h-5 text-blue-500" />
+									) : (
+										<Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+									)}
 									<span className="text-muted-foreground">
-										{t("scanToPay")}
+										{resolvedChannel ===
+										WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE
+											? t("scanToPay")
+											: resolvedChannel ===
+													WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE
+												? t("invokingMiniProgram")
+												: t("invoking")}
 									</span>
 								</>
 							)}
@@ -381,19 +507,27 @@ export function PaymentModal({
 							)}
 						</div>
 					</div>
-					{status === "PENDING" && order.codeUrl && (
-						<div className="flex flex-col items-center space-y-3">
-							<QRCode value={order.codeUrl} size={200} />
-							<div className="text-sm text-muted-foreground">
-								{t("scanToPay")}
-							</div>
-						</div>
-					)}
 					{status === "PENDING" &&
-						!order.codeUrl &&
-						order.jsapiParams && (
+						resolvedChannel ===
+							WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE &&
+						resolvedCodeUrl && (
+							<div className="flex flex-col items-center space-y-3">
+								<QRCode value={resolvedCodeUrl} size={200} />
+								<div className="text-sm text-muted-foreground">
+									{t("scanToPay")}
+								</div>
+							</div>
+						)}
+					{status === "PENDING" &&
+						resolvedChannel !==
+							WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE &&
+						(resolvedJsapiParams ||
+							miniProgramRequestPaymentParams) && (
 							<div className="text-sm text-muted-foreground">
-								{t("invoking")}
+								{resolvedChannel ===
+								WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE
+									? t("invokingMiniProgram")
+									: t("invoking")}
 							</div>
 						)}
 
