@@ -2183,9 +2183,10 @@ export const organizationsRouter = new Hono()
 					// Also send email notifications directly (keeping existing email logic)
 					for (const admin of admins) {
 						if (admin.user?.email) {
+							const emailSubject = `新的加入申请 - ${organization.name}`;
 							await sendEmail({
 								to: admin.user.email,
-								subject: `新的加入申请 - ${organization.name}`,
+								subject: emailSubject,
 								templateId: "organizationApplicationReceived",
 								context: {
 									organizationName: organization.name,
