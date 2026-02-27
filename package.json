@@ -22,8 +22,8 @@
 	"devDependencies": {
 		"husky": "^9.1.7",
 		"playwright-core": "^1.58.2",
-		"puppeteer": "^24.37.3",
-		"turbo": "^2.5.0"
+		"puppeteer": "^24.37.5",
+		"turbo": "^2.8.11"
 	},
 	"pnpm": {
 		"overrides": {
