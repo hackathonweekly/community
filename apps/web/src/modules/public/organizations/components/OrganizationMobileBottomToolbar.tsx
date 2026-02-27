@@ -44,7 +44,9 @@ export function OrganizationMobileBottomToolbar({
 
 	const handlePrimaryAction = () => {
 		if (userMembership) {
-			router.push(`/orgs/${organizationSlug}/members`);
+			router.push(
+				`/orgs/${organizationSlug}/members?from=community-home`,
+			);
 			return;
 		}
 
