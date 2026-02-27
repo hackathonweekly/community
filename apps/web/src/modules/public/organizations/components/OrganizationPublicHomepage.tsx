@@ -236,6 +236,7 @@ export function OrganizationPublicHomepage({
 		: {};
 	const coverImageSrc = organization.coverImage ?? null;
 	const hasCoverImage = Boolean(coverImageSrc);
+	const membersPageHref = `/orgs/${organization.slug}/members?from=community-home`;
 
 	const functionalRolesErrorMessage =
 		functionalRolesError instanceof Error
@@ -368,7 +369,7 @@ export function OrganizationPublicHomepage({
 							{userMembership ? (
 								<>
 									<Link
-										href={`/orgs/${organization.slug}/members`}
+										href={membersPageHref}
 										className="flex w-full items-center justify-center gap-2 bg-black dark:bg-white py-2.5 rounded-md text-sm font-bold text-white dark:text-black shadow-sm transition-colors hover:bg-gray-800 dark:hover:bg-gray-200"
 									>
 										<Users className="h-3.5 w-3.5" />
@@ -510,7 +511,7 @@ export function OrganizationPublicHomepage({
 							/>
 							{organization.membersCount > 0 && (
 								<Link
-									href={`/orgs/${organization.slug}/members`}
+									href={membersPageHref}
 									className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-muted-foreground hover:text-black dark:hover:text-white transition-colors"
 								>
 									查看全部 {organization.membersCount} 位成员
@@ -637,7 +638,7 @@ export function OrganizationPublicHomepage({
 									{userMembership ? (
 										<>
 											<Link
-												href={`/orgs/${organization.slug}/members`}
+												href={membersPageHref}
 												className="block w-full bg-black dark:bg-white text-white dark:text-black py-2.5 rounded-md font-bold text-sm text-center shadow-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
 											>
 												{t("public.enterOrganization")}

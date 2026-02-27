@@ -12,12 +12,14 @@ import {
 import { OrganizationSwitcher } from "@account/organizations/components/OrganizationSwitcher";
 import { ArrowLeft, Loader2, Settings, UserPlus } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
 export default function OrganizationPublicMembersPage() {
 	const params = useParams();
+	const searchParams = useSearchParams();
 	const slug = params.slug as string;
+	const showMobileBackHeader = searchParams.get("from") === "community-home";
 	const authStatus = useAuthStatus();
 	const currentUser = authStatus.user;
 
@@ -50,7 +52,7 @@ export default function OrganizationPublicMembersPage() {
 	if (loading) {
 		return (
 			<>
-				<MobilePageHeader title="成员" />
+				{showMobileBackHeader && <MobilePageHeader title="成员" />}
 				<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
 					<div className="flex items-center justify-center py-20">
 						<Loader2 className="h-6 w-6 animate-spin text-gray-400" />
@@ -63,7 +65,7 @@ export default function OrganizationPublicMembersPage() {
 	if (error || !organization) {
 		return (
 			<>
-				<MobilePageHeader title="成员" />
+				{showMobileBackHeader && <MobilePageHeader title="成员" />}
 				<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
 					<EmptyState
 						title="加载失败"
@@ -85,7 +87,9 @@ export default function OrganizationPublicMembersPage() {
 
 	return (
 		<>
-			<MobilePageHeader title={`${organization.name} · 成员`} />
+			{showMobileBackHeader && (
+				<MobilePageHeader title={`${organization.name} · 成员`} />
+			)}
 			<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
 				{/* Org Switcher / Back link */}
 				{organization && currentUser ? (
