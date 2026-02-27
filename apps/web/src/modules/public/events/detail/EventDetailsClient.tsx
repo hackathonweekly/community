@@ -379,12 +379,22 @@ export function EventDetailsClient({
 									</div>
 								) : null}
 								<div className="hidden text-right sm:block">
-									<div className="text-xs font-bold text-foreground">
-										{participantCount} 人已报名
+									<div className="flex items-center justify-end gap-2 text-xs font-bold text-foreground">
+										<span>{participantCount} 人已报名</span>
+										{remainingSeats === 0 ? (
+											<Badge
+												variant="destructive"
+												className="h-5 px-1.5 text-[10px]"
+											>
+												名额已满
+											</Badge>
+										) : null}
 									</div>
 									{remainingSeats !== null ? (
 										<div className="text-[10px] text-muted-foreground">
-											剩余 {remainingSeats} 个名额
+											{remainingSeats === 0
+												? "当前无剩余名额"
+												: `剩余 ${remainingSeats} 个名额`}
 										</div>
 									) : null}
 								</div>
