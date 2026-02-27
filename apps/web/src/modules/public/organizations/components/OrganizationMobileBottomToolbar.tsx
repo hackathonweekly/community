@@ -1,9 +1,9 @@
 "use client";
 
-import { Heart, Share2, Users } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useKeyboardDetection } from "@community/lib-client/hooks/use-keyboard-detection";
 import { cn } from "@community/lib-shared/utils";
+import { Heart, Share2, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface OrganizationMobileBottomToolbarProps {
 	organizationId: string;
@@ -44,7 +44,7 @@ export function OrganizationMobileBottomToolbar({
 
 	const handlePrimaryAction = () => {
 		if (userMembership) {
-			router.push(`/orgs/${organizationSlug}`);
+			router.push(`/orgs/${organizationSlug}/members`);
 			return;
 		}
 
@@ -79,7 +79,7 @@ export function OrganizationMobileBottomToolbar({
 						{userMembership ? (
 							<>
 								<Users className="h-3.5 w-3.5" />
-								进入组织
+								查看成员
 							</>
 						) : isLoggedIn ? (
 							<>
