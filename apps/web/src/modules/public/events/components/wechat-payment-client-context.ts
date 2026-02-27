@@ -66,6 +66,24 @@ let messageListenerBound = false;
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
 
+const isBridgeEnvelope = (
+	value: unknown,
+): value is MiniProgramBridgeEnvelope => {
+	if (!isObject(value)) {
+		return false;
+	}
+	if (value.__hwMiniBridge !== BRIDGE_NAME) {
+		return false;
+	}
+	if (typeof value.type !== "string") {
+		return false;
+	}
+	if (value.requestId !== undefined && typeof value.requestId !== "string") {
+		return false;
+	}
+	return true;
+};
+
 const resolveBridgeEnvelope = (
 	value: unknown,
 ): MiniProgramBridgeEnvelope | null => {
@@ -80,11 +98,8 @@ const resolveBridgeEnvelope = (
 		if (!isObject(current)) {
 			continue;
 		}
-		if (
-			current.__hwMiniBridge === BRIDGE_NAME &&
-			typeof current.type === "string"
-		) {
-			return current as MiniProgramBridgeEnvelope;
+		if (isBridgeEnvelope(current)) {
+			return current;
 		}
 		if ("data" in current) {
 			queue.push(current.data);
