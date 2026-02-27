@@ -29,10 +29,11 @@ const app = new Hono()
 		const user = session.user;
 
 		const { volunteerRegistrationId, approved, note } = await c.req.json();
-		const eventIdentifier = c.req.param("eventId");
-		if (!eventIdentifier) {
+		const eventIdentifierParam = c.req.param("eventId");
+		if (!eventIdentifierParam) {
 			return c.json({ error: "活动不存在" }, 404);
 		}
+		const eventIdentifier = eventIdentifierParam;
 
 		try {
 			// 验证活动权限 - 只有活动组织者或组织管理员可以审核
@@ -177,10 +178,11 @@ const app = new Hono()
 			const user = session.user;
 
 			const { volunteerRegistrationId, completed } = await c.req.json();
-			const eventIdentifier = c.req.param("eventId");
-			if (!eventIdentifier) {
+			const eventIdentifierParam = c.req.param("eventId");
+			if (!eventIdentifierParam) {
 				return c.json({ error: "活动不存在" }, 404);
 			}
+			const eventIdentifier = eventIdentifierParam;
 
 			try {
 				// 验证活动权限
