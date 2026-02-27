@@ -7,15 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { OrganizationMemberRole } from "@community/lib-server/auth";
+import { UserPlus, Link2, Mail, Bell, Copy, Loader2 } from "lucide-react";
 import {
-	Search,
-	UserPlus,
-	Link2,
-	Mail,
-	Bell,
-	Copy,
-	Loader2,
-} from "lucide-react";
+	MemberSearchInput,
+	type MemberSearchUser,
+} from "@shared/components/MemberSearchInput";
 
 import { SettingsItem } from "@shared/components/SettingsItem";
 import { OrganizationRoleSelect } from "@account/organizations/components/OrganizationRoleSelect";
@@ -60,15 +56,6 @@ const directInviteSchema = z.object({
 type EmailInviteValues = z.infer<typeof emailInviteSchema>;
 type DirectInviteValues = z.infer<typeof directInviteSchema>;
 
-interface User {
-	id: string;
-	name: string;
-	username?: string;
-	image?: string;
-	userRoleString?: string;
-	currentWorkOn?: string;
-}
-
 export function InviteMemberForm({
 	organizationId,
 	organizationSlug,
@@ -97,9 +84,9 @@ export function InviteMemberForm({
 	});
 
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<User[]>([]);
-	const [isSearching, setIsSearching] = useState(false);
-	const [selectedUser, setSelectedUser] = useState<User | null>(null);
+	const [selectedUser, setSelectedUser] = useState<MemberSearchUser | null>(
+		null,
+	);
 	const [generatedInvitation, setGeneratedInvitation] =
 		useState<OrganizationInvitationSummary | null>(null);
 	const [lastAction, setLastAction] = useState<"link" | "email" | "in-app">(
@@ -119,40 +106,12 @@ export function InviteMemberForm({
 		setSelectedUser(null);
 		directForm.setValue("userId", "");
 		setSearchQuery("");
-		setSearchResults([]);
 	};
 
-	const searchUsers = async (query: string) => {
-		if (query.length < 2) {
-			setSearchResults([]);
-			return;
-		}
-
-		setIsSearching(true);
-		try {
-			const response = await fetch(
-				`/api/users/search?query=${encodeURIComponent(query)}`,
-			);
-			if (response.ok) {
-				const data = await response.json();
-				setSearchResults(data.data || []);
-			} else {
-				console.error("Failed to search users:", response.status);
-				setSearchResults([]);
-			}
-		} catch (error) {
-			console.error("Error searching users:", error);
-			setSearchResults([]);
-		} finally {
-			setIsSearching(false);
-		}
-	};
-
-	const handleUserSelect = (user: User) => {
+	const handleUserSelect = (user: MemberSearchUser) => {
 		setSelectedUser(user);
 		directForm.setValue("userId", user.id, { shouldDirty: true });
 		setSearchQuery(user.name);
-		setSearchResults([]);
 	};
 
 	const handleCopy = async (value: string) => {
@@ -454,71 +413,19 @@ export function InviteMemberForm({
 						>
 							<div className="space-y-2">
 								<Label htmlFor="userSearch">搜索用户</Label>
-								<div className="relative">
-									<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-									<Input
-										id="userSearch"
-										value={searchQuery}
-										onChange={(event) => {
-											const value = event.target.value;
-											setSearchQuery(value);
-											if (selectedUser) {
-												clearSelection();
-											}
-											searchUsers(value);
-										}}
-										placeholder="输入姓名、用户名或手机号"
-										autoComplete="off"
-										className="pl-9"
-									/>
-									{isSearching && (
-										<div className="absolute right-3 top-1/2 -translate-y-1/2">
-											<div className="h-4 w-4 animate-spin rounded-full border-b-2 border-muted-foreground" />
-										</div>
-									)}
-									{searchResults.length > 0 && (
-										<div className="absolute top-full left-0 right-0 z-10 mt-2 max-h-60 overflow-y-auto rounded-md border bg-background shadow">
-											{searchResults.map((user) => (
-												<button
-													key={user.id}
-													type="button"
-													onClick={() =>
-														handleUserSelect(user)
-													}
-													className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted"
-												>
-													<Avatar className="h-8 w-8">
-														<AvatarImage
-															src={user.image}
-														/>
-														<AvatarFallback>
-															{user.name[0]?.toUpperCase()}
-														</AvatarFallback>
-													</Avatar>
-													<div className="min-w-0">
-														<p className="text-sm font-medium leading-tight">
-															{user.name}
-														</p>
-														<p className="truncate text-xs text-muted-foreground">
-															{user.username &&
-																`@${user.username}`}
-															{user.userRoleString && (
-																<span>
-																	{user.username
-																		? " • "
-																		: ""}
-																	{
-																		user.userRoleString
-																	}
-																</span>
-															)}
-														</p>
-													</div>
-												</button>
-											))}
-										</div>
-									)}
-								</div>
+								<MemberSearchInput
+									id="userSearch"
+									value={searchQuery}
+									onValueChange={(query) => {
+										setSearchQuery(query);
+										if (selectedUser) {
+											setSelectedUser(null);
+											directForm.setValue("userId", "");
+										}
+									}}
+									onSelect={handleUserSelect}
+									placeholder="输入姓名、用户名或手机号"
+								/>
 							</div>
 
 							<FormField

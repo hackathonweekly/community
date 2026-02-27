@@ -32,6 +32,7 @@ import {
 	getEvents,
 	getOrganizationMembership,
 	incrementEventViewCount,
+	resolveEventIdentifier,
 	updateEvent,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
@@ -2402,13 +2403,13 @@ app.delete("/:id", async (c) => {
 			);
 		}
 
-		const eventId = c.req.param("id");
+		const eventIdentifier = c.req.param("id");
 		const { name, description, organizationId } = c.req.valid("json");
 
 		try {
 			// 获取活动详情
 			const event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				include: {
 					ticketTypes: true,
 					volunteerRoles: {
@@ -2535,7 +2536,7 @@ app.delete("/:id", async (c) => {
 // GET /api/events/:eventId/project-submissions - Get project submissions for an event
 app.get("/:eventId/project-submissions", async (c) => {
 	try {
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 
 		// Prefer reading `submissionsEnabled` when the Prisma Client supports it,
 		// but gracefully fall back for environments with a stale generated client.
@@ -2548,7 +2549,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 
 		try {
 			event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					type: true,
@@ -2572,7 +2573,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 			if (!isUnknownSubmissionsEnabledField) throw error;
 
 			event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					type: true,
@@ -2596,7 +2597,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 			"@community/lib-server/database/prisma/queries/events"
 		);
 
-		const projectSubmissions = await getEventProjectSubmissions(eventId);
+		const projectSubmissions = await getEventProjectSubmissions(event.id);
 
 		return c.json({
 			success: true,

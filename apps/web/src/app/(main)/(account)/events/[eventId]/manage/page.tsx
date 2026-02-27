@@ -357,7 +357,7 @@ export default function EventManagePage() {
 						</TabsContent>
 
 						<TabsContent value="admins" className="mt-3 lg:mt-6">
-							<EventAdminManager eventId={eventId} />
+							<EventAdminManager eventId={event.id} />
 						</TabsContent>
 					</Tabs>
 				</div>
