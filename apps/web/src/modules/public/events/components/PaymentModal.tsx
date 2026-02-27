@@ -28,6 +28,7 @@ import {
 	type WechatPayPayload,
 	type WechatPaymentChannel,
 } from "@community/lib-shared/payments/wechat-payment";
+import { ensureWechatMiniProgramBridge } from "./wechat-payment-client-context";
 
 export interface PaymentOrderData {
 	orderId: string;
@@ -128,7 +129,7 @@ const invokeMiniProgramBridgePay = async (
 		);
 	}
 
-	const requestPayment = window.__HWMiniAppBridge__?.requestPayment;
+	const requestPayment = ensureWechatMiniProgramBridge()?.requestPayment;
 	if (!requestPayment) {
 		throw new WechatBridgeError(
 			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,

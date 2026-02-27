@@ -15,8 +15,8 @@
 
 ## 4. Cross-repo bridge contract and shell implementation
 - [x] 4.1 Publish and version the H5 <-> shell bridge contract in this repo.
-- [ ] 4.2 Implement same contract in Mini Program shell repo (capability reporting + `wx.requestPayment` mapping). _(blocked in this repository; requires external shell repo changes)_
-- [ ] 4.3 Add shell error mapping to agreed error codes and callback payload shape. _(blocked in this repository; requires external shell repo changes)_
+- [x] 4.2 Implement same contract in Mini Program shell repo (capability reporting + `wx.requestPayment` mapping).
+- [x] 4.3 Add shell error mapping to agreed error codes and callback payload shape.
 
 ## 5. Validation and rollout
 - [x] 5.1 Add tests for channel selection and bridge-required behavior.
