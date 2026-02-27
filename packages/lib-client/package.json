@@ -11,12 +11,12 @@
 	"dependencies": {
 		"@community/config": "workspace:*",
 		"@community/lib-shared": "workspace:*",
-		"@tanstack/react-query": "^5.83.0",
-		"better-auth": "1.4.18",
-		"hono": "^4.8.5",
+		"@tanstack/react-query": "^5.90.21",
+		"better-auth": "1.4.19",
+		"hono": "^4.12.3",
 		"react": "^19.2.0",
 		"sonner": "^2.0.6",
-		"use-intl": "^4.3.4",
+		"use-intl": "^4.8.3",
 		"zustand": "^5.0.8"
 	},
 	"devDependencies": {
