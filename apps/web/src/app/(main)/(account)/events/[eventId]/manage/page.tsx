@@ -51,6 +51,7 @@ export default function EventManagePage() {
 		fetchEvent,
 		updateRegistrationStatus,
 		cancelRegistration,
+		refundOrder,
 		exportRegistrations,
 		handleQRScanSuccess,
 		deleteEvent,
@@ -283,6 +284,7 @@ export default function EventManagePage() {
 									updateRegistrationStatus
 								}
 								onCancelRegistration={cancelRegistration}
+								onRefundOrder={refundOrder}
 								onExportRegistrations={exportRegistrations}
 							/>
 						</TabsContent>

@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { EventRegistration } from "./RegistrationDetailsDialog";
 import { RegistrationDetailsDialog } from "./RegistrationDetailsDialog";
+import { canShowDirectCancellation } from "./registration-workflow";
 
 const currencyFormatter = new Intl.NumberFormat("zh-CN", {
 	style: "currency",
@@ -39,6 +40,7 @@ interface RegistrationMobileCardProps {
 	}>;
 	onUpdateStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
+	onRefundOrder: (orderId: string, reason: string) => Promise<boolean>;
 	allRegistrations?: EventRegistration[];
 	currentIndex?: number | null;
 	onNavigate?: (direction: "prev" | "next") => void;
@@ -75,6 +77,7 @@ export function RegistrationMobileCard({
 	eventQuestions,
 	onUpdateStatus,
 	onCancelRegistration,
+	onRefundOrder,
 	allRegistrations,
 	currentIndex = null,
 	onNavigate,
@@ -93,6 +96,9 @@ export function RegistrationMobileCard({
 		registrationStatusColors[registration.status] ||
 		registrationStatusColors.PENDING;
 	const StatusIcon = statusInfo.icon;
+	const canDirectCancelRegistration = canShowDirectCancellation(
+		registration.order?.status,
+	);
 
 	return (
 		<div className="p-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
@@ -248,6 +254,7 @@ export function RegistrationMobileCard({
 										onCancelRegistration={
 											onCancelRegistration
 										}
+										onRefundOrder={onRefundOrder}
 										allRegistrations={allRegistrations}
 										currentIndex={currentIndex}
 										onNavigate={onNavigate}
@@ -303,24 +310,26 @@ export function RegistrationMobileCard({
 							</Button>
 						)}
 						{(registration.status === "APPROVED" ||
-							registration.status === "PENDING") && (
-							<Button
-								size="sm"
-								variant="destructive"
-								className="text-xs px-2"
-								onClick={() => {
-									const reason = prompt("请输入取消原因：");
-									if (reason?.trim()) {
-										onCancelRegistration(
-											registration.user.id,
-											reason,
-										);
-									}
-								}}
-							>
-								取消
-							</Button>
-						)}
+							registration.status === "PENDING") &&
+							canDirectCancelRegistration && (
+								<Button
+									size="sm"
+									variant="destructive"
+									className="text-xs px-2"
+									onClick={() => {
+										const reason =
+											prompt("请输入取消原因：");
+										if (reason?.trim()) {
+											onCancelRegistration(
+												registration.user.id,
+												reason,
+											);
+										}
+									}}
+								>
+									取消
+								</Button>
+							)}
 					</div>
 				</div>
 			</div>

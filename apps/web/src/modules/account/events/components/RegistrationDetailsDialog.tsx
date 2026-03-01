@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@community/ui/ui/button";
 import {
 	Dialog,
@@ -26,6 +26,11 @@ import { getLifeStatusLabel } from "@community/lib-shared/utils/life-status";
 import { useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import {
+	canShowDirectCancellation,
+	canShowRefundAndCancelAction,
+	isRefundPending,
+} from "./registration-workflow";
 
 const currencyFormatter = new Intl.NumberFormat("zh-CN", {
 	style: "currency",
@@ -126,6 +131,7 @@ interface RegistrationDetailsDialogProps {
 	}>;
 	onUpdateStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
+	onRefundOrder: (orderId: string, reason: string) => Promise<boolean>;
 	allRegistrations?: EventRegistration[];
 	currentIndex?: number;
 	onNavigate?: (direction: "prev" | "next") => void;
@@ -137,6 +143,7 @@ export function RegistrationDetailsDialog({
 	eventQuestions,
 	onUpdateStatus,
 	onCancelRegistration,
+	onRefundOrder,
 	allRegistrations,
 	currentIndex,
 	onNavigate,
@@ -147,6 +154,14 @@ export function RegistrationDetailsDialog({
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
 	const [markingPaid, setMarkingPaid] = useState(false);
 	const [showMarkPaidDialog, setShowMarkPaidDialog] = useState(false);
+	const [refundReason, setRefundReason] = useState("");
+	const [showRefundDialog, setShowRefundDialog] = useState(false);
+	const [refunding, setRefunding] = useState(false);
+
+	useEffect(() => {
+		setRefundReason("");
+		setShowRefundDialog(false);
+	}, [registration.user.id]);
 
 	// Create a map of questionId -> answer for quick lookup
 	const answersMap = new Map(
@@ -221,6 +236,26 @@ export function RegistrationDetailsDialog({
 			toast.error(message);
 		} finally {
 			setMarkingPaid(false);
+		}
+	};
+
+	const canDirectCancelRegistration = canShowDirectCancellation(
+		registration.order?.status,
+	);
+
+	const handleRefundOrder = async () => {
+		if (!registration.order || !refundReason.trim() || refunding) return;
+
+		setRefunding(true);
+		const success = await onRefundOrder(
+			registration.order.id,
+			refundReason.trim(),
+		);
+		setRefunding(false);
+
+		if (success) {
+			setShowRefundDialog(false);
+			setRefundReason("");
 		}
 	};
 
@@ -448,6 +483,35 @@ export function RegistrationDetailsDialog({
 										</Button>
 									</div>
 								)}
+								{canShowRefundAndCancelAction(
+									registration.order.status,
+								) && (
+									<div className="pt-2 space-y-2">
+										<Button
+											variant="destructive"
+											size="sm"
+											onClick={() =>
+												setShowRefundDialog(true)
+											}
+										>
+											{t(
+												"registrations.dialog.order.refundAndCancel",
+											)}
+										</Button>
+										<p className="text-xs text-muted-foreground">
+											{t(
+												"registrations.dialog.order.refundLifecycleHint",
+											)}
+										</p>
+									</div>
+								)}
+								{isRefundPending(registration.order.status) && (
+									<p className="pt-2 text-xs text-muted-foreground">
+										{t(
+											"registrations.dialog.order.refundPendingHint",
+										)}
+									</p>
+								)}
 							</div>
 						)}
 
@@ -531,14 +595,15 @@ export function RegistrationDetailsDialog({
 							</Button>
 						)}
 						{(registration.status === "APPROVED" ||
-							registration.status === "PENDING") && (
-							<Button
-								variant="destructive"
-								onClick={() => setShowCancelDialog(true)}
-							>
-								取消报名
-							</Button>
-						)}
+							registration.status === "PENDING") &&
+							canDirectCancelRegistration && (
+								<Button
+									variant="destructive"
+									onClick={() => setShowCancelDialog(true)}
+								>
+									取消报名
+								</Button>
+							)}
 					</div>
 				</div>
 			</DialogContent>
@@ -591,6 +656,66 @@ export function RegistrationDetailsDialog({
 							disabled={!cancelReason.trim()}
 						>
 							确认取消
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog open={showRefundDialog} onOpenChange={setShowRefundDialog}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{t("registrations.dialog.order.refundConfirmTitle")}
+						</DialogTitle>
+						<DialogDescription>
+							{t(
+								"registrations.dialog.order.refundConfirmDescription",
+							)}
+						</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4">
+						<div>
+							<Label htmlFor="refund-reason">
+								{t(
+									"registrations.dialog.order.refundReasonLabel",
+								)}
+							</Label>
+							<Input
+								id="refund-reason"
+								value={refundReason}
+								onChange={(e) =>
+									setRefundReason(e.target.value)
+								}
+								placeholder={t(
+									"registrations.dialog.order.refundReasonPlaceholder",
+								)}
+								disabled={refunding}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setShowRefundDialog(false);
+								setRefundReason("");
+							}}
+							disabled={refunding}
+						>
+							{t("registrations.dialog.order.refundCancel")}
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={handleRefundOrder}
+							disabled={!refundReason.trim() || refunding}
+						>
+							{refunding
+								? t(
+										"registrations.dialog.order.refundSubmitting",
+									)
+								: t(
+										"registrations.dialog.order.refundConfirmAction",
+									)}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

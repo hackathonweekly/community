@@ -44,6 +44,7 @@ import Link from "next/link";
 import { RegistrationMobileCard } from "./RegistrationMobileCard";
 import type { EventRegistration } from "./RegistrationDetailsDialog";
 import { RegistrationDetailsDialog } from "./RegistrationDetailsDialog";
+import { canShowDirectCancellation } from "./registration-workflow";
 
 const currencyFormatter = new Intl.NumberFormat("zh-CN", {
 	style: "currency",
@@ -69,6 +70,7 @@ interface EventRegistrationsTabProps {
 	onStatusFilterChange: (status: string) => void;
 	onUpdateRegistrationStatus: (userId: string, status: string) => void;
 	onCancelRegistration: (userId: string, reason: string) => void;
+	onRefundOrder: (orderId: string, reason: string) => Promise<boolean>;
 	onExportRegistrations: () => void;
 }
 
@@ -105,6 +107,7 @@ export function EventRegistrationsTab({
 	onStatusFilterChange,
 	onUpdateRegistrationStatus,
 	onCancelRegistration,
+	onRefundOrder,
 	onExportRegistrations,
 }: EventRegistrationsTabProps) {
 	const t = useTranslations("events.manage");
@@ -471,6 +474,9 @@ export function EventRegistrationsTab({
 																		onCancelRegistration={
 																			onCancelRegistration
 																		}
+																		onRefundOrder={
+																			onRefundOrder
+																		}
 																		allRegistrations={
 																			safeRegistrations
 																		}
@@ -547,30 +553,35 @@ export function EventRegistrationsTab({
 														{(registration.status ===
 															"APPROVED" ||
 															registration.status ===
-																"PENDING") && (
-															<Button
-																size="sm"
-																variant="destructive"
-																onClick={() => {
-																	const reason =
-																		prompt(
-																			"请输入取消原因：",
-																		);
-																	if (
-																		reason?.trim()
-																	) {
-																		onCancelRegistration(
-																			registration
-																				.user
-																				.id,
-																			reason,
-																		);
-																	}
-																}}
-															>
-																取消
-															</Button>
-														)}
+																"PENDING") &&
+															canShowDirectCancellation(
+																registration
+																	.order
+																	?.status,
+															) && (
+																<Button
+																	size="sm"
+																	variant="destructive"
+																	onClick={() => {
+																		const reason =
+																			prompt(
+																				"请输入取消原因：",
+																			);
+																		if (
+																			reason?.trim()
+																		) {
+																			onCancelRegistration(
+																				registration
+																					.user
+																					.id,
+																				reason,
+																			);
+																		}
+																	}}
+																>
+																	取消
+																</Button>
+															)}
 													</div>
 												</TableCell>
 											</TableRow>
@@ -592,6 +603,7 @@ export function EventRegistrationsTab({
 									eventQuestions={eventQuestions}
 									onUpdateStatus={handleUpdateStatus}
 									onCancelRegistration={onCancelRegistration}
+									onRefundOrder={onRefundOrder}
 									allRegistrations={safeRegistrations}
 									currentIndex={selectedRegistrationIndex}
 									onNavigate={handleNavigate}

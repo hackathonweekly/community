@@ -31,6 +31,7 @@ import {
 	prepareEventTicketWechatPayment,
 	type WechatPrepareHttpStatus,
 } from "../payments/lib/wechat-prepare";
+import { resolveOrganizerRefundAmount } from "./refund-policy";
 
 const registerAnswersSchema = z
 	.array(
@@ -881,17 +882,18 @@ app.post(
 				return c.json({ success: false, error: "订单不存在" }, 404);
 			}
 
-			if (order.status !== "PAID") {
+			const refundAmountResult = resolveOrganizerRefundAmount({
+				orderStatus: order.status,
+				orderTotalAmount: order.totalAmount,
+				requestedAmount: amount,
+			});
+			if (!refundAmountResult.ok) {
 				return c.json(
-					{ success: false, error: "订单状态不允许退款" },
+					{ success: false, error: refundAmountResult.error },
 					400,
 				);
 			}
-
-			const refundAmount = amount ?? order.totalAmount;
-			if (refundAmount <= 0 || refundAmount > order.totalAmount) {
-				return c.json({ success: false, error: "退款金额无效" }, 400);
-			}
+			const refundAmount = refundAmountResult.refundAmount;
 
 			const refundResult = await requestWechatRefund({
 				outTradeNo: order.orderNo,

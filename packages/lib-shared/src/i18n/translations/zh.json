@@ -1348,7 +1348,9 @@
 				"timeout": "请求超时，请重试",
 				"updateError": "更新报名状态失败",
 				"cancelSuccess": "报名已成功取消",
-				"cancelError": "取消报名失败"
+				"cancelError": "取消报名失败",
+				"refundSuccess": "退款申请已提交",
+				"refundError": "提交退款申请失败"
 			},
 			"backToEvents": "← 返回我的活动",
 			"dashboard": {
@@ -1452,7 +1454,17 @@
 						"markPaid": "手动标记为已支付",
 						"markPaidConfirm": "确认手动标记该订单为已支付？",
 						"markPaidSuccess": "订单已标记为已支付",
-						"markPaidFailed": "标记失败"
+						"markPaidFailed": "标记失败",
+						"refundAndCancel": "退款并取消报名",
+						"refundLifecycleHint": "退款完成前不会取消报名，退款结算成功后将自动取消。",
+						"refundPendingHint": "退款处理中，退款结算成功后将自动取消报名。",
+						"refundConfirmTitle": "确认退款并取消报名",
+						"refundConfirmDescription": "将发起全额退款申请，报名在退款结算成功前保持有效。",
+						"refundReasonLabel": "退款原因 *",
+						"refundReasonPlaceholder": "请输入退款原因（必填）",
+						"refundCancel": "取消",
+						"refundConfirmAction": "确认退款",
+						"refundSubmitting": "提交中..."
 					},
 					"rejectRegistration": "拒绝报名",
 					"title": "报名详情",

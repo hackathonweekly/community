@@ -309,6 +309,35 @@ export function useEventManagement() {
 		}
 	};
 
+	const refundOrder = async (orderId: string, reason: string) => {
+		try {
+			const response = await fetch(
+				`/api/events/${eventId}/orders/${orderId}/refund`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ reason }),
+				},
+			);
+
+			if (response.ok) {
+				toast.success(t("actions.refundSuccess"));
+				fetchRegistrations();
+				return true;
+			}
+
+			const error = await response.json();
+			toast.error(error.error || t("actions.refundError"));
+			return false;
+		} catch (error) {
+			console.error("Error refunding order:", error);
+			toast.error(t("actions.refundError"));
+			return false;
+		}
+	};
+
 	const exportRegistrations = async () => {
 		try {
 			const params = new URLSearchParams();
@@ -520,6 +549,7 @@ export function useEventManagement() {
 		fetchRegistrations,
 		updateRegistrationStatus,
 		cancelRegistration,
+		refundOrder,
 		exportRegistrations,
 		handleQRScanSuccess,
 		deleteEvent,

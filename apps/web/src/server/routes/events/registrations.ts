@@ -16,6 +16,10 @@ import { sendEventReviewNotificationSMS } from "@community/lib-server/sms/tencen
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
+import {
+	ORGANIZER_CANCELLATION_REQUIRES_REFUND_MESSAGE,
+	requiresRefundBeforeOrganizerCancellation,
+} from "./refund-policy";
 
 const readCookieValue = (
 	cookieHeader: string | null,
@@ -609,6 +613,23 @@ app.delete(
 					},
 					404,
 				);
+			}
+
+			if (registration.orderId) {
+				const order = await db.eventOrder.findUnique({
+					where: { id: registration.orderId },
+					select: { status: true },
+				});
+
+				if (requiresRefundBeforeOrganizerCancellation(order?.status)) {
+					return c.json(
+						{
+							success: false,
+							error: ORGANIZER_CANCELLATION_REQUIRES_REFUND_MESSAGE,
+						},
+						400,
+					);
+				}
 			}
 
 			// Update registration status to CANCELLED

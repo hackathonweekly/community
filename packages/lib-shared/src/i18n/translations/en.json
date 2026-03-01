@@ -1296,7 +1296,9 @@
 				"timeout": "Request timed out. Please try again.",
 				"updateError": "Failed to update registration",
 				"cancelSuccess": "Registration cancelled successfully",
-				"cancelError": "Failed to cancel registration"
+				"cancelError": "Failed to cancel registration",
+				"refundSuccess": "Refund requested successfully",
+				"refundError": "Failed to request refund"
 			},
 			"backToEvents": "← Back to My Events",
 			"dashboard": {
@@ -1400,7 +1402,17 @@
 						"markPaid": "Mark as paid",
 						"markPaidConfirm": "Mark this order as paid manually?",
 						"markPaidSuccess": "Order marked as paid",
-						"markPaidFailed": "Failed to mark as paid"
+						"markPaidFailed": "Failed to mark as paid",
+						"refundAndCancel": "Refund and cancel registration",
+						"refundLifecycleHint": "The registration will be cancelled automatically after refund settlement succeeds.",
+						"refundPendingHint": "Refund is processing. Registration will be cancelled after settlement succeeds.",
+						"refundConfirmTitle": "Confirm refund and cancellation",
+						"refundConfirmDescription": "This submits a full refund request. The registration stays active until refund settlement succeeds.",
+						"refundReasonLabel": "Refund reason *",
+						"refundReasonPlaceholder": "Enter refund reason (required)",
+						"refundCancel": "Cancel",
+						"refundConfirmAction": "Confirm refund",
+						"refundSubmitting": "Submitting..."
 					},
 					"rejectRegistration": "Reject Registration",
 					"title": "Registration Details",
