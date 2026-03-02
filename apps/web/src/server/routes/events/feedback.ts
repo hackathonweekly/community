@@ -92,6 +92,7 @@ app.post("/", zValidator("json", feedbackSchema), async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Allow feedback for published events (removed time restrictions)
 		if (
@@ -109,7 +110,7 @@ app.post("/", zValidator("json", feedbackSchema), async (c) => {
 
 		// Check if user is registered for the event with confirmed status
 		const registration = await getEventRegistration(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 		);
 		if (!registration || registration.status !== "APPROVED") {
@@ -162,7 +163,7 @@ app.post("/", zValidator("json", feedbackSchema), async (c) => {
 		}
 
 		const feedback = await createEventFeedback({
-			eventId,
+			eventId: canonicalEventId,
 			userId: session.user.id,
 			rating: data.rating,
 			comment: data.comment || null,
@@ -179,7 +180,7 @@ app.post("/", zValidator("json", feedbackSchema), async (c) => {
 				category: "活动参与",
 				description: `为活动"${event.title}"提供反馈`,
 				cpValue: CP_VALUES.EVENT_FEEDBACK,
-				sourceId: eventId,
+				sourceId: canonicalEventId,
 				sourceType: "event_feedback",
 				organizationId: event.organizationId || undefined,
 			});
@@ -257,10 +258,11 @@ app.get("/", async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Check if user has permission to view feedback
 		const hasPermission = await canViewEventManagementData(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 		);
 		if (!hasPermission) {
@@ -273,7 +275,7 @@ app.get("/", async (c) => {
 			);
 		}
 
-		const feedback = await getEventFeedback(eventId);
+		const feedback = await getEventFeedback(canonicalEventId);
 
 		return c.json({
 			success: true,
@@ -332,10 +334,11 @@ app.put("/", zValidator("json", updateFeedbackSchema), async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Check if user is registered for the event with confirmed status
 		const registration = await getEventRegistration(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 		);
 		if (!registration || registration.status !== "APPROVED") {
@@ -388,7 +391,7 @@ app.put("/", zValidator("json", updateFeedbackSchema), async (c) => {
 		}
 
 		const updatedFeedback = await updateEventFeedback(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 			{
 				rating: data.rating,

@@ -948,12 +948,23 @@ app.get("/:eventId/my-feedback", async (c) => {
 		}
 
 		const eventId = c.req.param("eventId");
+		const event = await getEventById(eventId, { includeAdminData: false });
+
+		if (!event) {
+			return c.json(
+				{
+					success: false,
+					error: "Event not found",
+				},
+				404,
+			);
+		}
 
 		// Get user's feedback for this event
 		const feedback = await db.eventFeedback.findUnique({
 			where: {
 				eventId_userId: {
-					eventId,
+					eventId: event.id,
 					userId: session.user.id,
 				},
 			},

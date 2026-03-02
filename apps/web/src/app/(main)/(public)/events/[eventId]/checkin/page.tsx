@@ -19,7 +19,7 @@ import {
 	useRouter,
 	useSearchParams,
 } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 
@@ -53,14 +53,12 @@ export default function EventCheckInPage() {
 	);
 	const [loading, setLoading] = useState(true);
 	const [isCheckingIn, setIsCheckingIn] = useState(false);
+	const hasAutoCheckInTriggeredRef = useRef(false);
+	const hasAutoLoginRedirectRef = useRef(false);
 	const searchString = searchParams.toString();
 	const redirectTo = searchString ? `${pathname}?${searchString}` : pathname;
 
-	useEffect(() => {
-		fetchCheckInStatus();
-	}, [eventId]);
-
-	const fetchCheckInStatus = async () => {
+	const fetchCheckInStatus = useCallback(async () => {
 		try {
 			const response = await fetch(
 				`/api/events/${eventId}/checkin/status`,
@@ -86,10 +84,16 @@ export default function EventCheckInPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [eventId, t]);
 
-	const handleCheckIn = async () => {
-		if (!checkInStatus?.canCheckIn) {
+	useEffect(() => {
+		hasAutoCheckInTriggeredRef.current = false;
+		hasAutoLoginRedirectRef.current = false;
+		void fetchCheckInStatus();
+	}, [fetchCheckInStatus]);
+
+	const handleCheckIn = useCallback(async () => {
+		if (!checkInStatus?.canCheckIn || isCheckingIn) {
 			return;
 		}
 
@@ -108,7 +112,7 @@ export default function EventCheckInPage() {
 			if (response.ok) {
 				toast.success(t("successfullyCheckedIn"));
 				// Refresh status
-				fetchCheckInStatus();
+				await fetchCheckInStatus();
 			} else {
 				const error = await response.json();
 				toast.error(error.error || t("checkInError"));
@@ -119,9 +123,16 @@ export default function EventCheckInPage() {
 		} finally {
 			setIsCheckingIn(false);
 		}
-	};
+	}, [
+		checkInStatus?.canCheckIn,
+		isCheckingIn,
+		eventId,
+		t,
+		fetchCheckInStatus,
+	]);
 
 	const statusMessageLower = checkInStatus?.message?.toLowerCase() ?? "";
+	const isLoginRequired = checkInStatus?.statusCode === "LOGIN_REQUIRED";
 
 	const isNotRegistered =
 		checkInStatus?.statusCode === "NOT_REGISTERED" ||
@@ -131,15 +142,26 @@ export default function EventCheckInPage() {
 		checkInStatus?.statusCode === "REGISTRATION_PENDING" ||
 		statusMessageLower.includes("not approved");
 
-	// If user is not registered, jump straight to the registration entry
 	useEffect(() => {
-		if (!checkInStatus || !isNotRegistered) return;
-		const searchParams = new URLSearchParams();
-		searchParams.set("openRegistration", "1");
-		searchParams.set("from", "checkin");
-		const targetPath = `/events/${eventId}?${searchParams.toString()}`;
-		router.replace(targetPath);
-	}, [checkInStatus, isNotRegistered, eventId, router]);
+		if (!isLoginRequired || hasAutoLoginRedirectRef.current) return;
+		hasAutoLoginRedirectRef.current = true;
+		router.replace(
+			`/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`,
+		);
+	}, [isLoginRequired, redirectTo, router]);
+
+	useEffect(() => {
+		if (!checkInStatus?.canCheckIn || checkInStatus.isAlreadyCheckedIn)
+			return;
+		if (isCheckingIn || hasAutoCheckInTriggeredRef.current) return;
+		hasAutoCheckInTriggeredRef.current = true;
+		void handleCheckIn();
+	}, [
+		checkInStatus?.canCheckIn,
+		checkInStatus?.isAlreadyCheckedIn,
+		isCheckingIn,
+		handleCheckIn,
+	]);
 
 	if (loading) {
 		return (
@@ -314,8 +336,7 @@ export default function EventCheckInPage() {
 
 								{!checkInStatus.canCheckIn &&
 									!checkInStatus.isAlreadyCheckedIn &&
-									checkInStatus.message ===
-										t("loginRequiredMessage") && (
+									isLoginRequired && (
 										<Button
 											size="lg"
 											className="w-full"
