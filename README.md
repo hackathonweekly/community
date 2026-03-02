@@ -6,6 +6,18 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 📖 详细文档：https://hackathonweekly.com/zh/docs
 
+## 仓库与多端支持
+
+- Web（手机端 + 桌面端）：https://github.com/hackathonweekly/community
+- 微信小程序端（WebView 容器）：https://github.com/hackathonweekly/mini-community
+
+社区平台支持：
+- 手机号登录 + 微信登录（PC 扫码 / 手机授权）
+- 活动创建与举办流程
+- 数字名片与项目展示
+- 多组织管理与邮件通知
+- 微信支付接入
+
 ## 许可证
 
 - 代码：[MIT License](LICENSE) — 你可以自由使用、修改、分发，包括商业用途

@@ -3,6 +3,11 @@ title: "快速开始"
 description: "5 分钟搭建本地开发环境"
 ---
 
+## 代码仓库
+
+- 社区 Web（主仓库）：[hackathonweekly/community](https://github.com/hackathonweekly/community)
+- 小程序端（WebView 容器）：[hackathonweekly/mini-community](https://github.com/hackathonweekly/mini-community)
+
 ## 前置要求
 
 - **Node.js 20+**: [下载地址](https://nodejs.org/)
@@ -12,7 +17,7 @@ description: "5 分钟搭建本地开发环境"
 ## 快速启动
 
 ```bash
-# 1. 克隆项目（源码暂未开源，敬请期待）
+# 1. 克隆项目
 git clone https://github.com/hackathonweekly/community.git
 cd community
 
@@ -46,6 +51,15 @@ pnpm dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000) 查看网站。
+
+## 小程序端说明（WebView）
+
+小程序端代码位于独立仓库 `hackathonweekly/mini-community`，主要通过 WebView 承载社区 H5 页面。
+
+使用前请确认：
+- 小程序主体为企业资质（WebView/业务域名配置通常需要企业主体）
+- 已在微信小程序后台配置合法业务域名（HTTPS）
+- Web 站点可正常访问（建议先完成本仓库部署）
 
 ## 开发工具入口
 

@@ -14,12 +14,12 @@ description: "Better Auth 配置、登录方式和会话管理"
 
 | 方式 | 状态 | 说明 |
 |------|------|------|
+| 手机号登录（手机 + PC） | ✅ | 短信验证码登录，适合作为统一兜底登录方式 |
+| 微信扫码（PC） | ✅ | 自定义插件 `wechat-oauth`，支持 PC 扫码登录 |
+| 微信授权（手机） | ✅ | 微信内 H5 授权登录 |
 | 邮箱 + 密码 | ✅ | 默认启用 |
 | GitHub OAuth | ✅ | 需配置 Client ID/Secret |
 | Google OAuth | ✅ | 需配置 Client ID/Secret |
-| 微信扫码（PC） | ✅ | 自定义插件 `wechat-oauth` |
-| 微信授权（手机） | ✅ | 微信内 H5 授权登录 |
-| 手机号登录 | ✅ | 短信验证码 |
 | Magic Link | ⚙️ | 可通过 feature flag 启用 |
 | 双因素认证 (2FA) | ⚙️ | 可通过 feature flag 启用 |
 
@@ -43,6 +43,8 @@ description: "Better Auth 配置、登录方式和会话管理"
 
 1. PC 端：展示微信二维码 → 用户扫码 → 回调获取 code → 换取 access_token → 获取用户信息
 2. 手机端：微信内打开 → 静默授权 → 获取 code → 换取用户信息
+
+项目已配置微信 PC/移动端账号互信，可将同一用户在不同端的微信登录记录关联到同一个账号。
 
 配置环境变量：
 ```bash

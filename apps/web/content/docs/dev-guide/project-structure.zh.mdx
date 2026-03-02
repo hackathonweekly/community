@@ -5,6 +5,17 @@ description: "Monorepo 目录组织和各模块职责说明"
 
 本项目采用 **Turborepo + pnpm workspace** 的 monorepo 结构。
 
+## 多端架构
+
+| 端 | 仓库 | 说明 |
+|------|------|------|
+| 手机端 + 桌面端 Web | `hackathonweekly/community` | 同一套 Next.js 响应式页面，通过断点适配移动端和桌面端 |
+| 微信小程序端 | `hackathonweekly/mini-community` | 通过 WebView 承载社区页面，作为小程序壳层接入 |
+
+<Callout title="小程序接入提示" type="warn">
+微信小程序 WebView 接入通常需要企业主体资质，并在小程序后台完成合法业务域名配置。
+</Callout>
+
 ## 顶层目录
 
 ```
