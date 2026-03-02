@@ -2,7 +2,6 @@ import { db } from "@community/lib-server/database";
 import { getSession } from "@shared/auth/lib/server";
 import { ProfileEditForm } from "@account/profile/components/ProfileEditForm";
 import { UserAvatarForm } from "@account/settings/components/UserAvatarForm";
-import { PageHeader } from "@shared/components/PageHeader";
 import { SettingsList } from "@shared/components/SettingsList";
 import { ExternalLink } from "lucide-react";
 import { getTranslations } from "next-intl/server";

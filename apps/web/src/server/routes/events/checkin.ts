@@ -56,6 +56,7 @@ app.post("/", zValidator("json", checkInSchema), async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Check if event check-in is available (2 hours before start time)
 		const now = new Date();
@@ -76,7 +77,7 @@ app.post("/", zValidator("json", checkInSchema), async (c) => {
 		// If checking in someone else, verify permissions
 		if (data.userId && data.userId !== session.user.id) {
 			const hasPermission = await canViewEventManagementData(
-				data.eventId,
+				canonicalEventId,
 				session.user.id,
 			);
 
@@ -91,8 +92,33 @@ app.post("/", zValidator("json", checkInSchema), async (c) => {
 			}
 		}
 
+		const registration = await getUserRegistration(
+			canonicalEventId,
+			targetUserId,
+		);
+
+		if (!registration) {
+			return c.json(
+				{
+					success: false,
+					error: "User is not registered for this event",
+				},
+				400,
+			);
+		}
+
+		if (registration.status !== "APPROVED") {
+			return c.json(
+				{
+					success: false,
+					error: "User is not confirmed for this event yet",
+				},
+				400,
+			);
+		}
+
 		const checkIn = await checkIntoEvent({
-			eventId: data.eventId,
+			eventId: canonicalEventId,
 			userId: targetUserId,
 			checkedInBy: data.userId ? session.user.id : undefined,
 		});
@@ -105,7 +131,7 @@ app.post("/", zValidator("json", checkInSchema), async (c) => {
 				category: "活动参与",
 				description: `参与活动：${event.title}`,
 				cpValue: CP_VALUES.EVENT_CHECKIN,
-				sourceId: data.eventId,
+				sourceId: canonicalEventId,
 				sourceType: "event",
 				organizationId: event.organizationId || undefined,
 			});
@@ -189,10 +215,11 @@ app.get("/", async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Check if user has permission to view check-ins
 		const hasPermission = await canViewEventManagementData(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 		);
 
@@ -206,7 +233,7 @@ app.get("/", async (c) => {
 			);
 		}
 
-		const checkIns = await getEventCheckIns(eventId);
+		const checkIns = await getEventCheckIns(canonicalEventId);
 
 		return c.json({
 			success: true,
@@ -263,10 +290,11 @@ app.get("/status", async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// Check if user is registered for the event
 		const registration = await getUserRegistration(
-			eventId,
+			canonicalEventId,
 			session.user.id,
 		);
 		if (!registration) {
@@ -297,7 +325,10 @@ app.get("/status", async (c) => {
 		}
 
 		// Check if user is already checked in
-		const existingCheckIn = await getUserCheckIn(eventId, session.user.id);
+		const existingCheckIn = await getUserCheckIn(
+			canonicalEventId,
+			session.user.id,
+		);
 		if (existingCheckIn) {
 			return c.json({
 				success: true,
@@ -400,11 +431,12 @@ app.delete("/", zValidator("json", checkInSchema), async (c) => {
 				404,
 			);
 		}
+		const canonicalEventId = event.id;
 
 		// If canceling someone else's check-in, verify permissions
 		if (data.userId && data.userId !== session.user.id) {
 			const hasPermission = await canViewEventManagementData(
-				data.eventId,
+				canonicalEventId,
 				session.user.id,
 			);
 
@@ -420,7 +452,7 @@ app.delete("/", zValidator("json", checkInSchema), async (c) => {
 		}
 
 		const canceledCheckIn = await cancelEventCheckIn(
-			data.eventId,
+			canonicalEventId,
 			targetUserId,
 		);
 

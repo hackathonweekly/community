@@ -10,6 +10,7 @@ import { normalizeSubmissionFormConfig } from "@/features/event-submissions/util
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { auth } from "@community/lib-server/auth/auth";
 import { db } from "@community/lib-server/database/prisma";
+import { resolveEventIdentifier } from "@community/lib-server/database";
 import { zValidator } from "@hono/zod-validator";
 import type { Prisma, Project, SubmissionStatus } from "@prisma/client";
 import { Hono } from "hono";
@@ -162,7 +163,7 @@ type SubmissionWithRelations = Prisma.EventProjectSubmissionGetPayload<{
 const app = new Hono()
 	// Public submissions listing
 	.get("/events/:eventId/submissions", async (c) => {
-		const eventId = c.req.param("eventId");
+		const eventIdParam = c.req.param("eventId");
 		const sort = (c.req.query("sort") || "voteCount").toLowerCase();
 		const order = c.req.query("order") === "asc" ? "asc" : "desc";
 		const includePrivateFieldsRequested =
@@ -170,7 +171,7 @@ const app = new Hono()
 		const session = await getSession(c);
 
 		const event = await db.event.findUnique({
-			where: { id: eventId },
+			where: resolveEventIdentifier(eventIdParam),
 			select: {
 				id: true,
 				type: true,
@@ -183,6 +184,8 @@ const app = new Hono()
 		if (!event || !isEventSubmissionsEnabled(event)) {
 			throw new HTTPException(404, { message: "Event not found" });
 		}
+
+		const eventId = event.id;
 
 		const publicVoting = getPublicVotingConfigForEvent({
 			eventType: event.type,
@@ -299,11 +302,11 @@ const app = new Hono()
 		async (c) => {
 			try {
 				const session = await requireSession(c);
-				const eventId = c.req.param("eventId");
+				const eventIdParam = c.req.param("eventId");
 				const payload = c.req.valid("json");
 
 				const event = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdParam),
 					select: {
 						id: true,
 						type: true,
@@ -324,6 +327,8 @@ const app = new Hono()
 						message: "Event not found",
 					});
 				}
+
+				const eventId = event.id;
 
 				await ensureParticipant(eventId, session.user.id);
 
@@ -879,7 +884,15 @@ const app = new Hono()
 
 	// Voting stats
 	.get("/events/:eventId/votes/stats", async (c) => {
-		const eventId = c.req.param("eventId");
+		const eventIdParam = c.req.param("eventId");
+		const resolvedEvent = await db.event.findUnique({
+			where: resolveEventIdentifier(eventIdParam),
+			select: { id: true },
+		});
+		if (!resolvedEvent) {
+			throw new HTTPException(404, { message: "Event not found" });
+		}
+		const eventId = resolvedEvent.id;
 
 		const [totalVotes, totalParticipants, voterIds, submissions] =
 			await Promise.all([
@@ -930,7 +943,7 @@ const app = new Hono()
 	// Participant search (team builder)
 	.get("/events/:eventId/participants/search", async (c) => {
 		const session = await requireSession(c);
-		const eventId = c.req.param("eventId");
+		const eventIdParam = c.req.param("eventId");
 		const query = (c.req.query("q") || "").trim();
 		const scope = (c.req.query("scope") || "event").toLowerCase();
 		const exclude = parseExcludeIds(c.req.query("excludeIds"));
@@ -944,6 +957,15 @@ const app = new Hono()
 				200,
 			);
 		}
+
+		const resolvedEvent = await db.event.findUnique({
+			where: resolveEventIdentifier(eventIdParam),
+			select: { id: true },
+		});
+		if (!resolvedEvent) {
+			throw new HTTPException(404, { message: "Event not found" });
+		}
+		const eventId = resolvedEvent.id;
 
 		let users;
 		if (scope === "global") {

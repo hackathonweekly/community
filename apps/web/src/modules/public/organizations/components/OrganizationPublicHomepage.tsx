@@ -3,9 +3,9 @@ import { createFunctionalRoleDisplayNameResolver } from "@/features/functional-r
 import { useAuthStatus } from "@/hooks/useAuthStatus";
 import { EmptyState } from "@/modules/public/shared/components/EmptyState";
 import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import { OrganizationSwitcher } from "@account/organizations/components/OrganizationSwitcher";
 import { EventHostSubscriptionButton } from "@community/ui/shared/EventHostSubscriptionButton";
 import { OrganizationLogo } from "@shared/organizations/components/OrganizationLogo";
-import { OrganizationSwitcher } from "@account/organizations/components/OrganizationSwitcher";
 import { useQuery } from "@tanstack/react-query";
 import {
 	ArrowLeft,
@@ -236,6 +236,7 @@ export function OrganizationPublicHomepage({
 		: {};
 	const coverImageSrc = organization.coverImage ?? null;
 	const hasCoverImage = Boolean(coverImageSrc);
+	const membersPageHref = `/orgs/${organization.slug}/members?from=community-home`;
 
 	const functionalRolesErrorMessage =
 		functionalRolesError instanceof Error
@@ -246,7 +247,20 @@ export function OrganizationPublicHomepage({
 
 	return (
 		<>
-			<MobilePageHeader title={organization.name} />
+			<MobilePageHeader
+				title={organization.name}
+				rightAction={
+					isMemberAdmin ? (
+						<Link
+							href={`/orgs/${organization.slug}/settings/general`}
+							className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							aria-label="组织设置"
+						>
+							<Settings className="h-4 w-4" />
+						</Link>
+					) : null
+				}
+			/>
 			<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-24 md:pb-8">
 				{/* Back link / Org Switcher */}
 				{isMember ? (
@@ -329,6 +343,102 @@ export function OrganizationPublicHomepage({
 					</div>
 				</div>
 
+				{/* Mobile: Quick actions */}
+				<div className="lg:hidden mb-6">
+					<div className="bg-card border border-border rounded-lg p-4 shadow-sm space-y-3">
+						<div className="flex items-center gap-3 text-xs font-mono text-muted-foreground">
+							<span className="flex items-center gap-1.5">
+								<Users className="h-3.5 w-3.5" />
+								{organization.membersCount}{" "}
+								{t("public.members")}
+							</span>
+							<span className="w-px h-3 bg-gray-200 dark:bg-[#262626]" />
+							<span className="flex items-center gap-1.5">
+								<Calendar className="h-3.5 w-3.5" />
+								{organization.eventsCount} {t("public.events")}
+							</span>
+						</div>
+						{organization.location && (
+							<div className="flex items-center gap-2 text-xs text-muted-foreground">
+								<MapPin className="h-3.5 w-3.5 shrink-0" />
+								<span>{organization.location}</span>
+							</div>
+						)}
+
+						<div className="space-y-2">
+							{userMembership ? (
+								<>
+									<Link
+										href={membersPageHref}
+										className="flex w-full items-center justify-center gap-2 bg-black dark:bg-white py-2.5 rounded-md text-sm font-bold text-white dark:text-black shadow-sm transition-colors hover:bg-gray-800 dark:hover:bg-gray-200"
+									>
+										<Users className="h-3.5 w-3.5" />
+										{t("public.enterOrganization")}
+									</Link>
+									<Link
+										href={`/orgs/${organization.slug}/invite-member`}
+										className="flex w-full items-center justify-center gap-2 bg-card border border-border py-2 rounded-md text-xs font-bold text-foreground transition-colors hover:bg-muted"
+									>
+										<Users className="h-3.5 w-3.5" />
+										邀请成员
+									</Link>
+									{(userMembership.role === "owner" ||
+										userMembership.role === "admin") && (
+										<Link
+											href={`/orgs/${organization.slug}/settings/members`}
+											className="flex w-full items-center justify-center gap-2 bg-card border border-border py-2 rounded-md text-xs font-bold text-foreground transition-colors hover:bg-muted"
+										>
+											{t("public.manageOrganization")}
+										</Link>
+									)}
+								</>
+							) : IS_ORGANIZATION_APPLICATION_OPEN ? (
+								isLoggedIn ? (
+									<Link
+										href={`/orgs/${organization.slug}/apply`}
+										className="flex w-full items-center justify-center gap-2 bg-black dark:bg-white py-2.5 rounded-md text-sm font-bold text-white dark:text-black shadow-sm transition-colors hover:bg-gray-800 dark:hover:bg-gray-200"
+									>
+										{t("public.applyToJoin")}
+									</Link>
+								) : (
+									<Link
+										href={`/auth/login?redirectTo=/orgs/${organization.slug}/apply`}
+										className="flex w-full items-center justify-center gap-2 bg-black dark:bg-white py-2.5 rounded-md text-sm font-bold text-white dark:text-black shadow-sm transition-colors hover:bg-gray-800 dark:hover:bg-gray-200"
+									>
+										{t("public.loginToApply")}
+									</Link>
+								)
+							) : null}
+
+							{isMemberAdmin && (
+								<Link
+									href={`/orgs/${organization.slug}/settings/general`}
+									className="flex w-full items-center justify-center gap-2 bg-card border border-border py-2 rounded-md text-xs font-bold text-foreground transition-colors hover:bg-muted"
+								>
+									<Settings className="h-3.5 w-3.5" />
+									设置
+								</Link>
+							)}
+
+							<EventHostSubscriptionButton
+								organizationId={organization.id}
+								hostName={organization.name}
+								variant="outline"
+								size="sm"
+							/>
+
+							<button
+								type="button"
+								onClick={handleShare}
+								className="flex w-full items-center justify-center gap-2 py-2 rounded-md text-xs font-bold text-muted-foreground transition-colors hover:bg-muted"
+							>
+								<Share2 className="h-3.5 w-3.5" />
+								{t("public.share")}
+							</button>
+						</div>
+					</div>
+				</div>
+
 				{/* Banner Image */}
 				{hasCoverImage && (
 					<div className="rounded-xl overflow-hidden shadow-sm border border-border h-48 lg:h-72 mb-8">
@@ -401,7 +511,7 @@ export function OrganizationPublicHomepage({
 							/>
 							{organization.membersCount > 0 && (
 								<Link
-									href={`/orgs/${organization.slug}/members`}
+									href={membersPageHref}
 									className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-muted-foreground hover:text-black dark:hover:text-white transition-colors"
 								>
 									查看全部 {organization.membersCount} 位成员
@@ -528,7 +638,7 @@ export function OrganizationPublicHomepage({
 									{userMembership ? (
 										<>
 											<Link
-												href={`/orgs/${organization.slug}/members`}
+												href={membersPageHref}
 												className="block w-full bg-black dark:bg-white text-white dark:text-black py-2.5 rounded-md font-bold text-sm text-center shadow-sm hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
 											>
 												{t("public.enterOrganization")}

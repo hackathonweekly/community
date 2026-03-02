@@ -11,6 +11,15 @@ import {
 import { Drawer, DrawerContent } from "@community/ui/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { format } from "date-fns";
+import { zhCN } from "date-fns/locale";
+
+interface EventInfo {
+	startTime: string;
+	endTime: string;
+	isOnline: boolean;
+	address?: string;
+}
 
 interface RegistrationSuccessModalProps {
 	isOpen: boolean;
@@ -23,6 +32,7 @@ interface RegistrationSuccessModalProps {
 	pendingInfo?: string;
 	pendingImage?: string;
 	onShowQR?: () => void;
+	eventInfo?: EventInfo;
 }
 
 export function RegistrationSuccessModal({
@@ -36,6 +46,7 @@ export function RegistrationSuccessModal({
 	pendingInfo,
 	pendingImage,
 	onShowQR,
+	eventInfo,
 }: RegistrationSuccessModalProps) {
 	const isMobile = useIsMobile();
 	// Determine if we should show pending state (for approval-required events with PENDING status)
@@ -112,19 +123,19 @@ export function RegistrationSuccessModal({
 	const importantInfoCard = (
 		<div
 			className={`border rounded-lg overflow-hidden ${
-				isPendingState ? "border-yellow-200" : "border-blue-200"
+				isPendingState ? "border-yellow-200" : "border-gray-200"
 			}`}
 		>
 			<div
 				className={`px-3 sm:px-4 py-2 sm:py-3 border-b ${
 					isPendingState
 						? "bg-yellow-100 border-yellow-200"
-						: "bg-blue-100 border-blue-200"
+						: "bg-gray-100 border-gray-200"
 				}`}
 			>
 				<h4
 					className={`text-sm sm:text-base font-semibold flex items-center gap-2 ${
-						isPendingState ? "text-yellow-900" : "text-blue-900"
+						isPendingState ? "text-yellow-900" : "text-gray-900"
 					}`}
 				>
 					<span className="text-base sm:text-lg">
@@ -137,7 +148,7 @@ export function RegistrationSuccessModal({
 			</div>
 			<div
 				className={`p-3 sm:p-4 space-y-3 sm:space-y-4 ${
-					isPendingState ? "bg-yellow-50" : "bg-blue-50"
+					isPendingState ? "bg-yellow-50" : "bg-gray-50"
 				}`}
 			>
 				{/* 文字信息 */}
@@ -156,6 +167,31 @@ export function RegistrationSuccessModal({
 						) : (
 							<>
 								<p>✅ 您的报名已确认</p>
+								{eventInfo && (
+									<>
+										<p>
+											📅{" "}
+											{format(
+												new Date(eventInfo.startTime),
+												"M月d日 HH:mm",
+												{ locale: zhCN },
+											)}{" "}
+											–{" "}
+											{format(
+												new Date(eventInfo.endTime),
+												"M月d日 HH:mm",
+												{ locale: zhCN },
+											)}
+										</p>
+										<p>
+											📍{" "}
+											{eventInfo.isOnline
+												? "线上活动"
+												: eventInfo.address ||
+													"地点待定"}
+										</p>
+									</>
+								)}
 								<p>📧 如有问题请联系主办方</p>
 							</>
 						)}
@@ -189,7 +225,7 @@ export function RegistrationSuccessModal({
 						onShowQR();
 					}}
 					variant="outline"
-					className="px-6 sm:px-8 py-2 font-medium w-full sm:w-auto border-blue-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800"
+					className="px-6 sm:px-8 py-2 font-medium w-full sm:w-auto border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
 					size="lg"
 				>
 					查看电子票
@@ -200,7 +236,7 @@ export function RegistrationSuccessModal({
 				className={`px-6 sm:px-8 py-2 text-white font-medium w-full sm:w-auto ${
 					isPendingState
 						? "bg-yellow-600 hover:bg-yellow-700"
-						: "bg-blue-600 hover:bg-blue-700"
+						: "bg-black hover:bg-gray-800"
 				}`}
 				size="lg"
 			>

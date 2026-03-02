@@ -29,7 +29,6 @@ export function useEventActions(event: EventLike, state: State) {
 		isEventEnded,
 		isRegistrationClosed,
 		isEventFull,
-		hasImportantInfo,
 		canViewSuccessInfo,
 		hasSubmittedFeedback,
 		cancelRegistration,
@@ -89,11 +88,7 @@ export function useEventActions(event: EventLike, state: State) {
 			existingRegistration.status !== "CANCELLED"
 		) {
 			if (existingRegistration.status === "APPROVED") {
-				if (hasImportantInfo) {
-					setShowSuccessInfo(true);
-				} else {
-					setShowQRGenerator(true);
-				}
+				setShowSuccessInfo(true);
 			} else {
 				setShowSuccessInfo(true);
 			}

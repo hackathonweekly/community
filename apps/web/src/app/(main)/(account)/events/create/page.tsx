@@ -278,7 +278,9 @@ export default function CreateEventPage() {
 			const actionText = status === "DRAFT" ? "保存为草稿" : "发布";
 			toast.success(`活动${actionText}成功！`);
 			// 统一跳转到活动管理页面
-			router.push(`/events/${result.data.id}/manage`);
+			router.push(
+				`/events/${result.data.shortId || result.data.id}/manage`,
+			);
 		} catch (error) {
 			console.error("Error creating event:", error);
 			console.error("Error details:", JSON.stringify(error, null, 2));

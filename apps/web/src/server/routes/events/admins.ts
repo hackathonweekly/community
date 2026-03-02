@@ -1,4 +1,5 @@
 import { auth } from "@community/lib-server/auth";
+import { resolveEventIdentifier } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma/client";
 import {
 	acceptEventAdminInvitation,
@@ -28,6 +29,13 @@ const inviteAdminSchema = z
 
 const app = new Hono();
 
+async function resolveEventByIdentifier(eventIdentifier: string) {
+	return db.event.findUnique({
+		where: resolveEventIdentifier(eventIdentifier),
+		select: { id: true, title: true },
+	});
+}
+
 // GET /api/events/:eventId/admins - 获取活动管理员列表
 app.get("/:eventId/admins", async (c) => {
 	try {
@@ -45,11 +53,11 @@ app.get("/:eventId/admins", async (c) => {
 			);
 		}
 
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 
 		// 检查是否有权限查看管理员列表
 		const hasPermission = await canManageEventAdmins(
-			eventId,
+			eventIdentifier,
 			session.user.id,
 		);
 		if (!hasPermission) {
@@ -62,7 +70,18 @@ app.get("/:eventId/admins", async (c) => {
 			);
 		}
 
-		const admins = await getEventAdmins(eventId, true); // 包含邀请中的
+		const event = await resolveEventByIdentifier(eventIdentifier);
+		if (!event) {
+			return c.json(
+				{
+					success: false,
+					error: "Event not found",
+				},
+				404,
+			);
+		}
+
+		const admins = await getEventAdmins(event.id, true); // 包含邀请中的
 
 		return c.json({
 			success: true,
@@ -100,12 +119,12 @@ app.post(
 				);
 			}
 
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
 			const data = c.req.valid("json");
 
 			// 检查是否有权限管理活动管理员
 			const hasPermission = await canManageEventAdmins(
-				eventId,
+				eventIdentifier,
 				session.user.id,
 			);
 			if (!hasPermission) {
@@ -118,12 +137,7 @@ app.post(
 				);
 			}
 
-			// 验证活动存在
-			const event = await db.event.findUnique({
-				where: { id: eventId },
-				select: { id: true, title: true },
-			});
-
+			const event = await resolveEventByIdentifier(eventIdentifier);
 			if (!event) {
 				return c.json(
 					{
@@ -133,6 +147,7 @@ app.post(
 					404,
 				);
 			}
+			const eventId = event.id;
 
 			// Validate that we have either email or userId
 			if (!data.email && !data.userId) {
@@ -308,12 +323,12 @@ app.delete("/:eventId/admins/:adminId", async (c) => {
 			);
 		}
 
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 		const adminId = c.req.param("adminId");
 
 		// 检查是否有权限管理活动管理员
 		const hasPermission = await canManageEventAdmins(
-			eventId,
+			eventIdentifier,
 			session.user.id,
 		);
 		if (!hasPermission) {
@@ -326,8 +341,19 @@ app.delete("/:eventId/admins/:adminId", async (c) => {
 			);
 		}
 
+		const event = await resolveEventByIdentifier(eventIdentifier);
+		if (!event) {
+			return c.json(
+				{
+					success: false,
+					error: "Event not found",
+				},
+				404,
+			);
+		}
+
 		const removedAdmin = await removeEventAdmin(
-			eventId,
+			event.id,
 			adminId,
 			session.user.id,
 		);

@@ -1,10 +1,11 @@
 "use client";
 
-import { ProjectBookmarkButton } from "@community/ui/ui/project-bookmark-button";
-import { ExternalLinkIcon } from "lucide-react";
-import { ProjectInteractions } from "../ProjectInteractions";
 import { useKeyboardDetection } from "@community/lib-client/hooks/use-keyboard-detection";
 import { cn } from "@community/lib-shared/utils";
+import { ProjectBookmarkButton } from "@community/ui/ui/project-bookmark-button";
+import { ExternalLinkIcon, Share2Icon } from "lucide-react";
+import { toast } from "sonner";
+import { ProjectInteractions } from "../ProjectInteractions";
 
 interface MobileBottomToolbarProps {
 	projectId: string;
@@ -26,6 +27,35 @@ export function MobileBottomToolbar({
 	userBookmark,
 }: MobileBottomToolbarProps) {
 	const isKeyboardVisible = useKeyboardDetection();
+	const handleShare = async () => {
+		const shareUrl = window.location.href;
+
+		if (navigator.share) {
+			try {
+				await navigator.share({
+					title: "项目详情",
+					text: "来看看这个作品",
+					url: shareUrl,
+				});
+				return;
+			} catch (error) {
+				if (
+					error instanceof DOMException &&
+					error.name === "AbortError"
+				) {
+					return;
+				}
+			}
+		}
+
+		try {
+			await navigator.clipboard.writeText(shareUrl);
+			toast.success("链接已复制");
+		} catch (error) {
+			console.error("Error copying share link:", error);
+			toast.error("分享失败，请稍后重试");
+		}
+	};
 
 	return (
 		<div
@@ -48,6 +78,14 @@ export function MobileBottomToolbar({
 						isLoggedIn={!!currentUserId}
 					/>
 				)}
+				<button
+					type="button"
+					onClick={handleShare}
+					className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-50"
+					aria-label="分享作品"
+				>
+					<Share2Icon className="h-4 w-4" />
+				</button>
 				{projectUrl && (
 					<a
 						href={projectUrl}

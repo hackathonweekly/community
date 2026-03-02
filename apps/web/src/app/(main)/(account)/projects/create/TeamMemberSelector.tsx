@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@community/ui/ui/avatar";
 import { Button } from "@community/ui/ui/button";
-import { Input } from "@community/ui/ui/input";
 import { Label } from "@community/ui/ui/label";
 import {
 	Select,
@@ -11,17 +10,14 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@community/ui/ui/select";
-import { Search, X, UserPlus } from "lucide-react";
+import { X, UserPlus } from "lucide-react";
 import { useState } from "react";
+import {
+	MemberSearchInput,
+	type MemberSearchUser,
+} from "@shared/components/MemberSearchInput";
 
-interface User {
-	id: string;
-	name: string;
-	username?: string;
-	image?: string;
-	userRoleString?: string;
-	currentWorkOn?: string;
-}
+type User = MemberSearchUser;
 
 interface TeamMember {
 	user: User;
@@ -40,46 +36,6 @@ export function TeamMemberSelector({
 	currentUserId,
 }: TeamMemberSelectorProps) {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<User[]>([]);
-	const [isSearching, setIsSearching] = useState(false);
-
-	// 搜索用户
-	const searchUsers = async (query: string) => {
-		if (query.length < 2) {
-			setSearchResults([]);
-			return;
-		}
-
-		setIsSearching(true);
-		try {
-			const response = await fetch(
-				`/api/users/search?query=${encodeURIComponent(query)}`,
-			);
-			if (response.ok) {
-				const data = await response.json();
-				// 过滤掉当前用户和已选择的成员
-				const filteredResults = (data.data || []).filter(
-					(user: User) => {
-						return (
-							user.id !== currentUserId &&
-							!selectedMembers.some(
-								(member) => member.user.id === user.id,
-							)
-						);
-					},
-				);
-				setSearchResults(filteredResults);
-			} else {
-				console.error("Failed to search users:", response.status);
-				setSearchResults([]);
-			}
-		} catch (error) {
-			console.error("Error searching users:", error);
-			setSearchResults([]);
-		} finally {
-			setIsSearching(false);
-		}
-	};
 
 	// 添加团队成员
 	const handleAddMember = (
@@ -89,7 +45,6 @@ export function TeamMemberSelector({
 		const newMember: TeamMember = { user, role };
 		onChange([...selectedMembers, newMember]);
 		setSearchQuery("");
-		setSearchResults([]);
 	};
 
 	// 移除团队成员
@@ -123,72 +78,18 @@ export function TeamMemberSelector({
 			</div>
 
 			{/* 搜索框 */}
-			<div className="relative">
-				<div className="relative w-full">
-					<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-					<Input
-						id="teamMemberSearch"
-						value={searchQuery}
-						onChange={(e) => {
-							const query = e.target.value;
-							setSearchQuery(query);
-							searchUsers(query);
-						}}
-						placeholder="输入用户名或姓名搜索..."
-						className="pl-10"
-						autoComplete="off"
-					/>
-					{isSearching && (
-						<div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-							<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
-						</div>
-					)}
-				</div>
-
-				{/* 搜索结果下拉列表 */}
-				{searchResults.length > 0 && (
-					<div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 mt-1 max-h-60 overflow-y-auto">
-						{searchResults.map((user) => (
-							<button
-								key={user.id}
-								type="button"
-								onClick={() => handleAddMember(user)}
-								className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center space-x-3 border-b last:border-b-0"
-							>
-								<Avatar className="h-8 w-8">
-									<AvatarImage src={user.image} />
-									<AvatarFallback>
-										{user.name[0]?.toUpperCase()}
-									</AvatarFallback>
-								</Avatar>
-								<div className="flex-1 min-w-0">
-									<div className="font-medium text-sm">
-										{user.name}
-									</div>
-									<div className="text-xs text-gray-500">
-										{user.username && `@${user.username}`}
-										{user.userRoleString && (
-											<span
-												className={
-													user.username ? " • " : ""
-												}
-											>
-												{user.userRoleString}
-											</span>
-										)}
-									</div>
-									{user.currentWorkOn && (
-										<div className="text-xs text-gray-400 mt-1">
-											当前在做: {user.currentWorkOn}
-										</div>
-									)}
-								</div>
-								<UserPlus className="w-4 h-4 text-gray-400" />
-							</button>
-						))}
-					</div>
-				)}
-			</div>
+			<MemberSearchInput
+				id="teamMemberSearch"
+				value={searchQuery}
+				onValueChange={setSearchQuery}
+				onSelect={handleAddMember}
+				placeholder="输入姓名、用户名或手机号搜索..."
+				excludeUserIds={[
+					...(currentUserId ? [currentUserId] : []),
+					...selectedMembers.map((member) => member.user.id),
+				]}
+				dropdownClassName="z-20"
+			/>
 
 			{/* 已选择的团队成员列表 */}
 			{selectedMembers.length > 0 && (

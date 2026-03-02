@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { resolveEventIdentifier } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
 import { auth } from "@community/lib-server/auth/auth";
 import { HTTPException } from "hono/http-exception";
@@ -638,13 +639,13 @@ const app = new Hono()
 				throw new HTTPException(401, { message: "Unauthorized" });
 			}
 
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
 			const { name, description, isPublic } = c.req.valid("json");
 
 			try {
 				// 获取原始活动数据
 				const originalEvent = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdentifier),
 					include: {
 						ticketTypes: true,
 						volunteerRoles: {
@@ -705,7 +706,7 @@ const app = new Hono()
 						isSystemTemplate: false, // 从活动创建的都是个人模板
 						isPublic,
 						isFeatured: false,
-						originalEventId: eventId,
+						originalEventId: originalEvent.id,
 						isActive: true,
 						ticketTypes: {
 							create: originalEvent.ticketTypes.map(

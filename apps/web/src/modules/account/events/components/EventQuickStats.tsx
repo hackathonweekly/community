@@ -1,12 +1,10 @@
 "use client";
 import {
-	CalendarIcon,
 	ClockIcon,
 	EyeIcon,
 	UsersIcon,
 	ChatBubbleLeftIcon,
 } from "@heroicons/react/24/outline";
-import { format } from "date-fns";
 import { useTranslations } from "next-intl";
 
 interface EventQuickStatsProps {
@@ -28,69 +26,52 @@ export function EventQuickStats({
 }: EventQuickStatsProps) {
 	const t = useTranslations("events.manage");
 
-	return (
-		<div className="mb-3 md:mb-6 border-y md:border md:rounded-lg md:shadow-sm py-3 md:p-4">
-			{/* Mobile: Show only essential stats */}
-			<div className="flex items-center justify-between text-sm md:hidden">
-				<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded">
-					<UsersIcon className="w-4 h-4 text-blue-600" />
-					<span className="font-medium">{confirmedCount}</span>
-					<span className="text-muted-foreground text-xs">
-						{t("stats.confirmed")}
-					</span>
-				</div>
-				<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded">
-					<ClockIcon className="w-4 h-4 text-yellow-600" />
-					<span className="font-medium">{pendingCount}</span>
-					<span className="text-muted-foreground text-xs">
-						{t("stats.pending")}
-					</span>
-				</div>
-				<div className="flex items-center gap-1 bg-muted/50 px-2 py-1 rounded">
-					<EyeIcon className="w-4 h-4 text-green-600" />
-					<span className="font-medium">{event.viewCount}</span>
-					<span className="text-muted-foreground text-xs">
-						{t("stats.views")}
-					</span>
-				</div>
-			</div>
+	const stats = [
+		{
+			icon: UsersIcon,
+			color: "text-blue-600",
+			value: confirmedCount,
+			label: t("stats.confirmed"),
+		},
+		{
+			icon: ClockIcon,
+			color: "text-yellow-600",
+			value: pendingCount,
+			label: t("stats.pending"),
+		},
+		{
+			icon: EyeIcon,
+			color: "text-green-600",
+			value: event.viewCount,
+			label: t("stats.views"),
+		},
+		{
+			icon: ChatBubbleLeftIcon,
+			color: "text-purple-600",
+			value: event._count?.feedbacks || 0,
+			label: t("stats.feedback"),
+		},
+	];
 
-			{/* Desktop: Show all stats */}
-			<div className="hidden md:flex items-center justify-between text-sm">
-				<div className="flex items-center gap-1">
-					<UsersIcon className="w-4 h-4 text-blue-600" />
-					<span className="font-medium">{confirmedCount}</span>
-					<span className="text-muted-foreground">
-						{t("stats.confirmed")}
-					</span>
-				</div>
-				<div className="flex items-center gap-1">
-					<ClockIcon className="w-4 h-4 text-yellow-600" />
-					<span className="font-medium">{pendingCount}</span>
-					<span className="text-muted-foreground">
-						{t("stats.pending")}
-					</span>
-				</div>
-				<div className="flex items-center gap-1">
-					<ChatBubbleLeftIcon className="w-4 h-4 text-purple-600" />
-					<span className="font-medium">
-						{event._count?.feedbacks || 0}
-					</span>
-					<span className="text-muted-foreground">反馈</span>
-				</div>
-				<div className="flex items-center gap-1">
-					<EyeIcon className="w-4 h-4 text-green-600" />
-					<span className="font-medium">{event.viewCount}</span>
-					<span className="text-muted-foreground">
-						{t("stats.views")}
-					</span>
-				</div>
-				<div className="flex items-center gap-1">
-					<CalendarIcon className="w-4 h-4 text-orange-600" />
-					<span className="font-medium">
-						{format(new Date(event.startTime), "MMM d")}
-					</span>
-				</div>
+	return (
+		<div className="mb-4 rounded-xl border bg-card/70 p-2 shadow-sm lg:mb-6 lg:p-3">
+			<div className="grid grid-cols-4 gap-1.5 lg:gap-3">
+				{stats.map((stat) => (
+					<div
+						key={stat.label}
+						className="flex min-w-0 flex-col items-center gap-1 rounded-lg bg-background/70 px-1.5 py-2 text-center"
+					>
+						<stat.icon
+							className={`h-4 w-4 shrink-0 ${stat.color}`}
+						/>
+						<span className="text-sm font-semibold lg:text-base">
+							{stat.value}
+						</span>
+						<span className="w-full truncate text-[11px] leading-tight text-muted-foreground lg:text-xs">
+							{stat.label}
+						</span>
+					</div>
+				))}
 			</div>
 		</div>
 	);

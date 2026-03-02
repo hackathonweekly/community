@@ -29,7 +29,7 @@ export default async function DocumentationLayout({
 				<DocsLayout
 					tree={tree}
 					i18n={false}
-					githubUrl="https://github.com/hackathonweekly"
+					githubUrl="https://github.com/hackathonweekly/community"
 					nav={{
 						title: (
 							<>

@@ -1,25 +1,25 @@
 "use client";
 
+import { useKeyboardDetection } from "@community/lib-client/hooks/use-keyboard-detection";
+import { cn } from "@community/lib-shared/utils";
+import { isWeChatBrowser } from "@community/lib-shared/utils/browser-detect";
+import { Drawer, DrawerContent } from "@community/ui/ui/drawer";
+import {
+	BellIcon,
+	BuildingOffice2Icon,
+	CalendarDaysIcon,
+	ChatBubbleLeftRightIcon,
+	ClipboardDocumentListIcon,
+	DocumentTextIcon,
+	HomeIcon,
+	PlusIcon,
+	UserCircleIcon,
+} from "@heroicons/react/24/solid";
+import { useSession } from "@shared/auth/hooks/use-session";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import {
-	CalendarDaysIcon,
-	HomeIcon,
-	UserCircleIcon,
-	BuildingOffice2Icon,
-	DocumentTextIcon,
-	BellIcon,
-	PlusIcon,
-	ClipboardDocumentListIcon,
-	ChatBubbleLeftRightIcon,
-} from "@heroicons/react/24/solid";
-import { useTranslations } from "next-intl";
-import { cn } from "@community/lib-shared/utils";
-import { isWeChatBrowser } from "@community/lib-shared/utils/browser-detect";
-import { useKeyboardDetection } from "@community/lib-client/hooks/use-keyboard-detection";
-import { Drawer, DrawerContent } from "@community/ui/ui/drawer";
-import { useSession } from "@shared/auth/hooks/use-session";
 
 interface Tab {
 	name: string;
@@ -101,6 +101,12 @@ export function TabBar() {
 	const isEventDetailPage = /^\/events\/[^/]+(?:\/|$)/.test(
 		normalizedPathname,
 	);
+	const isProjectDetailPage = /^\/projects\/[^/]+\/?$/.test(
+		normalizedPathname,
+	);
+	const isOrganizationDetailPage = /^\/orgs\/[^/]+\/?$/.test(
+		normalizedPathname,
+	);
 	const isCreatePage =
 		normalizedPathname === "/projects/create" ||
 		normalizedPathname === "/tasks/create" ||
@@ -136,7 +142,13 @@ export function TabBar() {
 		[t],
 	);
 
-	if (isUserProfilePage || isEventDetailPage || isCreatePage) {
+	if (
+		isUserProfilePage ||
+		isEventDetailPage ||
+		isProjectDetailPage ||
+		isOrganizationDetailPage ||
+		isCreatePage
+	) {
 		return null;
 	}
 

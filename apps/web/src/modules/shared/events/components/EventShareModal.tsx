@@ -17,6 +17,7 @@ import {
 	LinkIcon,
 	PhotoIcon,
 	QrCodeIcon,
+	ShareIcon,
 } from "@heroicons/react/24/outline";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
@@ -55,6 +56,13 @@ export function EventShareModal({
 	const [inviteLoading, setInviteLoading] = useState(false);
 	const [inviteError, setInviteError] = useState<string | null>(null);
 	const [isGeneratingPoster, setIsGeneratingPoster] = useState(false);
+	const [canNativeShare, setCanNativeShare] = useState(false);
+
+	useEffect(() => {
+		setCanNativeShare(
+			typeof navigator !== "undefined" && !!navigator.share,
+		);
+	}, []);
 
 	const posterGenerator = useEventPosterGenerator(
 		eventId,
@@ -71,6 +79,14 @@ export function EventShareModal({
 			await posterGenerator();
 		} finally {
 			setIsGeneratingPoster(false);
+		}
+	};
+
+	const handleNativeShare = async () => {
+		try {
+			await navigator.share({ title: eventTitle, url: shareUrl });
+		} catch {
+			// User cancelled
 		}
 	};
 
@@ -219,6 +235,19 @@ export function EventShareModal({
 
 	const renderMenu = () => (
 		<div className="grid grid-cols-2 gap-4 py-4 sm:grid-cols-4">
+			{canNativeShare && (
+				<button
+					onClick={handleNativeShare}
+					className="flex flex-col items-center gap-3 p-4 rounded-lg border border-dashed hover:border-solid hover:border-primary hover:bg-muted transition-all"
+				>
+					<div className="p-3 bg-primary/10 text-primary rounded-full">
+						<ShareIcon className="w-6 h-6" />
+					</div>
+					<span className="text-sm font-medium text-foreground">
+						分享
+					</span>
+				</button>
+			)}
 			<button
 				onClick={() => setView("qr")}
 				className="flex flex-col items-center gap-3 p-4 rounded-lg border border-dashed hover:border-solid hover:border-primary hover:bg-muted transition-all"
@@ -232,7 +261,7 @@ export function EventShareModal({
 			</button>
 
 			<button
-				onClick={() => setView("link")}
+				onClick={() => copyToClipboard(shareUrl)}
 				className="flex flex-col items-center gap-3 p-4 rounded-lg border border-dashed hover:border-solid hover:border-primary hover:bg-muted transition-all"
 			>
 				<div className="p-3 bg-muted text-foreground rounded-full">

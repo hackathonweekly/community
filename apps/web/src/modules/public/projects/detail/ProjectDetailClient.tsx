@@ -2,10 +2,9 @@
 
 import { CommentSection } from "@community/ui/ui/comments";
 import { Skeleton } from "@community/ui/ui/skeleton";
-import { ExternalLinkIcon, VideoIcon } from "lucide-react";
+import { ArrowLeft, ExternalLinkIcon, VideoIcon } from "lucide-react";
 import Link from "next/link";
 import { EmptyState } from "@/modules/public/shared/components/EmptyState";
-import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
 import { CreationExperience } from "./components/CreationExperience";
 import { config } from "@community/config";
 import { MobileBottomToolbar } from "./components/MobileBottomToolbar";
@@ -66,7 +65,7 @@ export function ProjectDetailClient({
 	if (error) {
 		return (
 			<div className="min-h-screen bg-[#FAFAFA]">
-				<MobilePageHeader title="项目详情" />
+				<ProjectPageHeader title="项目详情" />
 				<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
 					<EmptyState
 						title="加载项目失败"
@@ -88,7 +87,7 @@ export function ProjectDetailClient({
 	if (!project) {
 		return (
 			<div className="min-h-screen bg-[#FAFAFA]">
-				<MobilePageHeader title="项目详情" />
+				<ProjectPageHeader title="项目详情" />
 				<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6">
 					<EmptyState
 						title="项目不存在"
@@ -111,7 +110,7 @@ export function ProjectDetailClient({
 
 	return (
 		<div className="min-h-screen bg-[#FAFAFA]">
-			<MobilePageHeader title={project.title} />
+			<ProjectPageHeader title={project.title} />
 			<div className="max-w-6xl mx-auto px-4 lg:px-8 py-5 lg:py-6 pb-24 lg:pb-6">
 				{/* Fetching indicator */}
 				{isFetching && project && (
@@ -124,14 +123,6 @@ export function ProjectDetailClient({
 						</div>
 					</div>
 				)}
-
-				{/* Breadcrumb */}
-				{/* <Link
-					href="/projects"
-					className="text-[11px] text-gray-400 font-mono hover:text-black transition-colors mb-5 inline-flex items-center gap-1"
-				>
-					← 返回作品列表
-				</Link> */}
 
 				{/* 12-col grid: content 8 + sidebar 4 */}
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative">
@@ -245,6 +236,25 @@ export function ProjectDetailClient({
 				userBookmark={project.userBookmark}
 			/>
 		</div>
+	);
+}
+
+function ProjectPageHeader({ title }: { title: string }) {
+	return (
+		<nav className="sticky top-0 z-50 flex h-12 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur lg:px-8">
+			<div className="flex items-center gap-3">
+				<Link
+					href="/projects"
+					className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-accent"
+					aria-label="返回作品列表"
+				>
+					<ArrowLeft className="h-4 w-4" />
+				</Link>
+				<span className="max-w-[180px] truncate text-sm font-semibold text-foreground sm:max-w-xs">
+					{title}
+				</span>
+			</div>
+		</nav>
 	);
 }
 

@@ -32,6 +32,7 @@ import {
 	getEvents,
 	getOrganizationMembership,
 	incrementEventViewCount,
+	resolveEventIdentifier,
 	updateEvent,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
@@ -947,12 +948,23 @@ app.get("/:eventId/my-feedback", async (c) => {
 		}
 
 		const eventId = c.req.param("eventId");
+		const event = await getEventById(eventId, { includeAdminData: false });
+
+		if (!event) {
+			return c.json(
+				{
+					success: false,
+					error: "Event not found",
+				},
+				404,
+			);
+		}
 
 		// Get user's feedback for this event
 		const feedback = await db.eventFeedback.findUnique({
 			where: {
 				eventId_userId: {
-					eventId,
+					eventId: event.id,
 					userId: session.user.id,
 				},
 			},
@@ -2167,10 +2179,55 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 		});
 	} catch (error) {
 		console.error("Error updating event:", error);
+
+		if (error instanceof z.ZodError) {
+			return c.json(
+				{
+					success: false,
+					error: `Validation failed: ${error.message}`,
+				},
+				400,
+			);
+		}
+
+		const { Prisma } = await import("@prisma/client");
+		if (error instanceof Prisma.PrismaClientValidationError) {
+			return c.json(
+				{
+					success: false,
+					error: "Invalid data: please check your input fields",
+				},
+				400,
+			);
+		}
+		if (error instanceof Prisma.PrismaClientKnownRequestError) {
+			if (error.code === "P2002") {
+				return c.json(
+					{
+						success: false,
+						error: "A record with this value already exists",
+					},
+					409,
+				);
+			}
+			if (error.code === "P2025") {
+				return c.json(
+					{
+						success: false,
+						error: "Event not found or already deleted",
+					},
+					404,
+				);
+			}
+		}
+
 		return c.json(
 			{
 				success: false,
-				error: "Failed to update event",
+				error:
+					error instanceof Error
+						? error.message
+						: "Failed to update event",
 			},
 			500,
 		);
@@ -2357,13 +2414,13 @@ app.delete("/:id", async (c) => {
 			);
 		}
 
-		const eventId = c.req.param("id");
+		const eventIdentifier = c.req.param("id");
 		const { name, description, organizationId } = c.req.valid("json");
 
 		try {
 			// 获取活动详情
 			const event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				include: {
 					ticketTypes: true,
 					volunteerRoles: {
@@ -2490,7 +2547,7 @@ app.delete("/:id", async (c) => {
 // GET /api/events/:eventId/project-submissions - Get project submissions for an event
 app.get("/:eventId/project-submissions", async (c) => {
 	try {
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 
 		// Prefer reading `submissionsEnabled` when the Prisma Client supports it,
 		// but gracefully fall back for environments with a stale generated client.
@@ -2503,7 +2560,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 
 		try {
 			event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					type: true,
@@ -2527,7 +2584,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 			if (!isUnknownSubmissionsEnabledField) throw error;
 
 			event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					type: true,
@@ -2551,7 +2608,7 @@ app.get("/:eventId/project-submissions", async (c) => {
 			"@community/lib-server/database/prisma/queries/events"
 		);
 
-		const projectSubmissions = await getEventProjectSubmissions(eventId);
+		const projectSubmissions = await getEventProjectSubmissions(event.id);
 
 		return c.json({
 			success: true,

@@ -35,7 +35,6 @@ import {
 	AlertCircle,
 	FileText,
 	Link as LinkIcon,
-	ArrowLeft,
 } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";

@@ -17,6 +17,7 @@ export async function sendEmail<T extends TemplateId>(
 					Parameters<(typeof mailTemplates)[T]>[0],
 					"locale" | "translations"
 				>;
+				subject?: string;
 		  }
 		| {
 				subject: string;
@@ -39,6 +40,8 @@ export async function sendEmail<T extends TemplateId>(
 	let html: string;
 	let text: string;
 	let subject: string;
+	const subjectFallback =
+		typeof params.subject === "string" ? params.subject.trim() : "";
 
 	if ("templateId" in params) {
 		const { templateId, context } = params;
@@ -47,7 +50,7 @@ export async function sendEmail<T extends TemplateId>(
 			context,
 			locale,
 		});
-		subject = template.subject;
+		subject = template.subject || subjectFallback;
 		text = template.text;
 		html = template.html;
 	} else {

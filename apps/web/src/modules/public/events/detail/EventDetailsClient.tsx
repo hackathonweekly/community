@@ -6,10 +6,12 @@ import {
 	useEffect,
 	useMemo,
 	useRef,
+	useState,
 } from "react";
 import { useTranslations } from "next-intl";
 
 import { QRGenerator } from "@shared/events/components/QRGenerator";
+import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
@@ -62,8 +64,10 @@ export function EventDetailsClient({
 	locale = "zh",
 }: EventDetailsClientProps) {
 	const t = useTranslations();
+	const eventIdentifier = event.shortId || event.id;
 	const state = useEventDetailsState(event, locale);
 	const actions = useEventActions(event, state);
+	const [showShareModal, setShowShareModal] = useState(false);
 
 	const {
 		user,
@@ -260,7 +264,7 @@ export function EventDetailsClient({
 				onRegister={handleRegister}
 				canCancel={canCancel}
 				onCancel={handleCancelRegistration}
-				onShare={handleShareCopyLink}
+				onShare={() => setShowShareModal(true)}
 				onToggleBookmark={handleBookmark}
 				onToggleLike={handleLike}
 				isBookmarked={isBookmarked}
@@ -268,7 +272,7 @@ export function EventDetailsClient({
 				likeCount={likeCount}
 				registerDisabled={registerDisabledDisplay}
 				isEventAdmin={event.isEventAdmin}
-				eventId={event.id}
+				eventId={eventIdentifier}
 				onContact={handleOpenContact}
 				onFeedback={handleOpenFeedback}
 				onShowSuccessInfo={handleShowSuccessInfo}
@@ -280,7 +284,7 @@ export function EventDetailsClient({
 			<div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
 				<div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12">
 					{/* Left Column: Header + Content */}
-					<div className="lg:col-span-8 space-y-4 lg:space-y-6">
+					<div className="lg:col-span-8 space-y-3 lg:space-y-4">
 						{/* Header: Badges + Title + Description */}
 						<div className="pb-4 border-b border-border/40">
 							<div className="mb-2 flex flex-wrap items-center gap-2">
@@ -375,12 +379,22 @@ export function EventDetailsClient({
 									</div>
 								) : null}
 								<div className="hidden text-right sm:block">
-									<div className="text-xs font-bold text-foreground">
-										{participantCount} 人已报名
+									<div className="flex items-center justify-end gap-2 text-xs font-bold text-foreground">
+										<span>{participantCount} 人已报名</span>
+										{remainingSeats === 0 ? (
+											<Badge
+												variant="destructive"
+												className="h-5 px-1.5 text-[10px]"
+											>
+												名额已满
+											</Badge>
+										) : null}
 									</div>
 									{remainingSeats !== null ? (
 										<div className="text-[10px] text-muted-foreground">
-											剩余 {remainingSeats} 个名额
+											{remainingSeats === 0
+												? "当前无剩余名额"
+												: `剩余 ${remainingSeats} 个名额`}
 										</div>
 									) : null}
 								</div>
@@ -431,7 +445,7 @@ export function EventDetailsClient({
 										</TabsTrigger>
 										<TabsTrigger
 											value="organizer"
-											className={`lg:hidden ${TAB_TRIGGER_CLASS}`}
+											className={TAB_TRIGGER_CLASS}
 										>
 											主办方
 										</TabsTrigger>
@@ -469,7 +483,7 @@ export function EventDetailsClient({
 											<AlbumSection
 												photos={photos}
 												locale={locale}
-												eventId={event.id}
+												eventId={eventIdentifier}
 											/>
 										)}
 									</TabsContent>
@@ -484,7 +498,7 @@ export function EventDetailsClient({
 													projectSubmissions
 												}
 												locale={locale}
-												eventId={event.id}
+												eventId={eventIdentifier}
 												userId={user?.id}
 												onRequireLogin={redirectToLogin}
 												onSubmitWork={handleSubmitWork}
@@ -524,7 +538,7 @@ export function EventDetailsClient({
 
 									<TabsContent
 										value="organizer"
-										className="focus:outline-none lg:hidden mt-2 md:mt-4"
+										className="focus:outline-none mt-2 md:mt-4"
 									>
 										<HostsSection
 											event={event}
@@ -578,7 +592,7 @@ export function EventDetailsClient({
 								}
 								canCancel={canCancel}
 								onCancel={handleCancelRegistration}
-								onShare={handleShareCopyLink}
+								onShare={() => setShowShareModal(true)}
 								onToggleBookmark={handleBookmark}
 								onToggleLike={handleLike}
 								isBookmarked={isBookmarked}
@@ -586,7 +600,7 @@ export function EventDetailsClient({
 								likeCount={likeCount}
 								registerDisabled={registerDisabledDisplay}
 								isEventAdmin={event.isEventAdmin}
-								eventId={event.id}
+								eventId={eventIdentifier}
 								onContact={handleOpenContact}
 								onFeedback={handleOpenFeedback}
 								onShowSuccessInfo={handleShowSuccessInfo}
@@ -619,7 +633,7 @@ export function EventDetailsClient({
 
 			<MobileCTA
 				locale={locale}
-				eventId={event.id}
+				eventId={eventIdentifier}
 				isEventAdmin={event.isEventAdmin}
 				submissionsEnabled={showWorks}
 				registerLabel={registerLabelDisplay}
@@ -628,7 +642,7 @@ export function EventDetailsClient({
 				}
 				onShowSuccessInfo={handleShowSuccessInfo}
 				onCancel={handleCancelRegistration}
-				onShare={handleShareCopyLink}
+				onShare={() => setShowShareModal(true)}
 				onFeedback={handleOpenFeedback}
 				onContact={handleOpenContact}
 				onShowQR={() => setShowQRGenerator(true)}
@@ -645,7 +659,7 @@ export function EventDetailsClient({
 				<QRGenerator
 					isOpen={showQRGenerator}
 					onClose={() => setShowQRGenerator(false)}
-					eventId={event.id}
+					eventId={eventIdentifier}
 					userId={user.id}
 					eventTitle={event.title}
 					userName={user.name || "Unknown User"}
@@ -670,6 +684,12 @@ export function EventDetailsClient({
 					pendingInfo={event.registrationPendingInfo}
 					pendingImage={event.registrationPendingImage}
 					onShowQR={() => setShowQRGenerator(true)}
+					eventInfo={{
+						startTime: event.startTime,
+						endTime: event.endTime,
+						isOnline: event.isOnline,
+						address: event.address,
+					}}
 				/>
 			)}
 
@@ -704,12 +724,28 @@ export function EventDetailsClient({
 					open={isFeedbackDialogOpen}
 					onOpenChange={setIsFeedbackDialogOpen}
 					eventTitle={event.title}
-					eventId={event.id}
+					eventId={eventIdentifier}
 					onSubmit={handleFeedbackSubmit}
 					existingFeedback={userFeedback}
 					isEditing={hasSubmittedFeedback}
 				/>
 			)}
+
+			<EventShareModal
+				isOpen={showShareModal}
+				onClose={() => setShowShareModal(false)}
+				eventId={eventIdentifier}
+				eventTitle={event.title}
+				event={{
+					startTime: event.startTime,
+					endTime: event.endTime,
+					address: event.address ?? undefined,
+					isOnline: event.isOnline,
+					onlineUrl: event.onlineUrl ?? undefined,
+					coverImage: event.coverImage ?? undefined,
+					richContent: event.richContent,
+				}}
+			/>
 		</div>
 	);
 }

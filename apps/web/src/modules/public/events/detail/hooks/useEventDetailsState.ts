@@ -119,12 +119,11 @@ export function useEventDetailsState(event: EventData, locale: string) {
 
 	const registerLabel = useMemo(() => {
 		if (event.isExternalEvent && event.externalUrl) return "前往报名";
-		if (registrationDisabledReason) return registrationDisabledReason;
 		if (!user) return "登录后报名";
 		if (existingRegistration) {
 			switch (existingRegistration.status) {
 				case "APPROVED":
-					return hasImportantInfo ? "查看须知" : "查看门票";
+					return "查看须知";
 				case "PENDING":
 					return "审核中";
 				case "WAITLISTED":
@@ -133,13 +132,13 @@ export function useEventDetailsState(event: EventData, locale: string) {
 					return "重新报名";
 			}
 		}
+		if (registrationDisabledReason) return registrationDisabledReason;
 		return canRegister ? "立即报名" : "暂不可报名";
 	}, [
 		canRegister,
 		event.externalUrl,
 		event.isExternalEvent,
 		existingRegistration,
-		hasImportantInfo,
 		registrationDisabledReason,
 		user,
 	]);

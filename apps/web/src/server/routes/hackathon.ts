@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
+import { resolveEventIdentifier } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
 import { auth } from "@community/lib-server/auth/auth";
 import { HTTPException } from "hono/http-exception";
@@ -14,11 +15,11 @@ import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is
 const app = new Hono()
 	// 获取黑客松配置
 	.get("/events/:eventId/hackathon-config", async (c) => {
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 
 		try {
 			const event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					title: true,
@@ -68,13 +69,13 @@ const app = new Hono()
 				});
 			}
 
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
 			const config = c.req.valid("json");
 
 			try {
 				// 检查活动是否存在及权限
 				const event = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdentifier),
 					select: {
 						id: true,
 						type: true,
@@ -123,7 +124,7 @@ const app = new Hono()
 
 				// 更新黑客松配置
 				const updatedEvent = await db.event.update({
-					where: { id: eventId },
+					where: { id: event.id },
 					data: {
 						hackathonConfig: config,
 					},
@@ -153,11 +154,11 @@ const app = new Hono()
 
 	// 获取黑客松投票结果
 	.get("/events/:eventId/voting-results", async (c) => {
-		const eventId = c.req.param("eventId");
+		const eventIdentifier = c.req.param("eventId");
 
 		try {
 			const event = await db.event.findUnique({
-				where: { id: eventId },
+				where: resolveEventIdentifier(eventIdentifier),
 				select: {
 					id: true,
 					type: true,
@@ -176,6 +177,8 @@ const app = new Hono()
 					message: "Event is not a hackathon",
 				});
 			}
+
+			const eventId = event.id;
 
 			// 获取所有提交的作品及其评分
 			const submissions = await db.eventProjectSubmission.findMany({
@@ -305,14 +308,14 @@ const app = new Hono()
 				});
 			}
 
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
 			const submissionId = c.req.param("submissionId");
 			const { voteType, score } = c.req.valid("json");
 
 			try {
 				// 检查活动和提交是否存在
 				const event = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdentifier),
 					select: {
 						id: true,
 						type: true,
@@ -334,6 +337,7 @@ const app = new Hono()
 						message: "Hackathon event not found",
 					});
 				}
+				const resolvedEventId = event.id;
 
 				const submission = await db.eventProjectSubmission.findUnique({
 					where: { id: submissionId },
@@ -346,7 +350,7 @@ const app = new Hono()
 					},
 				});
 
-				if (!submission || submission.eventId !== eventId) {
+				if (!submission || submission.eventId !== resolvedEventId) {
 					throw new HTTPException(404, {
 						message: "Project submission not found",
 					});
@@ -398,7 +402,7 @@ const app = new Hono()
 							await db.eventRegistration.findUnique({
 								where: {
 									eventId_userId: {
-										eventId,
+										eventId: resolvedEventId,
 										userId: session.user.id,
 									},
 								},
@@ -586,7 +590,7 @@ const app = new Hono()
 				});
 			}
 
-			const eventId = c.req.param("eventId");
+			const eventIdentifier = c.req.param("eventId");
 			const {
 				registrationOpen,
 				submissionsOpen,
@@ -597,7 +601,7 @@ const app = new Hono()
 			try {
 				// 检查活动是否存在及权限
 				const event = await db.event.findUnique({
-					where: { id: eventId },
+					where: resolveEventIdentifier(eventIdentifier),
 					select: {
 						id: true,
 						type: true,
@@ -661,7 +665,7 @@ const app = new Hono()
 				}
 
 				const updatedEvent = await db.event.update({
-					where: { id: eventId },
+					where: { id: event.id },
 					data: updateData,
 					select: {
 						id: true,

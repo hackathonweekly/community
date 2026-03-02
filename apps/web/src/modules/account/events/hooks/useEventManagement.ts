@@ -451,7 +451,10 @@ export function useEventManagement() {
 					errorType = "warning";
 				} else if (rawError.includes("not registered")) {
 					errorMessage = t("actions.checkInNotRegistered");
-				} else if (rawError.includes("not confirmed")) {
+				} else if (
+					rawError.includes("not confirmed") ||
+					rawError.includes("not approved")
+				) {
 					errorMessage = t("actions.checkInNotConfirmed");
 				}
 

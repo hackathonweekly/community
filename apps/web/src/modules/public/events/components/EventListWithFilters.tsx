@@ -167,13 +167,23 @@ function EventListContent() {
 		{ value: "completed", label: t("events.status.completed") },
 	];
 
+	const hostTypeOptions = [
+		{ value: "organization", label: t("events.filters.hostOrganizations") },
+		{ value: "individual", label: t("events.filters.hostIndividuals") },
+		{ value: "all", label: t("events.filters.hostAll") },
+	];
+
+	const handleHostTypeChange = (value: string) => {
+		updateFilter("selectedHostType", value);
+	};
+
 	const showPastFallback = isActiveInsufficient && pastEvents.length > 0;
 	const pastFillCount = Math.max(0, 3 - events.length);
 	const recentPastEvents = pastEvents.slice(0, pastFillCount);
 
 	return (
 		<div className="space-y-4">
-			{/* Status filter pills */}
+			{/* Filter pills */}
 			<div className="flex items-center gap-2 overflow-x-auto pb-1">
 				{statusOptions.map((option) => (
 					<Button
@@ -185,6 +195,22 @@ function EventListContent() {
 						}
 						size="sm"
 						onClick={() => handleStatusChange(option.value)}
+						className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider"
+					>
+						{option.label}
+					</Button>
+				))}
+				<div className="mx-1 h-4 w-px bg-border" />
+				{hostTypeOptions.map((option) => (
+					<Button
+						key={option.value}
+						variant={
+							filters.selectedHostType === option.value
+								? "default"
+								: "outline"
+						}
+						size="sm"
+						onClick={() => handleHostTypeChange(option.value)}
 						className="flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-wider"
 					>
 						{option.label}
