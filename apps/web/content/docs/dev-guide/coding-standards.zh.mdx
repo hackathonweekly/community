@@ -1,0 +1,130 @@
+---
+title: "编码规范"
+description: "TypeScript 约定、命名规范、Git 工作流"
+---
+
+## TypeScript 约定
+
+- 启用 **strict mode**
+- 优先使用 `interface` 而非 `type`（除非需要联合类型）
+- 避免使用 `enum`，改用 const 对象：
+
+```typescript
+// 推荐
+const Status = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+} as const;
+type Status = (typeof Status)[keyof typeof Status];
+
+// 避免
+enum Status {
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+}
+```
+
+## 命名规范
+
+| 类型 | 风格 | 示例 |
+|------|------|------|
+| 变量 / 函数 | camelCase | `getUserName`, `isActive` |
+| 组件 / 类型 | PascalCase | `UserProfile`, `EventCard` |
+| 常量 | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| 文件名 | kebab-case | `user-profile.tsx`, `event-card.ts` |
+
+## Import 排序
+
+按以下顺序组织 import：
+
+```typescript
+// 1. React / Next.js
+import { useState } from "react";
+import Link from "next/link";
+
+// 2. 第三方库
+import { z } from "zod";
+
+// 3. 内部别名
+import { db } from "@community/lib-server/database";
+import { Button } from "@community/ui/button";
+
+// 4. 相对路径
+import { formatDate } from "./utils";
+```
+
+## Tailwind CSS
+
+class 排序规则：**布局 → 间距 → 颜色 → 边框 → 效果**
+
+```tsx
+<div className="flex items-center gap-4 px-6 py-3 bg-white border rounded-lg shadow-sm hover:shadow-md">
+```
+
+## 代码质量工具
+
+```bash
+# Biome 代码检查
+pnpm lint
+
+# 自动修复
+pnpm lint:fix
+
+# 格式化
+pnpm format
+
+# TypeScript 类型检查
+pnpm type-check
+```
+
+项目使用 **Husky** 管理 Git hooks：
+- **pre-commit**: 自动使用 Biome 格式化暂存文件
+
+## Git Commit 规范
+
+使用 **Conventional Commits** 格式：
+
+```
+type(scope): description
+```
+
+常用 type：
+
+| type | 说明 |
+|------|------|
+| `feat` | 新功能 |
+| `fix` | Bug 修复 |
+| `docs` | 文档更新 |
+| `style` | 代码格式（不影响逻辑） |
+| `refactor` | 重构 |
+| `test` | 测试 |
+| `chore` | 构建/工具变更 |
+
+示例：
+```bash
+git commit -m "feat(auth): add WeChat login support"
+git commit -m "fix(events): correct date timezone handling"
+```
+
+## 分支命名
+
+```
+feature/add-wechat-login
+fix/event-date-bug
+docs/update-dev-guide
+```
+
+## Git Flow
+
+- `main` — 生产分支
+- `develop` — 开发分支（PR 默认目标）
+- `feature/*` / `fix/*` — 功能/修复分支，从 `develop` 创建
+
+## PR Checklist
+
+提交 PR 时确认：
+- [ ] 代码通过 `pnpm lint` 和 `pnpm type-check`
+- [ ] 新功能有对应测试
+- [ ] 更新了相关文档
+- [ ] PR 描述清晰，关联了 Issue
+- [ ] UI 变更附带截图

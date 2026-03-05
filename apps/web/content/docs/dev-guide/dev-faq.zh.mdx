@@ -1,0 +1,154 @@
+---
+title: "常见问题 FAQ"
+description: "开发过程中常见问题的排查与解决"
+---
+
+## 构建问题
+
+### `pnpm run build` 报类型错误，但 `tsc --noEmit` 正常
+
+**症状**: Next.js 构建时出现 TypeScript 类型错误（如 `No overload matches this call`），但直接运行 `tsc --noEmit` 通过。
+
+**原因**: Turbo 缓存了旧的构建产物，增量构建使用了过期缓存。
+
+**解决**:
+
+```bash
+# 清除 turbo 缓存后重新构建（Turbo v2 没有 clean 命令，需手动删除缓存目录）
+rm -rf .turbo node_modules/.cache/turbo
+pnpm run build
+```
+
+如果仍然不行，完全清理：
+
+```bash
+rm -rf .turbo node_modules/.cache/turbo
+rm -rf node_modules apps/web/node_modules packages/*/node_modules
+pnpm install
+pnpm run build
+```
+
+### `.next` 缓存导致页面不更新
+
+开发时修改了代码但页面没有变化，可能是 Next.js 本地缓存问题：
+
+```bash
+rm -rf apps/web/.next
+pnpm dev
+```
+
+### 构建时 `Module not found` 但本地开发正常
+
+通常是路径别名或导入大小写问题。macOS 文件系统不区分大小写，但 Linux CI 环境区分：
+
+```bash
+# 检查导入路径大小写是否与文件名完全一致
+# 错误: import { Foo } from '@/modules/Auth/...'
+# 正确: import { Foo } from '@/modules/auth/...'
+```
+
+---
+
+## 依赖问题
+
+### `pnpm install` 后出现 peer dependency 警告
+
+本项目使用 pnpm strict 模式，peer dependency 警告通常可以忽略。如果是 zod 相关的版本冲突，项目使用 `zod@^4.x`，部分依赖会同时引入 `zod@3.x` 作为传递依赖，这是正常的。
+
+### 新增依赖应该加在哪个 package？
+
+| 场景 | 安装位置 |
+|------|----------|
+| 前端页面/组件用到 | `apps/web` |
+| 数据库/服务端逻辑 | `packages/lib-server` |
+| 共享 UI 组件 | `packages/ui` |
+| 共享工具/类型 | `packages/lib-shared` |
+
+```bash
+# 示例：给 apps/web 添加依赖
+pnpm --filter @community/web add some-package
+```
+
+---
+
+## 数据库问题
+
+### Prisma schema 修改后怎么同步？
+
+```bash
+# 开发环境：直接推送 schema 变更
+pnpm db:push
+
+# 生产环境：创建迁移文件
+pnpm db:migrate
+
+# 修改 schema 后务必重新生成客户端
+pnpm db:generate
+```
+
+### `PrismaClientInitializationError` 连接失败
+
+1. 检查 `apps/web/.env.local` 中 `DATABASE_URL` 格式
+2. 确认数据库服务正在运行
+3. 如果使用 Neon 等 serverless 数据库，确认连接字符串包含 `?sslmode=require`
+
+### 数据库 schema 和本地不一致
+
+```bash
+# 查看当前 schema 与数据库的差异
+pnpm db:push --dry-run
+
+# 强制同步（会丢失数据，仅开发环境使用）
+pnpm db:push --force-reset
+```
+
+---
+
+## 开发环境
+
+### 端口 3000 被占用
+
+```bash
+# 使用其他端口
+pnpm dev -- -p 3001
+
+# 或者找到并关闭占用进程
+lsof -i :3000
+```
+
+### ESLint / Biome 报错太多
+
+```bash
+# 自动修复大部分 lint 问题
+pnpm lint:fix
+
+# 格式化代码
+pnpm format
+```
+
+### 环境变量不生效
+
+- 确认变量写在 `apps/web/.env.local`（不是根目录的 `.env`）
+- 前端可访问的变量必须以 `NEXT_PUBLIC_` 开头
+- 修改环境变量后需要重启 `pnpm dev`
+
+---
+
+## Git 与协作
+
+### commit 规范是什么？
+
+使用 Conventional Commits 格式：
+
+```
+feat(auth): 添加微信登录
+fix(ui): 修复移动端导航栏溢出
+docs: 更新开发指南
+chore: 升级依赖版本
+```
+
+### 分支命名规范
+
+- 功能分支: `feature/xxx`
+- 修复分支: `fix/xxx`
+- 从 `develop` 分支创建，PR 目标也是 `develop`

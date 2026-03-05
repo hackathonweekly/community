@@ -1,0 +1,82 @@
+---
+title: "部署指南"
+description: "Zeabur 部署和 Docker 部署方式"
+---
+
+## Zeabur + GitHub（推荐）
+
+项目主要使用 **[Zeabur](https://zeabur.com/)** 进行部署，连接 GitHub 仓库后推送即自动部署。
+
+### 部署步骤
+
+1. **连接 GitHub 仓库**
+   - 在 Zeabur 控制台创建项目
+   - 选择 GitHub 仓库 `hackathonweekly/community`
+
+2. **创建 PostgreSQL 服务**
+   - 在同一项目中添加 PostgreSQL 服务
+   - Zeabur 会自动生成 `DATABASE_URL`
+
+3. **配置环境变量**
+   - 在 Zeabur 服务设置中添加所有必需的环境变量
+   - 参考 [配置说明](/docs/dev-guide/configuration) 中的必填项
+
+4. **推送自动部署**
+   - 推送到 `main` 分支即触发自动部署
+   - 在 Zeabur 控制台查看部署日志
+
+### 域名配置
+
+在 Zeabur 服务设置中绑定自定义域名，并在 DNS 提供商处添加 CNAME 记录。
+
+## Docker 部署（备选）
+
+### 本地构建和运行
+
+```bash
+# 复制环境变量
+cp apps/web/.env.example apps/web/.env.local
+
+# 构建并启动容器
+docker compose up -d
+
+# 查看日志
+docker compose logs -f
+```
+
+### 生产部署
+
+```bash
+# 构建生产镜像
+docker build -t community-web .
+
+# 运行容器
+docker run -d \
+  --env-file apps/web/.env.production \
+  -p 3000:3000 \
+  community-web
+```
+
+### 环境变量文件
+
+| 文件 | 用途 | 说明 |
+|------|------|------|
+| `apps/web/.env.local` | 本地开发 | 不提交到 Git |
+| `apps/web/.env.production` | 生产环境 | 包含生产密钥 |
+
+## 生产环境数据库
+
+推荐方案：
+- **Zeabur PostgreSQL** — 与部署平台集成，一键创建
+- **[Neon](https://neon.tech/)** — Serverless PostgreSQL，免费额度充足
+
+生产环境使用迁移管理数据库变更：
+```bash
+pnpm db:migrate
+```
+
+## 数据分析
+
+项目使用 [Umami](https://umami.is/) 进行网站访问统计：
+
+**实时统计**: https://cloud.umami.is/share/dEpjaVKnRNqBAkH2/hackathonweekly.com

@@ -1,0 +1,95 @@
+---
+title: "国际化 (i18n)"
+description: "多语言支持配置和翻译管理"
+---
+
+## 概览
+
+项目使用 **next-intl** 实现国际化，目前支持中文 (zh) 和英文 (en)。
+
+## 翻译文件
+
+翻译文件位于 `packages/lib-shared/src/i18n/translations/`：
+
+```
+translations/
+├── en.json    # 英文翻译
+└── zh.json    # 中文翻译（默认语言）
+```
+
+翻译文件使用扁平化的 JSON 格式，按模块分组：
+
+```json
+{
+  "common.save": "保存",
+  "common.cancel": "取消",
+  "auth.login": "登录",
+  "auth.register": "注册",
+  "events.create": "创建活动"
+}
+```
+
+## 添加新翻译
+
+1. 在 `zh.json` 中添加中文 key：
+```json
+{
+  "myModule.newFeature": "新功能"
+}
+```
+
+2. 在 `en.json` 中添加对应英文：
+```json
+{
+  "myModule.newFeature": "New Feature"
+}
+```
+
+3. 在组件中使用：
+```typescript
+import { useTranslations } from "next-intl";
+
+function MyComponent() {
+  const t = useTranslations("myModule");
+  return <p>{t("newFeature")}</p>;
+}
+```
+
+## MDX 内容国际化
+
+文档和博客使用文件名后缀区分语言：
+
+```
+content/docs/
+├── page.zh.mdx    # 中文版本
+└── page.en.mdx    # 英文版本
+```
+
+Fumadocs 会根据用户语言自动选择对应版本。
+
+## 翻译检查工具
+
+使用 `i18n-check` 验证翻译完整性：
+
+```bash
+pnpm exec i18n-check \
+  --locales packages/lib-shared/src/i18n/translations \
+  --source en \
+  --format i18next
+```
+
+该工具可以检测：
+- 目标语言中缺失的翻译 key
+- 未使用的翻译 key
+- ICU 参数不一致的问题
+
+## 添加新语言
+
+1. 在 `packages/lib-shared/src/i18n/translations/` 下创建新的翻译文件（如 `ja.json`）
+2. 在 `packages/config/src/index.ts` 的 i18n 配置中添加新 locale：
+```typescript
+i18n: {
+  locales: ["zh", "en", "ja"],
+}
+```
+3. 在 `apps/web/src/modules/i18n/` 中更新 locale 配置

@@ -1,0 +1,116 @@
+---
+title: "API 开发"
+description: "Hono.js 路由、中间件和 OpenAPI 文档"
+---
+
+## 架构概览
+
+API 层使用 **Hono.js** 框架，挂载在 Next.js 的 `/api` 路径下。
+
+- 入口文件: `apps/web/src/server/app.ts`
+- 路由目录: `apps/web/src/server/routes/`
+- 中间件: `apps/web/src/server/middleware/`
+
+## 路由组织
+
+路由按功能模块拆分为独立文件，在 `app.ts` 中统一挂载：
+
+```
+src/server/routes/
+├── admin.ts           # 管理员接口
+├── auth.ts            # 认证相关
+├── events.ts          # 活动 CRUD
+├── organizations.ts   # 组织管理
+├── users.ts           # 用户接口
+├── contributions.ts   # 贡献管理
+├── projects.ts        # 项目管理
+└── ...                # 40+ 路由模块
+```
+
+## 创建新 API 路由
+
+1. 在 `src/server/routes/` 下创建路由文件：
+
+```typescript
+import { Hono } from "hono";
+
+const app = new Hono()
+  .get("/", async (c) => {
+    return c.json({ message: "Hello" });
+  })
+  .post("/", async (c) => {
+    const body = await c.req.json();
+    return c.json({ data: body });
+  });
+
+export default app;
+```
+
+2. 在 `src/server/app.ts` 中挂载：
+
+```typescript
+import myRoute from "./routes/my-route";
+app.route("/my-route", myRoute);
+```
+
+## 中间件
+
+| 中间件 | 文件 | 说明 |
+|--------|------|------|
+| CORS | `middleware/cors.ts` | 跨域请求处理 |
+| 错误处理 | `middleware/error-handler.ts` | 统一错误响应 |
+| 限流 | `middleware/rate-limit.ts` | API 请求频率限制 |
+
+### Auth 中间件
+
+在路由中使用认证中间件保护接口：
+
+```typescript
+// 需要登录
+app.use("/*", authMiddleware);
+
+// 需要管理员权限
+app.use("/*", adminMiddleware);
+```
+
+## OpenAPI 文档
+
+项目自动生成 OpenAPI 文档，开发时访问：
+
+- **Scalar UI**: http://localhost:3000/api/docs
+
+API 文档合并了 Hono 路由和 Better Auth 的 OpenAPI schema。
+
+## Zod 请求验证
+
+使用 Zod 进行请求体验证：
+
+```typescript
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
+
+const schema = z.object({
+  title: z.string().min(1),
+  type: z.enum(["MEETUP", "HACKATHON"]),
+});
+
+app.post("/", zValidator("json", schema), async (c) => {
+  const data = c.req.valid("json");
+  // data 已经过类型校验
+});
+```
+
+## Events Token API
+
+Events Token 是一种专用 API 密钥，用于在飞书、Zapier 等外部工具中自动创建活动。
+
+- 在「账号设置 → 安全」中生成 Token
+- 请求头: `Authorization: EventsToken <token>`
+- 限流: 每 Token 每 5 分钟 60 次请求
+
+```bash
+curl -X POST https://your-domain/api/events \
+  -H "Authorization: EventsToken evt_xxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{ "title": "API meetup", "type": "MEETUP", "isOnline": true }'
+```

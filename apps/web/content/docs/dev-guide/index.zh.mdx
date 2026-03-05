@@ -1,0 +1,52 @@
+---
+title: "社区网站开发指南"
+description: "Hackathon Weekly 社区网站的完整开发指南，包含开源仓库、多端架构和核心能力说明"
+---
+
+<Callout title="开源仓库" type="info">
+社区 Web 仓库：[hackathonweekly/community](https://github.com/hackathonweekly/community)<br />
+小程序端仓库：[hackathonweekly/mini-community](https://github.com/hackathonweekly/mini-community)<br />
+小程序端通过 WebView 方式承载页面，需要微信小程序企业主体资质并完成业务域名配置。
+</Callout>
+
+欢迎来到 **Hackathon Weekly 社区网站**开发指南！本文档帮助你快速了解项目并开始贡献。
+
+## 技术栈速览
+
+| 类别 | 技术 |
+|------|------|
+| 前端 | Next.js 16 + React + TypeScript + Tailwind CSS |
+| UI 组件 | Shadcn/ui + Radix UI |
+| 后端 API | Hono.js |
+| 数据库 | PostgreSQL + Prisma ORM |
+| 认证 | Better Auth（手机号、微信登录，支持 PC + 手机） |
+| 国际化 | next-intl |
+| 文档 | Fumadocs (MDX) |
+| 部署 | Zeabur + Docker |
+| 代码质量 | Biome + Husky |
+| 测试 | Playwright (E2E) |
+
+## 社区平台特色
+
+| 能力 | 说明 |
+|------|------|
+| 多端支持 | 一套 Web 代码同时支持手机端与桌面端；小程序端通过 WebView 接入 |
+| 登录体系 | 手机号验证码登录 + 微信登录（PC 扫码、手机微信授权） |
+| 活动系统 | 支持活动创建、发布、报名、管理等基础活动举办流程 |
+| 数字名片与项目展示 | 支持成员数字名片、项目展示与活动现场名片展示 |
+| 多组织管理 | 支持组织创建、成员邀请、角色权限管理 |
+| 通知能力 | 支持邮件通知等运营触达能力 |
+| 支付能力 | 支持微信支付能力接入 |
+
+## 从哪里开始
+
+- **[快速开始](/docs/dev-guide/getting-started)** — 5 分钟跑起来
+- **[项目结构](/docs/dev-guide/project-structure)** — 了解代码组织方式
+- **[配置说明](/docs/dev-guide/configuration)** — 环境变量和 feature flags
+- **[数据库](/docs/dev-guide/database)** — Prisma schema 和常用命令
+- **[API 开发](/docs/dev-guide/api)** — Hono 路由和中间件
+- **[认证系统](/docs/dev-guide/authentication)** — 登录方式和会话管理
+- **[UI 风格](/docs/dev-guide/ui-style)** — 组件和样式规范
+- **[编码规范](/docs/dev-guide/coding-standards)** — 代码风格和 Git 规范
+- **[部署指南](/docs/dev-guide/deployment)** — Zeabur 和 Docker 部署
+- **[贡献指南](/docs/dev-guide/contributing)** — 如何参与项目

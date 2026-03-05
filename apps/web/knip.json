@@ -1,0 +1,40 @@
+{
+	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"workspaces": {
+		".": {
+			"entry": [
+				"src/app/**/*.{ts,tsx}",
+				"src/server/index.ts",
+				"content-collections.ts"
+			],
+			"project": [
+				"src/**/*.{ts,tsx}",
+				"../../packages/**/*.{ts,tsx}",
+				"../../scripts/**/*.{ts,js}"
+			]
+		}
+	},
+	"ignore": [
+		"src/types/**",
+		"**/*.d.ts",
+		"../../packages/lib-server/src/database/prisma/schema.prisma",
+		"content/**/*.mdx",
+		"public/**",
+		"scripts/**"
+	],
+	"ignoreDependencies": [
+		"@types/*",
+		"prettier",
+		"autoprefixer",
+		"start-server-and-test",
+		"markdown-toc",
+		"prisma-json-types-generator",
+		"zod-prisma-types",
+		"drizzle-kit",
+		"sharp",
+		"oslo"
+	],
+	"ignoreBinaries": [],
+	"ignoreExportsUsedInFile": true,
+	"includeEntryExports": false
+}

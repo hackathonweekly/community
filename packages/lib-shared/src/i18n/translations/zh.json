@@ -1,0 +1,4806 @@
+{
+	"admin": {
+		"description": "管理您的应用程序。",
+		"menu": {
+			"organizations": "组织",
+			"users": "用户"
+		},
+		"organizations": {
+			"backToList": "返回组织列表",
+			"confirmDelete": {
+				"confirm": "删除",
+				"message": "您确定要删除此组织吗？此操作无法撤消。",
+				"title": "删除组织"
+			},
+			"create": "创建",
+			"delete": "删除",
+			"deleteOrganization": {
+				"deleted": "组织已成功删除！",
+				"deleting": "正在删除组织...",
+				"notDeleted": "组织无法删除。请重试。"
+			},
+			"edit": "编辑",
+			"form": {
+				"createTitle": "创建组织",
+				"name": "组织名称",
+				"notifications": {
+					"error": "无法保存组织。请稍后再试。",
+					"success": "组织已保存。"
+				},
+				"save": "保存",
+				"updateTitle": "编辑组织"
+			},
+			"loading": "正在加载组织...",
+			"membersCount": "{count} {count, plural, one {成员} other {成员}}",
+			"search": "搜索组织...",
+			"title": "管理组织"
+		},
+		"title": "管理",
+		"users": {
+			"assignAdminRole": "分配管理员角色",
+			"confirmDelete": {
+				"confirm": "删除",
+				"message": "您确定要删除此用户吗？此操作无法撤消。",
+				"title": "删除用户"
+			},
+			"delete": "删除",
+			"deleteUser": {
+				"deleted": "用户已成功删除！",
+				"deleting": "正在删除用户...",
+				"notDeleted": "用户无法删除。请重试。"
+			},
+			"emailVerified": {
+				"verified": "邮箱已验证",
+				"waiting": "邮箱等待验证"
+			},
+			"impersonate": "模拟用户",
+			"impersonation": {
+				"impersonating": "正在模拟 {name}..."
+			},
+			"loading": "正在加载用户...",
+			"removeAdminRole": "移除管理员角色",
+			"resendVerificationMail": {
+				"error": "无法重新发送验证邮件。请重试。",
+				"submitting": "正在重新发送验证邮件...",
+				"success": "验证邮件已发送。",
+				"title": "重新发送验证邮件",
+				"rateLimitError": "发送验证邮件过于频繁，请稍后再试",
+				"notFoundError": "该邮箱地址尚未注册",
+				"tooManyAttempts": "重发验证邮件次数过多，请30分钟后再试或联系客服",
+				"waitAndRetry": "请等待 {countdown} 秒后再试",
+				"contactSupport": "联系客服",
+				"resendDisabled": "已达重发上限",
+				"resend": "重新发送验证邮件",
+				"resending": "发送中...",
+				"retryIn": "{countdown}秒后重试"
+			},
+			"search": "搜索姓名或邮箱...",
+			"title": "管理用户"
+		}
+	},
+	"app": {
+		"contributions": {
+			"autoRecord": "自动记录",
+			"cancel": "取消",
+			"contributionPoints": "贡献点:",
+			"contributionRecords": "贡献记录",
+			"contributionType": "贡献类型",
+			"cpDescription": "系统已根据贡献类型设置默认值，您可以根据实际贡献价值调整",
+			"cpPlaceholder": "根据贡献价值申请积分",
+			"createTime": "创建时间",
+			"currentLevel": "当前等级：{level}",
+			"declareContribution": "申报贡献",
+			"declareNow": "申报贡献",
+			"defaultCp": "默认: {cp}",
+			"descriptionPlaceholder": "详细描述您的贡献内容（至少10个字）",
+			"detailedDescription": "详细描述",
+			"dialogDescription": "向社区申报您的贡献，经过审核后将获得相应的贡献点",
+			"dialogTitle": "申报贡献",
+			"evidenceLink": "证据链接",
+			"evidenceLinks": "证据链接（可选）",
+			"evidencePlaceholder": "提供相关证据链接，如文章、作品、活动页面等",
+			"fillCompleteInfo": "请填写完整信息",
+			"levelProgress": "等级进度",
+			"loginNow": "立即登录",
+			"loginRequired": "您需要登录后才能查看贡献记录",
+			"networkError": "网络错误，请重试",
+			"nextLevelDistance": "距离{nextLevel}还需 {points} 贡献点",
+			"noRecords": "还没有贡献记录",
+			"noRecordsInStatus": "此状态下还没有贡献记录",
+			"pleaseLogin": "请先登录",
+			"referenceCp": "参考CP: {cpRange}",
+			"requestedCp": "申请积分",
+			"reviewFeedback": "审核反馈",
+			"reviewTime": "审核时间",
+			"selectType": "选择贡献类型",
+			"startContributing": "开始为社区贡献，获取您的第一个贡献点吧",
+			"status": {
+				"approved": "已通过",
+				"pending": "待审核",
+				"rejected": "已拒绝"
+			},
+			"submit": "提交申报",
+			"submitFailed": "提交失败",
+			"submitSuccess": "贡献申报提交成功，等待审核",
+			"subtitle": "管理我的贡献记录和申报新的贡献",
+			"tabs": {
+				"all": "全部记录",
+				"approved": "已通过",
+				"pending": "待审核",
+				"rejected": "已拒绝"
+			},
+			"title": "我的积分",
+			"totalContributions": "历史贡献次数",
+			"totalPoints": "总积分"
+		},
+		"menu": {
+			"accountSettings": "账户设置",
+			"admin": "管理",
+			"aiChatbot": "AI聊天机器人",
+			"following": "我的关注",
+			"contributionManagement": "我的贡献",
+			"eventManagement": "我的活动",
+			"memberManagement": "成员管理",
+			"organizationAdmin": "组织管理",
+			"organizationEvents": "组织活动",
+			"organizationMembers": "组织成员",
+			"organizationSettings": "组织设置",
+			"profile": "个人资料",
+			"projects": "我的作品",
+			"start": "开始",
+			"superAdminCenter": "超级管理中心",
+			"taskManagement": "我的任务"
+		},
+		"notifications": {
+			"delete": "删除",
+			"deleteError": "删除失败",
+			"deleteSuccess": "通知已删除成功",
+			"fetchError": "获取通知失败",
+			"loading": "加载中...",
+			"loadMore": "加载更多",
+			"markAllRead": "全部已读",
+			"markAllReadError": "标记全部已读失败",
+			"markAllReadSuccess": "所有通知已标记为已读",
+			"markAsRead": "标记已读",
+			"markReadError": "标记已读失败",
+			"markReadSuccess": "通知已标记为已读",
+			"noNotifications": "暂无通知",
+			"operationError": "操作失败",
+			"settings": {
+				"categories": {
+					"event": {
+						"description": "活动报名、提醒和更新通知",
+						"title": "活动通知"
+					},
+					"organization": {
+						"description": "你所属或管理的组织相关通知",
+						"title": "组织通知"
+					},
+					"project": {
+						"description": "与你的作品相关的活动通知",
+						"title": "作品通知"
+					},
+					"social": {
+						"description": "用户互动、收藏等社交相关通知",
+						"title": "社交通知"
+					},
+					"system": {
+						"description": "账户安全、系统公告等重要通知",
+						"title": "系统通知"
+					}
+				},
+				"description": "管理你的通知偏好设置",
+				"form": {
+					"emailNotifications": "邮件通知",
+					"inAppNotifications": "站内通知",
+					"items": {
+						"eventNotification": {
+							"description": "活动报名结果、时间变更、取消等",
+							"title": "活动通知"
+						},
+						"eventReminder": {
+							"description": "活动开始前的提醒通知",
+							"title": "活动提醒"
+						},
+						"organizationActivity": {
+							"description": "组织成员申请、角色变更、公告等",
+							"title": "组织活动"
+						},
+						"projectComment": {
+							"description": "当有人评论你的作品时",
+							"title": "作品评论"
+						},
+						"projectLike": {
+							"description": "当有人点赞你的作品时",
+							"title": "作品点赞"
+						},
+						"socialInteraction": {
+							"description": "用户收藏、私信等社交相关通知",
+							"title": "社交互动"
+						},
+						"systemNotification": {
+							"description": "账户安全、系统公告等重要通知",
+							"title": "系统通知"
+						}
+					},
+					"saved": "通知偏好设置已保存",
+					"saveFailed": "保存失败，请重试",
+					"saveSettings": "保存设置",
+					"saving": "保存中..."
+				},
+				"subtitle": "自定义你希望接收的通知类型和方式",
+				"title": "通知设置"
+			},
+			"title": "通知中心",
+			"viewAll": "查看所有通知"
+		},
+		"users": {
+			"follow": {
+				"loginRequired": "请登录后再关注用户",
+				"updateError": "关注状态更新失败",
+				"alreadyFollowing": "用户已在关注列表中",
+				"followSuccess": "关注成功",
+				"unfollowSuccess": "已取消关注"
+			},
+			"like": {
+				"loginRequired": "请登录后点赞用户",
+				"alreadyLiked": "已经点赞过了",
+				"cannotLikeSelf": "不能点赞自己",
+				"likeSuccess": "已点赞",
+				"unlikeSuccess": "已取消点赞",
+				"updateError": "点赞操作失败"
+			}
+		},
+		"userMenu": {
+			"accountSettings": "账户设置",
+			"colorMode": "颜色模式",
+			"themeSystem": "跟随系统",
+			"themeLight": "浅色模式",
+			"themeDark": "深色模式",
+			"documentation": "文档",
+			"home": "首页",
+			"profile": "个人主页",
+			"settings": "设置",
+			"logout": "退出登录"
+		}
+	},
+	"auth": {
+		"agreementDialog": {
+			"confirm": "同意并继续",
+			"cancel": "暂不",
+			"defaultTitle": "隐私政策与用户协议",
+			"description": "继续之前，请先阅读并同意我们的隐私政策和用户协议。",
+			"title": "使用{provider}登录"
+		},
+		"errors": {
+			"accountNotFound": "未找到账户",
+			"credentialAccountNotFound": "未找到账户。",
+			"emailCanNotBeUpdated": "邮箱无法更新。请重试。",
+			"emailNotVerified": "请先验证您的邮箱后再登录",
+			"emailVerificationTips": {
+				"checkInbox": "验证邮件已发送到您的注册邮箱",
+				"checkSpam": "请检查收件箱和垃圾邮件文件夹",
+				"linkExpires": "验证链接有效期为24小时",
+				"resentCount": "已重发 {attempts}/3 次",
+				"verificationSent": "验证邮件已发送到您的邮箱",
+				"clickToVerify": "点击邮件中的验证链接完成验证",
+				"canLoginAfter": "验证完成后即可重新登录",
+				"resendAvailable": "如未收到，{countdown}秒后可重新发送"
+			},
+			"failedToCreateSession": "无法创建会话。请重试。",
+			"failedToCreateUser": "无法创建用户。请重试。",
+			"failedToGetSession": "无法获取会话。",
+			"failedToGetUserInfo": "无法加载用户信息。",
+			"failedToUnlinkLastAccount": "无法解除链接账户",
+			"failedToUpdateUser": "无法更新用户。请重试。",
+			"idTokenNotSupported": "不支持ID令牌。",
+			"invalidEmail": "输入的邮箱无效。",
+			"invalidEmailOrPassword": "您输入的凭据无效。请检查并重试。",
+			"invalidInvitation": "邀请无效或已过期。",
+			"invalidPassword": "输入的密码不正确。",
+			"invalidToken": "您输入的令牌无效或已过期。",
+			"passwordTooLong": "密码太长。",
+			"passwordTooShort": "密码太短。",
+			"providerNotFound": "不支持此提供商。",
+			"sessionExpired": "会话已过期。",
+			"socialAccountAlreadyLinked": "此账户已链接到用户。",
+			"unknown": "出现错误。请重试。",
+			"userAlreadyExists": "此邮箱已经注册，请直接登录。",
+			"userEmailNotFound": "未找到邮箱。",
+			"userNotFound": "此用户不存在"
+		},
+		"forgotPassword": {
+			"backToSignin": "返回登录",
+			"email": "邮箱",
+			"hints": {
+				"linkNotSent": {
+					"message": "很抱歉，我们无法向您发送重置密码的链接。请稍后再试。",
+					"title": "链接未发送"
+				},
+				"linkSent": {
+					"message": "我们已向您发送了继续操作的链接。请检查您的收件箱。",
+					"title": "链接已发送"
+				}
+			},
+			"message": "请输入您的邮箱地址，我们将向您发送重置密码的链接。",
+			"submit": "发送链接",
+			"title": "忘记密码？"
+		},
+		"login": {
+			"acceptAgreements": {
+				"and": "和",
+				"label": "我已阅读并同意",
+				"privacyPolicy": "隐私政策",
+				"terms": "用户协议"
+			},
+			"backToModifyPhone": "返回修改手机号",
+			"backToLoginMethods": "返回登录方式",
+			"continueWith": "或继续使用",
+			"createAnAccount": "创建账户",
+			"dontHaveAnAccount": "还没有账户？",
+			"email": "邮箱",
+			"emailInputPlaceholder": "输入邮箱地址",
+			"emailLogin": "邮箱登录",
+			"emailLoginSubtitle": "使用邮箱和密码登录",
+			"emailUsernameInputPlaceholder": "输入邮箱或用户名",
+			"emailUsernameLogin": "邮箱/用户名登录",
+			"enterVerificationCode": "请输入验证码",
+			"errors": {
+				"accountNotExist": "账户不存在，请检查邮箱/用户名或先注册账户",
+				"codeExpiredOrIncorrect": "验证码错误或已过期，请重新获取",
+				"emailNotVerified": "请先验证您的邮箱后再登录",
+				"emailUsernameOrPasswordIncorrect": "邮箱/用户名或密码错误，请检查后重试",
+				"enterSixDigitCode": "请输入6位验证码",
+				"invalidPhoneNumber": "手机号格式不正确",
+				"loginFailedGeneral": "登录失败，请检查邮箱/用户名和密码是否正确",
+				"networkError": "网络连接异常，请检查网络后重试",
+				"phoneNotAvailable": "手机验证码功能暂时不可用，请稍后再试",
+				"sendCodeFailed": "发送验证码失败，请重试",
+				"sendCodeTooFrequent": "发送验证码过于频繁，请稍后再试",
+				"serverError": "服务器暂时无法响应，请稍后重试",
+				"sessionExpired": "登录会话已过期，请重新登录",
+				"smsServiceNotConfigured": "短信服务配置不完整，请联系管理员",
+				"tooManyAttempts": "登录尝试次数过多，请稍后再试",
+				"phoneRequired": "请输入手机号码"
+			},
+			"forgotPassword": "忘记密码？",
+			"hints": {
+				"acceptAgreements": "请先同意隐私政策和用户协议，然后继续使用第三方登录",
+				"invalidCredentials": "您输入的邮箱或密码无效。请重试。",
+				"linkSent": {
+					"message": "我们已向您发送了继续操作的链接。请检查您的收件箱。",
+					"title": "链接已发送"
+				}
+			},
+			"loginWithPasskey": "使用密钥登录",
+			"modes": {
+				"magicLink": "魔法链接",
+				"password": "密码",
+				"phone": "手机号"
+			},
+			"otherLoginMethods": "其他登录方式",
+			"phoneInputPlaceholder": "输入手机号",
+			"phoneLogin": "手机号登录",
+			"phoneLoginSubtitle": "输入手机号，我们将发送验证码",
+			"phoneNumber": "手机号",
+			"resendCodeIn": "秒后可重新发送",
+			"resendVerificationCode": "重新发送验证码",
+			"sendMagicLink": "发送魔法链接",
+			"sendVerificationCode": "发送验证码",
+			"submit": "登录",
+			"subtitle": "请输入您的凭据以登录。",
+			"title": "欢迎回来",
+			"username": "用户名",
+			"verificationCodeSentTo": "验证码已发送至",
+			"verifyAndLogin": "验证登录",
+			"wechatLogin": "微信登录",
+			"wechatRecommended": "推荐使用微信快速登录",
+			"orUseOtherMethods": "或使用其他方式",
+			"moreLoginMethods": "更多登录方式",
+			"toasts": {
+				"codeSent": "验证码已发送",
+				"loginSuccess": "登录成功"
+			}
+		},
+		"bindPhone": {
+			"title": "绑定手机号",
+			"subtitle": "为了保障账号安全，并便于活动通知与组队联系，建议绑定手机号。你也可以暂时跳过，但可能无法体验完整功能。",
+			"phoneNumber": "手机号",
+			"phoneInputPlaceholder": "输入手机号",
+			"sendVerificationCode": "发送验证码",
+			"enterVerificationCode": "请输入验证码",
+			"verificationCodeSentTo": "验证码已发送至",
+			"backToModifyPhone": "← 返回修改手机号",
+			"resendCodeIn": "秒后可重新发送",
+			"resendVerificationCode": "重新发送验证码",
+			"verifyAndBind": "验证并绑定",
+			"skipForNow": "暂时跳过",
+			"bindingSuccess": "手机号绑定成功！",
+			"redirecting": "正在跳转...",
+			"errors": {
+				"sendCodeFailed": "发送验证码失败，请重试",
+				"sendCodeTooFrequent": "发送验证码过于频繁，请稍后再试",
+				"invalidPhoneNumber": "手机号格式不正确",
+				"smsServiceNotConfigured": "短信服务配置不完整，请联系管理员",
+				"enterSixDigitCode": "请输入6位验证码",
+				"codeExpiredOrIncorrect": "验证码错误或已过期，请重新获取",
+				"bindingFailed": "绑定失败，请重试"
+			}
+		},
+		"phoneBindingPrompt": {
+			"title": "绑定手机号，解锁完整功能",
+			"description": "检测到你使用微信登录，但还未绑定手机号。",
+			"note": "绑定手机号可用于找回账号、活动通知与组队联系；跳过后部分功能可能受限。",
+			"skip": "暂时跳过",
+			"bindNow": "去绑定"
+		},
+		"resetPassword": {
+			"backToSignin": "返回登录",
+			"hints": {
+				"error": "很抱歉，我们无法重置您的密码。请重试。",
+				"success": "您的密码已成功重置。"
+			},
+			"message": "请输入新密码。",
+			"newPassword": "新密码",
+			"submit": "重置密码",
+			"title": "重置您的密码"
+		},
+		"signup": {
+			"acceptAgreements": {
+				"and": "和",
+				"label": "我同意",
+				"privacyPolicy": "隐私政策",
+				"terms": "用户协议"
+			},
+			"acceptPrivacyPolicy": {
+				"label": "我同意",
+				"link": "隐私政策"
+			},
+			"acceptTerms": {
+				"label": "我同意",
+				"link": "服务条款"
+			},
+			"alreadyHaveAccount": "已有账户？",
+			"goToSignIn": "立即登录",
+			"backToModifyPhone": "返回修改手机号",
+			"email": "邮箱",
+			"emailInputPlaceholder": "输入邮箱",
+			"emailUsernameSignup": "邮箱/用户名注册",
+			"enterVerificationCode": "请输入验证码",
+			"errors": {
+				"agreeToTermsRequired": "请同意服务条款和隐私政策",
+				"codeExpiredOrIncorrect": "验证码错误或已过期，请重新获取",
+				"emailOrUsernameExists": "邮箱或用户名已存在，请更换或直接登录",
+				"enterSixDigitCode": "请输入6位验证码",
+				"invalidPhoneNumber": "手机号格式不正确",
+				"networkError": "网络连接异常，请检查网络后重试",
+				"phoneNotAvailable": "手机验证码功能暂时不可用，请稍后再试",
+				"phoneNumberExists": "手机号已被注册，请直接登录",
+				"sendCodeFailed": "发送验证码失败，请重试",
+				"sendCodeTooFrequent": "发送验证码过于频繁，请稍后再试",
+				"serverError": "服务器暂时无法响应，请稍后重试",
+				"signupFailedGeneral": "注册失败，请检查输入信息后重试",
+				"smsServiceNotConfigured": "短信服务配置不完整，请联系管理员",
+				"weakPassword": "密码强度不够，请至少包含8个字符"
+			},
+			"hints": {
+				"acceptAgreements": "请先同意隐私政策和用户协议，然后继续使用第三方登录",
+				"checkEmailAndSignIn": "请检查您的邮箱并点击验证链接。验证完成后，您可以登录您的账户。",
+				"signupFailed": "很抱歉，我们无法创建您的账户。请稍后再试。",
+				"verifyEmail": "我们已向您发送了验证邮箱的链接。请检查您的收件箱。"
+			},
+			"message": "我们很高兴您想加入社区。请填写下面的表单创建您的账户。",
+			"name": "姓名",
+			"otherSignupMethods": "其他注册方式",
+			"password": "密码",
+			"phoneInputPlaceholder": "输入手机号",
+			"phoneNumber": "手机号",
+			"phoneSignup": "手机号注册",
+			"resendCodeIn": "秒后可重新发送",
+			"resendVerificationCode": "重新发送验证码",
+			"sendVerificationCode": "发送验证码",
+			"signIn": "登录",
+			"submit": "创建账户",
+			"title": "创建账户",
+			"username": "用户名",
+			"usernameInputPlaceholder": "输入用户名",
+			"verificationCodeSentTo": "验证码已发送至",
+			"verifyAndSignup": "验证注册",
+			"wechatSignup": "微信注册"
+		},
+		"verify": {
+			"backToSignin": "返回登录",
+			"code": "验证码",
+			"message": "请输入您收到的验证码以验证您的账户。",
+			"submit": "验证",
+			"title": "验证您的账户"
+		},
+		"emailVerified": {
+			"goHome": "返回首页",
+			"message": "您的邮箱已成功验证！您现在可以使用此邮箱登录了。",
+			"signIn": "立即登录",
+			"title": "邮箱验证成功",
+			"autoRedirecting": "检测到您已登录，正在自动跳转...",
+			"redirectIn": "{countdown} 秒后自动跳转",
+			"redirectToApp": "立即跳转到应用",
+			"backToLogin": "返回登录页",
+			"goToApp": "前往应用"
+		}
+	},
+	"bookmarks": {
+		"addBookmark": "添加收藏",
+		"bookmarkDescription": "描述",
+		"bookmarkedUsers": "收藏的用户",
+		"userFollowing": "关注的用户",
+		"eventBookmarks": "收藏的活动",
+		"bookmarkTitle": "收藏标题",
+		"bookmarkUrl": "链接",
+		"cpValue": "贡献点",
+		"createdAt": "创建时间",
+		"deleteBookmark": "删除收藏",
+		"description": "管理您收藏的内容和链接",
+		"discoverProjects": "发现项目",
+		"discoverUsers": "发现用户",
+		"editBookmark": "编辑收藏",
+		"location": "位置",
+		"noBookmarks": "暂无收藏",
+		"noBookmarksDescription": "浏览用户资料时点击收藏按钮将其添加到这里",
+		"noProjectBookmarks": "暂无收藏的项目",
+		"noUserBookmarks": "暂无收藏的用户",
+		"noUserFollowing": "暂无关注的用户",
+		"searchPlaceholder": "搜索关注的用户...",
+		"projectBookmarks": "收藏的项目",
+		"role": "角色",
+		"stage": "阶段",
+		"status": "状态",
+		"timesViewed": "次浏览",
+		"title": "我的收藏",
+		"userBookmarks": "收藏的用户",
+		"viewProfile": "查看资料",
+		"viewProject": "查看项目",
+		"work": "工作"
+	},
+	"beta": {
+		"close": "关闭",
+		"label": "BETA",
+		"message": "您正在体验测试版，网站仍在完善中，感恩理解"
+	},
+	"blog": {
+		"back": "返回",
+		"description": "阅读我们社区的最新消息",
+		"title": "社区博客"
+	},
+	"following": {
+		"addBookmark": "添加书签",
+		"bookmarkDescription": "描述",
+		"followedUsers": "关注的用户",
+		"bookmarkTitle": "书签标题",
+		"bookmarkUrl": "链接地址",
+		"cpValue": "积分",
+		"createdAt": "创建时间",
+		"deleteBookmark": "删除书签",
+		"description": "管理关注的内容和链接",
+		"discoverProjects": "发现作品",
+		"discoverUsers": "发现用户",
+		"editBookmark": "编辑书签",
+		"location": "位置",
+		"noBookmarks": "暂无收藏",
+		"noBookmarksDescription": "浏览用户主页时点击收藏按钮来添加到这里",
+		"noProjectBookmarks": "暂无收藏的作品",
+		"noUserFollowing": "暂无关注的用户",
+		"projectBookmarks": "作品收藏",
+		"role": "角色",
+		"searchPlaceholder": "搜索关注...",
+		"stage": "阶段",
+		"status": "状态",
+		"timesViewed": "次查看",
+		"title": "我的关注",
+		"userFollowing": "用户关注",
+		"viewProfile": "查看资料",
+		"viewProject": "查看作品",
+		"work": "工作"
+	},
+	"callToActionV2": {
+		"bottom": {
+			"subtitle": "在这里，遇见同频的创造者，一起把想法落地为现实",
+			"title": "不必独自创造"
+		},
+		"bottomSubtitle": "在这里，遇见同频的创造者，一起把想法落地为现实",
+		"bottomTitle": "不必独自创造",
+		"cards": {
+			"creation": {
+				"color": "green",
+				"cta": "发布我的作品",
+				"description": "分享你的产品作品，无论是原型还是MVP，都能获得曝光，吸引种子用户与潜在伙伴",
+				"icon": "🚀",
+				"title": "展示作品"
+			},
+			"freedom": {
+				"color": "blue",
+				"cta": "探索本地分部",
+				"description": "融入本地分部，参与长期合作，链接更多资源，拓展深度协作的机会",
+				"icon": "🏢",
+				"title": "加入社区分部"
+			},
+			"love": {
+				"color": "purple",
+				"cta": "查看近期活动",
+				"description": "加入迷你黑客松、Demo Show、工作坊，在轻松氛围中交流展示，收获真诚反馈与灵感",
+				"icon": "🎪",
+				"title": "参加活动"
+			}
+		},
+		"subtitle": "无论项目在起步还是成长阶段，都能在这里收获支持与伙伴",
+		"tagline": "🎯 三种参与方式",
+		"title": "找到最适合你的参与路径"
+	},
+	"changelog": {
+		"description": "了解我们产品的最新变更。",
+		"title": "更新日志"
+	},
+	"choosePlan": {
+		"description": "选择最合适你需求的计划",
+		"title": "选择一个计划"
+	},
+	"common": {
+		"clickHere": "点击这里取消订阅",
+		"loadMore": "加载更多",
+		"openLinkInBrowser": "如果您想在非默认浏览器中打开链接，请复制并粘贴此链接：",
+		"otp": "一次性密码",
+		"unsubscribe": "不想接收这些邮件？",
+		"useLink": "或使用以下链接：",
+		"copy": "复制",
+		"save": "收藏",
+		"share": "分享",
+		"like": "点赞",
+		"actions": {
+			"continue": "继续",
+			"verify": "验证",
+			"add": "添加"
+		},
+		"banner": {
+			"developmentNotice": "周周黑客松社区网站正在开发中"
+		},
+		"confirmation": {
+			"cancel": "取消",
+			"confirm": "确认"
+		},
+		"consent": {
+			"description": "通过继续，您同意我们的服务条款和隐私政策。"
+		},
+		"menu": {
+			"allrights": "保留所有权利。",
+			"blog": "博客",
+			"changelog": "更新日志",
+			"contact": "联系我们",
+			"dashboard": "控制面板",
+			"docs": "文档",
+			"faq": "常见问题",
+			"features": "功能特性",
+			"feishuKnowledgeBase": "飞书知识库",
+			"icp": "ICP备案",
+			"icpNumber": "备2025000000号-1",
+			"login": "登录",
+			"pricing": "价格",
+			"privacy": "隐私政策",
+			"terms": "服务条款"
+		},
+		"reset": "重置",
+		"saveChanges": "保存更改",
+		"tableOfContents": {
+			"title": "在本页"
+		},
+		"toasts": {
+			"shareSuccess": "分享成功",
+			"linkCopied": "链接已复制到剪贴板",
+			"shareFailed": "分享失败，请手动复制链接"
+		}
+	},
+	"eventHostSubscription": {
+		"description": "新活动发布时将通过邮件通知您",
+		"error": "操作失败，请稍后再试。",
+		"login": "登录后订阅",
+		"subscribe": "订阅后续活动",
+		"successSubscribe": "已订阅 {hostName} 的活动通知。",
+		"successUnsubscribe": "已取消订阅 {hostName} 的活动通知。",
+		"unsubscribe": "取消订阅"
+	},
+	"communityFeatures": {
+		"features": {
+			"activities": {
+				"description": "AI共学工作坊、创造者交流会、迷你黑客松等，让创新常态化",
+				"title": "每周活动"
+			},
+			"cities": {
+				"description": "北京、上海、广州、深圳、杭州、清迈（持续扩展中...）",
+				"title": "多城市覆盖"
+			},
+			"creators": {
+				"description": "开发者、创业者、产品、设计、运营、职场人跨界协作",
+				"title": "创造者圈子"
+			},
+			"mvp": {
+				"description": "提供系统化方法论、知识库、开源工具和案例支持，7天完成MVP",
+				"title": "专注MVP"
+			}
+		},
+		"label": "社区特色",
+		"mission": {
+			"description": "通过AI加速创意实现，助力千万创造者打造有价值、有意义、有趣的产品",
+			"title": "使命"
+		},
+		"title": "社区核心特色",
+		"values": {
+			"creation": "创造",
+			"freedom": "自由",
+			"love": "爱"
+		},
+		"vision": {
+			"description": "成为全球最有活力和温暖的AI产品创造者社区",
+			"title": "愿景"
+		}
+	},
+	"contact": {
+		"contactInfo": {
+			"title": "联系信息"
+		},
+		"description": "我们随时为您提供帮助。请使用下面的表单联系我们。",
+		"form": {
+			"email": "邮箱",
+			"emailPlaceholder": "请输入您的电子邮件",
+			"message": "消息",
+			"messagePlaceholder": "我们能帮您什么？",
+			"name": "姓名",
+			"namePlaceholder": "请输入您的名字",
+			"notifications": {
+				"error": "很抱歉，我们无法发送您的消息。请稍后再试。",
+				"success": "您的消息已成功发送。我们将尽快回复您。"
+			},
+			"subject": "主题",
+			"subjectPlaceholder": "这是关于什么的？",
+			"submit": "发送消息",
+			"submitting": "发送中...",
+			"title": "发送信息"
+		},
+		"info": {
+			"email": {
+				"title": "电子邮件"
+			},
+			"location": {
+				"title": "位置",
+				"value": "中国广东省深圳市"
+			},
+			"wechat": {
+				"title": "微信",
+				"value": "扫描下方二维码"
+			}
+		},
+		"label": "联系我们",
+		"qrCodes": {
+			"title": "微信联系",
+			"wechatGroup": "微信群",
+			"wechatOfficial": "公众号"
+		},
+		"title": "联系我们"
+	},
+	"dashboard": {
+		"advancedGuide": {
+			"createOrganization": {
+				"description": "构建您的本地社区，聚集志同道合的伙伴",
+				"title": "创建组织"
+			},
+			"description": "准备好承担更多责任？成为社区建设者和贡献者",
+			"organizeEvent": {
+				"description": "举办活动，连接更多创造者",
+				"title": "组织活动"
+			},
+			"title": "进阶指南"
+		},
+		"myOrganizations": {
+			"createNew": "创建组织",
+			"description": "您参与的社区组织",
+			"findOrganizations": "发现组织",
+			"memberRole": "组织成员",
+			"noOrganizations": "还没有加入组织",
+			"noOrganizationsDesc": "加入或创建一个组织来进行协作",
+			"title": "我的组织",
+			"viewAll": "查看全部 {count} 个组织"
+		},
+		"myProjects": {
+			"createFirst": "创建第一个作品",
+			"createNew": "创建新作品",
+			"description": "展示您的创意作品",
+			"featured": "精选",
+			"likes": "点赞",
+			"noProjects": "还没有作品",
+			"noProjectsDesc": "开始创建您的第一个作品吧",
+			"title": "我的作品",
+			"viewAll": "查看全部 {count} 个作品",
+			"views": "浏览"
+		},
+		"newUser": {
+			"completeProfile": "完善资料",
+			"description": "完善您的资料，开启您的第一次创意之旅",
+			"viewEvents": "查看活动",
+			"welcome": "欢迎加入创造者社区！"
+		},
+		"notifications": {
+			"daysAgo": "{count} 天前",
+			"description": "查看最新的系统消息和互动通知",
+			"hoursAgo": "{count} 小时前",
+			"justNow": "刚刚",
+			"minutesAgo": "{count} 分钟前",
+			"noNotifications": "暂无新消息",
+			"title": "消息通知",
+			"viewAll": "查看全部",
+			"viewMore": "查看更多 {count} 条消息"
+		},
+		"personalCenter": {
+			"accountSettings": {
+				"description": "安全设置、通知偏好等",
+				"title": "账户设置"
+			},
+			"communityDocs": {
+				"description": "查看使用指南和社区规则",
+				"title": "社区文档"
+			},
+			"description": "管理您的个人资料和账户设置",
+			"editProfile": {
+				"description": "完善您的个人信息和技能标签",
+				"title": "编辑个人资料"
+			},
+			"eventManagement": {
+				"description": "管理参与和组织的活动",
+				"title": "活动管理"
+			},
+			"myBookmarks": {
+				"description": "查看收藏的项目和活动",
+				"title": "我的收藏"
+			},
+			"myContributions": {
+				"description": "查看和申请社区贡献记录",
+				"title": "贡献管理"
+			},
+			"title": "个人中心"
+		},
+		"projectStages": {
+			"COMPLETED": "🎯 项目完结",
+			"DEVELOPMENT": "🔧 产品开发",
+			"FUNDING": "💼 融资扩张",
+			"GROWTH": "📈 用户增长",
+			"IDEA_VALIDATION": "💡 想法验证",
+			"LAUNCH": "🚀 产品发布",
+			"MONETIZATION": "💰 商业变现"
+		},
+		"quickActions": {
+			"createProject": {
+				"description": "开始您的第一个创意作品",
+				"title": "创建作品"
+			},
+			"description": "开启您的创意之旅",
+			"joinEvent": {
+				"description": "参与社区活动",
+				"title": "参加活动"
+			},
+			"title": "快速开始"
+		},
+		"stats": {
+			"contributionPoints": "贡献点",
+			"projectsCount": "作品数量",
+			"totalLikes": "总点赞数",
+			"totalViews": "总浏览量"
+		},
+		"subtitle": "管理您的作品，跟踪进度，与社区建立联系",
+		"title": "创造者控制台",
+		"userOverview": {
+			"daysActive": "天创造",
+			"memberSince": "加入时间"
+		},
+		"values": {
+			"creation": "创造",
+			"description": "花1周时间创造1个最小可行产品，解决1个生活痛点",
+			"freedom": "自由",
+			"love": "爱",
+			"title": "核心价值观"
+		},
+		"events": {
+			"copyLink": "复制链接",
+			"hackathonManagement": {
+				"stage": {
+					"currentStageLabel": "当前阶段：{stage}",
+					"title": "阶段管理",
+					"description": "管理黑客松的不同阶段流转",
+					"previous": "上一阶段",
+					"next": "下一阶段",
+					"jumpLabel": "跳转到阶段",
+					"jumpPlaceholder": "选择阶段",
+					"lastUpdated": "最后更新：{time}",
+					"updateSuccess": "阶段已更新为：{stage}",
+					"updateFailed": "阶段更新失败",
+					"historyTitle": "阶段变更历史",
+					"historyUnknownTime": "未知时间",
+					"historyBy": "操作人：{user}",
+					"setCurrent": "设为当前",
+					"descriptions": {
+						"registration": "参赛者可以报名参加黑客松",
+						"development": "团队开始开发作品",
+						"submission": "团队提交最终作品",
+						"voting": "评委和公众为作品投票",
+						"results": "公布获奖结果"
+					}
+				},
+				"toasts": {
+					"saveSuccess": "配置已保存",
+					"saveFailed": "配置保存失败"
+				}
+			}
+		}
+	},
+	"documentation": {
+		"title": "文档"
+	},
+	"eventManagement": {
+		"allEvents": "所有活动",
+		"checkedIn": "已签到",
+		"createEvent": "创建活动",
+		"exploreEvents": "发现活动",
+		"manage": "管理",
+		"myEvents": "我的活动",
+		"myEventsDescription": "管理您的活动报名和组织活动",
+		"noEvents": "还没有活动",
+		"noOrganizedEvents": "您还没有组织任何活动。从创建您的第一个活动开始。",
+		"noRegisteredEvents": "您还没有报名任何活动。在我们的社区发现精彩活动。",
+		"online": "线上",
+		"organizedEvents": "组织的活动",
+		"organizer": "组织者",
+		"refresh": "刷新",
+		"registered": "已报名",
+		"registeredEvents": "已报名的活动",
+		"upcomingOnly": "即将举行",
+		"viewEvent": "查看活动",
+		"viewMore": "查看更多",
+		"views": "查看次数"
+	},
+	"events": {
+		"viewMode": {
+			"card": "卡片视图",
+			"compact": "紧凑视图"
+		},
+		"tabs": {
+			"intro": "介绍",
+			"works": "作品",
+			"participants": "参与者",
+			"organizer": "组织者"
+		},
+		"manageEventShort": "管理",
+		"awardsWall": "颁奖墙",
+		"aboutThisEvent": "关于此活动",
+		"external": "外部活动",
+		"organizedBy": "组织方",
+		"hackathon": {
+			"phases": {
+				"registration": "报名阶段",
+				"development": "开发阶段",
+				"submission": "作品提交阶段",
+				"voting": "投票阶段",
+				"results": "结果公布阶段"
+			},
+			"status": {
+				"registration": "报名进行中",
+				"development": "开发阶段进行中",
+				"submission": "作品提交开放",
+				"voting": "投票进行中",
+				"resultsPublished": "结果已公布"
+			},
+			"tabs": {
+				"overview": "概览",
+				"projects": "作品",
+				"resources": "资源",
+				"awards": "奖项",
+				"results": "结果"
+			},
+			"resources": {
+				"noResources": "暂无资源"
+			},
+			"awards": {
+				"title": "奖项与荣誉",
+				"description": "了解本次黑客松的奖项类别与获奖方式",
+				"categories": "奖项类别",
+				"judgeAward": "评审奖",
+				"publicAward": "人气奖",
+				"winner": "获奖名额",
+				"winners": "获奖名额",
+				"currentWinners": "当前获奖者",
+				"noWinnersYet": "暂无获奖者，评审结束后公布",
+				"judgeAwards": "评审类奖项",
+				"judgeAwardsDesc": "由评审团根据评审标准评选产生",
+				"publicAwards": "公共投票类",
+				"publicAwardsDesc": "由社区用户投票产生",
+				"recognition": "奖项等级",
+				"recognitionDesc": "金/银/铜等不同等级用于表彰优秀项目",
+				"first": "一等奖",
+				"firstDesc": "最高荣誉，授予最优秀的项目",
+				"second": "二等奖",
+				"secondDesc": "表彰表现出色的项目",
+				"third": "三等奖",
+				"thirdDesc": "表彰具有潜力的项目",
+				"noAwards": "暂无奖项",
+				"noAwardsDesc": "暂无奖项设置"
+			},
+			"gallery": {
+				"title": "作品展示",
+				"sortRecent": "最新发布",
+				"sortPopular": "最受欢迎",
+				"sortScore": "评分排序",
+				"noProjects": "暂无作品",
+				"noProjectsDesc": "还没有提交的作品，快来提交你的创意项目吧！"
+			},
+			"results": {
+				"notReady": "投票阶段开启后，这里将展示投票结果。"
+			},
+			"voting": {
+				"configuration": "投票配置",
+				"configurationDesc": "配置投票规则和参数",
+				"results": "投票结果 ({count})",
+				"resultsDesc": "查看投票结果统计",
+				"noResults": "暂无投票结果",
+				"noResultsDesc": "投票结束后将在这里显示结果",
+				"liveMessage": "投票已开启，欢迎为喜欢的作品打Call！",
+				"notOpenMessage": "投票将在活动进入投票阶段后开放，请耐心等待。",
+				"closedMessage": "投票已结束，感谢你的参与。",
+				"modes": {
+					"fixedQuota": "限额投票（每人 N 票）",
+					"perProjectLike": "逐项点赞（每作品 1 票）"
+				},
+				"modeLabels": {
+					"title": "投票模式",
+					"description": "选择每位投票者的投票方式：限额 N 票或逐项点赞"
+				},
+				"quotaLabel": "每人票数配额",
+				"quotaDescription": "每位符合资格的投票者在本活动内最多可投多少票",
+				"errors": {
+					"votesFull": "可用票数已用完",
+					"votesFullWithQuota": "可用票数已用完（每人最多 {quota} 票）",
+					"ownSubmission": "无法给自己的作品投票",
+					"alreadyVoted": "你已经投过该作品了",
+					"votingClosed": "投票未开放或已结束",
+					"votingEnded": "投票已结束",
+					"notVoted": "你还没有给该作品投票",
+					"operationFailed": "操作失败，请重试"
+				},
+				"messages": {
+					"remainingVotes": "你还有 {count} 票",
+					"perProjectMode": "逐项点赞（每个作品最多 1 次）",
+					"votedCount": "已投 {count} 个作品",
+					"voteSuccess": "投票成功",
+					"voteSuccessUnlimited": "已为该作品投票，可继续支持其他作品",
+					"voteSuccessWithRemaining": "还剩 {count} 票",
+					"unvoteSuccess": "已取消投票",
+					"unvoteSuccessUnlimited": "已取消对该作品的投票",
+					"unvoteSuccessWithRemaining": "还剩 {count} 票"
+				},
+				"submissions": {
+					"viewAll": "全部作品"
+				}
+			},
+			"description": {
+				"title": "活动详情"
+			},
+			"features": {
+				"title": "黑客松特色",
+				"teamwork": "团队协作",
+				"soloOrTeam": "支持单人或组队参与，最多 {max} 人/队",
+				"teamOnly": "仅限团队参与",
+				"learning": "学习机会",
+				"learningDesc": "与其他开发者学习交流，提升技术能力",
+				"innovation": "创新挑战",
+				"innovationDesc": "解决真实问题，挑战创新思维",
+				"recognition": "获得认可",
+				"recognitionDesc": "优秀作品将获得奖项和社区认可"
+			},
+			"registration": {
+				"title": "参赛报名",
+				"joinToParticipate": "加入黑客松，展示你的创造力",
+				"register": "立即报名",
+				"stageClosed": "当前阶段暂不开放报名，请留意后续安排。"
+			},
+			"actions": {
+				"submitProject": "提交我的作品"
+			}
+		},
+		"addressTBD": "地址待定",
+		"associatedProject": "关联项目",
+		"attendeesLabel": "人参加",
+		"backToEventsList": "返回活动列表",
+		"card": {
+			"addressTBD": "地址待定",
+			"featured": "精选",
+			"more": "更多",
+			"onlineEvent": "线上活动",
+			"registered": "已报名",
+			"viewDetails": "查看详情",
+			"views": "次浏览"
+		},
+		"checkIn": {
+			"active": "活跃",
+			"adminCanCheckInAnytime": "管理员可随时为参与者签到",
+			"alreadyCheckedIn": "已签到",
+			"backToEvents": "返回活动列表",
+			"cameraInitError": "初始化相机失败。请检查相机权限。",
+			"cameraPermissionDenied": "相机权限被拒绝。请允许访问相机以扫描二维码。",
+			"cameraPermissionHelp": "请确保您的设备有相机并授予权限。",
+			"cancel": "取消",
+			"cancelCheckInError": "取消签到失败",
+			"cancelCheckInSuccess": "签到已成功取消",
+			"cannotCheckIn": "无法签到",
+			"checkedInAt": "签到时间：{time}",
+			"checkedInList": "已签到 ({count})",
+			"checkIn": "签到",
+			"checkInError": "用户签到失败",
+			"checking": "正在签到...",
+			"checkingIn": "签到中...",
+			"checkInManagement": "签到管理",
+			"checkInManagementDesc": "管理所有参与者和签到状态",
+			"checkInNow": "立即签到",
+			"checkInStatus": "签到状态",
+			"checkInSuccess": "{name} {statusPrefix}已于 {time} 签到",
+			"date": "日期",
+			"error": "错误",
+			"errorLoadCheckInStatus": "无法加载签到状态",
+			"eventCheckIn": "活动签到",
+			"eventDetails": "活动详情",
+			"fetchCheckInsError": "获取签到记录失败",
+			"fetchParticipantsError": "获取已报名参与者失败",
+			"initializingCamera": "正在初始化相机...",
+			"invalidQRFormat": "无效的二维码格式。请扫描有效的签到二维码。",
+			"lastHour": "最近一小时",
+			"loadingCheckIn": "正在加载签到页面...",
+			"location": "地点",
+			"noCameraAvailable": "无可用相机",
+			"noCameraFound": "未找到相机。请确保您的设备有相机。",
+			"noCheckInsYet": "暂无签到记录",
+			"onlineEvent": "线上活动",
+			"pendingCheckIn": "待签到 ({count})",
+			"preEvent": "活动前",
+			"processingCheckIn": "正在处理签到...",
+			"qrProcessError": "处理二维码时出错。请重试。",
+			"readyToCheckIn": "准备签到",
+			"refreshParticipants": "刷新参与者",
+			"scanInstruction": "将相机对准二维码进行扫描",
+			"scanQRDescription": "将二维码放置在框架内为参与者签到。",
+			"scanQRTitle": "扫描二维码",
+			"scanSuccess": "二维码扫描成功！",
+			"searchParticipants": "搜索参与者...",
+			"successfullyCheckedIn": "签到成功！",
+			"time": "时间",
+			"totalCheckIns": "总签到人数：{count}",
+			"totalCheckInsLabel": "总签到数",
+			"unableToLoadCheckIn": "无法加载签到信息",
+			"user": "用户",
+			"userCanCheckInTwoHoursBefore": "参与者可在活动开始前2小时签到",
+			"viewEventDetails": "查看活动详情",
+			"wrongEventQR": "此二维码属于其他活动。请扫描正确的二维码。",
+			"pleaseLoginFirst": "请先登录",
+			"loginRequiredMessage": "您需要先登录才能进行签到",
+			"goToLogin": "去登录",
+			"notRegisteredTitle": "还未报名",
+			"notRegisteredDescription": "你尚未报名本次活动，请先完成报名再来签到。",
+			"notRegisteredGuide": "点击下方直接进入报名入口，完成报名后即可返回这里签到。",
+			"notRegisteredCtaHint": "报名完成后再次打开签到二维码即可",
+			"goToRegistration": "去报名入口",
+			"registrationPendingHelp": "报名审核通过后即可完成签到，请留意通知。"
+		},
+		"copy": "复制",
+		"copyFailed": "复制失败，请手动复制链接",
+		"copyShareText": "复制分享文案",
+		"createEvent": "发起活动",
+		"downloadQRCode": "下载二维码",
+		"emptyState": {
+			"noEventsYet": "目前还没有已发布的活动。",
+			"title": "未找到活动",
+			"tryAdjustFilters": "尝试调整筛选条件以查看更多活动。"
+		},
+		"pastEventsFallback": {
+			"title": "以下是往期活动：",
+			"viewAll": "查看全部"
+		},
+		"eventDetails": "活动详情",
+		"eventEnded": "活动已结束",
+		"eventFeedback": "活动反馈",
+		"eventFull": "活动已满员",
+		"eventInfoTitle": "活动信息",
+		"eventNotAvailable": "活动不可用",
+		"eventTitle": "活动标题",
+		"eventLabel": "活动",
+		"feedbackLinkCopied": "反馈链接已复制到剪贴板",
+		"hideQRCode": "隐藏二维码",
+		"shareFeedbackDescription": "分享此链接给参与者，他们可以直接跳转到反馈页面",
+		"shareFeedbackLink": "分享反馈链接",
+		"showQRCode": "显示二维码",
+		"feedback": {
+			"averageRating": "平均评分",
+			"cancel": "取消",
+			"clickToRecommend": "点击选择是否愿意推荐给朋友",
+			"comment": "评论：",
+			"currentFeeling": "目前对活动的感受如何？*",
+			"currentFeelingsQuestion": "目前对活动的感受如何？*",
+			"edit": "编辑",
+			"editFeedback": "编辑你的反馈",
+			"editYourFeedback": "编辑你的反馈",
+			"eventRating": "你对这次活动的评分是？*",
+			"eventRatingQuestion": "你对这次活动的评分是？*",
+			"eventReviews": "活动评价 ({count})",
+			"eventThoughts": "你对这次活动有什么想法？",
+			"eventThoughtsQuestion": "你对这次活动有什么想法？",
+			"experiencePlaceholder": "分享你的体验，喜欢什么，有什么可以改进的...",
+			"feedbackUpdated": "反馈已更新！",
+			"notifications": {
+				"submitError": "提交反馈失败"
+			},
+			"helpUsImprove": "帮助我们改进，分享你对这次活动的反馈",
+			"improvementPlaceholder": "有什么建议让未来的活动更棒...",
+			"improvementSuggestions": "改进建议",
+			"improvementSuggestionsLabel": "改进建议：",
+			"leaveFeedback": "留下反馈",
+			"noReviews": "暂无评价",
+			"participantReviews": "参与者对这个活动的评价",
+			"pleaseProvideRating": "请提供评分",
+			"rating": "评分：",
+			"realTimeFeedback": "实时反馈",
+			"realTimeFeelings": "实时感受和想法",
+			"realTimePlaceholder": "分享你的实时感受，有什么想法或建议...",
+			"realTimeThoughts": "实时感受和想法",
+			"recommend": "推荐：",
+			"recommendationRate": "推荐率",
+			"recommendClick": "点击选择是否愿意推荐给朋友",
+			"recommendEvent": "💝 我会向其他人推荐这个活动",
+			"reviewsWillAppear": "参与者的反馈将在这里显示",
+			"shareExperience": "分享你的活动体验",
+			"shareExperiencePlaceholder": "分享你的体验，喜欢什么，有什么可以改进的...",
+			"shareRealTimePlaceholder": "分享你的实时感受，有什么想法或建议...",
+			"shareThoughts": "欢迎分享你的想法和建议",
+			"shareYourExperience": "分享你的活动体验",
+			"submitFeedback": "提交反馈",
+			"submittedAt": "提交时间：",
+			"submitting": "提交中...",
+			"suggestions": "建议：",
+			"suggestionsPlaceholder": "有什么建议让未来的活动更棒...",
+			"thankYou": "感谢你提交的宝贵反馈！",
+			"thankYouForFeedback": "谢谢你的反馈！",
+			"totalReviews": "总评论数",
+			"updateFeedback": "更新你的反馈信息",
+			"updateYourFeedback": "更新你的反馈信息",
+			"updating": "更新中...",
+			"wouldNotRecommend": "❌ 不推荐",
+			"wouldRecommend": "✅ 会推荐",
+			"yourFeedback": "你的反馈",
+			"toasts": {
+				"linkCopied": "反馈链接已复制，欢迎分享给同伴",
+				"copyFailed": "复制失败，请稍后重试"
+			}
+		},
+		"filters": {
+			"activeFilters": "当前筛选",
+			"advancedFilters": "高级筛选",
+			"allLocations": "所有地点",
+			"allOrganizations": "所有组织",
+			"allStatus": "所有状态",
+			"typeSelect": "活动类型",
+			"allTypes": "所有类型",
+			"clearAll": "清除全部",
+			"clearFilters": "清除筛选",
+			"description": "搜索和筛选符合你兴趣的活动",
+			"includingExpired": "包含已过期活动",
+			"inPerson": "线下",
+			"locationLabel": "地点",
+			"more": "更多筛选",
+			"online": "线上",
+			"location": "地点",
+			"hostType": "组织者",
+			"hostTypeSelect": "主办方类型",
+			"hostOrganizations": "社区组织",
+			"hostIndividuals": "个人用户",
+			"findEvents": "查找活动",
+			"active": "个筛选",
+			"searchPlaceholder": "搜索活动名称、关键词...",
+			"organization": "主办组织",
+			"apply": "应用筛选",
+			"hostAll": "全部主办方",
+			"showExpired": "显示已过期的活动",
+			"title": "查找活动",
+			"typeLabel": "类型"
+		},
+		"goToExternalPlatform": "前往外部平台报名",
+		"hasProject": "关联项目",
+		"joinOnlineMeeting": "加入在线会议",
+		"linkCopied": "链接已复制",
+		"linkCopyFailed": "复制失败，请重试",
+		"registrationSuccess": "报名成功！",
+		"registrationSuccessInfo": {
+			"requiresRegistration": "请先报名后查看报名须知。"
+		},
+		"loginRequiredVolunteer": "请先登录后申请志愿者",
+		"loginToRegister": "登录后报名",
+		"toasts": {
+			"loginRequired": "请登录后再报名活动"
+		},
+		"manage": {
+			"actions": {
+				"checkInAlready": "该用户已完成签到",
+				"checkInFailed": "签到失败",
+				"checkInFailedDescription": "无法完成签到，请稍后重试",
+				"checkInNotConfirmed": "该用户的报名尚未通过审核",
+				"checkInNotRegistered": "该用户未报名本次活动",
+				"checkInSuccess": "{name} 已成功签到！",
+				"checkInSuccessDescription": "扫码时间：{time}",
+				"defaultAttendeeName": "用户",
+				"deleteError": "删除活动失败",
+				"deleteSuccess": "活动已成功删除",
+				"duplicateCheckInDescription": "检测到重复签到二维码",
+				"exportError": "导出报名数据失败",
+				"exportSuccess": "报名数据导出成功",
+				"fetchError": "获取活动详情失败",
+				"fetchRegistrationsError": "获取报名数据失败",
+				"loadTemplatesError": "获取活动模板失败",
+				"networkErrorDescription": "网络异常或服务器不可用",
+				"registrationSuccess": "报名已成功{status}",
+				"registrationUpdateSuccess": "报名状态更新成功",
+				"timeout": "请求超时，请重试",
+				"updateError": "更新报名状态失败",
+				"cancelSuccess": "报名已成功取消",
+				"cancelError": "取消报名失败"
+			},
+			"backToEvents": "← 返回我的活动",
+			"dashboard": {
+				"projectStages": {
+					"COMPLETED": "🎯 项目完结",
+					"DEVELOPMENT": "🔧 产品开发",
+					"FUNDING": "💼 融资扩张",
+					"GROWTH": "📈 用户增长",
+					"IDEA_VALIDATION": "💡 想法验证",
+					"LAUNCH": "🚀 产品发布",
+					"MONETIZATION": "💰 商业变现"
+				}
+			},
+			"editEvent": "编辑活动",
+			"editPage": {
+				"backToManagement": "← 返回活动管理",
+				"deleteEvent": "删除活动",
+				"editEvent": "编辑活动",
+				"eventNotVisible": "此活动为{status}状态，对公众不可见。",
+				"publishEvent": "发布活动",
+				"updateDescription": "更新您的活动详情和设置",
+				"viewPublicPage": "活动页面"
+			},
+			"eventQR": {
+				"description": "分享此二维码给参与者进行自助签到",
+				"shareDesc": "用户可以扫描此二维码进行活动自助签到",
+				"title": "签到二维码"
+			},
+			"eventQRCode": "签到码",
+			"eventStatus": {
+				"cancelled": "此活动为已取消状态，对公众不可见。",
+				"draft": "此活动为草稿状态，对公众不可见。",
+				"published": "此活动为已发布状态，对公众不可见。",
+				"publishEvent": "发布活动"
+			},
+			"manageEvent": "管理您的活动报名和设置",
+			"overview": {
+				"attendees": "参与人数",
+				"capacity": "容量",
+				"description": "描述",
+				"endTime": "结束时间",
+				"eventDetails": "活动详情",
+				"location": "地点",
+				"noCustomQuestions": "未配置自定义问题",
+				"noQuestionsConfigured": "未配置自定义问题",
+				"onlineEvent": "线上活动",
+				"options": "选项：",
+				"questionsConfigured": "已配置 {count} 个问题",
+				"questionType": "类型",
+				"registrationQuestions": "报名问题",
+				"required": "*",
+				"startTime": "开始时间"
+			},
+			"qrGenerator": {
+				"description": "使用此二维码签到：",
+				"downloadPNG": "下载 PNG",
+				"downloadSVG": "下载 SVG",
+				"keepPrivate": "请妥善保管，不要与他人分享。",
+				"qrCodeInfo": "此二维码包含您的用户ID和活动信息。",
+				"title": "您的签到二维码"
+			},
+			"qrScanner": {
+				"description": "扫描用户的二维码进行活动签到",
+				"initializing": "正在初始化相机...",
+				"noCamera": "无可用相机",
+				"noCameraDesc": "请确保您的设备有相机并已授予权限。",
+				"scanError": "扫描二维码失败",
+				"title": "扫描用户二维码"
+			},
+			"refresh": "刷新",
+			"registrations": {
+				"dialog": {
+					"approveRegistration": "通过报名",
+					"bio": "简介：",
+					"city": "城市：",
+					"contactInformation": "联系信息",
+					"email": "邮箱：",
+					"noAnswerProvided": "未提供答案",
+					"questionAnswers": "问题答案",
+					"order": {
+						"title": "订单信息",
+						"number": "订单号：",
+						"amount": "支付金额：",
+						"statusLabel": "订单状态：",
+						"status": {
+							"pending": "待支付",
+							"paid": "已支付",
+							"cancelled": "已取消",
+							"refundPending": "退款处理中",
+							"refunded": "已退款"
+						},
+						"paymentMethodLabel": "支付方式：",
+						"paymentMethod": {
+							"wechatNative": "微信扫码",
+							"wechatJsapi": "微信内支付",
+							"stripe": "Stripe",
+							"free": "免费"
+						},
+						"expiredAt": "过期时间：",
+						"paidAt": "支付时间：",
+						"markPaid": "手动标记为已支付",
+						"markPaidConfirm": "确认手动标记该订单为已支付？",
+						"markPaidSuccess": "订单已标记为已支付",
+						"markPaidFailed": "标记失败"
+					},
+					"rejectRegistration": "拒绝报名",
+					"title": "报名详情",
+					"undoRejectApprove": "撤销拒绝并通过"
+				},
+				"export": "导出",
+				"filter": {
+					"all": "全部",
+					"cancelled": "已取消",
+					"confirmed": "已确认",
+					"pendingPayment": "待支付",
+					"pending": "待审核",
+					"rejected": "已拒绝",
+					"status": "状态",
+					"waitlisted": "候补"
+				},
+				"noRegistrations": "暂无报名",
+				"noRegistrationsDesc": "有人报名后，相关信息将在这里显示。",
+				"subtitle": "管理参与者报名和审核",
+				"table": {
+					"actions": "操作",
+					"approve": "通过",
+					"noTicketType": "无票种",
+					"participant": "参与者",
+					"registered": "报名时间",
+					"reject": "拒绝",
+					"status": "状态",
+					"ticketType": "票种类型",
+					"undoReject": "撤销拒绝",
+					"view": "查看"
+				},
+				"title": "活动报名管理"
+			},
+			"scanUserQR": "扫码",
+			"share": "分享",
+			"stats": {
+				"confirmed": "已确认",
+				"pending": "待审核",
+				"views": "浏览量",
+				"feedback": "反馈"
+			},
+			"invites": {
+				"title": "邀请统计",
+				"description": "生成专属链接，统计不同渠道的报名效果。",
+				"channelSectionTitle": "渠道邀请",
+				"channelSectionDescription": "为合作渠道创建独立链接，便于统计来源报名人数。",
+				"channelNamePlaceholder": "渠道名称，如 XX 社区",
+				"channelNameRequired": "请填写渠道名称",
+				"createButton": "创建渠道链接",
+				"createSuccess": "渠道链接已创建",
+				"refresh": "刷新",
+				"loading": "正在加载邀请数据…",
+				"error": "获取邀请数据失败",
+				"noData": "暂时没有邀请数据。",
+				"type": {
+					"CHANNEL": "渠道",
+					"USER_SHARE": "个人分享"
+				},
+				"table": {
+					"type": "类型",
+					"label": "名称 / 用户",
+					"registrations": "报名数",
+					"newUsers": "新注册",
+					"lastRegistration": "最近报名",
+					"actions": "操作"
+				},
+				"copyLink": "复制链接",
+				"copySuccess": "链接已复制",
+				"copyFailed": "复制失败",
+				"viewQr": "查看二维码",
+				"downloadQr": "下载二维码",
+				"qrTitle": "邀请二维码",
+				"qrDescription": "扫码或转发此二维码，邀请码会自动携带。",
+				"newUserTag": "{count} 位新用户",
+				"createdAt": "创建于 {date}",
+				"noRegistrations": "暂时没有报名"
+			},
+			"tabs": {
+				"admins": "管理员",
+				"checkin": "签到",
+				"invites": "邀请统计",
+				"feedback": "反馈",
+				"overview": "概览",
+				"registrations": "报名管理",
+				"volunteers": "志愿者"
+			},
+			"title": "活动管理",
+			"viewPublicPage": "活动页面"
+		},
+		"manageEvent": "管理活动",
+		"max": "最大",
+		"myEvents": {
+			"label": "我的活动",
+			"emptyState": {
+				"title": "登录后查看你的活动"
+			}
+		},
+		"onlineEvent": "线上活动",
+		"onlineLinkWillBeProvided": "在线（链接将会提供）",
+		"onlineMeeting": "线上会议",
+		"organization": "组织",
+		"organizer": "组织者",
+		"pageDescription": "发现并加入精彩的社区活动、黑客松、研讨会和聚会",
+		"participantDetails": "参与者详情",
+		"participants": "参与者",
+		"participantsSection": {
+			"interest": "感兴趣",
+			"interestAdded": "已添加到感兴趣列表",
+			"interested": "已感兴趣",
+			"interestedInMe": "对我感兴趣的人",
+			"interestRemoved": "已从感兴趣列表移除",
+			"interestSection": "线下活动见面聊聊？",
+			"interestToggleFailed": "操作失败，请重试",
+			"myInterests": "我感兴趣的人",
+			"noInterests": "暂无相关记录"
+		},
+		"photoUploadError": "保存照片失败: {error}",
+		"photoUploadSuccess": "照片上传成功",
+		"qrCodeDownloaded": "二维码已下载",
+		"registered": "已报名",
+		"registerNow": "立即报名",
+		"registerOn": "在 {platform} 上报名",
+		"registration": {
+			"answerPlaceholder": "请输入答案",
+			"buttons": {
+				"createNewProject": "创建新作品",
+				"refreshProjectList": "刷新作品列表",
+				"selectExistingProjects": "选择现有作品："
+			},
+			"cancel": "取消",
+			"confirmRegistration": "确认报名",
+			"contactInfoCopied": "联系方式已复制",
+			"contactOrganizer": "联系组织者",
+			"copyContactInfo": "复制联系方式",
+			"deadline": "报名截止时间",
+			"description": "请填写以下信息完成报名",
+			"detailedAnswerPlaceholder": "请输入详细答案",
+			"eventQuestions": "活动问题",
+			"free": "免费",
+			"logInToRegister": "登录后报名",
+			"organizerContact": "组织者联系方式",
+			"projects": {
+				"createNewProject": "创建新作品",
+				"loadingProjects": "正在加载作品列表...",
+				"needProjectToRegister": "您需要先分享一个作品或想法才能报名此活动",
+				"noProjectsYet": "还没有作品",
+				"profileCompletion": {
+					"completeProfile": "立即完善个人资料",
+					"description": "完善的个人简介可以提高审核通过率，也能帮助其他参与者更好地认识您。这将增加您与其他参与者建立联系和合作的机会。",
+					"suggestion": "💡 建议完善自我介绍"
+				},
+				"projectRequiredExplanation": "这是一个产品交流分享类活动，关联作品有助于：\n• 让其他参与者更好地了解您的作品和想法\n• 促进作品间的合作与交流\n• 获得来自社区的反馈和建议",
+				"refreshProjects": "刷新项目列表",
+				"selectExistingProject": "选择现有作品：",
+				"selectProject": "填写作品或想法",
+				"whyProjectRequired": "为什么需要关联作品？"
+			},
+			"registering": "报名中...",
+			"registerNow": "立即报名",
+			"remaining": "剩余: {count} 张",
+			"ticketType": "票种类型",
+			"required": "*",
+			"requiresApproval": "（需要主办方审核）",
+			"selectTicketType": "选择票种 *",
+			"submitting": "提交中...",
+			"title": "报名活动",
+			"validation": {
+				"acceptParticipationAgreement": "需同意《参赛协议》后才能报名",
+				"missingAnswers": "请回答所有必填问题: {questions}",
+				"selectDigitalCardConsent": "请选择是否愿意在现场屏幕公开自我介绍并展示数字名片信息",
+				"selectProject": "请填写作品或想法信息",
+				"selectTierQuantity": "请选择合适的票档数量",
+				"selectTicketType": "请选择票种"
+			},
+			"payment": {
+				"title": "微信支付",
+				"orderNumber": "订单号",
+				"amount": "金额",
+				"scanToPay": "请使用微信扫码支付",
+				"polling": "正在检测支付结果...",
+				"invoking": "正在唤起微信支付...",
+				"invokingMiniProgram": "正在唤起小程序支付...",
+				"paidSuccess": "支付成功！",
+				"orderCancelled": "订单已取消",
+				"orderExpired": "订单已过期",
+				"remainingTime": "剩余支付时间",
+				"expiringWarning": "订单即将过期，请尽快完成支付",
+				"giftLinks": "赠送邀请链接",
+				"copyInvite": "复制",
+				"inviteCopied": "邀请链接已复制",
+				"cancelOrder": "取消订单",
+				"cancelOrderAndRetry": "取消订单重新报名",
+				"queryPayment": "我已支付，查询结果",
+				"querying": "查询中...",
+				"close": "关闭",
+				"existingOrderFound": "检测到未完成的订单，正在恢复...",
+				"paymentNotDetected": "暂未检测到支付，请确认是否已完成支付",
+				"orderClosed": "订单已关闭",
+				"wechatPayIncomplete": "微信支付未完成，请重新尝试",
+				"miniProgramBridgeRequired": "当前小程序版本不支持支付，请升级后重试",
+				"miniProgramPayCancelled": "你已取消支付",
+				"statusFetchRetry": "订单状态获取失败，正在重试...",
+				"statusFetchFailed": "订单状态获取失败，请稍后重试"
+			},
+			"miniProgramUpgrade": {
+				"title": "请升级小程序后支付",
+				"description": "当前小程序版本暂不支持该支付能力，请升级到最新版本后重试。",
+				"note": "升级完成后重新打开当前页面即可继续支付。",
+				"confirm": "我知道了"
+			},
+			"wechatBinding": {
+				"title": "绑定微信后继续支付",
+				"description": "检测到你的账号尚未绑定微信 OpenID，需先完成绑定才能使用微信支付。",
+				"note": "绑定完成后会自动返回当前页面。",
+				"bindNow": "去绑定微信",
+				"binding": "正在跳转...",
+				"cancel": "稍后再说",
+				"linkFailed": "绑定失败，请稍后重试"
+			},
+			"toasts": {
+				"projectsFetchError": "获取作品列表失败",
+				"invalidPhone": "手机号格式不正确",
+				"profileSaved": "资料保存成功",
+				"profileSaveFailed": "保存资料失败，请重试",
+				"projectCreated": "作品创建成功",
+				"projectCreateFailed": "创建作品失败，请重试",
+				"profileBioRequired": "请完善个人简介后再报名",
+				"bioTooShort": "个人简介不能少于15个字",
+				"roleRequired": "请填写个人角色",
+				"currentWorkRequired": "请填写当前在做",
+				"lifeStatusRequired": "请选择当前状态",
+				"phoneRequired": "请填写手机号，方便活动联系",
+				"registrationFailed": "报名失败，请重试"
+			}
+		},
+		"registrationCancelFailed": "取消报名失败",
+		"registrationCancelled": "报名已取消",
+		"registrationCancelledSuccess": "报名取消成功",
+		"registrationClosed": "报名已截止",
+		"registrationLabel": "报名",
+		"registrationPending": "报名待审核",
+		"registrationRejected": "报名被拒绝",
+		"registrationRejectedMessage": "您的报名申请被拒绝。如需了解原因或重新申请，请联系活动组织者。",
+		"registrationStatusUnknown": "报名状态未知",
+		"scanQRToShare": "扫码分享活动",
+		"invite": {
+			"generating": "正在生成专属链接…",
+			"fetchFailed": "无法获取邀请码，已使用活动默认链接。",
+			"codeLabel": "邀请码：{code}"
+		},
+		"shareEvent": "分享活动",
+		"shareEventDescription": "分享这个活动给朋友",
+		"shareLink": "分享链接",
+		"shareText": "分享文案",
+		"generatePoster": "生成活动海报",
+		"showLess": "收起",
+		"status": {
+			"active": "进行中",
+			"cancelled": "已取消",
+			"completed": "已结束",
+			"draft": "草稿",
+			"ongoing": "进行中",
+			"published": "已发布",
+			"registrationClosed": "报名已截止",
+			"registration_closed": "报名已截止",
+			"upcoming": "即将开始"
+		},
+		"tags": "标签",
+		"to": "至",
+		"types": {
+			"conference": "会议",
+			"demoDay": "演示日",
+			"hackathon": "黑客松",
+			"meetup": "聚会",
+			"networking": "交流",
+			"other": "其他",
+			"studyGroup": "学习小组",
+			"workshop": "工作坊"
+		},
+		"unknownError": "未知错误",
+		"viewAll": "查看全部",
+		"viewAllParticipants": "查看所有参与者",
+		"viewParticipantProjects": "关联作品",
+		"participantProjects": "参与者作品列表",
+		"viewProfile": "查看资料",
+		"viewProject": "查看项目",
+		"volunteerApplicationFailed": "申请志愿者失败",
+		"volunteerApplicationSubmitted": "志愿者申请已提交，等待审核",
+		"volunteerRecruitment": "志愿者招募",
+		"youAreOrganizer": "您是活动组织者",
+		"youAreRegistered": "您已报名！",
+		"youAreWaitlisted": "您在候补名单中",
+		"volunteer": {
+			"application": {
+				"noteRequired": "请填写申请说明",
+				"applySuccess": "志愿者申请已提交，等待审核",
+				"applyError": "申请志愿者失败"
+			},
+			"list": {
+				"applicationSuccess": "志愿者申请提交成功！",
+				"cancelSuccess": "申请已取消",
+				"cancelError": "取消申请失败",
+				"cancelRetry": "取消申请失败，请稍后重试"
+			}
+		},
+		"adminManager": {
+			"toasts": {
+				"fetchFailed": "获取管理员列表失败",
+				"addSuccess": "管理员添加成功",
+				"addFailed": "添加管理员失败",
+				"removeSuccess": "管理员已移除",
+				"removeFailed": "移除管理员失败"
+			}
+		},
+		"adminInvitations": {
+			"toasts": {
+				"fetchFailed": "获取邀请列表失败",
+				"acceptSuccess": "已接受邀请",
+				"acceptFailed": "接受邀请失败",
+				"rejectSuccess": "已拒绝邀请",
+				"rejectFailed": "拒绝邀请失败"
+			}
+		},
+		"projectList": {
+			"toasts": {
+				"fetchFailed": "获取项目提交列表失败",
+				"reviewApproved": "作品审核通过",
+				"reviewRejected": "作品审核已拒绝",
+				"reviewFailed": "更新审核状态失败",
+				"deleteSuccess": "删除成功",
+				"deleteFailed": "删除失败"
+			}
+		},
+		"projectSubmissionForm": {
+			"toasts": {
+				"fetchFailed": "获取作品列表失败"
+			}
+		},
+		"hackathonManagement": {
+			"toasts": {
+				"saveSuccess": "黑客松配置已保存",
+				"saveFailed": "保存配置失败"
+			},
+			"stage": {
+				"title": "阶段管理",
+				"description": "根据活动节奏逐步推进黑客松。切换阶段后，系统会自动开放对应功能与提示。",
+				"previous": "上一阶段",
+				"next": "下一阶段",
+				"jumpLabel": "快速切换",
+				"jumpPlaceholder": "选择阶段",
+				"lastUpdated": "最近更新 {{time}}",
+				"currentStageLabel": "当前阶段：{{stage}}",
+				"descriptions": {
+					"registration": "开启报名、宣传活动并确认参赛者名单。",
+					"development": "参赛者组队开发，组织方需及时同步资源和进展。",
+					"submission": "收集项目提交，确保每个团队都按时上传作品。",
+					"voting": "开放公众或评委投票，展示作品并收集反馈。",
+					"results": "关闭投票，公布获奖团队，并向社区展示成果。"
+				},
+				"historyTitle": "阶段变更记录",
+				"historyUnknownTime": "时间未知",
+				"historyBy": "操作者：{{user}}",
+				"updateSuccess": "已切换到 {{stage}} 阶段",
+				"updateFailed": "切换阶段失败，请稍后重试"
+			}
+		},
+		"certificateManagement": {
+			"toasts": {
+				"awardSuccess": "奖项颁发成功！",
+				"awardFailed": "颁发奖项失败",
+				"deleteSuccess": "获奖记录删除成功",
+				"deleteFailed": "删除失败"
+			}
+		},
+		"checkInComments": {
+			"toasts": {
+				"fetchFailed": "加载评论失败",
+				"loginRequired": "请先登录",
+				"contentRequired": "请输入评论内容",
+				"submitSuccess": "评论成功",
+				"submitFailed": "评论失败"
+			}
+		},
+		"organizerContact": {
+			"copySuccess": "联系方式已复制",
+			"copyFailed": "复制失败，请手动复制"
+		},
+		"bookmark": {
+			"loginRequired": "请登录后收藏活动",
+			"alreadyBookmarked": "活动已在收藏列表中",
+			"bookmarkSuccess": "已添加到收藏",
+			"unbookmarkSuccess": "已取消收藏",
+			"updateError": "收藏操作失败"
+		},
+		"like": {
+			"loginRequired": "请登录后点赞活动",
+			"alreadyLiked": "已经点赞过了",
+			"likeSuccess": "已点赞",
+			"unlikeSuccess": "已取消点赞",
+			"updateError": "点赞操作失败"
+		},
+		"series": {
+			"allSeries": "全部系列",
+			"backToSeries": "返回系列列表",
+			"create": "创建系列",
+			"createTitle": "创建系列活动",
+			"description": "用于沉淀长期主题活动，统一展示历史与后续场次。",
+			"edit": "编辑系列",
+			"editTitle": "编辑系列活动",
+			"empty": "暂无系列活动",
+			"history": "历史活动",
+			"manage": "管理系列",
+			"manageTitle": "系列管理",
+			"none": "不加入系列",
+			"selectLabel": "系列活动",
+			"subtitle": "关注长期活动主题，并订阅后续更新。",
+			"title": "系列活动",
+			"upcoming": "即将开始",
+			"view": "查看系列",
+			"viewManage": "前往管理"
+		}
+	},
+	"featuredProjects": {
+		"tagline": "社区项目案例",
+		"title": "从想法到产品",
+		"subtitle": "这些项目在社区中被持续展示和交流，不断完善，从想法逐渐走向可用的产品",
+		"founderPrefix": "项目创始人 -",
+		"cta": "查看更多作品"
+	},
+	"communityChapters": {
+		"tagline": "全国分部网络",
+		"title1": "让创造发生在",
+		"title2": "你的身边",
+		"subtitle": "我们在全国多个城市都有活跃的分部，与当地创造者面对面交流协作",
+		"cities": {
+			"shenzhen": {
+				"name": "深圳",
+				"members": "120+",
+				"status": "活跃中",
+				"description": "硬件创新之城，AI+硬件的完美结合地"
+			},
+			"hangzhou": {
+				"name": "杭州",
+				"members": "80+",
+				"status": "活跃中",
+				"description": "互联网之城，电商与创新的摇篮"
+			},
+			"beijing": {
+				"name": "北京",
+				"members": "50+",
+				"status": "活跃中",
+				"description": "科技创新中心，汇聚顶尖人才"
+			}
+		},
+		"chapterSuffix": "分部",
+		"membersSuffix": "成员",
+		"ctaTitle": "想了解你所在城市的分部？",
+		"ctaDescription": "查看详细的分部信息、活动安排和加入方式",
+		"ctaButton": "查看所有分部"
+	},
+	"featuredActivities1": {
+		"activities": {
+			"first": {
+				"description": "通过实践指导学习如何构建AI驱动的产品",
+				"location": "中国",
+				"participants": "30-50人参与",
+				"tags": {
+					"tag1": "工作坊",
+					"tag2": "AI"
+				},
+				"title": "AI产品工作坊"
+			},
+			"second": {
+				"date": "每月",
+				"description": "成功创造者分享他们从创意到产品发布的旅程",
+				"location": "多个城市",
+				"participants": "80-100人参与",
+				"tags": {
+					"tag1": "分享",
+					"tag2": "社交"
+				},
+				"title": "创造者分享会"
+			},
+			"third": {
+				"date": "双周一次",
+				"description": "与志同道合的创造者在48小时内构建原型",
+				"location": "线上与线下",
+				"participants": "50-70人参与",
+				"tags": {
+					"tag1": "黑客松",
+					"tag2": "原型设计"
+				},
+				"title": "周末迷你黑客松"
+			},
+			"viewMore": "查看更多活动"
+		},
+		"description": "参与我们多样化的学习、分享和创造活动",
+		"imagePlaceholder": "活动图片",
+		"label": "特色活动",
+		"title": "精彩社区活动",
+		"viewMore": "查看更多活动"
+	},
+	"featuredActivities2": {
+		"activities": {
+			"first": {
+				"date": "每季度",
+				"description": "深入探索用于产品开发的最新AI工具",
+				"location": "线上",
+				"participants": "200+人参与",
+				"tags": {
+					"tag1": "大师班",
+					"tag2": "工具"
+				},
+				"title": "AI工具大师班"
+			},
+			"second": {
+				"date": "每月",
+				"description": "在全球市场推出产品的策略和战术",
+				"location": "上海及线上",
+				"participants": "60-80人参与",
+				"tags": {
+					"tag1": "全球化",
+					"tag2": "市场进入"
+				},
+				"title": "全球市场进入工作坊"
+			},
+			"third": {
+				"date": "季节性",
+				"description": "寻找和验证产品市场匹配度的强化营",
+				"location": "北京，深圳",
+				"participants": "40-50人参与",
+				"tags": {
+					"tag1": "PMF",
+					"tag2": "验证"
+				},
+				"title": "产品市场匹配营"
+			}
+		},
+		"description": "为这些特别活动和工作坊做好准备",
+		"imagePlaceholder": "活动图片",
+		"label": "更多活动",
+		"title": "特别活动日历",
+		"viewAllButton": "查看所有活动"
+	},
+	"features": {
+		"description": "我们致力于创造一个鼓励持续创造、技术交流和个人成长的社区环境，帮助更多人将想法转化为现实产品。",
+		"tagline": "常规活动",
+		"title1": "每周都有",
+		"title2": "精彩活动",
+		"subtitle": "从产品展示到技能学习，从主题黑客松到 DemoShow，总有一款适合你",
+		"demoShow": {
+			"title": "Demo Show 客厅 Demo 局",
+			"description": "每月一次的 Demo 交流会，无论是原型还是 MVP。用鼓励支持的心态拥抱每一个分享，在支持的基础上给出真诚建议。",
+			"cta": "点击查看",
+			"stats": "每场 50+ 观众"
+		},
+		"hackathon": {
+			"title": "迷你黑客松",
+			"description": "每月一次，使用AI工具围绕主题在短时间内集中学习，组队创作，开发并展示一个可工作的产品原型（MVP）。",
+			"cta": "黑客松活动",
+			"stats": "已完成 50+ 场"
+		},
+		"cowork": {
+			"title": "周末共创日 CoWork",
+			"description": "每周末线下共创办公，报名时填写项目目标。在同伴氛围中提升效率，通过弱连接促进跨界合作。",
+			"cta": "报名共创",
+			"stats": "平均 30+ 人参与"
+		},
+		"ctaTitle": "准备参与我们的活动吗？",
+		"ctaDescription": "关注我们的活动日历，第一时间获取活动信息",
+		"ctaButton": "查看所有活动",
+		"tabs": {
+			"communityActivities": {
+				"description": "我们提供丰富的社区活动，包括线上交流和线下聚会，促进成员之间的互动和学习。",
+				"highlights": {
+					"offlineMeetup": {
+						"description": "定期组织线下活动，面对面交流，建立更紧密的连接和合作机会。",
+						"title": "线下聚会"
+					},
+					"sharing": {
+						"description": "邀请行业专家和社区成员分享技术、产品和创业经验，拓展视野。",
+						"title": "主题分享"
+					},
+					"showcase": {
+						"description": "展示社区成员的优秀作品，分享创作经验和技术实现，互相启发和学习。",
+						"title": "作品展示"
+					}
+				},
+				"subtitle": "线上线下相结合的多样化活动",
+				"title": "社区活动"
+			},
+			"techGrowth": {
+				"description": "通过实际作品练习和专业指导，帮助成员提升技术能力，掌握前沿技术和方法。",
+				"highlights": {
+					"cuttingEdge": {
+						"description": "紧跟行业趋势，学习和应用AI、区块链等前沿技术，保持技术竞争力。",
+						"title": "前沿技术"
+					},
+					"mentoring": {
+						"description": "资深开发者和产品专家提供指导，帮助解决技术难题，优化产品设计。",
+						"title": "导师指导"
+					},
+					"practicalProjects": {
+						"description": "通过实际作品锻炼技术能力，解决真实问题，积累宝贵的开发经验。",
+						"title": "实战作品"
+					}
+				},
+				"subtitle": "提升技术能力，实现个人成长",
+				"title": "技术成长"
+			},
+			"weeklyCreation": {
+				"description": "每周黑客松社区鼓励成员在一周内完成从创意到产品的全过程，培养持续创造的习惯和能力。",
+				"highlights": {
+					"continuous": {
+						"description": "每周持续创造的节奏，培养良好的产品思维和执行力，不断打磨和优化产品。",
+						"title": "持续迭代"
+					},
+					"teamwork": {
+						"description": "跨领域组队，互相学习，结合各自专长共同创造有价值的产品。",
+						"title": "团队协作"
+					},
+					"timeEfficient": {
+						"description": "短期冲刺，专注投入，一周内完成从创意到产品的过程，让创意快速落地。",
+						"title": "时间高效"
+					}
+				},
+				"subtitle": "花1周时间，创造1个最小可行产品",
+				"title": "每周创造"
+			}
+		},
+		"title": "周周黑客松社区特色"
+	},
+	"footer": {
+		"community": "社区",
+		"legal": "法律条款",
+		"links": {
+			"about": "关于我们",
+			"contact": "联系我们",
+			"faq": "常见问题",
+			"features": "特色",
+			"github": "GitHub",
+			"pricing": "定价",
+			"privacy": "隐私政策",
+			"terms": "使用条款"
+		},
+		"rights": "保留所有权利。",
+		"tagline": "一个鼓励创造者在一周内构建产品的社区。"
+	},
+	"hero": {
+		"description": "加入我们充满激情的创造者社区，每周挑战自己构建一个最小可行产品。通过快速原型设计、协作和持续学习，将你的想法变为现实。",
+		"features": {
+			"item1": "每周黑客松和挑战",
+			"item2": "创造者互助社区",
+			"item3": "作品展示与反馈",
+			"item4": "与创造者交流网络",
+			"title": "为什么加入我们？"
+		},
+		"primaryCta": "加入我们",
+		"qrCodeTitle": "加入我们的社区",
+		"secondaryCta": "了解更多",
+		"tagline": "每周",
+		"taglineDesc": "共同创造更好的产品",
+		"title": "一周内构建最小可行产品",
+		"v2": {
+			"communityTag": "🚀 创造者社区",
+			"primaryCta": "加入社区",
+			"secondaryCta": "了解更多",
+			"socialProof": "来自 6000+ 位创造者的选择",
+			"subtitle1": "花 1 周时间，做 1 个最小可行产品，解决 1 个真实痛点。",
+			"subtitle2": "也许就是下一个改变世界的起点。",
+			"titlePart1": "为好玩",
+			"titlePart2": "而创造",
+			"year": "2026"
+		},
+		"wechatGroup": "微信群",
+		"wechatOfficial": "公众号"
+	},
+	"joinCommunity": {
+		"badgeText": "加入我们的创造者家园",
+		"title": {
+			"part1": "创造，不再是",
+			"part2": "孤独的旅程"
+		},
+		"subtitle": "在这里，找到你的创造伙伴，一起把想法变成现实",
+		"entryOptions": {
+			"register": {
+				"title": "立即注册，开始创造",
+				"description": "完整体验社区功能，发布作品，寻找合作者",
+				"cta": "立即注册"
+			},
+			"events": {
+				"title": "查看活动日历",
+				"description": "浏览即将举行的活动，选择感兴趣的参与",
+				"cta": "查看活动"
+			},
+			"wechat": {
+				"title": "关注公众号",
+				"description": "获取最新社区动态和活动通知",
+				"cta": "扫码关注"
+			}
+		},
+		"communityStats": {
+			"title": "社区动态",
+			"projects": "已完成 {count}+ 个项目作品",
+			"events": "举办了 {count}+ 场活动",
+			"members": "聚集了 {count}+ 名成员"
+		},
+		"wechatSection": {
+			"title": "关注公众号获取最新动态",
+			"qrAlt": "微信公众号二维码",
+			"accountName": "扫码关注「HackathonWeekly」公众号",
+			"description": "第一时间获取活动通知和社区资讯"
+		},
+		"encouragement": {
+			"text": "每一个改变世界的产品都始于一个简单的想法，每一个成功的创造者都曾经是初学者。",
+			"callToAction": "不要让想法停留在脑海里，让我们一起创造未来。"
+		}
+	},
+	"faq": {
+		"badge": "常见问题",
+		"title": {
+			"part1": "加入前你可能想了解的",
+			"part2": "几个问题"
+		},
+		"description": "我们整理了最常被问到的问题，帮助你更好地了解社区",
+		"expandQuestion": "展开问题: {question}",
+		"viewGuideLink": "→ 查看完整的黑客松手册",
+		"categories": {
+			"basic": "基础概念",
+			"friendly": "新手友好",
+			"concept": "理念解读",
+			"activities": "活动介绍",
+			"collaboration": "协作支持",
+			"cost": "费用相关"
+		},
+		"questions": {
+			"what": {
+				"question": "什么是黑客松？我适合参加吗？",
+				"answer": "黑客松是在限定时间内（通常1-3天）集中创造产品原型的活动，参与者组成团队快速将想法变为现实。现在还有很多 Vibe Coding（氛围编程）形式的黑客松，通过 AI 编程工具（如 Cursor、GitHub Copilot）降低技术门槛，让非专业程序员也能参与。无论你是开发者、设计师、产品经理还是完全的新手，都可以参与！"
+			},
+			"nonTech": {
+				"question": "我没有技术背景，可以加入吗？",
+				"answer": "当然可以！我们需要设计师、产品经理、运营、市场等各种背景的成员。很多成功的产品都是由跨领域团队创造的。社区专门有引导活动帮助新人找到合作伙伴。"
+			},
+			"mvp": {
+				"question": "什么是MVP？",
+				"answer": "MVP 是最小可行产品的缩写，指的是功能极简但能展现核心价值的可运行产品原型。在我们社区，MVP 更是一种行动哲学——在一周内，创造出一个能解决真实痛点的够用的产品。"
+			},
+			"activities": {
+				"question": "社区有哪些核心活动？",
+				"answer": "我们有3个核心活动：1) Demo Show 客厅 Demo 局（月度）- 展示30%完成度作品获得反馈；2) 迷你黑客松（月度）- 围绕主题快速学习创造；3) 周末共创日 CoWork（每周末）- 线下一起碰撞火花。"
+			},
+			"collaborate": {
+				"question": "我可以在社区找到合作伙伴吗？",
+				"answer": "这是社区的核心价值之一！我们鼓励多跨领域协作组合，很多成员通过社区找到了技术伙伴、设计师或产品经理。"
+			},
+			"fee": {
+				"question": "社区是免费的吗？",
+				"answer": "社区本身是免费加入的！基础的活动参与、作品分享、找合作伙伴都是完全免费的。面向社区成员的活动以免费或成本价为原则。社区通过商业项目分成和赞助捐赠维持运转，所有收入用于运营成本、贡献者薪酬和社区建设。"
+			}
+		},
+		"moreQuestions": {
+			"title": "还有其他问题？",
+			"description": "我们很乐意为你解答更多疑问，或者你可以先体验一下我们的活动",
+			"joinEvent": "参加下次活动",
+			"emailConsult": "邮件咨询"
+		}
+	},
+	"mail": {
+		"announcement": {
+			"actionRequired": "需要操作",
+			"contactSupport": "我们的支持团队随时为您解答问题。",
+			"deadline": "操作截止日期",
+			"effectiveDate": "生效日期",
+			"emailSupport": "邮件支持",
+			"footer": "此公告发送时间",
+			"from": "来自",
+			"helpCenter": "帮助中心",
+			"maintenanceSchedule": {
+				"description": "维护期间请注意以下几点：",
+				"impact": "某些功能可能暂时不可用",
+				"support": "紧急问题请联系支持",
+				"title": "维护时间表",
+				"updates": "关注我们的状态页面获取实时更新"
+			},
+			"needHelp": "需要帮助？",
+			"official": "来自周周黑客松官方通讯",
+			"securityReminder": {
+				"point1": "永远不要与任何人分享您的登录凭据",
+				"point2": "如果可用，启用双因素认证",
+				"point3": "立即报告可疑活动",
+				"title": "安全最佳实践"
+			},
+			"systemEmailNote": "这是重要的系统通知，无法取消订阅。",
+			"type": {
+				"feature": "新功能",
+				"general": "一般公告",
+				"maintenance": "系统维护",
+				"policy": "政策更新",
+				"security": "安全通知"
+			}
+		},
+		"common": {
+			"clickHere": "点击此处取消订阅",
+			"from": "来自",
+			"needHelp": "需要帮助？",
+			"contactSupport": "联系支持",
+			"emailSupport": "邮件支持",
+			"helpCenter": "帮助中心",
+			"sentAt": "发送时间",
+			"official": "官方",
+			"openLinkInBrowser": "如果您想在非默认浏览器中打开链接，请复制并粘贴此链接：",
+			"otp": "一次性密码",
+			"unsubscribe": "不想再收到这些邮件？",
+			"useLink": "或使用以下链接："
+		},
+		"emailVerification": {
+			"body": "你好，\n请点击下面的链接验证此新电子邮箱地址。",
+			"confirmEmail": "验证邮箱",
+			"subject": "验证您的邮箱"
+		},
+		"eventRegistrationApproved": {
+			"eventDate": "活动日期",
+			"eventDetails": "活动详情",
+			"eventLocation": "活动地点",
+			"eventTitle": "活动名称",
+			"footer": "感谢您参与我们的活动！如有任何问题，请随时联系我们。",
+			"greeting": "你好 {name}，",
+			"message": "恭喜！您报名参加的活动「{eventTitle}」已通过审核。",
+			"preview": "您的活动报名已通过审核",
+			"subject": "事件注册已批准",
+			"viewEvent": "查看活动详情"
+		},
+		"eventRegistrationConfirmation": {
+			"eventDate": "活动日期",
+			"eventDetails": "活动详情",
+			"eventLocation": "活动地点",
+			"eventTitle": "活动名称",
+			"footer": "我们期待在活动中见到您！如有任何问题，请随时联系我们。",
+			"greeting": "你好 {name}，",
+			"message": "感谢您报名参加活动「{eventTitle}」！我们已收到您的报名信息。",
+			"preview": "活动报名确认",
+			"subject": "事件注册确认",
+			"viewEvent": "查看活动详情"
+		},
+		"eventOrderCancelled": {
+			"eventDate": "活动日期",
+			"eventDetails": "活动详情",
+			"eventLocation": "活动地点",
+			"eventTitle": "活动名称",
+			"footer": "如有疑问请随时联系我们。",
+			"greeting": "你好 {name}，",
+			"message": "您报名的活动「{eventTitle}」订单已取消。",
+			"orderNumber": "订单号",
+			"preview": "订单已取消",
+			"subject": "订单已取消",
+			"viewEvent": "查看活动详情"
+		},
+		"eventReminder": {
+			"eventDate": "活动日期",
+			"eventDetails": "活动详情",
+			"eventLocation": "活动地点",
+			"eventTitle": "活动名称",
+			"footer": "我们期待在活动中见到您！",
+			"greeting": "你好 {name}，",
+			"message": "提醒您：活动「{eventTitle}」将在 {daysUntilEvent} 天后举行。",
+			"preview": "活动提醒",
+			"subject": "事件提醒",
+			"viewEvent": "查看活动详情"
+		},
+		"eventHostNewEvent": {
+			"announcement": "{hostName} 刚刚发布了新的活动「{eventTitle}」。",
+			"eventDateLabel": "时间",
+			"eventDetails": "活动详情",
+			"eventLocationLabel": "地点",
+			"eventTitleLabel": "活动",
+			"footer": "感谢关注 {hostName} 的活动！",
+			"greeting": "你好，",
+			"managePreferences": "您可以在 Hackathon Weekly 账号设置中管理邮件偏好。",
+			"preview": "{hostName} 发布了新活动「{eventTitle}」",
+			"subject": "你订阅的主办方发布了新活动",
+			"viewEvent": "查看活动"
+		},
+		"forgotPassword": {
+			"body": "你好，\n您请求了密码重置。\n\n点击下面的按钮重置您的密码。",
+			"resetPassword": "重置密码",
+			"subject": "重置您的密码"
+		},
+		"magicLink": {
+			"body": "你好，\n您请求了来自hackathonweekly的登录邮件。\n\n点击下面的链接登录。",
+			"login": "登录",
+			"subject": "登录到hackathonweekly"
+		},
+		"marketing": {
+			"ctaDescription": "加入数千名构建未来的创新者。",
+			"ctaTitle": "准备好开始了吗？",
+			"featuresTitle": "为什么您会喜欢这个",
+			"from": "来自",
+			"questions": "有疑问？",
+			"shareText": "与您的网络分享：",
+			"testimonialsTitle": "社区用户评价"
+		},
+		"newsletterSignup": {
+			"body": "感谢您注册hackathonweekly新闻通讯。我们将为您提供最新消息和更新。",
+			"subject": "欢迎订阅我们的新闻通讯"
+		},
+		"newUser": {
+			"body": "你好，\n感谢您注册hackathonweekly。\n\n要开始使用我们的应用，请点击下面的链接确认您的邮箱地址。",
+			"confirmEmail": "确认邮箱",
+			"subject": "确认您的邮箱"
+		},
+		"notification": {
+			"footer": "通知发送时间",
+			"from": "来自：",
+			"importance": {
+				"high": "重要通知",
+				"urgent": "需要紧急操作"
+			},
+			"importanceDescription": {
+				"high": "这是一条需要您关注的重要通知。",
+				"urgent": "这需要立即采取行动。请仔细阅读并采取必要措施。"
+			},
+			"priority": {
+				"high": "重要",
+				"low": "信息",
+				"normal": "通知",
+				"urgent": "紧急"
+			},
+			"questions": "有疑问？联系我们："
+		},
+		"organizationInvitation": {
+			"body": "您被邀请加入组织 {organizationName}。点击下面的按钮或复制并粘贴链接到您选择的浏览器，接受邀请并加入组织。",
+			"headline": "加入组织 {organizationName}",
+			"join": "加入组织",
+			"subject": "您被邀请加入一个组织"
+		},
+		"shared": {
+			"openLinkInBrowser": "如果您想在非默认浏览器中打开链接，请复制并粘贴此链接：",
+			"otp": "一次性密码",
+			"useLink": "或使用以下链接："
+		},
+		"weeklyReport": {
+			"global": {
+				"by": "作者",
+				"cta": {
+					"button": "开始参与",
+					"description": "准备好为我们蓬勃发展的社区做贡献了吗？",
+					"title": "加入行动！"
+				},
+				"featuredProjects": "精选作品",
+				"footer": "感谢您成为周周黑客松社区的一员！",
+				"newOrganizations": "新增组织",
+				"newUsers": "新增成员",
+				"online": "线上",
+				"overview": "本周数据概览",
+				"subtitle": "您的每周社区动态精选",
+				"title": "社区周报",
+				"topContributions": "顶级贡献者",
+				"totalEvents": "活动总数",
+				"upcomingEvents": "即将举行的活动",
+				"viewProject": "查看作品"
+			},
+			"organization": {
+				"attendees": "参与者",
+				"by": "作者",
+				"cta": {
+					"button": "查看组织",
+					"description": "继续为您的组织成功做贡献",
+					"title": "保持前进势头！"
+				},
+				"eventReview": "活动回顾",
+				"events": "本周活动",
+				"footer": "来自您的 {organizationName} 团队",
+				"memberContributions": "成员贡献",
+				"memberHighlights": "成员亮点",
+				"newMembers": "新增成员",
+				"overview": "组织概览",
+				"projectProgress": "作品进展",
+				"projectStage": {
+					"developing": "开发中",
+					"idea": "想法阶段",
+					"launched": "已发布",
+					"prototyping": "原型开发"
+				},
+				"status": {
+					"completed": "已完成",
+					"ongoing": "进行中",
+					"upcoming": "即将开始"
+				},
+				"subtitle": "您的组织本周精彩回顾",
+				"title": "周报",
+				"totalCP": "总获得贡献值"
+			}
+		},
+		"eventSeriesNewEvent": {
+			"announcement": "{seriesName} 发布了新活动「{eventTitle}」。",
+			"eventDateLabel": "时间",
+			"eventDetails": "活动信息",
+			"eventLocationLabel": "地点",
+			"eventTitleLabel": "活动",
+			"footer": "感谢你关注 {seriesName}。",
+			"greeting": "你好，",
+			"managePreferences": "你可以在账号设置中管理通知偏好。",
+			"preview": "{seriesName} 有新活动：{eventTitle}",
+			"subject": "你订阅的系列发布了新活动",
+			"viewEvent": "查看活动",
+			"viewSeries": "查看系列"
+		}
+	},
+	"milestones": {
+		"label": "社区发展历程",
+		"stats": {
+			"articles": {
+				"label": "知识库文章",
+				"value": "100+"
+			},
+			"cities": {
+				"label": "城市分布",
+				"value": "6个"
+			},
+			"events": {
+				"label": "活动场次",
+				"value": "100+场"
+			},
+			"members": {
+				"label": "社区人数",
+				"value": "6000+人"
+			},
+			"organizers": {
+				"label": "活跃贡献者",
+				"value": "50+"
+			},
+			"projects": {
+				"label": "创业作品",
+				"value": "50+"
+			}
+		},
+		"timeline": {
+			"fifth": {
+				"date": "2024.12",
+				"description": "国内多地共同体验探索AI游戏、3D打印、创新性游戏等多体活动形式",
+				"title": "生态共建"
+			},
+			"first": {
+				"date": "2024.05",
+				"description": "周周黑客松成立！小伙伴们聚集啦，一起开发",
+				"title": "第一场活动"
+			},
+			"fourth": {
+				"date": "2024.10",
+				"description": "新增健康、机器人、出海SEO等主题探索AI落地、AI教育、DemoDay",
+				"title": "主题形式多元化"
+			},
+			"second": {
+				"date": "2024.06",
+				"description": "短短2个月，参与人数已突破500人创业者，打造出海/AI作品",
+				"title": "出海/AI/创业"
+			},
+			"sixth": {
+				"date": "2025.02",
+				"description": "与Z·Pilot合作参加上海开发者先锋大会，与全国创客交流",
+				"title": "开发者先锋大会"
+			},
+			"third": {
+				"date": "2024.08",
+				"description": "深圳、广州、上海、北京、杭州、清迈等城市自发组建分部",
+				"title": "社区扩展全国化"
+			}
+		},
+		"title": "社区成长历程"
+	},
+	"nav": {
+		"dashboard": "控制台",
+		"faq": "常见问题",
+		"features": "特色",
+		"home": "首页",
+		"pricing": "加入我们"
+	},
+	"page": {
+		"home": {
+			"title": "首页 - 周周黑客松社区",
+			"description": "欢迎来到周周黑客松 —— AI 产品创造者的聚集地。让生活中的每个痛点，都成为创造的起点。",
+			"feed": {
+				"count": "{count} 条",
+				"events": "最新活动",
+				"organizations": "活跃组织",
+				"projects": "热门作品",
+				"searchPlaceholder": "搜索活动、作品、组织和任务...",
+				"tasks": "任务",
+				"docs": "文档",
+				"members": "成员",
+				"viewAll": "查看全部",
+				"aboutCommunity": "关于社区 →",
+				"leaderboard": "排行榜",
+				"leaderboardDesc": "查看社区贡献者排名"
+			}
+		}
+	},
+	"navBar": {
+		"contributionManagement": "贡献管理",
+		"eventManagement": "活动管理",
+		"superAdminCenter": "超级管理中心",
+		"taskManagement": "任务管理"
+	},
+	"mePage": {
+		"darkMode": "深色模式",
+		"discoverOrganizations": "发现更多组织",
+		"language": "语言",
+		"logout": "退出登录",
+		"messages": "我的消息",
+		"myContent": "我的内容",
+		"myFavorites": "我的收藏",
+		"myOrganizations": "我的组织",
+		"noOrganizations": "你还没有加入任何组织",
+		"organizationRole": {
+			"admin": "管理员",
+			"member": "成员",
+			"owner": "创建者",
+			"unknown": "成员"
+		},
+		"settingsAndHelp": "设置与帮助",
+		"viewAll": "查看全部"
+	},
+	"newsletter": {
+		"button": "订阅",
+		"description": "订阅周周黑客松社区通讯，获取最新活动、作品和社区动态",
+		"disclaimer": "我们尊重您的隐私。您可以随时取消订阅。",
+		"email": "电子邮箱",
+		"emailPlaceholder": "输入您的邮箱",
+		"error": "请输入有效的电子邮箱地址。",
+		"hints": {
+			"error": {
+				"message": "订阅失败，请稍后再试。"
+			},
+			"success": {
+				"message": "感谢您的订阅！您将开始收到我们的更新。",
+				"title": "订阅成功"
+			}
+		},
+		"submit": "订阅",
+		"subtitle": "获取最新的社区动态和活动信息",
+		"success": "感谢您的订阅！您将很快开始收到我们的更新。",
+		"title": "订阅我们的通讯"
+	},
+	"onboarding": {
+		"account": {
+			"avatar": "头像",
+			"avatarDescription": "点击圆圈或将图片拖放到其中以上传您的头像。",
+			"name": "姓名"
+		},
+		"continue": "继续",
+		"message": "只需几个快速步骤即可开始使用。",
+		"notifications": {
+			"accountSetupFailed": "很抱歉，我们无法设置您的账户。请稍后再试。"
+		},
+		"step": "步骤 {step} / {total}",
+		"title": "设置您的账户"
+	},
+	"organizations": {
+		"createForm": {
+			"name": "组织名称",
+			"notifications": {
+				"error": "很抱歉，我们无法创建您的组织。请稍后再试。",
+				"success": "您的组织已创建。您现在可以邀请成员。"
+			},
+			"submit": "创建组织",
+			"subtitle": "输入组织名称以开始。您可以稍后在组织设置中更改名称。",
+			"title": "创建组织"
+		},
+		"invitationAlert": {
+			"description": "您需要登录或创建账户才能加入组织。",
+			"title": "您已被邀请加入一个组织。"
+		},
+		"invitationModal": {
+			"accept": "接受",
+			"decline": "拒绝",
+			"description": "您已被邀请加入组织 {organizationName}。您是否想接受邀请并加入组织？",
+			"title": "加入组织"
+		},
+		"organizationSelect": {
+			"createNewOrganization": "创建新组织",
+			"organizations": "组织",
+			"personalAccount": "个人账户"
+		},
+		"organizationsGrid": {
+			"createNewOrganization": "创建新组织",
+			"title": "您的组织"
+		},
+		"public": {
+			"aboutUs": "关于我们",
+			"alreadyMember": "✓ 已是{role}",
+			"application": {
+				"backToDetails": "返回组织详情",
+				"contact": {
+					"email": "邮箱",
+					"tip": "提交申请后，建议主动联系管理员",
+					"title": "联系管理员",
+					"wechat": "微信"
+				},
+				"error": {
+					"submitFailed": "申请提交失败，请稍后重试"
+				},
+				"form": {
+					"title": "申请表",
+					"description": "提交申请将使用你的个人资料。",
+					"profileChecklistTitle": "将使用以下资料",
+					"profileChecklistDescription": "请确保信息准确、完整。",
+					"activityRequirement": "需参加过至少两场活动",
+					"profileIncompleteTitle": "资料未完善",
+					"profileIncompleteHint": "请先完善个人资料后再提交申请。",
+					"submitFailedTitle": "提交失败",
+					"notSet": "未填写",
+					"profileFields": {
+						"name": "姓名",
+						"username": "用户名",
+						"region": "地区",
+						"gender": "性别",
+						"phoneNumber": "手机号",
+						"wechatId": "微信号",
+						"email": "邮箱",
+						"bio": "个人简介",
+						"userRoleString": "主要角色",
+						"currentWorkOn": "当前在做",
+						"lifeStatus": "当前状态"
+					},
+					"genderOptions": {
+						"female": "女",
+						"male": "男",
+						"other": "其他",
+						"preferNotToSay": "不愿透露"
+					},
+					"introduction": "自我介绍*",
+					"reason": "自我介绍*",
+					"reasonHelp": "管理员会根据以下信息（贡献、线下活动、邀请人、自我介绍）来评估申请，请具体且清晰",
+					"reasonPlaceholder": "请简单介绍一下自己，以及加入组织想获得什么/目标是什么...",
+					"contributionsTitle": "过往贡献（至少 1 项）",
+					"contributionsHelp": "例如志愿者、线下分享、修复 bug、赞助等，简要说明你做了什么、产生了什么影响",
+					"contributionPlaceholder": "示例：在 9 月上海线下活动担任志愿者，负责签到与引导",
+					"addContribution": "添加一项贡献",
+					"removeField": "删除",
+					"offlineEventsTitle": "参加过的线下活动（至少 2 场）",
+					"offlineEventsHelp": "请写明活动名称/城市/日期，方便我们核对参与记录",
+					"offlineEventsPlaceholder": "示例：2024-07 广州 | Hackathon Weekly Meetup",
+					"addOfflineEvent": "再添加一场活动",
+					"inviterTitle": "邀请人",
+					"inviterHelp": "选择一位社区成员（不可选自己）",
+					"inviterLockedHint": "该邀请人来自邀请链接，无法修改",
+					"inviterSearchPlaceholder": "输入成员姓名或用户名搜索",
+					"inviterPlaceholder": "请选择邀请人",
+					"inviterLockedLabel": "邀请人已锁定",
+					"inviterSearchEmpty": "未找到符合条件的成员，请确认对方为 member 级别",
+					"inviterSearchFailed": "邀请人搜索失败，请稍后再试",
+					"changeInviter": "更换邀请人",
+					"availability": "未来一周可访谈时间",
+					"availabilityPlaceholder": "例如：周二/周四 19:00-21:00，周末下午均可",
+					"availabilityHelp": "我们将根据该时间安排 15-30 分钟的线上访谈",
+					"errorReasonTooShort": "介绍内容至少需要 {min} 个字",
+					"errorReasonTooLong": "介绍内容不能超过 {max} 个字",
+					"errorContributions": "请至少填写 {min} 项过往贡献，每项不少于 {minDetail} 个字",
+					"errorOfflineEvents": "请至少填写 {min} 场线下活动，每项不少于 {minDetail} 个字",
+					"errorInviterRequired": "请选择邀请人",
+					"errorAvailability": "请填写未来一周可访谈时间（{min}-{max} 个字）",
+					"errorApplicationTooLong": "申请信息过长，请精简到 {max} 个字以内",
+					"submit": "提交申请",
+					"submitting": "提交中...",
+					"submitHintPrefix": "满足以下条件后即可提交：",
+					"submitHintReason": "自我介绍及目标至少 {min} 个字",
+					"submitHintIntroMax": "自我介绍不超过 {max} 个字",
+					"submitHintContributions": "至少 {min} 项过往贡献，每项不少于 {minDetail} 个字",
+					"submitHintOfflineEvents": "至少 {min} 场线下活动，每项不少于 {minDetail} 个字",
+					"submitHintInviter": "请选择邀请人",
+					"submitHintAvailability": "填写未来一周可访谈时间（{min}-{max} 个字）",
+					"submitHintReasonMax": "申请整体内容不超过 {max} 个字",
+					"submitHintProfile": "完善资料：{fields}"
+				},
+				"profileAlert": {
+					"description": "完善的个人资料能帮助组织管理员更好地了解您。建议先优化您的个人信息。",
+					"optimizeProfile": "完善资料",
+					"title": "提高申请通过率："
+				},
+				"qrCode": {
+					"alt": "观众群二维码",
+					"scanToContact": "扫码加入",
+					"title": "观众群二维码"
+				},
+				"submitted": {
+					"contactAdmin": "联系管理员",
+					"contactTip": "为了加快审核进度，请主动联系组织管理员：",
+					"description": "您的加入申请已成功提交到 {name}。<br />组织管理员会根据您的个人信息和申请理由进行审核。",
+					"email": "邮箱：",
+					"memberQR": "观众群二维码",
+					"scanToContact": "扫码联系管理员",
+					"title": "申请已提交！",
+					"wechat": "微信："
+				},
+				"subtitle": "完善资料后即可提交申请",
+				"title": "申请加入 {name}",
+				"userInfo": {
+					"adminWillSee": "管理员将看到您的完整个人资料信息",
+					"bio": "个人简介",
+					"nameNotSet": "未设置姓名",
+					"skills": "技能标签",
+					"title": "您的申请信息"
+				}
+			},
+			"applyToJoin": "申请加入",
+			"contactInfo": "联系方式",
+			"coreMembers": "核心成员",
+			"description": "社区组织主页",
+			"email": "邮箱",
+			"enterOrganization": "查看成员",
+			"events": "活动",
+			"eventsCount": "活动数量",
+			"founded": "成立时间",
+			"joinCommunity": "加入 {name} 社区，一起成长！",
+			"linkCopied": "链接已复制到剪贴板",
+			"loginToApply": "登录后申请加入",
+			"loginToViewMembers": "登录查看全部 {count} 位成员",
+			"manageOrganization": "管理组织",
+			"members": "成员",
+			"membershipRequirements": "加入条件",
+			"organizationStats": "组织统计",
+			"roles": {
+				"admin": "管理员",
+				"member": "成员",
+				"owner": "创建者"
+			},
+			"scanToJoin": "扫码加入观众群",
+			"share": "分享",
+			"title": "组织主页",
+			"totalMembers": "总成员数",
+			"upcomingEvents": "即将举办的活动",
+			"viewAllMembers": "查看全部 {count} 位成员",
+			"visit": "访问",
+			"website": "网站",
+			"wechat": "微信",
+			"wechatGroup": "微信群"
+		},
+		"roles": {
+			"admin": "管理员",
+			"member": "成员",
+			"owner": "所有者"
+		},
+		"settings": {
+			"account": {
+				"avatar": {
+					"description": "要更改头像，请点击此区块中的图片，然后从您的计算机中选择要上传的文件。",
+					"notifications": {
+						"error": "无法更新头像",
+						"success": "头像已成功更新"
+					},
+					"title": "您的头像"
+				},
+				"changeEmail": {
+					"description": "输入新的邮箱并点击保存，我们会向该地址发送确认邮件；完成验证后新邮箱才会生效。",
+					"notifications": {
+						"error": "无法更新邮箱，请稍后重试",
+						"emailAlreadyExists": "该邮箱地址 {email} 已被使用，请使用其他邮箱",
+						"invalidEmail": "请输入有效的邮箱地址",
+						"success": "验证链接已发送至 {email}，请查收邮件完成确认。"
+					},
+					"title": "您的邮箱"
+				},
+				"changeName": {
+					"notifications": {
+						"error": "无法更新姓名",
+						"success": "姓名已成功更新"
+					},
+					"title": "您的姓名"
+				},
+				"deleteAccount": {
+					"confirmation": "您确定要删除您的账户吗？",
+					"description": "永久删除您的账户。一旦删除，将无法恢复。请在下方输入您的密码以确认：",
+					"notifications": {
+						"error": "无法删除账户",
+						"success": "账户已成功删除"
+					},
+					"submit": "删除账户",
+					"title": "删除账户"
+				},
+				"language": {
+					"description": "要更改应用程序的语言，请从列表中选择一种语言并点击保存。",
+					"notifications": {
+						"error": "无法更新语言",
+						"success": "语言已成功更新"
+					},
+					"title": "您的语言"
+				},
+				"security": {
+					"activeSessions": {
+						"currentSession": "当前会话",
+						"description": "这些是您账户的所有活跃会话。点击X结束特定会话。",
+						"notifications": {
+							"revokeSession": {
+								"success": "会话已撤销"
+							}
+						},
+						"title": "活跃会话"
+					},
+					"changePassword": {
+						"currentPassword": "当前密码",
+						"newPassword": "新密码",
+						"notifications": {
+							"error": "无法更新密码",
+							"success": "密码已成功更新"
+						},
+						"title": "您的密码"
+					},
+					"connectedAccounts": {
+						"connect": "连接",
+						"disconnect": "断开连接",
+						"title": "关联账户"
+					},
+					"passkeys": {
+						"description": "使用密钥作为密码的安全替代方案。",
+						"notifications": {
+							"addPasskey": {
+								"error": {
+									"title": "无法添加密钥"
+								},
+								"success": {
+									"title": "密钥已添加"
+								}
+							},
+							"deletePasskey": {
+								"error": {
+									"title": "无法删除密钥"
+								},
+								"loading": {
+									"title": "正在删除密钥..."
+								},
+								"success": {
+									"title": "密钥已删除"
+								}
+							}
+						},
+						"title": "密钥"
+					},
+					"eventsToken": {
+						"title": "Events Token",
+						"description": "生成专属 API Token，让受信任的工具通过 /api/events 代表你创建“个人发起”的活动。",
+						"empty": {
+							"title": "尚未创建 Events Token",
+							"description": "生成 Token 后即可把活动创建接入飞书、Zapier 等系统，所有活动都会归属于你的个人身份。"
+						},
+						"status": {
+							"active": "已启用，尾号 {lastFour}",
+							"neverUsed": "尚未使用",
+							"lastUsed": "最近一次使用：{date}",
+							"createdAt": "创建时间：{date}",
+							"lastUsedIp": "最近请求 IP：{ip}"
+						},
+						"eligibility": {
+							"blocked": "当前账号不具备创建活动的权限，暂时无法生成 Events Token。"
+						},
+						"actions": {
+							"generate": "生成 Token",
+							"regenerate": "重新生成",
+							"revoke": "立即失效",
+							"copied": "Token 已复制",
+							"usageHeading": "调用方式",
+							"usageSteps": {
+								"post": "向 POST /api/events 提交活动内容。",
+								"header": "添加请求头 Authorization: EventsToken '<'token'>'。",
+								"personalOnly": "仅支持个人活动，organizationId 会被忽略。",
+								"limit": "单个 Token 5 分钟最多 60 次请求。"
+							}
+						},
+						"tokenReveal": {
+							"title": "请妥善保存",
+							"description": "Token 仅展示一次，请立即复制并安全存储。"
+						},
+						"notifications": {
+							"generate": {
+								"success": "Events Token 已生成",
+								"error": "生成 Token 失败"
+							},
+							"revoke": {
+								"success": "Events Token 已撤销",
+								"error": "撤销 Token 失败"
+							}
+						}
+					},
+					"setPassword": {
+						"description": "您尚未设置密码。要设置密码，您需要通过密码重置流程。点击下面的按钮发送邮件以重置密码，并按照邮件中的说明操作。",
+						"descriptionNeedEmail": "要设置密码，您需要先绑定并验证一个真实的邮箱地址。请前往邮箱设置页面添加并验证您的邮箱。",
+						"notifications": {
+							"error": "无法发送设置密码邮件",
+							"success": "设置密码邮件已发送，请检查您的邮箱",
+							"needVerifiedEmail": "请先绑定并验证您的邮箱地址，然后再设置密码"
+						},
+						"submit": "设置密码",
+						"submitNeedEmail": "去设置邮箱",
+						"title": "您的密码"
+					},
+					"title": "安全",
+					"twoFactor": {
+						"description": "双因素认证为您的账户提供额外的安全保障。",
+						"dialog": {
+							"password": {
+								"description": "请输入您的密码以启用双因素认证。",
+								"label": "密码",
+								"title": "确认密码"
+							},
+							"totpUrl": {
+								"code": "验证码",
+								"description": "使用您的认证应用扫描此二维码，然后输入生成的验证码。",
+								"title": "设置双因素认证"
+							}
+						},
+						"disable": "禁用",
+						"enable": "启用",
+						"enabled": "已启用",
+						"notifications": {
+							"disable": {
+								"success": {
+									"title": "双因素认证已禁用"
+								}
+							},
+							"enable": {
+								"error": {
+									"title": "无法启用双因素认证"
+								}
+							},
+							"verify": {
+								"success": {
+									"title": "双因素认证已验证"
+								}
+							}
+						},
+						"title": "双因素认证"
+					}
+				},
+				"subtitle": "管理您个人账户的设置。",
+				"title": "账户设置"
+			},
+			"billing": {
+				"activePlan": {
+					"status": {
+						"active": "活跃",
+						"canceled": "已取消",
+						"expired": "已过期",
+						"incomplete": "不完整",
+						"past_due": "逾期",
+						"paused": "已暂停",
+						"trialing": "试用中",
+						"unpaid": "未支付"
+					},
+					"title": "您的方案"
+				},
+				"changePlan": {
+					"description": "选择要订阅的方案。",
+					"title": "更改您的方案"
+				},
+				"createCustomerPortal": {
+					"label": "管理账单",
+					"notifications": {
+						"error": {
+							"title": "无法创建客户门户会话。请重试。"
+						}
+					}
+				},
+				"title": "账单"
+			},
+			"changeName": {
+				"title": "组织名称"
+			},
+			"dangerZone": {
+				"title": "危险区域"
+			},
+			"deleteOrganization": {
+				"confirmation": "您确定要删除您的组织吗？",
+				"description": "永久删除您的组织。一旦删除，将无法恢复。请在下方输入您的密码以确认：",
+				"submit": "删除组织",
+				"title": "删除组织"
+			},
+			"logo": {
+				"description": "为您的组织上传 Logo。",
+				"title": "组织 Logo"
+			},
+			"members": {
+				"activeMembers": "活跃成员",
+				"description": "查看您组织的所有活跃成员和待处理邀请。",
+				"invitations": {
+					"empty": "您尚未邀请任何成员。",
+					"expiresAt": "过期时间：{date}",
+					"invitationStatus": {
+						"accepted": "已接受",
+						"canceled": "已取消",
+						"pending": "待处理",
+						"rejected": "已拒绝"
+					},
+					"resend": "重新发送邀请",
+					"revoke": "撤销邀请"
+				},
+				"inviteMember": {
+					"description": "要邀请新成员，请向他们发送邀请。",
+					"email": "邮箱",
+					"notifications": {
+						"error": {
+							"description": "我们无法邀请该成员。请稍后再试。",
+							"title": "无法邀请成员"
+						},
+						"success": {
+							"description": "该成员已被邀请。",
+							"title": "已邀请成员"
+						}
+					},
+					"role": "角色",
+					"submit": "邀请",
+					"title": "邀请成员"
+				},
+				"leaveOrganization": "离开组织",
+				"notifications": {
+					"removeMember": {
+						"error": {
+							"description": "无法从您的组织中移除该成员。请重试。"
+						},
+						"loading": {
+							"description": "正在从组织中移除成员..."
+						},
+						"success": {
+							"description": "该成员已成功从您的组织中移除。"
+						}
+					},
+					"resendInvitation": {
+						"error": {
+							"description": "无法发送邀请。请重试。"
+						},
+						"loading": {
+							"description": "正在重新发送邀请..."
+						},
+						"success": {
+							"description": "邀请已发送"
+						}
+					},
+					"revokeInvitation": {
+						"error": {
+							"description": "无法撤销邀请。请稍后再试。"
+						},
+						"loading": {
+							"description": "正在撤销邀请..."
+						},
+						"success": {
+							"description": "邀请已被撤销。"
+						}
+					},
+					"updateMembership": {
+						"error": {
+							"description": "无法更新组织成员资格。请重试。"
+						},
+						"loading": {
+							"description": "正在更新成员资格..."
+						},
+						"success": {
+							"description": "成员资格已成功更新"
+						}
+					}
+				},
+				"pendingInvitations": "待处理邀请",
+				"removeMember": "移除成员",
+				"title": "成员"
+			},
+			"menu": {
+				"account": {
+					"billing": "账单",
+					"dangerZone": "危险区域",
+					"general": "常规",
+					"profile": "轮廓",
+					"security": "安全",
+					"title": "账户"
+				},
+				"organization": {
+					"billing": "账单",
+					"dangerZone": "危险区域",
+					"general": "常规",
+					"members": "成员",
+					"title": "组织"
+				}
+			},
+			"notifications": {
+				"organizationDeleted": "您的组织已被删除。",
+				"organizationNameNotUpdated": "我们无法更新您的组织名称。请稍后再试。",
+				"organizationNameUpdated": "您的组织名称已更新。",
+				"organizationNotDeleted": "我们无法删除您的组织。请稍后再试。"
+			},
+			"profileSettings": {
+				"description": "管理您的个人资料信息和偏好设置",
+				"goToProfile": "前往个人资料",
+				"title": "个人资料设置"
+			},
+			"save": "保存",
+			"subtitle": "管理组织的设置。",
+			"title": "组织"
+		}
+	},
+	"partners": {
+		"becomePartner": "成为合作伙伴",
+		"companies": {
+			"becomePartner": "成为合作伙伴",
+			"contactUs": "联系我们",
+			"fifth": {
+				"description": "产品开发和市场策略",
+				"name": "产品加速器"
+			},
+			"first": {
+				"description": "提供工作空间和资源的技术创新中心",
+				"name": "科技融合"
+			},
+			"fourth": {
+				"description": "编程教育和技术技能发展",
+				"name": "代码工艺学院"
+			},
+			"partnerDescription": "加入我们的社区，助力创造者发展",
+			"second": {
+				"description": "专注于AI初创企业的早期风险投资公司",
+				"name": "AI投资"
+			},
+			"sixth": {
+				"description": "连接亚洲和全球的企业家",
+				"name": "创新网络"
+			},
+			"third": {
+				"description": "帮助初创企业拓展国际市场",
+				"name": "全球规模"
+			}
+		},
+		"contactUs": "联系我们",
+		"description": "与领先的组织合作，支持创造者社区",
+		"label": "合作伙伴与赞助商",
+		"organizationPlaceholder": "组织机构",
+		"partnerDescription": "加入我们的社区，并帮助赋能创造者",
+		"supportDescription": "这些组织为我们的社区提供资源、指导和支持",
+		"supportTitle": "获得支持",
+		"title": "我们的合作伙伴",
+		"ecosystem": "合作生态",
+		"collaboration": "与优质伙伴",
+		"together": "携手同行",
+		"supportCommunity": "共建创新生态，为创造者提供场地、技术、资源等全方位支持",
+		"becomePartnerCta": "想成为我们的合作伙伴？",
+		"partnershipInfo": "了解合作方式、权益及加入流程",
+		"viewPartnership": "查看合作说明"
+	},
+	"pricing": {
+		"choosePlan": "选择方案",
+		"contactSales": "联系销售",
+		"description": "选择最适合您的方案。",
+		"getStarted": "开始使用",
+		"month": "{count, plural, one {个月} other {{count}个月}}",
+		"monthly": "按月付费",
+		"perSeat": "每席位",
+		"products": {
+			"basic": {
+				"description": "完美适合小型团队。",
+				"features": {
+					"anotherFeature": "另一项惊人功能",
+					"limitedSupport": "有限支持"
+				},
+				"title": "基础版"
+			},
+			"enterprise": {
+				"description": "根据您的需求定制的方案",
+				"features": {
+					"enterpriseSupport": "企业级支持",
+					"unlimitedProjects": "无限作品"
+				},
+				"title": "企业版"
+			},
+			"free": {
+				"description": "免费开始",
+				"features": {
+					"anotherFeature": "另一项惊人功能",
+					"limitedSupport": "有限支持"
+				},
+				"title": "免费版"
+			},
+			"lifetime": {
+				"description": "一次购买，终身使用。",
+				"features": {
+					"extendSupport": "延长支持",
+					"noRecurringCosts": "无重复费用"
+				},
+				"title": "终身版"
+			},
+			"pro": {
+				"description": "最适合团队",
+				"features": {
+					"anotherFeature": "另一项惊人功能",
+					"fiveMembers": "最多5个成员",
+					"fullSupport": "全面支持"
+				},
+				"title": "专业版"
+			}
+		},
+		"purchase": "购买",
+		"recommended": "推荐",
+		"subscribe": "订阅",
+		"title": "定价",
+		"trialPeriod": "{days} {days, plural, one {天} other {天}}免费试用",
+		"year": "{count, plural, one {年} other {{count}年}}",
+		"yearly": "按年付费"
+	},
+	"privacySettings": {
+		"description": "控制其他社区成员在您的公开资料上可以看到的信息。",
+		"title": "隐私设置"
+	},
+	"profile": {
+		"availabilityStatus": {
+			"description": "让其他人知道您当前的可用性状态，方便他们判断是否可以与您合作。",
+			"descriptions": {
+				"availableNextMonth": "当前作品即将结束，下月可参与新作品",
+				"immediatelyAvailable": "现在就能开始新作品或合作",
+				"networkingOnly": "愿意交流想法和经验，但不参与具体作品",
+				"notAvailable": "当前作品较忙，暂时无法参与新作品",
+				"weekendsOnly": "工作日较忙，只能周末参与作品"
+			},
+			"options": {
+				"availableNextMonth": "下月有空",
+				"immediatelyAvailable": "立即可参与",
+				"networkingOnly": "仅交流不参与",
+				"notAvailable": "暂时无空",
+				"weekendsOnly": "仅周末"
+			},
+			"title": "当前状态"
+		},
+		"basicInfo": {
+			"description": "更新您的基本信息。",
+			"displayName": {
+				"description": "展示姓名（可使用中文）"
+			},
+			"saveButton": "保存基本信息",
+			"savingButton": "保存中...",
+			"username": {
+				"description": "登录用户名。请使用纯英文字母、数字和下划线",
+				"label": "用户名",
+				"placeholder": "your_username"
+			},
+			"viewProfile": "查看资料"
+		},
+		"bio": {
+			"description": "更详细的自我介绍有助于加快后续活动和加入组织的审核喔",
+			"label": "个人简介",
+			"placeholder": "介绍一下您自己..."
+		},
+		"city": {
+			"label": "城市",
+			"placeholder": "例如：深圳"
+		},
+		"collaborationGoal": {
+			"label": "协作目标",
+			"placeholder": "选择您的协作目标"
+		},
+		"collaborationGoalOptions": {
+			"exploreIdeas": "探索想法",
+			"findTeam": "寻找团队",
+			"joinTeam": "加入团队",
+			"networkingOnly": "人脉拓展",
+			"notSpecified": "未指定",
+			"openToRemote": "远程协作"
+		},
+		"collaborationStatusCategories": {
+			"highAvailability": "高合作意愿",
+			"limitedAvailability": "有限合作",
+			"moderateAvailability": "中等合作意愿",
+			"other": "其他"
+		},
+		"collaborationStatusHelp": {
+			"building_mvp": "目前专注于构建自己的最小可行产品",
+			"consulting_only": "只提供咨询和建议，不参与具体开发工作",
+			"exploring_ideas": "正在探索和验证新的创业想法",
+			"fully_committed": "已全职投入当前作品，暂无额外时间",
+			"learning_phase": "目前处于学习阶段，积累技能和经验",
+			"open_to_collaborate": "对合作机会持开放态度，愿意参与有趣的作品",
+			"other": "其他协作状态，具体情况请查看个人简介",
+			"part_time_available": "可以兼职参与作品，时间相对灵活",
+			"seeking_cofounder": "正在寻找联合创始人，希望找到长期合作伙伴共同创业",
+			"seeking_team": "正在为作品招募团队成员，欢迎各种角色加入",
+			"weekends_only": "仅周末时间可参与作品工作"
+		},
+		"commitmentLevel": {
+			"flexible": "灵活时间",
+			"fullTime": "全职投入",
+			"label": "时间投入（假设你愿意加入其他团队的话）",
+			"notSpecified": "未指定",
+			"partTime": "兼职参与",
+			"placeholder": "选择您的时间投入程度",
+			"weekendWarrior": "周末战士"
+		},
+		"commitmentLevelOptions": {
+			"flexible": "灵活时间",
+			"fullTime": "全职投入",
+			"notSpecified": "未指定",
+			"partTime": "兼职参与",
+			"weekendWarrior": "周末战士"
+		},
+		"customRole": {
+			"label": "自定义角色描述",
+			"placeholder": "描述你的角色（如：数据科学家、增长黑客）"
+		},
+		"errors": {
+			"fetchFailed": "加载资料失败",
+			"tryAgain": "请稍后再试",
+			"updateFailed": "更新资料失败"
+		},
+		"form": {
+			"reset": "重置",
+			"saveAll": "保存所有更改",
+			"saveSection": "保存{section}",
+			"saving": "保存中...",
+			"unsavedChanges": "您有未保存的更改。离开前请记得保存！"
+		},
+		"gender": {
+			"label": "性别",
+			"placeholder": "选择您的性别"
+		},
+		"genderOptions": {
+			"female": "女",
+			"male": "男",
+			"other": "其他",
+			"preferNotToSay": "不愿透露"
+		},
+		"name": {
+			"label": "姓名",
+			"placeholder": "您的全名"
+		},
+		"newSkills": {
+			"categories": {
+				"businessGrowth": "商业增长",
+				"productDesign": "产品设计",
+				"resourceNetwork": "资源网络",
+				"technicalDevelopment": "技术开发"
+			},
+			"primarySkills": {
+				"description": "选择您最擅长的核心技能，这将帮助其他人快速了解您的专长。",
+				"required": "至少选择一个主要技能",
+				"title": "主要技能"
+			},
+			"secondarySkills": {
+				"description": "选择您也掌握但不是主要专长的技能。",
+				"title": "辅助技能"
+			}
+		},
+		"phone": {
+			"label": "电话",
+			"placeholder": "例如：+86 138 0000 0000"
+		},
+		"preferredContact": {
+			"description": "选择在活动报名时优先显示的联系方式",
+			"options": {
+				"email": "邮箱",
+				"phone": "手机号",
+				"wechat": "微信号"
+			},
+			"placeholder": "请选择首选联系方式",
+			"title": "首选联系方式"
+		},
+		"privacy": {
+			"contactVisibility": "联系方式",
+			"contactVisibilityDescription": "控制在您的公开资料中显示哪些联系方式",
+			"profileVisibility": "资料可见性",
+			"profileVisibilityDescription": "控制谁可以查看您的资料",
+			"publicProfile": "公开资料",
+			"publicProfileDescription": "让其他社区成员可以看到您的资料",
+			"showEmail": "显示邮箱",
+			"showEmailDescription": "在您的公开资料中显示您的邮箱地址",
+			"showWechat": "显示微信号",
+			"showWechatDescription": "仅在互相关注时显示您的微信信息，确保隐私安全"
+		},
+		"qr": {
+			"close": "关闭",
+			"copyLink": "复制链接",
+			"copyProfileLink": "复制资料链接",
+			"downloadPNG": "下载PNG",
+			"generateQRCode": "生成二维码",
+			"generateQRCodeText": "点击生成并查看您的个人二维码",
+			"needPublicProfile": "您的资料目前是私密的。将其设为公开以生成您的个人二维码。",
+			"needPublicProfileDesc": "在下方的资料设置中启用\"公开资料\"。",
+			"needUsername": "您需要设置用户名才能生成个人二维码。",
+			"needUsernameDesc": "请在下方的资料设置中更新您的用户名。",
+			"notifications": {
+				"copyError": "复制链接失败",
+				"copySuccess": "个人链接已复制",
+				"downloadError": "二维码下载失败",
+				"downloadSuccess": "二维码已成功下载"
+			},
+			"personalQRCode": "个人二维码",
+			"openDigitalCard": "我的数字名片",
+			"openDigitalCardShort": "名片",
+			"qrCodeDescription": "您的个人二维码，方便分享您的资料",
+			"qrCodeDescriptionFull": "您的个人二维码，方便分享您的资料。适合名片和社交场合！",
+			"scanToViewProfile": "扫描查看我的资料",
+			"share": "分享",
+			"showPersonalQRCode": "显示个人二维码",
+			"viewDigitalCard": "打开数字名片",
+			"thisQRCodeLinksTo": "此二维码链接到："
+		},
+		"resourceMatching": {
+			"description": "告诉大家您能提供什么帮助，以及您在寻找什么合作。",
+			"needs": {
+				"collaborationOptions": {
+					"hybrid": "混合模式",
+					"local": "本地面对面",
+					"remote": "远程协作"
+				},
+				"lookingFor": "寻找类型",
+				"lookingForOptions": {
+					"feedback": "💭 寻求反馈",
+					"investment": "💰 寻求投资",
+					"mentorship": "🎓 寻求指导",
+					"projects": "🚀 寻找作品",
+					"teammates": "👥 寻找队友"
+				},
+				"preferredCollaboration": "协作偏好",
+				"timeCommitment": "时间投入",
+				"timeCommitmentOptions": {
+					"flexible": "灵活安排",
+					"fullTime": "全职投入",
+					"partTime": "兼职参与",
+					"weekends": "周末时间"
+				},
+				"title": "我在寻找什么"
+			},
+			"offering": {
+				"availability": "可用时间",
+				"availabilityPlaceholder": "例如：每周可投入10-15小时，主要在周末和晚上...",
+				"cooperationType": "合作类型",
+				"cooperationTypes": {
+					"equity": "股权合作",
+					"exchange": "资源互换",
+					"free": "免费合作",
+					"paid": "有偿服务"
+				},
+				"experienceLevel": "经验水平",
+				"experienceLevels": {
+					"advanced": "资深",
+					"beginner": "初学者",
+					"expert": "专家",
+					"intermediate": "有经验"
+				},
+				"skills": "技能与服务",
+				"title": "我能提供什么"
+			},
+			"title": "资源匹配"
+		},
+		"role": {
+			"label": "主要角色",
+			"placeholder": "选择你的主要角色"
+		},
+		"roleCategories": {
+			"businessDevelopment": "商务拓展",
+			"dataAnalytics": "数据与分析",
+			"design": "设计",
+			"general": "通用角色",
+			"investmentAdvisory": "投资与咨询",
+			"marketingGrowth": "营销与增长",
+			"other": "其他",
+			"productManagement": "产品与管理",
+			"technical": "技术角色"
+		},
+		"roles": {
+			"aiEngineer": "AI工程师",
+			"backendDev": "后端开发",
+			"businessDev": "商务拓展",
+			"communityManager": "社区管理",
+			"contentCreator": "内容创作者",
+			"dataAnalyst": "数据分析师",
+			"designer": "设计师",
+			"devops": "运维工程师",
+			"frontendDev": "前端开发",
+			"fullstackDev": "全栈开发",
+			"generalist": "全能型人才",
+			"growthMarketer": "增长营销",
+			"investor": "投资人",
+			"mentor": "导师",
+			"other": "其他",
+			"productManager": "产品经理"
+		},
+		"systemRoles": {
+			"founder": "创始人",
+			"co_founder": "联合创始人",
+			"director": "负责人",
+			"tech_lead": "技术负责人",
+			"operations_lead": "运营负责人",
+			"community_lead": "社区负责人",
+			"marketing_lead": "宣传负责人",
+			"partnership_lead": "商务负责人",
+			"volunteer_lead": "志愿者负责人",
+			"finance_lead": "财务负责人",
+			"content_lead": "内容负责人",
+			"event_lead": "活动负责人",
+			"product_lead": "产品负责人",
+			"design_lead": "设计负责人",
+			"education_lead": "教育负责人",
+			"mentor_lead": "导师负责人",
+			"learning_lead": "学习负责人",
+			"membership_lead": "会员发展负责人"
+		},
+		"roleStatus": {
+			"description": "管理您的角色状态。"
+		},
+		"sections": {
+			"basicInfo": "基本信息",
+			"privacy": "隐私设置",
+			"projects": "作品",
+			"roleStatus": "角色状态",
+			"skills": "技能",
+			"socialAccounts": "社交账号"
+		},
+		"skills": {
+			"addCustomSkill": "添加自定义技能",
+			"customSkillPlaceholder": "输入技能名称（如：区块链、游戏开发...）",
+			"description": "选择您的技能来展示您的专业能力。从热门技能中选择或添加自定义技能。",
+			"popularSkills": "热门技能（点击添加）",
+			"saveSkills": "保存技能",
+			"saving": "保存中...",
+			"title": "技能专长",
+			"yourSkills": "您的技能 ({count})"
+		},
+		"social": {
+			"github": "GitHub 链接",
+			"githubUsername": "GitHub 用户名",
+			"saveSocialAccounts": "保存社交账号",
+			"saving": "保存中...",
+			"twitter": "Twitter 链接",
+			"twitterUsername": "X (Twitter) 用户名",
+			"website": "个人网站",
+			"wechat": "微信号",
+			"wechatPlaceholder": "您的微信号"
+		},
+		"socialAccounts": {
+			"description": "关联您的社交账号。"
+		},
+		"subtitle": "管理您的个人信息和偏好",
+		"success": {
+			"profileSaved": "您的资料已成功更新。",
+			"updated": "资料已更新"
+		},
+		"tabs": {
+			"basicInfo": "基本信息",
+			"privacy": "隐私设置",
+			"roleStatus": "角色状态",
+			"socialAccounts": "社交账号"
+		},
+		"title": "个人资料设置"
+	},
+	"projects": {
+		"addProject": "添加作品",
+		"communityProjects": "社区作品",
+		"myProjects": {
+			"title": "我的作品",
+			"noProjects": "还没有作品",
+			"noProjectsDesc": "创建您的第一个作品，与社区分享您的创意",
+			"createProject": "创建作品",
+			"loadingError": "加载作品时出错",
+			"reload": "重新加载",
+			"loginPrompt": "请登录查看您的作品",
+			"loginDescription": "登录后可以查看和管理您创建的所有作品",
+			"loginNow": "立即登录"
+		},
+		"filters": {
+			"allProjects": "全部作品",
+			"featured": "精选作品",
+			"recruiting": "寻找团队",
+			"early": "早期项目",
+			"mature": "成熟项目",
+			"errorLoading": "加载项目时出错",
+			"reloadPage": "重新加载",
+			"noProjectsFound": "没有找到相关项目",
+			"createProjectCta": "创建项目"
+		},
+		"create": {
+			"backToProjects": "返回作品列表",
+			"breadcrumb": {
+				"createNew": "创建新作品",
+				"projects": "作品"
+			},
+			"encouragement": {
+				"benefits": {
+					"collaboration": "寻找志同道合的合作伙伴和团队成员",
+					"exposure": "获得更多曝光，让你的作品被更多人看到",
+					"feedback": "收到有价值的反馈，帮助改进你的产品",
+					"learning": "通过分享交流，与其他创造者互相学习成长",
+					"opportunities": "发现投资机会、商业合作和职业发展机会"
+				},
+				"callToAction": "开始分享你的创意作品，加入充满活力的创造者社区！",
+				"title": "为什么要在社区分享你的作品？"
+			},
+			"notifications": {
+				"createFailed": "创建作品失败",
+				"success": "作品创建成功！"
+			},
+			"subtitle": "分享你的精彩作品到社区",
+			"title": "创建新作品"
+		},
+		"description": "发现来自社区成员的创新作品，从早期想法到已发布的产品。",
+		"empty": {
+			"message": "暂无作品。创建您的第一个作品开始吧！",
+			"viewAll": "查看所有作品"
+		},
+		"stageFilters": {
+			"allStages": "所有阶段",
+			"moreStageFilters": "更多阶段筛选",
+			"organizationFilter": "组织筛选",
+			"stage": "按阶段筛选",
+			"titleArea": "标题区域"
+		},
+		"managementSubtitle": "管理和展示您的作品",
+		"managementTitle": "我的作品",
+		"meta": {
+			"description": "发现和探索来自社区成员的创新作品",
+			"title": "社区作品"
+		},
+		"search": {
+			"button": "搜索",
+			"placeholder": "搜索作品..."
+		},
+		"sort": {
+			"latest": "最新发布",
+			"popular": "最多点赞",
+			"views": "最多浏览"
+		},
+		"stage": {
+			"ideaValidation": "想法验证",
+			"prototyping": "原型制作",
+			"mvp": "最小可行产品",
+			"development": "🔧 产品开发",
+			"launched": "已发布",
+			"growth": "增长阶段"
+		},
+		"viewProject": "查看作品",
+		"stats": {
+			"developing": "开发中",
+			"experienceSharing": "经验分享",
+			"launched": "已发布",
+			"publicBuild": "公开构建",
+			"seekingTeam": "寻找团队",
+			"successfulProjects": "成功作品",
+			"total": "总作品数"
+		},
+		"title": "社区作品",
+		"viewAllProjects": "查看所有作品",
+		"visitProject": "访问作品",
+		"bookmark": {
+			"loginRequired": "请登录后收藏作品",
+			"alreadyBookmarked": "作品已在收藏列表中",
+			"cannotBookmarkOwn": "不能收藏自己的作品",
+			"bookmarkSuccess": "已添加到收藏",
+			"unbookmarkSuccess": "已取消收藏",
+			"updateError": "收藏操作失败"
+		}
+	},
+	"posts": {
+		"createPost": "发布帖子",
+		"description": "分享想法、学习笔记和作品动态",
+		"channels": {
+			"all": "全部",
+			"showcase": "作品展示",
+			"learning": "学习笔记",
+			"teamUp": "组队招人",
+			"announcement": "公告",
+			"chat": "闲聊"
+		},
+		"sort": {
+			"new": "最新",
+			"hot": "热门"
+		},
+		"empty": "还没有帖子，来发第一条吧",
+		"detail": {
+			"notFound": "帖子不存在或已被删除"
+		}
+	},
+	"projectShowcase": {
+		"createdBy": "创建者",
+		"description": "发现由我们社区成员创建的卓越作品",
+		"github": "GitHub",
+		"imagePlaceholder": "作品图片",
+		"label": "作品展示",
+		"projects": {
+			"first": {
+				"creator": "文字工坊团队",
+				"description": "一个使用AI建议帮助作家克服写作障碍的工具",
+				"tags": {
+					"tag1": "AI",
+					"tag2": "生产力"
+				},
+				"title": "AI写作助手"
+			},
+			"fourth": {
+				"creator": "金融科技小队",
+				"description": "AI驱动的支出跟踪和财务规划助手",
+				"tags": {
+					"tag1": "金融",
+					"tag2": "生产力"
+				},
+				"title": "个人财务跟踪器"
+			},
+			"second": {
+				"creator": "会议大师",
+				"description": "自动转录和总结会议内容，并生成行动作品",
+				"tags": {
+					"tag1": "AI",
+					"tag2": "商业"
+				},
+				"title": "智能会议总结器"
+			},
+			"third": {
+				"creator": "语言玩家",
+				"description": "通过AI驱动的会话练习，游戏化的语言学习",
+				"tags": {
+					"tag1": "教育",
+					"tag2": "游戏"
+				},
+				"title": "语言学习游戏"
+			}
+		},
+		"title": "社区构建的作品",
+		"viewAllButton": "查看所有作品",
+		"website": "网站"
+	},
+	"public": {
+		"organizationEvents": "组织活动"
+	},
+	"settings": {
+		"account": {
+			"avatar": {
+				"description": "要更改您的头像，单击此块中的图片，然后从计算机中选择一个文件上传。",
+				"notifications": {
+					"error": "无法更新头像",
+					"success": "头像成功更新了"
+				},
+				"title": "你的头像"
+			},
+			"changeEmail": {
+				"description": "输入新的邮箱并点击保存，我们会向该地址发送确认邮件；完成验证后新邮箱才会生效。",
+				"notifications": {
+					"error": "无法更新邮箱",
+					"success": "验证链接已发送至 {email}，请查收邮件完成确认。"
+				},
+				"title": "您的邮箱"
+			},
+			"changeName": {
+				"notifications": {
+					"error": "无法更新名称",
+					"success": "名称已成功更新"
+				},
+				"title": "你的名字"
+			},
+			"deleteAccount": {
+				"confirmation": "您确定要删除您的账户吗？",
+				"description": "永久删除您的账户。一旦删除，将无法恢复。请在下方输入您的密码以确认：",
+				"notifications": {
+					"error": "无法删除账户",
+					"success": "账户已成功删除"
+				},
+				"submit": "删除账户",
+				"title": "删除账户"
+			},
+			"language": {
+				"description": "要更改应用程序的语言，请从列表中选择一种语言并点击保存。",
+				"notifications": {
+					"error": "无法更新语言",
+					"success": "语言已成功更新"
+				},
+				"title": "您的语言"
+			},
+			"security": {
+				"activeSessions": {
+					"currentSession": "当前会话",
+					"description": "这些是您账户的所有活跃会话。点击X结束特定会话。",
+					"notifications": {
+						"revokeSession": {
+							"success": "会话已撤销"
+						}
+					},
+					"title": "活跃会话"
+				},
+				"changePassword": {
+					"currentPassword": "当前密码",
+					"newPassword": "新密码",
+					"notifications": {
+						"error": "无法更新密码",
+						"success": "密码已成功更新"
+					},
+					"title": "您的密码"
+				},
+				"connectedAccounts": {
+					"connect": "连接",
+					"disconnect": "断开连接",
+					"title": "关联账户"
+				},
+				"passkeys": {
+					"description": "使用密钥作为密码的安全替代方案。",
+					"notifications": {
+						"addPasskey": {
+							"error": {
+								"title": "无法添加密钥"
+							},
+							"success": {
+								"title": "密钥已添加"
+							}
+						},
+						"deletePasskey": {
+							"error": {
+								"title": "无法删除密钥"
+							},
+							"loading": {
+								"title": "正在删除密钥..."
+							},
+							"success": {
+								"title": "密钥已删除"
+							}
+						}
+					},
+					"title": "密钥"
+				},
+				"eventsToken": {
+					"title": "Events Token",
+					"description": "生成专属 API Token，让受信任的工具通过 /api/events 代表你创建“个人发起”的活动。",
+					"empty": {
+						"title": "尚未创建 Events Token",
+						"description": "生成 Token 后即可把活动创建接入飞书、Zapier 等系统，所有活动都会归属于你的个人身份。"
+					},
+					"status": {
+						"active": "已启用，尾号 {lastFour}",
+						"neverUsed": "尚未使用",
+						"lastUsed": "最近一次使用：{date}",
+						"createdAt": "创建时间：{date}",
+						"lastUsedIp": "最近请求 IP：{ip}"
+					},
+					"eligibility": {
+						"blocked": "当前账号不具备创建活动的权限，暂时无法生成 Events Token。"
+					},
+					"actions": {
+						"generate": "生成 Token",
+						"regenerate": "重新生成",
+						"revoke": "立即失效",
+						"copied": "Token 已复制",
+						"usageHeading": "调用方式",
+						"usageSteps": {
+							"post": "向 POST /api/events 提交活动内容。",
+							"header": "添加请求头 Authorization: EventsToken '<'token'>'。",
+							"personalOnly": "仅支持个人活动，organizationId 会被忽略。",
+							"limit": "单个 Token 5 分钟最多 60 次请求。"
+						}
+					},
+					"tokenReveal": {
+						"title": "请妥善保存",
+						"description": "Token 仅展示一次，请立即复制并安全存储。"
+					},
+					"notifications": {
+						"generate": {
+							"success": "Events Token 已生成",
+							"error": "生成 Token 失败"
+						},
+						"revoke": {
+							"success": "Events Token 已撤销",
+							"error": "撤销 Token 失败"
+						}
+					}
+				},
+				"setPassword": {
+					"description": "您尚未设置密码。要设置密码，您需要通过密码重置流程。点击下面的按钮发送邮件以重置密码，并按照邮件中的说明操作。",
+					"descriptionNeedEmail": "要设置密码，您需要先绑定并验证一个真实的邮箱地址。请前往邮箱设置页面添加并验证您的邮箱。",
+					"notifications": {
+						"error": "无法发送设置密码邮件",
+						"success": "设置密码邮件已发送，请检查您的邮箱",
+						"needVerifiedEmail": "请先绑定并验证您的邮箱地址，然后再设置密码"
+					},
+					"submit": "设置密码",
+					"submitNeedEmail": "去设置邮箱",
+					"title": "您的密码"
+				},
+				"title": "安全",
+				"twoFactor": {
+					"description": "双因素认证为您的账户提供额外的安全保障。",
+					"dialog": {
+						"password": {
+							"description": "请输入您的密码以启用双因素认证。",
+							"label": "密码",
+							"title": "确认密码"
+						},
+						"totpUrl": {
+							"code": "验证码",
+							"description": "使用您的认证应用扫描此二维码，然后输入生成的验证码。",
+							"title": "设置双因素认证"
+						}
+					},
+					"disable": "禁用",
+					"enable": "启用",
+					"enabled": "已启用",
+					"notifications": {
+						"disable": {
+							"success": {
+								"title": "双因素认证已禁用"
+							}
+						},
+						"enable": {
+							"error": {
+								"title": "无法启用双因素认证"
+							}
+						},
+						"verify": {
+							"success": {
+								"title": "双因素认证已验证"
+							}
+						}
+					},
+					"title": "双因素认证"
+				}
+			},
+			"subtitle": "管理您个人账户的设置。",
+			"title": "账户设置"
+		},
+		"billing": {
+			"activePlan": {
+				"status": {
+					"active": "活跃",
+					"canceled": "已取消",
+					"expired": "已过期",
+					"incomplete": "不完整",
+					"past_due": "逾期",
+					"paused": "已暂停",
+					"trialing": "试用中",
+					"unpaid": "未支付"
+				},
+				"title": "您的计划"
+			},
+			"changePlan": {
+				"description": "选择一个计划订阅的计划。",
+				"title": "更改您的计划"
+			},
+			"createCustomerPortal": {
+				"label": "管理计费",
+				"notifications": {
+					"error": {
+						"title": "无法创建客户门户网站会话。\n请重试。"
+					}
+				}
+			},
+			"title": "账单"
+		},
+		"changeName": {
+			"title": "组织名称"
+		},
+		"dangerZone": {
+			"title": "危险区域"
+		},
+		"deleteOrganization": {
+			"confirmation": "您确定要删除组织吗？",
+			"description": "永久删除您的组织。\n删除组织后，就不会返回。\n要确认，请在下面输入您的密码：",
+			"submit": "删除组织",
+			"title": "删除组织"
+		},
+		"logo": {
+			"description": "上传您的组织logo。",
+			"title": "组织logo"
+		},
+		"members": {
+			"activeMembers": "活跃成员",
+			"description": "请参阅所有活跃成员以及您组织的待处理邀请。",
+			"invitations": {
+				"empty": "您尚未邀请任何成员。",
+				"expiresAt": "在{date}到期",
+				"invitationStatus": {
+					"accepted": "公认",
+					"canceled": "已取消",
+					"pending": "待办的",
+					"rejected": "被拒绝"
+				},
+				"resend": "重新发出邀请",
+				"revoke": "撤销邀请"
+			},
+			"inviteMember": {
+				"description": "要邀请新成员，请给他们邀请。",
+				"email": "电子邮件",
+				"notifications": {
+					"error": {
+						"description": "我们无法邀请成员。\n请稍后再试。",
+						"title": "无法邀请会员"
+					},
+					"success": {
+						"description": "该成员已被邀请。",
+						"title": "邀请成员"
+					}
+				},
+				"role": "角色",
+				"submit": "邀请",
+				"title": "邀请会员"
+			},
+			"leaveOrganization": "离开组织",
+			"notifications": {
+				"removeMember": {
+					"error": {
+						"description": "无法从您的组织中删除成员。\n请重试。"
+					},
+					"loading": {
+						"description": "从组织中删除会员..."
+					},
+					"success": {
+						"description": "该成员已成功从您的组织中删除。"
+					}
+				},
+				"resendInvitation": {
+					"error": {
+						"description": "无法发送邀请。\n请重试。"
+					},
+					"loading": {
+						"description": "重新邀请..."
+					},
+					"success": {
+						"description": "邀请发送"
+					}
+				},
+				"revokeInvitation": {
+					"error": {
+						"description": "邀请无法撤销。\n请稍后再试。"
+					},
+					"loading": {
+						"description": "撤销邀请..."
+					},
+					"success": {
+						"description": "邀请已被撤销。"
+					}
+				},
+				"updateMembership": {
+					"error": {
+						"description": "无法更新组织成员资格。\n请重试。"
+					},
+					"loading": {
+						"description": "更新会员资格..."
+					},
+					"success": {
+						"description": "会员资格被成功更新"
+					}
+				}
+			},
+			"pendingInvitations": "等待邀请",
+			"removeMember": "删除成员",
+			"title": "成员"
+		},
+		"menu": {
+			"account": {
+				"billing": "账单",
+				"dangerZone": "危险区域",
+				"general": "常规",
+				"notifications": "通知设置",
+				"privacy": "隐私设置",
+				"profile": "个人资料",
+				"security": "安全",
+				"title": "账户"
+			},
+			"organization": {
+				"billing": "账单",
+				"dangerZone": "危险区域",
+				"general": "常规",
+				"members": "成员",
+				"title": "组织"
+			}
+		},
+		"notifications": {
+			"organizationDeleted": "您的组织已被删除。",
+			"organizationNameNotUpdated": "我们无法更新您的组织名称。\n请稍后再试。",
+			"organizationNameUpdated": "您的组织名称已更新。",
+			"organizationNotDeleted": "我们无法删除您的组织。\n请稍后再试。"
+		},
+		"privacy": {
+			"description": "管理您的隐私偏好设置",
+			"save": "保存设置",
+			"saveError": "保存失败",
+			"saveErrorDescription": "无法保存设置，请稍后重试",
+			"saveSuccess": "设置已保存",
+			"saveSuccessDescription": "您的隐私设置已成功更新",
+			"saving": "保存中...",
+			"title": "隐私设置"
+		},
+		"profileSettings": {
+			"description": "管理您的个人资料信息和偏好设置",
+			"goToProfile": "前往个人资料",
+			"title": "个人资料设置"
+		},
+		"save": "保存",
+		"subtitle": "管理组织的设置。",
+		"title": "组织"
+	},
+	"start": {
+		"subtitle": "开启您的创造者之旅，让想法变为现实。",
+		"welcome": "欢迎 {name}！"
+	},
+	"tab_nav": {
+		"blog": "博客",
+		"changelog": "更新日志",
+		"collab_docs": "协作文档",
+		"contributions": "积分",
+		"create": "创建",
+		"discover": "发现",
+		"docs": "文档",
+		"events": "活动",
+		"home": "主页",
+		"feed": "动态",
+		"login": "登录",
+		"more": "更多",
+		"notifications": "消息",
+		"tools": "工具",
+		"me": "我的",
+		"organizations": "组织",
+		"projects": "作品",
+		"posts": "动态",
+		"tasks": "任务",
+		"members": "成员",
+		"leaderboard": "排行榜",
+		"weekly": "黑客松周刊",
+		"quickStart": "新手指南",
+		"sayHello": "自我介绍",
+		"groupWelcome": "欢迎",
+		"groupCommunity": "社区",
+		"groupResources": "资源",
+		"groupAdmin": "管理",
+		"groupPersonal": "我的",
+		"myProfile": "数字名片",
+		"myCommunity": "我的社区",
+		"discoverOrgs": "发现组织",
+		"settings": "设置"
+	},
+	"visitorLoginBanner": {
+		"title": "登录后解锁完整社区体验",
+		"description": "报名活动、关注组织、发布内容都需要登录",
+		"cta": "立即登录"
+	},
+	"tasks": {
+		"allTasks": "全部任务",
+		"assignedTo": "分配给",
+		"completed": "已完成",
+		"create": {
+			"basicInfo": "基本信息",
+			"basicInfoDesc": "填写任务的基本信息",
+			"categories": {
+				"COMMUNITY_SERVICE": {
+					"description": "志愿服务、新人引导、答疑支持等",
+					"label": "社区服务"
+				},
+				"CONTENT_CREATION": {
+					"description": "文章撰写、翻译、教程制作等",
+					"label": "内容创作"
+				},
+				"OPERATION_PROMOTION": {
+					"description": "合作洽谈、嘉宾邀请、数据分析等",
+					"label": "运营推广"
+				},
+				"OTHER": {
+					"description": "其他类型的贡献任务",
+					"label": "其他"
+				},
+				"PRODUCT_TECH": {
+					"description": "功能开发、Bug修复、代码审查等",
+					"label": "产品技术"
+				}
+			},
+			"confirmDialog": {
+				"adminNotice": "管理员任务不消耗CP",
+				"cancel": "取消",
+				"confirm": "确认发布",
+				"confirmation": "任务发布后，其他用户可以认领并完成。请确保任务信息准确无误。",
+				"cpWarning": "这将消耗 {cp}积分（当前余额：{balance}）",
+				"description": "您即将发布以下任务：",
+				"publishing": "发布中...",
+				"taskInfo": {
+					"category": "分类",
+					"cpConsumption": "CP消耗",
+					"cpReward": "CP奖励",
+					"title": "标题"
+				},
+				"title": "确认发布任务"
+			},
+			"form": {
+				"adminBadge": "管理员（无需CP）",
+				"category": "任务分类 *",
+				"categoryPlaceholder": "选择任务分类",
+				"cpBalance": "当前CP余额：{balance}",
+				"cpPlaceholder": "积分奖励 *",
+				"cpReward": "CP奖励 *",
+				"cpUsage": "{isAdmin} 管理员发布官方任务{isUser} 用户任务需要CP作为奖励",
+				"deadline": "截止时间（可选）",
+				"description": "任务描述 *",
+				"descriptionLength": "{length}/2000 个字，支持 Markdown 格式",
+				"descriptionPlaceholder": "详细描述任务内容、要求、交付物等...",
+				"featured": "精选任务",
+				"featuredDesc": "在任务大厅中优先展示",
+				"priority": "任务优先级",
+				"tags": "任务标签",
+				"tagsCount": "{count}/10 个标签",
+				"tagsPlaceholder": "输入标签，按回车或逗号添加",
+				"title": "任务标题 *",
+				"titleLength": "{length}/100 个字",
+				"titlePlaceholder": "输入任务标题（简明扼要）"
+			},
+			"priority": {
+				"HIGH": {
+					"description": "重要且紧急的任务",
+					"label": "高优先级"
+				},
+				"LOW": {
+					"description": "非紧急任务",
+					"label": "低优先级"
+				},
+				"NORMAL": {
+					"description": "常规优先级任务",
+					"label": "普通"
+				},
+				"URGENT": {
+					"description": "需要立即处理的任务",
+					"label": "紧急"
+				}
+			},
+			"publishTips": "发布说明",
+			"publishTipsContent": {
+				"tip1": "任务发布后，其他用户可以认领并完成",
+				"tip2": "管理员任务不消耗CP，用户任务需预消耗CP作为奖励",
+				"tip3": "任务完成并通过审核后，CP将发放给认领者",
+				"tip4": "建议设置合理的CP奖励以吸引更多参与者"
+			},
+			"subtitle": "创建社区贡献任务，邀请其他成员参与",
+			"taskPreview": "任务预览",
+			"taskSettings": "任务设置",
+			"taskSettingsDesc": "设置任务奖励、优先级等",
+			"title": "创建任务",
+			"validation": {
+				"categoryRequired": "请选择任务分类",
+				"cpInsufficient": "CP余额不足，当前余额：{balance}",
+				"cpMax": "单个任务CP奖励不能超过1000",
+				"cpMin": "CP奖励必须大于0",
+				"deadlinePast": "截止时间必须晚于当前时间",
+				"descriptionLength": "任务描述至少需要10个字",
+				"descriptionMaxLength": "描述长度不能超过2000个字",
+				"descriptionRequired": "任务描述为必填项",
+				"tagsMax": "最多只能添加10个标签",
+				"titleLength": "标题长度不能超过100个字",
+				"titleRequired": "任务标题为必填项"
+			}
+		},
+		"createTask": "创建任务",
+		"deleteTask": "删除",
+		"description": "参与社区建设，获得积分",
+		"detail": {
+			"actions": {
+				"approveTask": "通过任务",
+				"claiming": "认领中...",
+				"claimTask": "认领任务",
+				"processing": "处理中...",
+				"rejectTask": "拒绝任务",
+				"submitTask": "提交任务",
+				"submitting": "提交中...",
+				"taskExpired": "任务已过期"
+			},
+			"backToTasks": "返回任务大厅",
+			"basicInfo": "基本信息",
+			"categories": {
+				"COMMUNITY_SERVICE": "社区服务",
+				"CONTENT_CREATION": "内容创作",
+				"OPERATION_PROMOTION": "运营推广",
+				"OTHER": "其他",
+				"PRODUCT_TECH": "产品技术"
+			},
+			"cpReward": "CP奖励",
+			"deadline": "截止时间",
+			"dialogs": {
+				"reviewTask": {
+					"approveDescription": "确认任务已按要求完成。CP奖励将发放给认领者。",
+					"approveTitle": "通过任务审核",
+					"confirmApprove": "确认通过",
+					"confirmReject": "确认拒绝",
+					"optionalNote": "可选",
+					"rejectDescription": "任务未达到要求。此次提交将被拒绝。",
+					"rejectReason": "请说明拒绝原因",
+					"rejectTitle": "拒绝任务",
+					"reviewNote": "审核备注"
+				},
+				"submitTask": {
+					"addLink": "添加链接",
+					"cancel": "取消",
+					"description": "请提供任务完成情况的详细描述和相关证据链接。",
+					"evidenceLinks": "证据链接（可选）",
+					"removeLink": "移除",
+					"submissionNote": "提交说明 *",
+					"submissionPlaceholder": "描述任务完成情况、遇到的问题和解决方案...",
+					"submit": "确认提交",
+					"title": "提交任务"
+				}
+			},
+			"evidenceLinks": "证据链接",
+			"expired": "已过期",
+			"expiringSoon": "即将过期",
+			"priority": {
+				"HIGH": "高",
+				"LOW": "低",
+				"NORMAL": "普通",
+				"URGENT": "紧急"
+			},
+			"publishedOn": "发布于",
+			"reviewedAt": "审核于",
+			"reviewNote": "审核备注",
+			"reviewResult": "审核结果",
+			"status": {
+				"CANCELLED": "已取消",
+				"CLAIMED": "进行中",
+				"COMPLETED": "已完成",
+				"PUBLISHED": "待认领",
+				"REJECTED": "已拒绝",
+				"SUBMITTED": "待审核"
+			},
+			"submissionNote": "提交说明",
+			"submitContent": "提交内容",
+			"submittedAt": "提交于",
+			"tags": "标签",
+			"taskDescription": "任务描述",
+			"taskDetails": "任务详情",
+			"taskNotFound": "任务不存在",
+			"taskNotFoundDesc": "您访问的任务可能已被删除或不存在。"
+		},
+		"dueDate": "到期日",
+		"editTask": "修改任务",
+		"inProgress": "进行中",
+		"meta": {
+			"description": "参与社区建设任务，获得积分",
+			"title": "社区任务"
+		},
+		"myTasks": {
+			"browseTasks": "浏览任务",
+			"categories": {
+				"COMMUNITY_SERVICE": "社区服务",
+				"CONTENT_CREATION": "内容创作",
+				"OPERATION_PROMOTION": "运营推广",
+				"OTHER": "其他",
+				"PRODUCT_TECH": "产品技术"
+			},
+			"claimedAt": "认领于",
+			"claimedBy": "认领者：",
+			"claimedTasks": "我认领的任务",
+			"compatibilityFormat": "兼容旧格式",
+			"createdAt": "创建于",
+			"deadline": "截止",
+			"description": "管理我发布和认领的任务",
+			"emptyStates": {
+				"browseTasks": "浏览任务",
+				"goToTaskHall": "去任务大厅看看有哪些任务可以认领吧",
+				"noClaimedTasks": "还没有认领任务",
+				"noPublishedTasks": "还没有发布任务",
+				"publishFirstTask": "发布第一个任务",
+				"publishTasksDesc": "发布任务让社区成员帮助你完成工作"
+			},
+			"expired": "已过期",
+			"fetchError": "获取我的任务失败",
+			"goToTaskHall": "去任务大厅看看有哪些任务可以认领吧",
+			"loginNow": "立即登录",
+			"loginRequired": "您需要登录后才能查看我的任务",
+			"noClaimedTasks": "还没有认领任务",
+			"noPublishedTasks": "还没有发布任务",
+			"pleaseLogin": "请先登录",
+			"priority": {
+				"HIGH": "高",
+				"LOW": "低",
+				"NORMAL": "普通",
+				"URGENT": "紧急"
+			},
+			"publishedBy": "发布者：",
+			"publishedTasks": "我发布的任务",
+			"publishFirstTask": "发布第一个任务",
+			"publishNewTask": "发布新任务",
+			"publishTasksDesc": "发布任务让社区成员帮助你完成工作",
+			"reviewedAt": "审核于",
+			"reviewFeedback": "审核反馈：",
+			"stats": {
+				"claimedTasks": "认领任务",
+				"claimedTasksDesc": "我认领的任务数量",
+				"completedTasks": "完成任务",
+				"completedTasksDesc": "已完成的任务数量",
+				"completionRate": "完成率",
+				"publishedTasks": "发布任务",
+				"publishedTasksDesc": "我发布的任务数量"
+			},
+			"status": {
+				"CANCELLED": "已取消",
+				"CLAIMED": "进行中",
+				"COMPLETED": "已完成",
+				"PUBLISHED": "待认领",
+				"REJECTED": "已拒绝",
+				"SUBMITTED": "待审核"
+			},
+			"submittedAt": "提交于",
+			"timeInfo": {
+				"reviewedAt": "审核于",
+				"submittedAt": "提交于"
+			},
+			"title": "我的任务",
+			"userInfo": {
+				"claimedBy": "认领者：",
+				"publishedBy": "发布者：",
+				"reviewFeedback": "审核反馈："
+			},
+			"viewDetails": "查看详情"
+		},
+		"overdue": "逾期",
+		"pending": "待办的",
+		"priority": {
+			"high": "高的",
+			"low": "低的",
+			"medium": "中等的",
+			"urgent": "紧迫的"
+		},
+		"taskDescription": "任务说明",
+		"taskHall": "任务大厅",
+		"taskPriority": "任务优先",
+		"taskStatus": "任务状态",
+		"taskTitle": "任务标题",
+		"title": "社区贡献任务"
+	},
+	"userProfile": {
+		"badgeRarity": {
+			"COMMON": "普通",
+			"EPIC": "史诗",
+			"LEGENDARY": "传说",
+			"RARE": "稀有",
+			"UNCOMMON": "不凡"
+		},
+		"badgeReason": "获得原因:",
+		"badgesSection": "勋章收藏",
+		"certificatesSection": "获奖证书",
+		"collaborationInfo": "协作信息",
+		"communityProfile": "社区档案",
+		"connectionSummary": "你们一起参加了 {count} 个活动，真是难得的缘分！",
+		"editProfile": "编辑资料",
+		"eventsCreated": "管理的活动",
+		"eventStatus": {
+			"CANCELLED": "已取消",
+			"COMPLETED": "已完成",
+			"DRAFT": "草稿",
+			"PUBLISHED": "已发布"
+		},
+		"featured": "精选",
+		"memberSince": "加入时间",
+		"noOrganizations": "还没有加入任何组织",
+		"noProjects": "还没有作品",
+		"noSkills": "还没有添加技能",
+		"offeringCollaboration": "提供协作",
+		"organizations": "组织",
+		"ourConnection": "我们的关系",
+		"participants": "人报名",
+		"profileViews": "个人资料浏览",
+		"projects": "作品",
+		"projectStages": {
+			"COMPLETED": "🎯 项目完结",
+			"DEVELOPMENT": "🔧 产品开发",
+			"FUNDING": "💼 融资扩张",
+			"GROWTH": "📈 用户增长",
+			"IDEA_VALIDATION": "💡 想法验证",
+			"LAUNCH": "🚀 产品发布",
+			"MONETIZATION": "💰 商业变现"
+		},
+		"seekingCollaboration": "寻求协作",
+		"sharedEvents": "共同参加的活动",
+		"skills": "技能",
+		"skillsSection": "技能标签",
+		"statistics": "统计",
+		"viewProject": "查看作品",
+		"views": "浏览",
+		"whatIAmLookingFor": "我在寻找什么帮助",
+		"whatICanOffer": "我能提供什么"
+	},
+	"valueFuture": {
+		"futurePlans": {
+			"description": "制定技术和社区发展计划",
+			"label": "未来规划",
+			"title": "我们的明天愿景"
+		},
+		"joinOrganization": "加入组织",
+		"plans": {
+			"first": {
+				"description": "构建前沿的开发者工具和平台",
+				"title": "技术创新"
+			},
+			"joinOrganization": "加入组织",
+			"second": {
+				"description": "培育充满活力的创造者和建设者社区",
+				"title": "社区增长"
+			},
+			"third": {
+				"description": "创造学习和协作的机会",
+				"title": "教育影响"
+			},
+			"viewProjects": "查看作品"
+		},
+		"valueProposition": {
+			"description": "赋能开发者构建未来",
+			"label": "价值主张",
+			"title": "我们的服务"
+		},
+		"values": {
+			"first": {
+				"description": "我们相信开源和透明开发",
+				"title": "开放创新"
+			},
+			"second": {
+				"description": "构建包容性社区，让每个人都有归属感",
+				"title": "包容性"
+			},
+			"third": {
+				"description": "在我们创造的一切中追求质量和卓越",
+				"title": "卓越"
+			}
+		},
+		"viewProjects": "查看作品"
+	},
+	"warmCommunity": {
+		"activitiesTransition": "让我们看看社区为你准备了哪些精彩活动",
+		"cta": "查看近期活动",
+		"description": "从半天迷你黑客松到月度深度开发，多样活动满足不同节奏。MVP/早期项目友好，哪怕只有原型或Demo，也欢迎大胆分享",
+		"features": {
+			"home": {
+				"description": "北上广深等城市线下 + 线上，从 Demo Show 到黑客马拉松，让你在一天内把想法落地",
+				"icon": "",
+				"title": "丰富的社区活动"
+			},
+			"joy": {
+				"description": "像客厅聊天般轻松自在，在交流中收获真实的用户反馈与产品灵感",
+				"icon": "",
+				"title": "一起创造，更有乐趣"
+			},
+			"partners": {
+				"description": "独立开发者、产品人、技术极客齐聚，找到懂你的人和潜在的合作伙伴",
+				"icon": "",
+				"title": "遇见你的同路人"
+			},
+			"support": {
+				"description": "无论是原型、代码还是Demo视频，都能获得真诚反馈。在鼓励和支持中互相成长",
+				"icon": "",
+				"title": "早期项目友好环境"
+			}
+		},
+		"subtitle": "无论你身处哪座城市，都可加入社区每周活动，与伙伴们协作，将想法快速变成现实",
+		"tagline": "创造者社区",
+		"title": "欢迎回家，创造者"
+	},
+	"zod": {
+		"errors": {
+			"invalid_arguments": "无效的函数参数",
+			"invalid_date": "无效的日期",
+			"invalid_enum_value": "无效的选项。请从可用选项中选择",
+			"invalid_intersection_types": "无法合并输入类型",
+			"invalid_literal": "无效的字面值",
+			"invalid_return_type": "无效的返回类型",
+			"invalid_string": {
+				"cuid": "无效的 {validation}",
+				"datetime": "无效的 {validation}",
+				"email": "无效的 {validation}",
+				"endsWith": "必须以 \"{endsWith}\" 结尾",
+				"regex": "无效",
+				"startsWith": "必须以 \"{startsWith}\" 开头",
+				"url": "无效的 {validation}",
+				"uuid": "无效的 {validation}"
+			},
+			"invalid_type": "期望 {expected}，收到 {received}",
+			"invalid_type_received_undefined": "必填",
+			"invalid_union": "无效的输入",
+			"invalid_union_discriminator": "无效的判别器值",
+			"not_finite": "数字必须是有限的",
+			"not_multiple_of": "数字必须是 {multipleOf} 的倍数",
+			"too_big": {
+				"array": {
+					"exact": "数组必须恰好包含 {maximum} 个元素",
+					"inclusive": "数组最多包含 {maximum} 个元素",
+					"not_inclusive": "数组必须包含少于 {maximum} 个元素"
+				},
+				"date": {
+					"exact": "日期必须恰好是 {- maximum, datetime}",
+					"inclusive": "日期必须小于或等于 {- maximum, datetime}",
+					"not_inclusive": "日期必须小于 {- maximum, datetime}"
+				},
+				"number": {
+					"exact": "数字必须恰好是 {maximum}",
+					"inclusive": "数字必须小于或等于 {maximum}",
+					"not_inclusive": "数字必须小于 {maximum}"
+				},
+				"set": {
+					"exact": "无效的输入",
+					"inclusive": "无效的输入",
+					"not_inclusive": "无效的输入"
+				},
+				"string": {
+					"exact": "必须恰好包含 {maximum} 个字",
+					"inclusive": "最多包含 {maximum} 个字",
+					"not_inclusive": "必须包含少于 {maximum} 个字"
+				}
+			},
+			"too_small": {
+				"array": {
+					"exact": "数组必须恰好包含 {minimum} 个元素",
+					"inclusive": "数组必须至少包含 {minimum} 个元素",
+					"not_inclusive": "数组必须包含超过 {minimum} 个元素"
+				},
+				"date": {
+					"exact": "日期必须恰好是 {- minimum, datetime}",
+					"inclusive": "日期必须大于或等于 {- minimum, datetime}",
+					"not_inclusive": "日期必须大于 {- minimum, datetime}"
+				},
+				"number": {
+					"exact": "数字必须恰好是 {minimum}",
+					"inclusive": "数字必须大于或等于 {minimum}",
+					"not_inclusive": "数字必须大于 {minimum}"
+				},
+				"set": {
+					"exact": "无效的输入",
+					"inclusive": "无效的输入",
+					"not_inclusive": "无效的输入"
+				},
+				"string": {
+					"exact": "必须恰好包含 {minimum} 个字",
+					"inclusive": "必须至少包含 {minimum} 个字",
+					"not_inclusive": "必须包含超过 {minimum} 个字"
+				}
+			},
+			"unrecognized_keys": "对象中存在未识别的键: {keys}"
+		},
+		"types": {
+			"array": "数组",
+			"bigint": "大整数",
+			"boolean": "布尔值",
+			"date": "日期",
+			"float": "浮点数",
+			"function": "函数",
+			"integer": "整数",
+			"map": "映射",
+			"nan": "NaN",
+			"never": "never",
+			"null": "null",
+			"number": "数字",
+			"object": "对象",
+			"promise": "Promise",
+			"set": "集合",
+			"string": "字符串",
+			"symbol": "符号",
+			"undefined": "undefined",
+			"unknown": "未知",
+			"void": "void"
+		},
+		"validations": {
+			"cuid": "cuid",
+			"cuid2": "cuid2",
+			"datetime": "日期时间",
+			"email": "邮箱",
+			"emoji": "表情符号",
+			"ip": "IP地址",
+			"regex": "正则表达式",
+			"ulid": "ulid",
+			"url": "URL",
+			"uuid": "uuid"
+		}
+	},
+	"lifeStatus": {
+		"employed": "上班中",
+		"job_seeking": "求职中",
+		"student": "在读",
+		"freelance": "自由职业",
+		"startup": "创业中",
+		"exploring": "探索中",
+		"remote_work": "远程中",
+		"indie_dev": "独立开发",
+		"working": "在职",
+		"job-seeking": "求职中",
+		"studying": "在读",
+		"freelancing": "自由职业",
+		"entrepreneurship": "创业中",
+		"break": "间隙年"
+	},
+	"editor": {
+		"imageUpload": {
+			"selectImage": "请选择图片文件",
+			"sizeLimit": "图片大小不能超过5MB",
+			"uploading": "上传图片中...",
+			"success": "图片上传成功",
+			"failed": "图片上传失败"
+		}
+	},
+	"uploader": {
+		"multipleImages": {
+			"unsupportedType": "不支持的文件类型。请上传：{types}",
+			"sizeLimit": "文件大小不能超过 {max}MB",
+			"signedUrlError": "获取上传链接失败",
+			"uploadFailed": "上传失败，请重试",
+			"maxLimit": "最多只能上传 {count} 张图片",
+			"uploadSuccess": "成功上传 {count} 张图片"
+		},
+		"singleImage": {
+			"unsupportedType": "不支持的文件类型。请上传：{types}",
+			"sizeLimit": "文件大小不能超过 {max}MB",
+			"signedUrlError": "获取上传链接失败",
+			"uploadFailed": "上传失败，请重试",
+			"uploadSuccess": "文件上传成功",
+			"uploading": "上传中..."
+		}
+	},
+	"websites": {
+		"like": {
+			"loginRequired": "请登录后点赞网站",
+			"alreadyLiked": "已经点赞过了",
+			"likeSuccess": "已点赞",
+			"unlikeSuccess": "已取消点赞",
+			"updateError": "点赞操作失败"
+		}
+	},
+	"tools": {
+		"agenda": {
+			"edit_tab": "编辑",
+			"preview_tab": "预览",
+			"basic_info": "基本信息",
+			"basic_info_desc": "设置活动的基本信息",
+			"title_label": "活动标题",
+			"subtitle_label": "活动副标题",
+			"date_label": "活动日期",
+			"time_label": "活动时间",
+			"location_label": "活动地点",
+			"sponsor_label": "赞助方",
+			"partners_label": "合作伙伴",
+			"highlights": "活动亮点",
+			"highlights_desc": "描述本次活动的亮点和特色",
+			"highlights_placeholder": "例如：本次黑客松将有5个团队进行项目展示，涵盖AI、Web3、可持续发展等多个领域...",
+			"schedule": "活动流程",
+			"schedule_desc": "设置活动的详细流程安排",
+			"time_range": "时间段",
+			"content": "活动内容",
+			"duration": "时长(分钟)",
+			"responsible": "负责人",
+			"roles": "活动角色",
+			"roles_desc": "设置活动工作人员角色分工",
+			"role": "角色",
+			"person": "负责人",
+			"tips": "温馨提示",
+			"tips_desc": "添加给参与者的温馨提醒",
+			"preview": "预览效果",
+			"preview_desc": "预览议程的打印效果",
+			"download": "下载HTML"
+		}
+	},
+	"eventSeriesSubscription": {
+		"description": "{seriesName} 发布新活动时将通过邮件通知您。",
+		"error": "操作失败，请稍后再试。",
+		"login": "登录后订阅",
+		"subscribe": "订阅此系列",
+		"successSubscribe": "已订阅 {seriesName} 的活动通知。",
+		"successUnsubscribe": "已取消订阅 {seriesName} 的活动通知。",
+		"unsubscribe": "取消订阅"
+	}
+}

@@ -1,0 +1,76 @@
+# Dockerignore for optimized build
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Git - include .git for version detection
+# .git
+
+# Local env files
+.env*.local
+.env.deploy
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Next.js - exclude most files but keep standalone build artifacts
+/.next/*
+
+# Keep .git for version detection
+# !.git
+!/.next/standalone
+!/.next/static
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+/debug
+/logs
+*.log
+
+# Local development
+/deploy
+deploy-*.tar.gz
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Testing
+/coverage
+/.nyc_output
+
+# Git
+.git
+.gitignore
+README.md
+
+# CI/CD
+.github
+
+# Documentation
+/docs
+
+# Deployment scripts
+deploy.sh
+.env.deploy
+
+# Husky
+.husky

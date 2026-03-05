@@ -1,0 +1,2563 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator zod {
+  provider         = "zod-prisma-types"
+  output           = "./zod"
+  addIncludeType   = "false"
+  addSelectType    = "false"
+  createInputTypes = "false"
+}
+
+generator json {
+  provider = "prisma-json-types-generator"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                 String       @id @default(cuid())
+  name               String
+  email              String       @unique
+  emailVerified      Boolean
+  image              String?
+  createdAt          DateTime
+  updatedAt          DateTime
+  username           String?      @unique
+  role               String?
+  banned             Boolean?
+  banReason          String?
+  banExpires         DateTime?
+  onboardingComplete Boolean      @default(false)
+  paymentsCustomerId String?
+  locale             String?
+  twoFactorEnabled   Boolean?
+  bio                String?
+  region             String? // 地区字段
+  phoneNumber        String? @unique
+  phoneNumberVerified Boolean? // 手机号验证状态
+  pendingInvitationId String?
+  gender             Gender?
+  // 用户信息字段
+  userRoleString     String? // 用户角色（字符串类型）
+  currentWorkOn        String? // 当前在做什么
+  // 简化的资源匹配字段
+  whatICanOffer      String? // 我能提供什么
+  whatIAmLookingFor  String? // 我在寻找什么
+  skills             String[] @default([]) // 技能列表
+  lifeStatus         String? // 当前状态（支持自定义）
+  lastProfileUpdate  DateTime?    // 最后更新时间
+  githubUrl          String?
+  twitterUrl         String?
+  websiteUrl         String?
+  wechatId           String?      // 微信号
+  wechatQrCode       String?      // 微信二维码图片URL
+  wechatOpenId       String?
+  wechatUnionId      String?  // 微信UnionID，用于关联同一开发者账号下的多个应用（移除唯一性约束以支持微信pc/mobile绑定用户时临时创建）
+  cpValue            Int          @default(0)
+  joinedAt           DateTime?    @default(now())
+  profileViews       Int          @default(0)
+  profilePublic      Boolean      @default(true)
+  showEmail          Boolean      @default(true)
+  showWechat         Boolean      @default(false)
+  // 身份验证字段（实名制活动使用，严格保密）
+  realName           String?      // 真实姓名
+  idCard             String?      // 身份证号
+  idCardVerified     Boolean      @default(false) // 身份证验证状态
+  shippingAddress    String?      // 快递地址
+  shippingName       String?      // 收件人姓名
+  shippingPhone      String?      // 收件人电话
+  identityVerifiedAt DateTime?    // 身份验证时间
+  
+  // 身份字段
+  membershipLevel    MembershipLevel?  // 基础成员身份
+  
+  accounts           Account[]
+  aiChats            AiChat[]
+  invitations        Invitation[]
+  targetedInvitations Invitation[] @relation("InvitationTargetUser")
+  members            Member[]
+  organizationInvitationRequests OrganizationInvitationRequest[]
+  pendingInvitation  Invitation? @relation("PendingInvitation", fields: [pendingInvitationId], references: [id])
+  passkeys           Passkey[]
+  projects           Project[]
+  purchases          Purchase[]
+  sessions           Session[]
+  twofactors         TwoFactor[]
+  
+  // Project system relations
+  projectLikes       ProjectLike[]
+  projectComments    ProjectComment[]
+  projectBookmarks   ProjectBookmark[]
+  projectMembers     ProjectMember[]  // Projects where user is a team member
+  projectVotes       ProjectVote[]
+  
+  // Universal comment system relations
+  comments           Comment[]         // 用户发表的评论
+  commentLikes       CommentLike[]     // 用户点赞的评论
+  deletedComments    Comment[]         @relation("DeletedComments") // 用户删除的评论
+  
+  // Event system relations
+  organizedEvents     Event[]               @relation("OrganizedEvents")
+  eventRegistrations  EventRegistration[]
+  eventOrders         EventOrder[]
+  refundedEventOrders EventOrder[]          @relation("RefundedOrders")
+  redeemedOrderInvites EventOrderInvite[]    @relation("EventOrderInviteRedeemers")
+  eventAnswers        EventAnswer[]
+  eventCheckIns       EventCheckIn[]
+  eventFeedbacks      EventFeedback[]
+  eventPhotos         EventPhoto[]
+  reviewedRegistrations EventRegistration[] @relation("ReviewedRegistrations")
+  checkInOperations   EventCheckIn[]        @relation("CheckInOperations")
+  
+  // Contribution system relations
+  contributions       Contribution[]
+  reviewedContributions Contribution[]      @relation("ReviewedContributions")
+  
+  // Badge system relations
+  userBadges          UserBadge[]
+  awardedBadges       UserBadge[]           @relation("AwardedBadges")
+  
+  // Admin system relations
+  adminLogs           AdminLog[]
+  configUpdates       SystemConfig[]
+  
+  // Community Task system relations
+  publishedTasks      CommunityTask[]       @relation("PublishedTasks")
+  assignedTasks       CommunityTask[]       @relation("AssignedTasks")
+  
+  // Email system relations
+  emailCampaigns      EmailCampaign[]
+  emailJobs           EmailJob[]
+  emailPreference     UserEmailPreference?
+  
+  // Website system relations
+  submittedWebsites   Website[]         // 提交的网站
+  approvedWebsites    Website[]         @relation("ApprovedWebsites") // 审核通过的网站
+  
+  // Organization application relations
+  organizationApplications OrganizationApplication[]
+  invitedOrganizationApplications OrganizationApplication[] @relation("OrganizationApplicationInviter")
+  reviewedApplications     OrganizationApplication[] @relation("ReviewedApplications")
+
+  // User following relations
+  following               UserFollow[]  // 我关注的用户
+  followers               UserFollow[]  @relation("Followers") // 关注我的用户
+
+  // Event bookmark relations
+  eventBookmarks          EventBookmark[] // 我收藏的活动
+  
+  // Event host subscription relations
+  eventHostSubscriptions  EventHostSubscription[] @relation("UserEventHostSubscriptions") // 我订阅的主办方
+  eventHostFollowers      EventHostSubscription[] @relation("EventHostFollowers") // 订阅我发布活动的用户
+  eventSeries             EventSeries[] @relation("EventSeriesOwner") // 我创建的系列活动
+  eventSeriesSubscriptions EventSeriesSubscription[] // 我订阅的系列活动
+  
+  // Universal like system relations
+  userLikes               UserLike[]      // 我点赞的用户
+  userLikedBy             UserLike[]      @relation("LikedUsers") // 点赞我的用户
+  eventLikes              EventLike[]     // 我点赞的活动
+  websiteLikes            WebsiteLike[]   // 我点赞的网站
+
+  // Notification system relations
+  notifications           Notification[]
+  relatedNotifications    Notification[]  @relation("RelatedNotifications")
+  notificationPreference  NotificationPreference?
+  emailNotificationQueue  EmailNotificationQueue[]
+
+  // Event Admin system relations
+  eventAdmins             EventAdmin[]    @relation("EventAdmins")
+  eventAdminInvitations   EventAdmin[]    @relation("EventAdminInvitations")
+
+  // Event Communication system relations
+  sentCommunications      EventCommunication[] @relation("SentCommunications") // 发送的活动通信
+  receivedCommunications  EventCommunicationRecord[] // 接收的活动通信记录
+
+  // Volunteer system relations  
+  volunteerRegistrations  EventVolunteerRegistration[]
+  approvedVolunteers      EventVolunteerRegistration[] @relation("ApprovedVolunteers")
+  rejectedVolunteers      EventVolunteerRegistration[] @relation("RejectedVolunteers")
+
+  // Functional role system relations
+  functionalRoleAssignments RoleAssignment[]
+
+  // New template and project submission relations
+  createdTemplates        EventTemplate[]
+  projectSubmissions      EventProjectSubmission[]
+  reviewedSubmissions     EventProjectSubmission[] @relation("ReviewedSubmissions")
+  awardedProjects         ProjectAward[]
+  createdAwards           Award[]
+  
+  // AI Recommendation system relations
+  eventAIRecommendations  EventAIRecommendation[]
+  recommendationFeedbacks RecommendationFeedback[]
+
+  // Event participant interest system relations
+  eventParticipantInterests    EventParticipantInterest[] @relation("InterestedByUsers") // 我对活动中的其他参与者感兴趣的记录
+  eventParticipantInterestedBy EventParticipantInterest[] @relation("InterestedInUsers") // 活动中其他参与者对我感兴趣的记录
+
+  // Event invite relations
+  issuedEventInvites         EventInvite[] @relation("EventInviteIssuedBy")
+
+  // Organization member invitation relations
+  invitedMembers             Member[]       @relation("InvitedMembers") // 我邀请加入的成员
+
+
+  // Events API token relation
+  eventsApiToken             EventsApiToken?
+
+  // Post system relations
+  posts                      Post[]
+  postLikes                  PostLike[]
+  postBookmarks              PostBookmark[]
+
+  @@map("user")
+}
+
+model EventsApiToken {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  tokenHash          String?  @unique
+  tokenLastFour      String?
+  createdAt          DateTime @default(now())
+  createdByIp        String?
+  createdByUserAgent String?
+  lastUsedAt         DateTime?
+  lastUsedIp         String?
+  lastUsedUserAgent  String?
+  revokedAt          DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+}
+
+model Session {
+  id                   String   @id @default(cuid())
+  expiresAt            DateTime
+  ipAddress            String?
+  userAgent            String?
+  userId               String
+  impersonatedBy       String?
+  activeOrganizationId String?
+  token                String   @unique
+  createdAt            DateTime
+  updatedAt            DateTime
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  expiresAt             DateTime?
+  password              String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, providerId]) // 防止同一 providerId 下的 accountId 重复
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
+}
+
+model Passkey {
+  id           String    @id @default(cuid())
+  name         String?
+  publicKey    String
+  userId       String
+  credentialID String
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  createdAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("passkey")
+}
+
+model TwoFactor {
+  id          String @id @default(cuid())
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("twoFactor")
+}
+
+model Organization {
+  id                 String       @id @default(cuid())
+  name               String
+  slug               String       @unique
+  logo               String?
+  createdAt          DateTime
+  metadata           String?
+  paymentsCustomerId String?
+  
+  // Community organization fields
+  summary          String?    // Brief one-line description of the organization
+  description      String?    // Markdown format organization introduction
+  location         String?    // Organization location/address (more flexible than city)
+  tags             String[]   @default([]) // Organization tags
+  audienceQrCode   String?    // Audience WeChat group QR code image URL
+  memberQrCode     String?    // Member WeChat group QR code image URL
+  contactInfo      String?    // Contact information (JSON format)
+  
+  // New visual fields
+  coverImage       String?    // Organization cover/hero image for homepage
+  isPublic         Boolean    @default(true) // Whether organization has a public page
+  membershipRequirements String? // Requirements to join (Markdown format)
+  
+  aiChats            AiChat[]
+  invitations        Invitation[]
+  members            Member[]
+  purchases          Purchase[]
+  events             Event[]  // Events belonging to this organization
+  contributions      Contribution[]  // Contributions under this organization
+  tasks              CommunityTask[]  // Tasks belonging to this organization
+  emailCampaigns     EmailCampaign[]  // Email campaigns belonging to this organization
+  applications       OrganizationApplication[]  // Applications to join this organization
+  invitationRequests OrganizationInvitationRequest[]
+  eventHostSubscribers EventHostSubscription[]  // 订阅该组织活动的用户
+  eventSeries       EventSeries[] // 归属于该组织的系列活动
+
+  // Functional role system relations
+  functionalRoles     FunctionalRole[]
+  roleAssignments     RoleAssignment[]
+
+  // New template and award relations
+  eventTemplates     EventTemplate[]  // Templates created by this organization
+  awards             Award[]          // Awards created by this organization
+  websites           Website[]        // Websites submitted by this organization
+
+  
+  @@map("organization")
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String
+  createdAt      DateTime
+  invitedBy      String?      // 邀请人ID (null表示非邀请加入)
+  invitationId   String?      // 关联的邀请ID
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inviter        User?        @relation("InvitedMembers", fields: [invitedBy], references: [id], onDelete: SetNull)
+  invitation     Invitation?  @relation("MemberInvitations", fields: [invitationId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, userId])
+  @@index([userId]) // 优化用户组织查询
+  @@index([invitedBy]) // 优化邀请关系查询
+
+  @@map("member")
+}
+
+model OrganizationApplication {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  inviterId      String?
+  reason         String       // 申请理由
+  status         ApplicationStatus @default(PENDING)
+  submittedAt    DateTime      @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewNote     String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invitationRequest OrganizationInvitationRequest? @relation("ApplicationInvitationRequest")
+  inviter        User?        @relation("OrganizationApplicationInviter", fields: [inviterId], references: [id], onDelete: SetNull)
+  reviewer       User?        @relation("ReviewedApplications", fields: [reviewedBy], references: [id])
+
+  @@unique([organizationId, userId, status])
+  @@index([inviterId])
+  @@map("organization_application")
+}
+
+model OrganizationInvitationRequest {
+  id                 String       @id @default(cuid())
+  code               String       @unique
+  organizationId     String
+  inviterId          String
+  inviteeName        String
+  invitationReason   String
+  eligibilityDetails String
+  status             OrganizationInvitationRequestStatus @default(PENDING)
+  applicationId      String?      @unique
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  application  OrganizationApplication? @relation("ApplicationInvitationRequest", fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
+  @@index([inviterId])
+  @@index([applicationId])
+  @@map("organization_invitation_request")
+}
+
+model Invitation {
+  id             String       @id @default(cuid())
+  organizationId String
+  email          String
+  role           String?
+  status         String
+  expiresAt      DateTime
+  inviterId      String
+  targetUserId   String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+  targetUser     User?        @relation("InvitationTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  pendingUsers   User[]       @relation("PendingInvitation")
+  members        Member[]     @relation("MemberInvitations") // 通过此邀请加入的成员
+
+  @@map("invitation")
+}
+
+model Purchase {
+  id             String        @id @default(cuid())
+  organizationId String?
+  userId         String?
+  type           PurchaseType
+  customerId     String
+  subscriptionId String?       @unique
+  productId      String
+  status         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@map("purchase")
+}
+
+model AiChat {
+  id             String        @id @default(cuid())
+  organizationId String?
+  userId         String?
+  title          String?
+  /// [Array<{role: "user" | "assistant"; content: string;}>]
+  /// @zod.custom.use(z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string() })))
+  messages       Json          @default("[]")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_chat")
+}
+
+
+
+model Project {
+  id              String            @id @default(cuid())
+  shortId         String?           @unique
+  userId          String
+  title           String
+  description     String?           // 作品描述（支持Markdown）- 可选
+  tagline         String?           // 一句话介绍
+  url             String?
+  featured        Boolean           @default(false)
+  order           Int               @default(0)
+  stage           ProjectStage      @default(IDEA_VALIDATION)
+  
+  // Enhanced fields
+  subtitle            String?        // 一句话介绍（可选）
+  screenshots         String[]      @default([]) // 多张截图数组（可选）
+  projectTags         String[]      @default([]) // 作品标签系统
+  pricingType         PricingType?  // 定价类型
+  milestones          String[]      @default([]) // 已完成的里程碑
+  demoVideoUrl        String?       // 演示视频链接
+  
+  // Team recruitment fields (independent of stage)
+  isRecruiting        Boolean       @default(false) // 是否正在招募团队
+  recruitmentStatus   String?       // 招募状态说明
+  recruitmentTags     String[]      @default([]) // 招募岗位标签，如 #寻求联合创始人 #招募技术合伙人 等
+  teamDescription     String?       // 需要什么样的合伙人，详细说明
+  teamSkills          String[]      @default([]) // Required skills for team members  
+  teamSize            Int?          // Desired team size
+  contactInfo         String?       // 联系方式
+  
+  // Creation experience sharing (optional markdown content)
+  creationExperience String?        // 创作经验分享，支持 Markdown
+  
+  // Project completion tracking
+  isComplete      Boolean           @default(false) // 是否为高完成度作品（社区展示）
+  completionScore Int               @default(0) // 作品完成度评分 (0-100)
+  communityUseAuth Boolean          @default(false)
+  customFields    Json?
+  isSubmission    Boolean           @default(false)
+  submittedAt     DateTime?
+  
+  // Analytics
+  viewCount       Int               @default(0)
+  likeCount       Int               @default(0)
+  commentCount    Int               @default(0)
+  
+  // Activity related statistics
+  submissionCount Int               @default(0) // 提交次数
+  awardCount      Int               @default(0) // 获奖次数
+  
+  // Hackathon specific fields
+  githubUrl       String?           // GitHub repository URL
+  slidesUrl       String?           // Online slides URL (Tencent Docs, Feishu, etc.)
+  inspiration     String?           // Inspiration source and project background
+  challenges      String?           // Technical challenges encountered during development
+  learnings       String?           // New skills and experiences learned
+  nextSteps       String?           // Future development plans
+  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  likes           ProjectLike[]
+  comments        ProjectComment[]
+  bookmarks       ProjectBookmark[]
+  members         ProjectMember[]      // Team members
+  
+  // New activity and award relations
+  eventSubmissions EventProjectSubmission[]
+  awards          ProjectAward[]
+  votes           ProjectVote[]
+  attachments     ProjectAttachment[]
+
+  // Post relations
+  linkedPosts     Post[]
+
+
+  @@map("project")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("MEMBER") // 'LEADER' | 'MEMBER'
+  joinedAt  DateTime @default(now())
+  
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, userId])
+  @@map("project_member")
+}
+
+model ProjectAttachment {
+  id        String   @id @default(cuid())
+  projectId String
+  fileName  String
+  fileUrl   String
+  fileType  String
+  mimeType  String?
+  fileSize  Int
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_attachment")
+}
+
+model ProjectVote {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  eventId   String
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId, eventId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([eventId])
+  @@map("project_vote")
+}
+
+model ProjectLike {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, userId]) // One like per user per project
+  @@map("project_like")
+}
+
+model ProjectBookmark {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([projectId, userId]) // 防止重复收藏
+  @@map("project_bookmark")
+}
+
+// Universal Comment System
+model Comment {
+  id          String      @id @default(cuid())
+  content     String      // 评论内容
+  userId      String      // 评论者ID
+  
+  // 通用的关联字段
+  entityType  CommentEntityType // 评论的实体类型
+  entityId    String      // 实体ID
+  
+  // 回复功能
+  parentId    String?     // 父评论ID，用于回复
+  replyToId   String?     // 直接回复的评论ID，用于 @username
+  
+  // 状态管理
+  status      CommentStatus @default(ACTIVE)
+  isDeleted   Boolean     @default(false)
+  deletedAt   DateTime?
+  deletedBy   String?     // 删除者ID（管理员或作者自己）
+  
+  // 统计数据
+  likeCount   Int         @default(0)
+  replyCount  Int         @default(0)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      Comment?    @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     Comment[]   @relation("CommentReplies")
+  replyTo     Comment?    @relation("CommentDirectReplies", fields: [replyToId], references: [id])
+  directReplies Comment[] @relation("CommentDirectReplies")
+  deleter     User?       @relation("DeletedComments", fields: [deletedBy], references: [id])
+  likes       CommentLike[]
+
+  // 索引优化
+  @@index([entityType, entityId, createdAt])
+  @@index([parentId])
+  @@index([userId])
+  @@index([status])
+    @@map("comment")
+}
+
+model CommentLike {
+  id        String   @id @default(cuid())
+  commentId String
+  userId    String
+  createdAt DateTime @default(now())
+  
+  comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([commentId, userId]) // 防止重复点赞
+  @@map("comment_like")
+}
+
+enum CommentEntityType {
+  PROJECT     // 作品评论
+  EVENT       // 活动评论
+  TASK        // 任务评论
+  ARTICLE     // 文章评论（预留）
+  ORGANIZATION // 组织评论（预留）
+  POST        // 帖子评论
+}
+
+enum CommentStatus {
+  ACTIVE      // 正常显示
+  HIDDEN      // 隐藏（管理员操作）
+  REVIEWING   // 审核中
+  REJECTED    // 被拒绝
+}
+
+// 保持向后兼容的ProjectComment模型
+model ProjectComment {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("project_comment")
+}
+
+enum PurchaseType {
+  SUBSCRIPTION
+  ONE_TIME
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  NOT_SPECIFIED
+}
+
+enum ProjectStage {
+  IDEA_VALIDATION    // 💡 想法验证 - 概念构思、市场调研、可行性分析、团队组建、合伙人寻找
+  DEVELOPMENT        // 🔧 产品开发 - 原型制作、MVP开发、产品迭代、技术架构搭建、核心功能实现
+  LAUNCH             // 🚀 产品发布 - 产品正式发布、初期用户获取、市场验证、用户反馈收集
+  GROWTH             // 📈 用户增长 - 用户规模扩张、产品优化迭代、运营策略执行、市场推广
+  MONETIZATION       // 💰 商业变现 - 盈利模式验证、收入增长、商业模式优化、付费用户转化
+  FUNDING            // 💼 融资扩张 - 寻求投资、融资谈判、团队扩张、业务规模化
+  COMPLETED          // 🎯 作品完结 - 成功退出、被收购、转型、作品暂停、归档或失败总结
+}
+
+enum PricingType {
+  FREE
+  PAID
+  FREEMIUM
+}
+
+// Event System Models
+
+model Event {
+  id              String      @id @default(cuid())
+  shortId         String?     @unique // Short URL identifier (nanoid, 8 chars)
+  title           String      // Event title
+  shortDescription String?    // Short description for Hero section (optional)
+  richContent     String?     // Rich text HTML content
+  contentImages   String[]    @default([]) // Image URLs in content
+  
+  // Basic information
+  organizerId     String      // Organizer ID
+  type            EventType   // Event type
+  status          EventStatus @default(DRAFT) // Event status
+  seriesId        String?     // Event series ID (optional)
+  
+  // Time information
+  startTime       DateTime    // Start time
+  endTime         DateTime    // End time
+  timezone        String      @default("Asia/Shanghai") // Timezone
+  
+  // Location information
+  isOnline        Boolean     @default(false) // Is online event
+  address         String?     // Event location (offline address or online URL)
+  organizationId  String?     // Organization ID (uses better-auth organization)
+  onlineUrl       String?     // Online event link (optional for online events)
+  
+  // External event support
+  isExternalEvent Boolean     @default(false) // Is external platform event
+  externalUrl     String?     // External registration link
+  
+  // Registration settings
+  maxAttendees    Int?        // Maximum participants (null means unlimited)
+  registrationDeadline DateTime? // Registration deadline
+  requireApproval Boolean     @default(false) // Requires approval
+  registrationSuccessInfo String?     // Information shown after successful registration
+  registrationSuccessImage String?    // Image shown after successful registration
+  registrationPendingInfo String?     // Information shown during approval process
+  registrationPendingImage String?    // Image shown during approval process
+  registrationFieldConfig Json?       // Registration field configuration (template + required fields)
+  
+  // Display settings
+  coverImage      String?     // Cover image
+  tags            String[]    // Event tags
+  featured        Boolean     @default(false) // Is featured
+  
+  // Volunteer settings
+  volunteerContactInfo  String?   // Global volunteer contact info
+  volunteerWechatQrCode String?   // Global volunteer WeChat QR code
+  
+  // Organizer contact settings
+  organizerContact      String?   // Organizer contact info (email, wechat, phone, etc.)
+  
+  // Template and project submission settings
+  templateId      String?                 // 使用的模板ID
+  requireProjectSubmission Boolean        @default(false) // 是否需要作品提交
+  projectSubmissionDeadline DateTime?     // 作品提交截止时间
+  askDigitalCardConsent Boolean           @default(false) // 是否询问用户是否愿意在现场屏幕公开数字名片
+  
+  // Activity plugins
+  // Whether the event has the "project submissions" feature enabled.
+  // `null` means "use legacy defaults" (HACKATHON + legacy requireProjectSubmission => enabled).
+  submissionsEnabled Boolean?
+
+  // Hackathon specific configuration
+  hackathonConfig Json?                   // Hackathon configuration (JSON format) - DEPRECATED: use control switches below
+
+  // Hackathon control switches
+  registrationOpen      Boolean     @default(true)   // Is registration open
+  submissionsOpen       Boolean     @default(true)  // Is project submission open
+  votingOpen            Boolean     @default(true)  // Is voting open
+
+  // Hackathon public display controls
+  // Whether to show vote counts and live standings on the public submissions gallery
+  showVotesOnGallery    Boolean     @default(true)
+
+  // Feedback configuration
+  feedbackConfig Json?                    // Custom feedback questions configuration (JSON format)
+
+  // Submission form configuration
+  submissionFormConfig Json?              // Custom submission form fields configuration (JSON format)
+
+  // Statistics
+  viewCount       Int         @default(0) // View count
+  
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  // Relations
+  organizer       User        @relation("OrganizedEvents", fields: [organizerId], references: [id])
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+  series          EventSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  registrations   EventRegistration[]
+  questions       EventQuestion[]
+  answers         EventAnswer[]
+  checkIns        EventCheckIn[]
+  feedbacks       EventFeedback[]
+  ticketTypes     EventTicketType[]
+  orders          EventOrder[]
+  photos          EventPhoto[]
+  admins          EventAdmin[]
+  volunteerRoles  EventVolunteerRole[]
+  volunteerRegistrations EventVolunteerRegistration[]
+  
+  // New template and project submission relations
+  template        EventTemplate?          @relation(fields: [templateId], references: [id])
+  createdFromTemplates EventTemplate[]     @relation("EventToTemplate")
+  projectSubmissions EventProjectSubmission[]
+  projectAwards   ProjectAward[]
+  projectVotes    ProjectVote[]
+  bookmarks       EventBookmark[]  // 收藏这个活动的用户
+  likes           EventLike[]      // 点赞这个活动的用户
+  invites        EventInvite[]
+  communications  EventCommunication[] // 活动的沟通记录
+  communicationRecords EventCommunicationRecord[] // 活动的具体通信记录
+  
+  // AI Recommendation system
+  aiRecommendations    EventAIRecommendation[]
+
+  // Event participant interest system
+  participantInterests EventParticipantInterest[]
+
+  // Post relations
+  linkedPosts     Post[]
+
+  // 只添加最关键的索引
+  @@index([status, startTime]) // 主要查询：按状态和时间排序
+  @@index([featured, startTime]) // 置顶活动查询
+  @@index([seriesId, startTime]) // 系列活动按时间排序
+
+  @@map("event")
+}
+
+model EventSeries {
+  id             String   @id @default(cuid())
+  slug           String   @unique
+  title          String
+  description    String?
+  richContent    String?
+  coverImage     String?
+  logoImage      String?
+  tags           String[] @default([])
+  organizerId    String?
+  organizationId String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organizer      User?          @relation("EventSeriesOwner", fields: [organizerId], references: [id], onDelete: Cascade)
+  organization   Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  events         Event[]
+  subscriptions  EventSeriesSubscription[]
+
+  @@index([organizerId])
+  @@index([organizationId])
+  @@index([isActive, createdAt])
+  @@map("event_series")
+}
+
+model EventSeriesSubscription {
+  id         String   @id @default(cuid())
+  seriesId   String
+  userId     String
+  notifyEmail Boolean @default(true)
+  notifyInApp Boolean @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  series     EventSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([seriesId, userId])
+  @@index([userId])
+  @@index([seriesId])
+  @@map("event_series_subscription")
+}
+
+model EventTicketType {
+  id              String              @id @default(cuid())
+  eventId         String
+  name            String              // 票种名称
+  description     String?             // 票种说明
+  price           Float?              // 价格（可选，免费活动为null）
+  maxQuantity     Int?                // 最大数量限制（null表示无限制）
+  currentQuantity Int                 @default(0) // 当前已售数量
+  isActive        Boolean             @default(true) // 是否启用
+  sortOrder       Int                 @default(0) // 排序
+  
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registrations   EventRegistration[]
+  priceTiers      EventTicketPriceTier[]
+  orders          EventOrder[]
+  
+  @@map("event_ticket_type")
+}
+
+model EventTicketPriceTier {
+  id            String          @id @default(cuid())
+  ticketTypeId  String
+  quantity      Int
+  price         Float
+  currency      String          @default("CNY")
+  isActive      Boolean         @default(true)
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  ticketType    EventTicketType @relation(fields: [ticketTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([ticketTypeId, quantity])
+  @@index([ticketTypeId])
+  @@map("event_ticket_price_tier")
+}
+
+model EventOrder {
+  id             String           @id @default(cuid())
+  orderNo        String           @unique
+
+  eventId        String
+  userId         String
+  ticketTypeId   String
+
+  quantity       Int              @default(1)
+  unitPrice      Float?
+  totalAmount    Float
+  currency       String           @default("CNY")
+
+  status         EventOrderStatus @default(PENDING)
+  paymentMethod  PaymentMethod?
+  transactionId  String?
+  paidAt         DateTime?
+
+  prepayId       String?
+  codeUrl        String?
+
+  refundId       String?
+  refundAmount   Float?
+  refundedAt     DateTime?
+  refundReason   String?
+  refundedBy     String?
+
+  expiredAt      DateTime
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  event          Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ticketType     EventTicketType  @relation(fields: [ticketTypeId], references: [id])
+  registrations  EventRegistration[]
+  invites        EventOrderInvite[]
+  refunder       User?            @relation("RefundedOrders", fields: [refundedBy], references: [id])
+
+  @@index([orderNo])
+  @@index([userId, status])
+  @@index([eventId, status])
+  @@index([status, expiredAt])
+  @@map("event_order")
+}
+
+model EventOrderInvite {
+  id             String                @id @default(cuid())
+  orderId        String
+  code           String                @unique
+  status         EventOrderInviteStatus @default(PENDING)
+  redeemedAt     DateTime?
+  redeemedBy     String?
+
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  order          EventOrder            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  redeemer       User?                 @relation("EventOrderInviteRedeemers", fields: [redeemedBy], references: [id])
+  registration   EventRegistration?    @relation("EventOrderInviteRegistration")
+
+  @@index([orderId, status])
+  @@map("event_order_invite")
+}
+
+model EventPhoto {
+  id              String              @id @default(cuid())
+  eventId         String
+  userId          String              // 上传者
+  imageUrl        String              // 原始图片URL
+  watermarkedUrl  String?             // 加水印后的图片URL
+  caption         String?             // 图片说明
+  isApproved      Boolean             @default(true) // 是否通过审核
+
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("event_photo")
+}
+
+// Event Admin System
+model EventAdmin {
+  id              String              @id @default(cuid())
+  eventId         String
+  userId          String?             // null if invitation is pending
+  email           String              // Email for invitation
+  role            EventAdminRole      @default(ADMIN)
+  status          EventAdminStatus    @default(PENDING)
+  
+  // Invitation information
+  invitedBy       String              // User who sent the invitation
+  invitedAt       DateTime            @default(now())
+  acceptedAt      DateTime?           // When invitation was accepted
+  
+  // Permission settings
+  canEditEvent    Boolean             @default(true)  // Can edit event details
+  canManageRegistrations Boolean      @default(true)  // Can approve/reject registrations
+  canManageAdmins Boolean             @default(false) // Can invite/remove other admins (only for SUPER_ADMIN)
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User?               @relation("EventAdmins", fields: [userId], references: [id], onDelete: Cascade)
+  inviter         User                @relation("EventAdminInvitations", fields: [invitedBy], references: [id], onDelete: Cascade)
+  
+  @@unique([eventId, email]) // One invitation per email per event
+  @@index([eventId, status])
+  @@index([userId])
+  @@map("event_admin")
+}
+
+model EventRegistration {
+  id              String              @id @default(cuid())
+  eventId         String
+  userId          String
+  ticketTypeId    String?             // 关联票种
+  orderId         String?
+  orderInviteId   String?             @unique
+  inviteId        String?
+  status          RegistrationStatus  @default(PENDING)
+  
+  // Registration information
+  registeredAt    DateTime            @default(now())
+  note            String?             // Registration note
+  allowDigitalCardDisplay Boolean?    // 是否愿意在现场屏幕公开数字名片
+  
+  // Review information (if approval required)
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNote      String?
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticketType      EventTicketType?    @relation(fields: [ticketTypeId], references: [id])
+  order           EventOrder?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  orderInvite     EventOrderInvite?   @relation("EventOrderInviteRegistration", fields: [orderInviteId], references: [id], onDelete: SetNull)
+  invite          EventInvite?        @relation(fields: [inviteId], references: [id], onDelete: SetNull)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer        User?               @relation("ReviewedRegistrations", fields: [reviewedBy], references: [id])
+  answers         EventAnswer[]
+  
+  @@unique([eventId, userId]) // Same user cannot register for same event twice
+  @@index([inviteId])
+  @@index([orderId])
+  @@index([orderInviteId])
+  @@index([eventId, status]) // 活动报名状态查询优化
+  @@index([userId, status]) // 用户报名状态查询优化
+  @@index([status, registeredAt]) // 按状态和时间排序
+  @@map("event_registration")
+}
+
+model EventQuestion {
+  id          String        @id @default(cuid())
+  eventId     String
+  question    String        // Question content
+  description String?       // Question description (optional)
+  type        QuestionType  // Question type
+  options     String[]      // Options (for single/multiple choice)
+  required    Boolean       @default(false) // Is required
+  order       Int           // Display order
+  
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  answers     EventAnswer[]
+
+  @@map("event_question")
+}
+
+model EventAnswer {
+  id             String              @id @default(cuid())
+  questionId     String
+  userId         String
+  eventId        String
+  registrationId String
+  answer         String              // Answer text
+  
+  question       EventQuestion       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event          Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registration   EventRegistration   @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  
+  @@unique([questionId, userId]) // Same user can only answer same question once
+  @@index([eventId, registrationId]) // 导出查询优化
+  @@index([questionId, eventId]) // 按问题查询答案
+  @@map("event_answer")
+}
+
+model EventCheckIn {
+  id              String    @id @default(cuid())
+  eventId         String
+  userId          String
+  checkedInAt     DateTime  @default(now())
+  checkedInBy     String?   // Check-in operator (might be organizer checking in for user)
+  
+  // Relations
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  operator        User?     @relation("CheckInOperations", fields: [checkedInBy], references: [id])
+  
+  @@unique([eventId, userId]) // Same user can only check in once per event
+  @@map("event_checkin")
+}
+
+model EventFeedback {
+  id              String    @id @default(cuid())
+  eventId         String
+  userId          String
+  rating          Int       // 1-5 star rating
+  comment         String?   // Text feedback
+  suggestions     String?   // Improvement suggestions
+  wouldRecommend  Boolean   // Would recommend
+  customAnswers   Json?     // Custom feedback question answers (JSON format)
+  createdAt       DateTime  @default(now())
+
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId]) // Each person can only give feedback once per event
+  @@map("event_feedback")
+}
+
+model EventInvite {
+  id             String            @id @default(cuid())
+  eventId        String
+  code           String            @unique
+  type           EventInviteType   @default(USER_SHARE)
+  label          String?
+  issuedByUserId String?
+  createdAt      DateTime          @default(now())
+  lastUsedAt     DateTime?
+
+  event          Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  issuedByUser   User?             @relation("EventInviteIssuedBy", fields: [issuedByUserId], references: [id], onDelete: SetNull)
+  registrations  EventRegistration[]
+
+  @@index([eventId])
+  @@index([issuedByUserId])
+  @@map("event_invite")
+}
+
+enum EventType {
+  MEETUP          // Regular Event/Meetup 
+  HACKATHON       // Hackathon
+}
+
+enum EventStatus {
+  DRAFT           // Draft
+  PUBLISHED       // Published
+  REGISTRATION_CLOSED // Registration Closed
+  ONGOING         // Ongoing
+  COMPLETED       // Completed
+  CANCELLED       // Cancelled
+}
+
+enum RegistrationStatus {
+  PENDING_PAYMENT // Pending payment
+  PENDING         // Pending (if approval required)
+  APPROVED        // Approved (auto-approved if no manual approval required)
+  WAITLISTED      // Waitlisted
+  REJECTED        // Rejected
+  CANCELLED       // Cancelled
+}
+
+enum EventOrderStatus {
+  PENDING        // Pending payment
+  PAID           // Paid
+  CANCELLED      // Cancelled
+  REFUND_PENDING // Refund in progress
+  REFUNDED       // Refunded
+}
+
+enum PaymentMethod {
+  WECHAT_NATIVE
+  WECHAT_JSAPI
+  STRIPE
+  FREE
+}
+
+enum EventOrderInviteStatus {
+  PENDING
+  REDEEMED
+  INVALID
+}
+
+enum EventInviteType {
+  USER_SHARE
+  CHANNEL
+}
+
+enum QuestionType {
+  TEXT        // Short text input
+  TEXTAREA    // Long text input
+  SELECT      // Dropdown selection
+  CHECKBOX    // Multiple choice (checkboxes)
+  RADIO       // Single choice (radio buttons)
+}
+
+// Contribution System Models
+
+model Contribution {
+  id             String              @id @default(cuid())
+  userId         String
+  type           ContributionType
+  category       String              // 贡献分类（活动、作品、内容等）
+  description    String              // 贡献描述
+  cpValue        Int                 // 贡献点数值
+  sourceId       String?             // 关联的源对象ID（如eventId, projectId）
+  sourceType     String?             // 源对象类型
+  isAutomatic    Boolean             // 是否自动记录
+  status         ContributionStatus  @default(APPROVED)
+  
+  // 审核信息（手动申报时使用）
+  organizationId String?             // 所属组织ID（用于分部管理）
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  reviewNote     String?
+  evidence       String?             // 证据链接或说明
+  
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  
+  // Relations
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer       User?               @relation("ReviewedContributions", fields: [reviewedBy], references: [id])
+  organization   Organization?       @relation(fields: [organizationId], references: [id])
+  
+  @@map("contribution")
+}
+
+model Badge {
+  id             String      @id @default(cuid())
+  name           String      // 勋章名称
+  description    String      // 勋章描述
+  iconUrl        String?     // 勋章图标URL
+  color          String?     // 勋章颜色 (hex color code)
+  rarity         BadgeRarity // 稀有度（普通/不凡/稀有/史诗/传奇）
+  isActive       Boolean     @default(true)
+  isAutoAwarded  Boolean     @default(false) // 是否自动颁发
+  conditions     Json?       // 自动颁发条件 (JSON格式)
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  // Relations
+  userBadges     UserBadge[]
+  
+  @@map("badge")
+}
+
+model UserBadge {
+  id        String    @id @default(cuid())
+  userId    String
+  badgeId   String
+  awardedBy String?   // 颁发者ID
+  reason    String?   // 获得原因
+  awardedAt DateTime  @default(now())
+  expiresAt DateTime? // 有效期（可选）
+  
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awarder   User?     @relation("AwardedBadges", fields: [awardedBy], references: [id])
+  
+  @@unique([userId, badgeId]) // 防止重复颁发
+  @@map("user_badge")
+}
+
+enum ContributionType {
+  EVENT_CHECKIN        // 活动签到
+  EVENT_FEEDBACK       // 活动反馈
+  EVENT_ORGANIZATION   // 活动组织
+  PROJECT_CREATION     // 作品创建
+  PROJECT_UPDATE       // 作品更新
+  PROJECT_LIKE         // 获得点赞
+  COMMENT_CREATION     // 发表评论
+  PROFILE_COMPLETION   // 完善资料
+  CONTENT_CREATION     // 内容创作
+  COMMUNITY_SERVICE    // 社区服务
+  RESOURCE_INTRODUCTION // 资源引入
+  COMMUNITY_BUILDING   // 社区建设
+  VOLUNTEER_SERVICE    // 志愿者服务
+  OTHER               // 其他
+}
+
+enum ContributionStatus {
+  PENDING    // 待审核
+  APPROVED   // 已批准
+  REJECTED   // 已拒绝
+  REVISED    // 已修订
+}
+
+enum BadgeRarity {
+  COMMON    // 普通
+  UNCOMMON  // 不凡
+  RARE      // 稀有
+  EPIC      // 史诗
+  LEGENDARY // 传奇
+}
+
+// Admin System Models
+
+model AdminLog {
+  id         String   @id @default(cuid())
+  adminId    String   // 管理员ID
+  action     String   // 操作类型
+  targetType String   // 操作对象类型 (user/contribution/badge等)
+  targetId   String   // 操作对象ID
+  details    Json     // 操作详情
+  createdAt  DateTime @default(now())
+  
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  @@map("admin_log")
+}
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique // 配置项名称
+  value       Json     // 配置值
+  description String?  // 配置描述
+  updatedBy   String   // 更新者ID
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  
+  updater     User     @relation(fields: [updatedBy], references: [id], onDelete: Cascade)
+  
+  @@map("system_config")
+}
+
+// Community Task System Models
+
+model CommunityTask {
+  id              String              @id @default(cuid())
+  title           String              // 任务标题
+  description     String              // 任务描述 (支持Markdown)
+  category        TaskCategory        // 任务分类
+  cpReward        Int                 // CP奖励值
+  status          TaskStatus          @default(PUBLISHED)
+  deadline        DateTime?           // 截止时间
+  
+  // 发布信息
+  publisherId     String              // 发布者ID
+  organizationId  String?             // 所属组织ID（null表示全局任务）
+  isUserTask      Boolean             @default(false) // 是否为用户发布的任务
+  
+  // 认领信息
+  assigneeId      String?             // 认领者ID
+  claimedAt       DateTime?           // 认领时间
+  
+  // 完成信息
+  submittedAt     DateTime?           // 提交时间
+  submissionNote  String?             // 提交说明
+  evidenceUrls    String[]            // 证据链接
+  
+  // 审核信息
+  reviewedAt      DateTime?           // 审核时间
+  reviewNote      String?             // 审核备注
+  
+  // 标签和优先级
+  tags            String[]            @default([])     // 任务标签
+  priority        TaskPriority        @default(NORMAL) // 任务优先级
+  featured        Boolean             @default(false)  // 是否精选任务
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  publisher       User                @relation("PublishedTasks", fields: [publisherId], references: [id])
+  assignee        User?               @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  organization    Organization?       @relation(fields: [organizationId], references: [id])
+  
+  @@map("community_task")
+}
+
+enum TaskCategory {
+  COMMUNITY_SERVICE   // 社区服务
+  CONTENT_CREATION    // 内容创作
+  PRODUCT_TECH        // 产品技术
+  OPERATION_PROMOTION // 运营推广
+  OTHER              // 其他
+}
+
+enum TaskStatus {
+  PUBLISHED   // 已发布
+  CLAIMED     // 已认领
+  SUBMITTED   // 已提交
+  COMPLETED   // 已完成
+  REJECTED    // 已拒绝
+  CANCELLED   // 已取消
+}
+
+enum TaskPriority {
+  LOW         // 低优先级
+  NORMAL      // 普通
+  HIGH        // 高优先级
+  URGENT      // 紧急
+}
+
+// Email System Models
+
+model EmailCampaign {
+  id              String           @id @default(cuid())
+  title           String           // 活动标题
+  description     String?          // 活动描述
+  type            EmailCampaignType // 邮件类型
+  scope           EmailScope       // 邮件范围
+  organizationId  String?          // 组织ID，null表示全站邮件
+  createdBy       String           // 创建者ID
+  
+  templateId      String           // 模板ID
+  subject         String           // 邮件主题
+  content         Json             // 邮件内容配置
+  
+  status          CampaignStatus   // 活动状态
+  scheduledAt     DateTime?        // 计划发送时间
+  sentAt          DateTime?        // 实际发送时间
+  
+  // 受众配置
+  /// [Object]
+  /// @zod.custom.use(z.object({}))
+  audienceConfig  Json             // 受众筛选条件
+  recipientCount  Int              @default(0) // 收件人数量
+  
+  // 统计数据
+  sentCount       Int              @default(0) // 已发送数量
+  deliveredCount  Int              @default(0) // 成功投递数量
+  openedCount     Int              @default(0) // 打开数量
+  clickedCount    Int              @default(0) // 点击数量
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  
+  organization    Organization?    @relation(fields: [organizationId], references: [id])
+  creator         User             @relation(fields: [createdBy], references: [id])
+  jobs            EmailJob[]
+  
+  @@map("email_campaign")
+}
+
+model EmailJob {
+  id            String      @id @default(cuid())
+  campaignId    String      // 所属活动ID
+  recipient     String      // 收件人邮箱
+  userId        String?     // 用户ID（如果是注册用户）
+  
+  status        JobStatus   // 任务状态
+  scheduledAt   DateTime    // 计划发送时间
+  sentAt        DateTime?   // 实际发送时间
+  deliveredAt   DateTime?   // 投递确认时间
+  openedAt      DateTime?   // 首次打开时间
+  clickedAt     DateTime?   // 首次点击时间
+  
+  errorMessage  String?     // 错误信息
+  retryCount    Int         @default(0) // 重试次数
+  
+  // 个性化数据
+  /// [Object]
+  /// @zod.custom.use(z.object({}))
+  context       Json        // 个性化内容上下文
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  campaign      EmailCampaign @relation(fields: [campaignId], references: [id])
+  user          User?         @relation(fields: [userId], references: [id])
+  
+  @@map("email_job")
+}
+
+model UserEmailPreference {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  
+  // 订阅设置
+  subscribeNewsletter   Boolean  @default(true)   // 订阅周报
+  subscribeMarketing    Boolean  @default(true)   // 订阅营销邮件
+  subscribeNotification Boolean  @default(true)   // 订阅通知邮件
+  subscribeEvents       Boolean  @default(true)   // 订阅活动邮件
+  
+  // 组织邮件设置
+  /// [Object]
+  /// @zod.custom.use(z.object({}))
+  organizationEmails    Json     @default("{}") // 各组织邮件订阅设置
+  
+  // 退订记录
+  unsubscribedAt        DateTime? // 全局退订时间
+  unsubscribeToken      String?   @unique // 退订令牌
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  user                  User     @relation(fields: [userId], references: [id])
+  
+  @@map("user_email_preference")
+}
+
+model EventHostSubscription {
+  id             String   @id @default(cuid())
+  userId         String
+  organizationId String?
+  hostUserId     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  unsubscribedAt DateTime?
+
+  user         User         @relation("UserEventHostSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  hostUser     User?        @relation("EventHostFollowers", fields: [hostUserId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([hostUserId])
+  @@unique([userId, organizationId])
+  @@unique([userId, hostUserId])
+  @@map("event_host_subscription")
+}
+
+enum EmailCampaignType {
+  NEWSLETTER     // 周报/新闻通讯
+  NOTIFICATION   // 通知邮件
+  MARKETING      // 营销邮件
+  SYSTEM         // 系统邮件
+  ANNOUNCEMENT   // 公告邮件
+}
+
+enum EmailScope {
+  GLOBAL         // 全站邮件
+  ORGANIZATION   // 组织邮件
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED  
+  SENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  FAILED
+  CANCELLED
+}
+
+// User Follow System (关注系统)
+model UserFollow {
+  id           String   @id @default(cuid())
+  followerId   String   // 关注者
+  followingId  String   // 被关注的用户
+  createdAt    DateTime @default(now())
+  
+  // Relations
+  follower     User     @relation(fields: [followerId], references: [id], onDelete: Cascade)
+  following    User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId]) // 防止重复关注
+  @@index([followerId]) // 互关好友查询优化：我关注的人
+  @@index([followingId]) // 互关好友查询优化：关注我的人
+  @@map("user_follow")
+}
+
+// Event Bookmark Model
+model EventBookmark {
+  id        String   @id @default(cuid())
+  userId    String   // 收藏者
+  eventId   String   // 被收藏的活动
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, eventId]) // 防止重复收藏
+  @@map("event_bookmark")
+}
+
+// User Like System - 用户点赞系统
+model UserLike {
+  id        String   @id @default(cuid())
+  userId    String   // 点赞者
+  likedUserId String // 被点赞的用户
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likedUser User     @relation("LikedUsers", fields: [likedUserId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, likedUserId]) // 防止重复点赞
+  @@map("user_like")
+}
+
+// Event Like System - 活动点赞系统
+model EventLike {
+  id        String   @id @default(cuid())
+  userId    String   // 点赞者
+  eventId   String   // 被点赞的活动
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, eventId]) // 防止重复点赞
+  @@map("event_like")
+}
+
+// Website Like System - 网站点赞系统
+model Website {
+  id          String        @id @default(cuid())
+  name        String        // 网站名称
+  url         String        @unique // 网站URL
+  description String?       // 网站描述
+  category    String?       // 网站分类
+  tags        String[]      @default([]) // 标签
+  favicon     String?       // 网站图标URL
+  screenshot  String?       // 网站截图URL
+  
+  // 提交信息
+  submittedBy String        // 提交者ID
+  organizationId String?    // 所属组织ID（可选）
+  isApproved  Boolean       @default(false) // 是否通过审核
+  approvedBy  String?       // 审核者ID
+  approvedAt  DateTime?     // 审核时间
+  
+  // 统计数据
+  likeCount   Int           @default(0) // 点赞数
+  viewCount   Int           @default(0) // 查看数
+  clickCount  Int           @default(0) // 点击数
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  submitter   User          @relation(fields: [submittedBy], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  approver    User?         @relation("ApprovedWebsites", fields: [approvedBy], references: [id])
+  likes       WebsiteLike[]
+  
+  @@map("website")
+}
+
+model WebsiteLike {
+  id        String   @id @default(cuid())
+  userId    String   // 点赞者
+  websiteId String   // 被点赞的网站
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, websiteId]) // 防止重复点赞
+  @@map("website_like")
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum OrganizationInvitationRequestStatus {
+  PENDING
+  APPLICATION_SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// Notification System Models
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String   // 接收通知的用户ID
+  type        NotificationType
+  title       String   // 通知标题
+  content     String   // 通知内容
+  metadata    Json?    // 扩展数据（如关联的作品ID、组织ID等）
+  read        Boolean  @default(false)
+  readAt      DateTime?
+  actionUrl   String?  // 可选的操作链接
+  priority    NotificationPriority @default(NORMAL)
+  
+  // 关联数据
+  relatedUserId String? // 触发通知的用户ID
+  relatedUser   User?   @relation("RelatedNotifications", fields: [relatedUserId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Relations
+  emailNotifications EmailNotificationQueue[]
+
+  @@index([userId, createdAt])
+  @@index([userId, read])
+  @@index([userId, priority, createdAt]) // 优先级通知查询优化
+  @@map("notification")
+}
+
+model NotificationPreference {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  
+  // 作品通知偏好
+  projectCommentEmail   Boolean @default(true)
+  projectCommentPush    Boolean @default(true)
+  projectLikeEmail      Boolean @default(false)
+  projectLikePush       Boolean @default(true)
+  
+  // 组织通知偏好
+  organizationEmail     Boolean @default(true)
+  organizationPush      Boolean @default(true)
+  
+  // 活动通知偏好
+  eventEmail            Boolean @default(true)
+  eventPush             Boolean @default(true)
+  eventReminderEmail    Boolean @default(true)
+  
+  // 系统通知偏好
+  systemEmail           Boolean @default(true)
+  systemPush            Boolean @default(true)
+  
+  // 社交通知偏好
+  socialEmail           Boolean @default(false)
+  socialPush            Boolean @default(true)
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notification_preference")
+}
+
+model EmailNotificationQueue {
+  id            String   @id @default(cuid())
+  userId        String
+  notificationId String?
+  emailType     String   // 邮件模板类型
+  emailData     Json     // 邮件数据
+  priority      NotificationPriority @default(NORMAL)
+  status        EmailStatus @default(PENDING)
+  scheduledAt   DateTime @default(now())
+  sentAt        DateTime?
+  errorMessage  String?
+  retryCount    Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification  Notification? @relation(fields: [notificationId], references: [id])
+
+  @@index([status, scheduledAt])
+  @@index([userId, status]) // 用户邮件通知状态查询优化
+  @@map("email_notification_queue")
+}
+
+enum NotificationType {
+  // 作品相关
+  PROJECT_COMMENT
+  PROJECT_LIKE
+  PROJECT_STATUS_UPDATE
+  PROJECT_COLLABORATION_INVITE
+  PROJECT_VIEW_MILESTONE
+  
+  // 组织相关
+  ORGANIZATION_MEMBER_APPLICATION
+  ORGANIZATION_APPLICATION_RESULT
+  ORGANIZATION_MEMBER_INVITED
+  ORGANIZATION_ROLE_CHANGE
+  ORGANIZATION_ANNOUNCEMENT
+  ORGANIZATION_MEMBER_REMOVED
+  ORGANIZATION_MEMBER_JOINED
+  
+  // 活动相关
+  EVENT_REGISTRATION_RESULT
+  EVENT_TIME_CHANGE
+  EVENT_CANCELLED
+  EVENT_REMINDER
+  EVENT_CHECKIN_OPEN
+  EVENT_NEW_REGISTRATION
+  EVENT_CAPACITY_WARNING
+  EVENT_PHOTO_UPLOADED
+  
+  // 系统通知
+  ACCOUNT_SECURITY
+  ACCOUNT_BANNED
+  SYSTEM_ANNOUNCEMENT
+  ACHIEVEMENT_UNLOCKED
+  DAILY_REWARD
+  
+  // 社交通知
+  USER_BOOKMARKED
+  USER_FOLLOWED
+  USER_LIKED
+  PRIVATE_MESSAGE
+  PROFILE_VIEW_MILESTONE
+
+  // 帖子相关
+  POST_COMMENT
+  POST_LIKE
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  RETRY
+  CANCELLED
+}
+
+enum EventAdminRole {
+  ADMIN        // Regular admin - can edit event and manage registrations
+  SUPER_ADMIN  // Super admin - can do everything including managing other admins
+}
+
+enum EventAdminStatus {
+  PENDING      // Invitation sent, waiting for acceptance
+  ACCEPTED     // Invitation accepted, admin is active
+  REJECTED     // Invitation was rejected
+  REMOVED      // Admin was removed by another admin
+}
+
+// Volunteer Role System Models
+
+model VolunteerRole {
+  id             String   @id @default(cuid())
+  name           String   @unique // 志愿者角色名称 (如：主持人)
+  description    String   // 一句话职责描述
+  detailDescription String? // 详细描述 (支持Markdown)
+  iconUrl        String?  // 图标URL
+  cpPoints       Int      @default(0) // 每次担任可获得的积分
+  isActive       Boolean  @default(true) // 是否启用
+  sortOrder      Int      @default(0) // 排序
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  // Relations
+  eventVolunteerRoles EventVolunteerRole[]
+  templateVolunteerRoles EventTemplateVolunteerRole[]
+  
+  @@map("volunteer_role")
+}
+
+model EventVolunteerRole {
+  id              String    @id @default(cuid())
+  eventId         String
+  volunteerRoleId String
+  recruitCount    Int       @default(1) // 招募数量
+  description     String?   // 此活动中该角色的特殊说明
+  requireApproval Boolean   @default(true) // 是否需要审批
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  volunteerRole   VolunteerRole @relation(fields: [volunteerRoleId], references: [id], onDelete: Cascade)
+  registrations   EventVolunteerRegistration[]
+  
+  @@unique([eventId, volunteerRoleId]) // 同一活动不能重复添加同一志愿者角色
+  @@map("event_volunteer_role")
+}
+
+model EventVolunteerRegistration {
+  id                     String               @id @default(cuid())
+  eventId                String
+  userId                 String
+  eventVolunteerRoleId   String
+  status                 VolunteerStatus      @default(APPLIED)
+  
+  // Registration information
+  appliedAt              DateTime             @default(now())
+  approvedAt             DateTime?
+  approvedBy             String?
+  rejectedAt             DateTime?
+  rejectedBy             String?
+  note                   String?              // 申请备注
+  
+  // Check-in and completion
+  checkedIn              Boolean              @default(false)
+  checkedInAt            DateTime?
+  completed              Boolean              @default(false)
+  completedAt            DateTime?
+  cpAwarded              Boolean              @default(false) // 是否已发放积分
+  
+  // Relations
+  event                  Event                @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user                   User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventVolunteerRole     EventVolunteerRole   @relation(fields: [eventVolunteerRoleId], references: [id], onDelete: Cascade)
+  approver               User?                @relation("ApprovedVolunteers", fields: [approvedBy], references: [id])
+  rejecter               User?                @relation("RejectedVolunteers", fields: [rejectedBy], references: [id])
+  
+  @@unique([eventId, userId, eventVolunteerRoleId]) // 同一用户不能重复申请同一活动的同一志愿者角色
+  @@map("event_volunteer_registration")
+}
+
+enum VolunteerStatus {
+  APPLIED    // 已申请
+  APPROVED   // 已通过
+  REJECTED   // 已拒绝
+  CANCELLED  // 已取消
+}
+
+// ===== 活动模板系统 =====
+
+// 活动模板表
+model EventTemplate {
+  id              String              @id @default(cuid())
+  name            String              // 模板名称
+  type            EventTemplateType   // 模板类型
+  description     String              // 模板描述
+  
+  // 基本活动信息模板
+  title           String              // 默认活动标题
+  defaultDescription String           // 默认活动描述  
+  shortDescription  String?           // 默认活动简介
+  duration        Int?                // 建议时长(分钟)
+  maxAttendees    Int?                // 建议最大参与人数
+  requireApproval Boolean             @default(false) // 是否需要审核
+  
+  // 模板类型和权限控制
+  templateType    EventTemplateCategory @default(SYSTEM) // 模板分类
+  isSystemTemplate Boolean            @default(false) // 是否为系统模板（向后兼容）
+  isFeatured      Boolean             @default(false) // 是否为精选模板
+  isPublic        Boolean             @default(true)  // 个人模板是否公开
+  isActive        Boolean             @default(true)  // 是否启用
+  
+  // 创建和关联信息
+  createdBy       String?             // 创建者ID
+  organizationId  String?             // 所属组织ID
+  originalEventId String?             // 基于哪个活动创建的模板
+  
+  // 使用统计
+  usageCount      Int                 @default(0)     // 使用次数
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  creator         User?               @relation(fields: [createdBy], references: [id])
+  organization    Organization?       @relation(fields: [organizationId], references: [id])
+  originalEvent   Event?              @relation("EventToTemplate", fields: [originalEventId], references: [id])
+  events          Event[]             // 使用此模板的活动
+  ticketTypes     EventTemplateTicketType[]
+  volunteerRoles  EventTemplateVolunteerRole[]
+  questions       EventTemplateQuestion[]
+  schedules       EventTemplateSchedule[]
+  
+  @@index([templateType, isFeatured])
+  @@index([createdBy])
+  @@index([isActive])
+  @@map("event_template")
+}
+
+// 模板票种配置
+model EventTemplateTicketType {
+  id              String          @id @default(cuid())
+  templateId      String
+  name            String          // 票种名称
+  description     String?         // 票种说明
+  price           Float?          // 价格
+  maxQuantity     Int?            // 最大数量
+  isDefault       Boolean         @default(false) // 是否为默认票种
+  sortOrder       Int             @default(0)
+  requirements    String?         // 票种要求描述
+  
+  template        EventTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  @@map("event_template_ticket_type")
+}
+
+// 模板志愿者角色配置  
+model EventTemplateVolunteerRole {
+  id              String          @id @default(cuid())
+  templateId      String
+  volunteerRoleId String
+  recruitCount    Int             @default(1)
+  description     String?
+  requireApproval Boolean         @default(true)
+  cpReward        Int             @default(0) // CP奖励
+  
+  template        EventTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  volunteerRole   VolunteerRole   @relation(fields: [volunteerRoleId], references: [id])
+  
+  @@map("event_template_volunteer_role")
+}
+
+// 模板预设问题
+model EventTemplateQuestion {
+  id              String          @id @default(cuid())
+  templateId      String
+  question        String
+  type            QuestionType
+  options         String[]        @default([])
+  required        Boolean         @default(false)
+  targetRole      String?         // 针对特定角色的问题 (speaker/audience/all)
+  order           Int             @default(0)
+  
+  template        EventTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  @@map("event_template_question")  
+}
+
+// 模板流程安排
+model EventTemplateSchedule {
+  id              String          @id @default(cuid())
+  templateId      String
+  title           String          // 环节标题
+  description     String?         // 环节描述
+  startMinute     Int             // 开始时间(相对分钟)
+  duration        Int             // 持续时间(分钟)
+  type            ScheduleType    // 环节类型
+  order           Int             @default(0)
+  
+  template        EventTemplate   @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  @@map("event_template_schedule")
+}
+
+enum EventTemplateType {
+  MEETUP             // Regular Event/Meetup
+  HACKATHON_LEARNING  // 迷你黑客松
+  CUSTOM             // 自定义模板
+}
+
+enum EventTemplateCategory {
+  SYSTEM             // 系统模板
+  PERSONAL           // 个人模板
+}
+
+enum ScheduleType {
+  CHECK_IN           // 签到
+  INTRODUCTION       // 介绍
+  LEARNING           // 学习
+  DEVELOPMENT        // 开发
+  DEMO               // 演示
+  NETWORKING         // 社交
+  AWARD              // 颁奖
+  BREAK              // 休息
+}
+
+// ===== 作品提交系统 =====
+
+// 活动作品提交表
+model EventProjectSubmission {
+  id              String              @id @default(cuid())
+  eventId         String
+  projectId       String
+  userId          String              // 提交者
+  submissionType  SubmissionType      // 提交类型
+  
+  // 提交信息
+  title           String              // 提交标题(可与作品名称不同)
+  description     String              // 本次提交的描述
+  demoUrl         String?             // 演示链接
+  sourceCode      String?             // 源码链接
+  presentationUrl String?             // 演示文档链接
+  
+  // 状态管理
+  status          SubmissionStatus    @default(SUBMITTED)
+  submittedAt     DateTime            @default(now())
+  reviewedAt      DateTime?
+  reviewedBy      String?
+  reviewNote      String?
+  
+  // 评分信息
+  judgeScore      Float?              // 评委评分
+  audienceScore   Float?              // 观众评分
+  finalScore      Float?              // 最终得分
+  
+  // 作品快照(提交时的作品状态)
+  projectSnapshot Json                // 作品信息快照
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer        User?               @relation("ReviewedSubmissions", fields: [reviewedBy], references: [id])
+  awards          ProjectAward[]      // 获得的奖项
+  
+  @@unique([eventId, projectId]) // 同一活动中同一作品只能提交一次
+  @@map("event_project_submission")
+}
+
+enum SubmissionType {
+  HACKATHON_PROJECT   // 黑客松作品
+  DEMO_PROJECT        // Demo演示作品  
+}
+
+enum SubmissionStatus {
+  SUBMITTED           // 已提交
+  UNDER_REVIEW        // 审核中
+  APPROVED            // 已通过
+  REJECTED            // 已拒绝
+  AWARDED             // 已获奖
+}
+
+// ===== 电子奖状和奖项管理系统 =====
+
+// 奖项表
+model Award {
+  id              String          @id @default(cuid())
+  name            String          @unique // 奖项名称
+  description     String          // 奖项描述
+  category        AwardCategory   // 奖项类别
+  level           AwardLevel      // 奖项级别
+  
+  // 视觉设计
+  iconUrl         String?         // 奖项图标
+  badgeUrl        String?         // 徽章图片
+  certificateTemplate String?     // 证书模板
+  color           String?         // 主题色彩
+  
+  // 奖项设置
+  isActive        Boolean         @default(true)
+  cpReward        Int             @default(0) // CP奖励
+  sortOrder       Int             @default(0)
+  
+  // 元信息
+  createdBy       String?         // 创建者
+  organizationId  String?         // 所属组织
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  creator         User?           @relation(fields: [createdBy], references: [id])
+  organization    Organization?   @relation(fields: [organizationId], references: [id])
+  projectAwards   ProjectAward[]  // 作品获奖记录
+  
+  @@map("award")
+}
+
+// 作品获奖记录表
+model ProjectAward {
+  id              String              @id @default(cuid())
+  projectId       String
+  awardId         String
+  eventId         String?             // 获奖活动
+  submissionId    String?             // 关联的提交记录
+  
+  // 获奖信息
+  awardedAt       DateTime            @default(now())
+  awardedBy       String              // 颁发者
+  reason          String?             // 获奖理由
+  score           Float?              // 获奖分数
+  
+  // 证书信息
+  certificateUrl  String?             // 电子证书URL
+  certificateGenerated Boolean        @default(false)
+  
+  // Relations
+  project         Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  award           Award               @relation(fields: [awardId], references: [id], onDelete: Cascade)
+  event           Event?              @relation(fields: [eventId], references: [id])
+  submission      EventProjectSubmission? @relation(fields: [submissionId], references: [id])
+  awarder         User                @relation(fields: [awardedBy], references: [id])
+  
+  @@unique([projectId, awardId, eventId]) // 同一作品在同一活动中不能重复获得同一奖项
+  @@map("project_award")
+}
+
+enum AwardCategory {
+  GENERAL         // 通用奖项
+  TECHNICAL       // 技术奖项  
+  CREATIVE        // 创意奖项
+  COMMERCIAL      // 商业奖项
+  SOCIAL          // 社会影响奖项
+  SPECIAL         // 特殊奖项
+}
+
+enum AwardLevel {
+  FIRST           // 一等奖
+  SECOND          // 二等奖
+  THIRD           // 三等奖
+  EXCELLENCE      // 优秀奖
+  PARTICIPATION   // 参与奖
+  SPECIAL         // 特殊奖
+}
+
+// ===== AI推荐系统 =====
+
+model EventAIRecommendation {
+  id              String              @id @default(cuid())
+  eventId         String
+  type            RecommendationType  // UNIFIED(统一推荐) or PERSONAL(个性化推荐)
+  userId          String?             // null表示统一推荐，有值表示个性化推荐
+  recommendations Json                // 推荐结果JSON
+  metadata        Json?               // 元数据（如生成时的参与人数等）
+  createdAt       DateTime            @default(now())
+  expiresAt       DateTime            // 过期时间
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  feedbacks       RecommendationFeedback[]
+  
+  @@unique([eventId, type, userId])
+  @@index([eventId, type])
+  @@index([userId])
+  @@map("event_ai_recommendation")
+}
+
+model RecommendationFeedback {
+  id                String              @id @default(cuid())
+  recommendationId  String
+  userId            String
+  helpful           Boolean
+  comment           String?
+  createdAt         DateTime            @default(now())
+  
+  // Relations
+  recommendation    EventAIRecommendation @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([recommendationId, userId])
+  @@map("recommendation_feedback")
+}
+
+enum RecommendationType {
+  UNIFIED         // 统一推荐（报名前）
+  PERSONAL        // 个性化推荐（报名后）
+}
+
+// ===== 等级系统 =====
+
+// 基础成员等级枚举
+enum MembershipLevel {
+  VISITOR         // 新朋友 (0积分)
+  NEWCOMER        // 新人 (1积分)
+  MEMBER          // 成员 (50积分)
+  ACTIVE          // 活跃成员 (200积分)
+  CORE            // 核心成员 (500积分)
+  SENIOR          // 资深成员 (1500积分)
+  LEGEND          // 传奇 (5000积分)
+}
+
+// ===== Event Communication System =====
+
+// 活动通信记录表
+model EventCommunication {
+  id              String              @id @default(cuid())
+  eventId         String              // 活动ID
+  sentBy          String              // 发送者ID
+  type            CommunicationType   // 通信类型
+  subject         String              // 主题
+  content         String              // 内容
+  
+  // 发送统计
+  totalRecipients Int                 @default(0) // 总收件人数
+  sentCount       Int                 @default(0) // 已发送数量
+  deliveredCount  Int                 @default(0) // 投递成功数量
+  failedCount     Int                 @default(0) // 失败数量
+  
+  // 发送状态
+  status          CommunicationStatus @default(PENDING)
+  scheduledAt     DateTime?           // 计划发送时间
+  sentAt          DateTime?           // 实际发送时间
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  
+  // Relations
+  event           Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  sender          User                @relation("SentCommunications", fields: [sentBy], references: [id])
+  records         EventCommunicationRecord[] // 具体发送记录
+  
+  @@index([eventId, createdAt])
+  @@index([sentBy])
+  @@map("event_communication")
+}
+
+// 活动通信发送记录表（具体到每个接收者）
+model EventCommunicationRecord {
+  id                  String               @id @default(cuid())
+  communicationId     String               // 通信记录ID
+  eventId             String               // 活动ID
+  recipientId         String               // 收件人用户ID
+  recipientEmail      String?              // 收件人邮箱
+  recipientPhone      String?              // 收件人手机号
+  
+  // 发送状态
+  status              CommunicationRecordStatus @default(PENDING)
+  sentAt              DateTime?           // 发送时间
+  deliveredAt         DateTime?           // 投递时间
+  readAt              DateTime?           // 阅读时间（邮件打开或短信查看）
+  errorMessage        String?             // 错误信息
+  retryCount          Int                 @default(0) // 重试次数
+  
+  // 第三方服务信息
+  externalMessageId   String?             // 第三方服务消息ID
+  
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  // Relations
+  communication       EventCommunication  @relation(fields: [communicationId], references: [id], onDelete: Cascade)
+  event               Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  recipient           User                @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+  
+  @@unique([communicationId, recipientId]) // 同一通信记录不能重复发送给同一用户
+  @@index([eventId, status])
+  @@index([recipientId])
+  @@map("event_communication_record")
+}
+
+enum CommunicationType {
+  EMAIL           // 邮件
+  SMS             // 短信
+}
+
+enum CommunicationStatus {
+  PENDING         // 待发送
+  SENDING         // 发送中
+  COMPLETED       // 已完成
+  FAILED          // 失败
+  CANCELLED       // 已取消
+}
+
+enum CommunicationRecordStatus {
+  PENDING         // 待发送
+  SENT            // 已发送
+  DELIVERED       // 已投递
+  READ            // 已读
+  FAILED          // 失败
+  CANCELLED       // 已取消
+}
+
+// ===== Event Participant Interest System =====
+
+// 活动参与者感兴趣关系表
+model EventParticipantInterest {
+  id                String    @id @default(cuid())
+  eventId           String    // 活动ID
+  interestedUserId  String    // 感兴趣的用户ID（主动方）
+  targetUserId      String    // 被感兴趣的用户ID（目标用户）
+  
+  // 确保双方都是活动参与者的检查在应用层处理
+  // 这里只存储关系
+  
+  createdAt         DateTime  @default(now())
+  
+  // Relations
+  event             Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  interestedUser    User      @relation("InterestedByUsers", fields: [interestedUserId], references: [id], onDelete: Cascade)
+  targetUser        User      @relation("InterestedInUsers", fields: [targetUserId], references: [id], onDelete: Cascade)
+  
+  // 确保同一活动中同一用户不能重复对同一目标用户感兴趣
+  @@unique([eventId, interestedUserId, targetUserId])
+  // 索引优化查询
+  @@index([eventId, interestedUserId])
+  @@index([eventId, targetUserId])
+  @@map("event_participant_interest")
+}
+
+// ===== Functional Role System =====
+
+model FunctionalRole {
+  id               String            @id @default(cuid())
+  name             String
+  description      String
+  applicableScope  String?
+  organizationId   String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  organization     Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignments      RoleAssignment[]
+
+  @@index([organizationId, isActive])
+  @@unique([organizationId, name])
+  @@map("functional_role")
+}
+
+model RoleAssignment {
+  id               String          @id @default(cuid())
+  userId           String
+  organizationId   String
+  functionalRoleId String
+  startDate        DateTime
+  endDate          DateTime?
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization     Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  functionalRole   FunctionalRole  @relation(fields: [functionalRoleId], references: [id], onDelete: Restrict)
+
+  @@index([userId, isActive])
+  @@index([organizationId, isActive])
+  @@index([functionalRoleId, isActive])
+  @@index([organizationId, functionalRoleId, startDate])
+  @@map("role_assignment")
+}
+
+// ===== Post/Feed System =====
+
+enum PostChannel {
+  SHOWCASE       // 作品展示
+  LEARNING       // 学习笔记
+  TEAM_UP        // 组队招人
+  ANNOUNCEMENT   // 公告
+  CHAT           // 闲聊
+}
+
+model Post {
+  id               String      @id @default(cuid())
+  userId           String
+  title            String?     // 可选标题
+  content          String      // Markdown 内容
+  images           String[]    @default([])
+  channel          PostChannel
+  linkedProjectId  String?     // 关联项目
+  linkedEventId    String?     // 关联活动
+
+  // 统计
+  likeCount        Int         @default(0)
+  commentCount     Int         @default(0)
+  viewCount        Int         @default(0)
+
+  // 管理
+  pinned           Boolean     @default(false)
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Relations
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linkedProject    Project?    @relation(fields: [linkedProjectId], references: [id], onDelete: SetNull)
+  linkedEvent      Event?      @relation(fields: [linkedEventId], references: [id], onDelete: SetNull)
+  likes            PostLike[]
+  bookmarks        PostBookmark[]
+
+  @@index([channel, createdAt])
+  @@index([userId, createdAt])
+  @@index([pinned, createdAt])
+  @@map("post")
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_like")
+}
+
+model PostBookmark {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@map("post_bookmark")
+}

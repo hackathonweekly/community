@@ -1,0 +1,79 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"compilerOptions": {
+		"allowJs": false,
+		"composite": false,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"incremental": true,
+		"tsBuildInfoFile": ".tsbuildinfo",
+		"inlineSources": false,
+		"isolatedModules": true,
+		"jsx": "react-jsx",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"module": "esnext",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"preserveWatchOutput": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"target": "es2022",
+		"plugins": [
+			{
+				"name": "next"
+			}
+		],
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"],
+			"@/features/*": ["./src/features/*"],
+			"@/hooks/*": ["./src/hooks/*"],
+			"@/modules/*": ["./src/modules/*"],
+			"@analytics": ["./src/modules/analytics"],
+			"@marketing/*": ["./src/modules/marketing/*"],
+			"@i18n": ["./src/modules/i18n"],
+			"@i18n/*": ["./src/modules/i18n/*"],
+			"content-collections": ["./.content-collections/generated"],
+			"@shared/*": ["./src/modules/shared/*"],
+			"@account/*": ["./src/modules/account/*"],
+			"@dashboard/*": ["./src/modules/account/*"],
+			"@community/ui/*": ["../../packages/ui/src/*"],
+			"@community/lib-client/*": ["../../packages/lib-client/src/*"],
+			"@community/lib-server/*": ["../../packages/lib-server/src/*"],
+			"@community/lib-shared/*": ["../../packages/lib-shared/src/*"],
+			"@community/config": ["../../packages/config/src/index.ts"],
+			"@community/config/*": ["../../packages/config/src/*"]
+		}
+	},
+	"include": [
+		".content-collections/generated/index.d.ts",
+		"content-collections.ts",
+		"global.d.ts",
+		"next-env.d.ts",
+		"src/**/*.ts",
+		"src/**/*.tsx",
+		".next/types/**/*.ts",
+		".next/dev/types/**/*.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"dist",
+		".next",
+		"build",
+		".deploy",
+		"scripts",
+		".content-collections/cache",
+		".content-collections/generated/*.js",
+		"temp",
+		"**/*.test.*",
+		"**/*.spec.*",
+		"e2e",
+		"playwright.config.ts",
+		"../../packages/lib-server/src/database/prisma/zod/**/*"
+	]
+}

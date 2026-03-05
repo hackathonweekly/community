@@ -1,0 +1,106 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Load build environment
+        id: build_env
+        run: |
+          BUILD_ENV_FILE="./.env.build"
+          if [ -f "${BUILD_ENV_FILE}" ]; then
+            echo "Loading build environment variables from ${BUILD_ENV_FILE}"
+            while IFS='=' read -r key value; do
+              if [[ ! -z "$key" && "$key" != "#"* ]]; then
+                echo "$key=$value" >> $GITHUB_ENV
+              fi
+            done < "${BUILD_ENV_FILE}"
+            echo "✅ Environment variables loaded"
+          else
+            echo "Warning: .env.build file not found, using defaults"
+          fi
+
+          # Set defaults if not in .env.build
+          echo "NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-https://hackathonweekly.com}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_BUCKET_NAME=${NEXT_PUBLIC_BUCKET_NAME:-hackweek-public-1303088253}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_S3_ENDPOINT=${NEXT_PUBLIC_S3_ENDPOINT:-https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com}" >> $GITHUB_ENV
+
+      - name: Display environment variables
+        run: |
+          echo "NEXT_PUBLIC_SITE_URL: ${{ env.NEXT_PUBLIC_SITE_URL }}"
+          echo "NEXT_PUBLIC_BUCKET_NAME: ${{ env.NEXT_PUBLIC_BUCKET_NAME }}"
+          echo "NEXT_PUBLIC_S3_ENDPOINT: ${{ env.NEXT_PUBLIC_S3_ENDPOINT }}"
+
+      - name: Compute build metadata
+        run: |
+          BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          GIT_COMMIT=$(git rev-parse --short HEAD)
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            BUILD_VERSION=$(git describe --tags --exact-match)
+          else
+            BUILD_VERSION="${GITHUB_REF_NAME}-${GIT_COMMIT}"
+          fi
+
+          echo "BUILD_VERSION=${BUILD_VERSION}" >> $GITHUB_ENV
+          echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
+          echo "GIT_COMMIT=${GIT_COMMIT}" >> $GITHUB_ENV
+
+          echo "BUILD_VERSION: ${BUILD_VERSION}"
+          echo "BUILD_TIME: ${BUILD_TIME}"
+          echo "GIT_COMMIT: ${GIT_COMMIT}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push to GitHub Container Registry
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=${{ env.NEXT_PUBLIC_SITE_URL }}
+            NEXT_PUBLIC_BUCKET_NAME=${{ env.NEXT_PUBLIC_BUCKET_NAME }}
+            NEXT_PUBLIC_S3_ENDPOINT=${{ env.NEXT_PUBLIC_S3_ENDPOINT }}
+            BUILD_VERSION=${{ env.BUILD_VERSION }}
+            BUILD_TIME=${{ env.BUILD_TIME }}
+            GIT_COMMIT=${{ env.GIT_COMMIT }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System (Compact) - Hackathon Weekly</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        brand: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        page: '#FAFAFA',
+                        card: '#FFFFFF',
+                        border: '#E5E7EB', // gray-200
+                        subtle: '#F9FAFB', // gray-50
+                    },
+                    borderRadius: {
+                        'xs': '4px',
+                        'sm': '6px',
+                        'md': '8px',
+                        'lg': '12px', // Standard Card
+                        'xl': '16px', // Featured Card
+                        'pill': '9999px',
+                    },
+                    fontSize: {
+                        '2xs': '0.625rem', // 10px
+                    },
+                    boxShadow: {
+                        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        'lift': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #FAFAFA; color: #111; -webkit-font-smoothing: antialiased; }
+        
+        .grid-checker {
+            background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+    </style>
+</head>
+<body class="p-8 lg:p-12">
+
+    <div class="max-w-5xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-16 border-b border-gray-200 pb-8 flex justify-between items-end">
+            <div>
+                <div class="flex items-end gap-4 mb-2">
+                    <h1 class="font-brand text-4xl font-bold tracking-tight">Design System</h1>
+                    <span class="px-2 py-1 bg-black text-white rounded-md text-xs font-bold uppercase tracking-widest mb-1.5">Compact Edition</span>
+                </div>
+                <p class="text-gray-500 max-w-xl text-sm">
+                    A high-density UI kit for productivity-focused community tools. 
+                    Prioritizes information density, clear hierarchy, and fast scanning.
+                </p>
+            </div>
+            <a href="index.html" class="font-bold text-sm underline">Back to Hub</a>
+        </header>
+
+        <!-- 1. Typography -->
+        <section class="mb-20">
+            <h2 class="font-mono text-xs text-gray-400 font-bold uppercase tracking-widest mb-8 border-b border-gray-100 pb-2">01. Typography Scale</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- Headings -->
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Heading XL (Web Only)</div>
+                        <div class="font-brand text-5xl font-bold leading-tight">Compact UI</div>
+                    </div>
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Heading L (Page Title)</div>
+                        <div class="font-brand text-3xl font-bold leading-tight">Discover Events</div>
+                    </div>
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Heading M (Card Title)</div>
+                        <div class="font-brand text-xl font-bold leading-tight">GenAI Agent Hackathon</div>
+                    </div>
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Heading S (Section Title)</div>
+                        <div class="font-brand text-base font-bold">Upcoming Events</div>
+                    </div>
+                </div>
+
+                <!-- Body & UI -->
+                <div class="space-y-6">
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Body Text (14px)</div>
+                        <p class="text-sm text-gray-600 leading-relaxed max-w-sm">
+                            The compact system uses 14px as the base body size to fit more content. 
+                            Line height is kept tight (1.5) for scanning efficiency.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">UI Label (12px)</div>
+                        <div class="text-xs font-bold text-gray-900">Start Date • Location</div>
+                    </div>
+                    <div>
+                        <div class="text-2xs text-gray-400 font-mono mb-1">Micro Label (10px)</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Featured • Tag</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Colors -->
+        <section class="mb-20">
+            <h2 class="font-mono text-xs text-gray-400 font-bold uppercase tracking-widest mb-8 border-b border-gray-100 pb-2">02. Color Palette</h2>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-page border border-gray-200"></div>
+                    <div>
+                        <div class="font-bold text-xs">Page Bg</div>
+                        <div class="font-mono text-2xs text-gray-400">#FAFAFA</div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-white border border-gray-200"></div>
+                    <div>
+                        <div class="font-bold text-xs">Card Bg</div>
+                        <div class="font-mono text-2xs text-gray-400">#FFFFFF</div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-subtle border border-gray-200"></div>
+                    <div>
+                        <div class="font-bold text-xs">Subtle</div>
+                        <div class="font-mono text-2xs text-gray-400">#F9FAFB</div>
+                    </div>
+                </div>
+                 <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-gray-200"></div>
+                    <div>
+                        <div class="font-bold text-xs">Border</div>
+                        <div class="font-mono text-2xs text-gray-400">#E5E7EB</div>
+                    </div>
+                </div>
+                 <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-gray-500"></div>
+                    <div>
+                        <div class="font-bold text-xs">Secondary</div>
+                        <div class="font-mono text-2xs text-gray-400">#6B7280</div>
+                    </div>
+                </div>
+                 <div class="space-y-2">
+                    <div class="h-16 rounded-md bg-black"></div>
+                    <div>
+                        <div class="font-bold text-xs">Primary</div>
+                        <div class="font-mono text-2xs text-gray-400">#000000</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Components -->
+        <section class="mb-20">
+            <h2 class="font-mono text-xs text-gray-400 font-bold uppercase tracking-widest mb-8 border-b border-gray-100 pb-2">03. Micro-Components</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+                
+                <!-- Buttons & Tags -->
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="font-brand text-sm font-bold mb-4">Buttons</h3>
+                        <div class="flex flex-wrap gap-4 items-center">
+                            <button class="bg-black text-white px-4 py-1.5 rounded-full text-xs font-bold shadow-sm hover:opacity-90">Primary Pill</button>
+                            <button class="bg-white border border-gray-200 text-black px-4 py-1.5 rounded-full text-xs font-bold hover:bg-gray-50">Secondary Pill</button>
+                            <button class="bg-black text-white px-4 py-2 rounded-md text-xs font-bold shadow-sm">Square Action</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-brand text-sm font-bold mb-4">Status Tags</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-2 py-0.5 bg-black text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Featured</span>
+                            <span class="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md text-[10px] font-bold uppercase tracking-wider border border-gray-200">Offline</span>
+                            <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-green-100 flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Open</span>
+                            <span class="px-2 py-0.5 bg-red-50 text-red-700 rounded-md text-[10px] font-bold uppercase tracking-wider border border-red-100">Closed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="space-y-8">
+                     <div>
+                        <h3 class="font-brand text-sm font-bold mb-4">Tab Navigation</h3>
+                        <div class="inline-flex bg-gray-100 p-1 rounded-lg">
+                            <button class="px-3 py-1 bg-white text-black rounded-md text-xs font-bold shadow-sm border border-gray-200">Active</button>
+                            <button class="px-3 py-1 text-gray-500 rounded-md text-xs font-medium hover:text-black">Inactive</button>
+                            <button class="px-3 py-1 text-gray-500 rounded-md text-xs font-medium hover:text-black">Inactive</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="font-brand text-sm font-bold mb-4">Meta Data Group</h3>
+                        <div class="inline-flex items-center text-xs font-mono text-gray-500 bg-white border border-gray-200 px-2 py-1 rounded-md">
+                            <span class="text-black font-bold mr-2">Feb 24</span>
+                            <span class="w-px h-3 bg-gray-200 mx-2"></span>
+                            <span>Shenzhen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Card Spec -->
+        <section class="mb-20">
+            <h2 class="font-mono text-xs text-gray-400 font-bold uppercase tracking-widest mb-8 border-b border-gray-100 pb-2">04. Card Specs</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                <!-- Standard Vertical Card -->
+                <div class="relative group">
+                    <div class="bg-card rounded-lg border border-border overflow-hidden hover:shadow-lift transition-all duration-200">
+                        <div class="h-32 bg-gray-100 relative border-b border-gray-50">
+                             <!-- Visual Placeholder -->
+                             <div class="absolute inset-0 grid-checker opacity-50"></div>
+                             <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border border-gray-200">Tag</div>
+                        </div>
+                        <div class="p-3">
+                            <h3 class="font-brand text-base font-bold leading-tight mb-4">Standard Card Title</h3>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-50">
+                                <span class="text-[10px] font-bold text-gray-400 uppercase">Meta Data</span>
+                                <div class="w-5 h-5 rounded-full bg-gray-100"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Spec Overlay -->
+                    <div class="absolute -right-24 top-0 text-[10px] font-mono text-blue-500 space-y-1">
+                        <div>← Radius: 12px</div>
+                        <div>← Border: 1px gray-200</div>
+                        <div class="mt-8">← Padding: 12px (p-3)</div>
+                    </div>
+                </div>
+
+                <!-- Featured Horizontal Card -->
+                <div class="col-span-2 relative">
+                    <div class="bg-card rounded-xl border border-border overflow-hidden flex h-40">
+                         <div class="w-1/3 bg-gray-100 relative border-r border-gray-50">
+                             <div class="absolute inset-0 grid-checker opacity-50"></div>
+                         </div>
+                         <div class="flex-1 p-5 flex flex-col justify-center">
+                             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Featured Label</div>
+                             <h3 class="font-brand text-2xl font-bold leading-tight mb-2">Featured Card (Horizontal)</h3>
+                             <p class="text-xs text-gray-500 line-clamp-2">Optimized for hero sections. Uses relaxed padding (p-5) and larger radius (16px).</p>
+                         </div>
+                    </div>
+                    <!-- Spec Overlay -->
+                    <div class="absolute bottom-[-20px] left-0 text-[10px] font-mono text-blue-500 flex gap-4">
+                        <div>↑ Radius: 16px</div>
+                        <div>↑ Padding: 20px (p-5)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+</body>
+</html>
