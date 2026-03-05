@@ -1,20 +1,20 @@
 "use client";
 
-import { Button } from "@community/ui/ui/button";
-import { useEventsListQuery } from "@community/lib-client/api/api-hooks";
-import { CalendarIcon } from "@heroicons/react/24/outline";
-import type { EventListItem } from "@community/lib-shared/api/api-fetchers";
-import { useTranslations } from "next-intl";
-import {
-	useRouter,
-	useSearchParams,
-	type ReadonlyURLSearchParams,
-} from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
-import { EventCard } from "./EventCard";
-import { EventCardCompact } from "./EventCardCompact";
 import { CardSkeleton } from "@/modules/public/shared/components/CardSkeleton";
 import { EmptyState } from "@/modules/public/shared/components/EmptyState";
+import { useEventsListQuery } from "@community/lib-client/api/api-hooks";
+import type { EventListItem } from "@community/lib-shared/api/api-fetchers";
+import { Button } from "@community/ui/ui/button";
+import { CalendarIcon } from "@heroicons/react/24/outline";
+import { useTranslations } from "next-intl";
+import {
+	type ReadonlyURLSearchParams,
+	useRouter,
+	useSearchParams,
+} from "next/navigation";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { EventCard } from "./EventCard";
+import { EventCardCompact } from "./EventCardCompact";
 
 type Event = EventListItem;
 
@@ -23,10 +23,13 @@ interface EventFilters {
 	selectedHostType: "organization" | "individual" | "all";
 }
 
-const DEFAULT_FILTERS: EventFilters = {
-	selectedStatus: "active",
-	selectedHostType: "organization",
-};
+function prioritizeOrganizationHostedEvents(events: Event[]) {
+	return [...events].sort((a, b) => {
+		const aPriority = a.organization ? 0 : 1;
+		const bPriority = b.organization ? 0 : 1;
+		return aPriority - bPriority;
+	});
+}
 
 function getFiltersFromSearchParams(
 	searchParams: ReadonlyURLSearchParams | null,
@@ -35,9 +38,9 @@ function getFiltersFromSearchParams(
 	const selectedHostType =
 		hostTypeParam === "individual"
 			? "individual"
-			: hostTypeParam === "all"
-				? "all"
-				: "organization";
+			: hostTypeParam === "organization"
+				? "organization"
+				: "all";
 
 	return {
 		selectedStatus: searchParams?.get("status") || "active",
@@ -53,7 +56,7 @@ function buildSearchParams(filters: EventFilters) {
 	}
 	if (
 		filters.selectedHostType === "individual" ||
-		filters.selectedHostType === "all"
+		filters.selectedHostType === "organization"
 	) {
 		params.append("hostType", filters.selectedHostType);
 	}
@@ -144,23 +147,104 @@ function EventListContent() {
 				: undefined) as "organization" | "individual" | undefined,
 	};
 
-	const { data: events = [], isLoading: eventsLoading } =
-		useEventsListQuery(eventsQueryParams);
+	const {
+		data: hostTypeEvents = [],
+		isLoading: hostTypeEventsLoading,
+		error: hostTypeEventsError,
+	} = useEventsListQuery(eventsQueryParams);
+
+	const shouldUseClientHostTypeFallback = Boolean(
+		hostTypeEventsError && eventsQueryParams.hostType,
+	);
+
+	const { data: fallbackEvents = [], isLoading: fallbackEventsLoading } =
+		useEventsListQuery(
+			{
+				...eventsQueryParams,
+				hostType: undefined,
+			},
+			{ enabled: shouldUseClientHostTypeFallback },
+		);
+
+	const events = useMemo(() => {
+		const sourceEvents = shouldUseClientHostTypeFallback
+			? fallbackEvents
+			: hostTypeEvents;
+
+		const sortedSourceEvents =
+			filters.selectedHostType === "all"
+				? prioritizeOrganizationHostedEvents(sourceEvents)
+				: sourceEvents;
+
+		if (!shouldUseClientHostTypeFallback) {
+			return sortedSourceEvents;
+		}
+
+		if (filters.selectedHostType === "organization") {
+			return sortedSourceEvents.filter((event) =>
+				Boolean(event.organization),
+			);
+		}
+
+		if (filters.selectedHostType === "individual") {
+			return sortedSourceEvents.filter((event) => !event.organization);
+		}
+
+		return sortedSourceEvents;
+	}, [
+		fallbackEvents,
+		filters.selectedHostType,
+		hostTypeEvents,
+		shouldUseClientHostTypeFallback,
+	]);
+
+	const eventsLoading =
+		hostTypeEventsLoading ||
+		(shouldUseClientHostTypeFallback && fallbackEventsLoading);
 
 	const isActiveInsufficient =
 		!eventsLoading &&
 		events.length < 3 &&
 		filters.selectedStatus === "active";
 
-	const { data: pastEvents = [], isLoading: pastEventsLoading } =
+	const { data: pastEventsRaw = [], isLoading: pastEventsLoading } =
 		useEventsListQuery(
 			{
 				status: "COMPLETED",
 				showExpired: true,
-				hostType: eventsQueryParams.hostType,
+				hostType: shouldUseClientHostTypeFallback
+					? undefined
+					: eventsQueryParams.hostType,
 			},
 			{ enabled: isActiveInsufficient },
 		);
+
+	const pastEvents = useMemo(() => {
+		const sortedPastEvents =
+			filters.selectedHostType === "all"
+				? prioritizeOrganizationHostedEvents(pastEventsRaw)
+				: pastEventsRaw;
+
+		if (!shouldUseClientHostTypeFallback) {
+			return sortedPastEvents;
+		}
+
+		if (filters.selectedHostType === "organization") {
+			return sortedPastEvents.filter((event) =>
+				Boolean(event.organization),
+			);
+		}
+
+		if (filters.selectedHostType === "individual") {
+			return sortedPastEvents.filter((event) => !event.organization);
+		}
+
+		return sortedPastEvents;
+	}, [
+		filters.selectedHostType,
+		pastEventsRaw,
+		shouldUseClientHostTypeFallback,
+	]);
 
 	const statusOptions = [
 		{ value: "active", label: t("events.status.active") },
@@ -168,9 +252,9 @@ function EventListContent() {
 	];
 
 	const hostTypeOptions = [
+		{ value: "all", label: t("events.filters.hostAll") },
 		{ value: "organization", label: t("events.filters.hostOrganizations") },
 		{ value: "individual", label: t("events.filters.hostIndividuals") },
-		{ value: "all", label: t("events.filters.hostAll") },
 	];
 
 	const handleHostTypeChange = (value: string) => {
