@@ -7,7 +7,7 @@ import {
 	useQuery,
 	useQueryClient,
 } from "@tanstack/react-query";
-import { Loader2, Grid3x3, User, Upload, Share2 } from "lucide-react";
+import { Loader2, Grid3x3, User, Upload, Share2, Download } from "lucide-react";
 import { Checkbox } from "@community/ui/ui/checkbox";
 import { Button } from "@community/ui/ui/button";
 import {
@@ -1412,6 +1412,15 @@ export default function EventPhotosPage() {
 						alt="Preview"
 						className="max-w-full max-h-full object-contain"
 					/>
+					<a
+						href={selectedImage}
+						download
+						onClick={(e) => e.stopPropagation()}
+						className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium transition-colors"
+					>
+						<Download className="h-4 w-4" />
+						下载照片
+					</a>
 				</div>
 			)}
 		</div>
