@@ -34,7 +34,8 @@ import { cn } from "@community/lib-shared/utils";
 interface Photo {
 	id: string;
 	imageUrl: string;
-	originalUrl?: string;
+	thumbnailUrl?: string | null;
+	originalUrl?: string | null;
 	caption?: string | null;
 	createdAt: string;
 	user: {
@@ -845,51 +846,53 @@ export default function EventPhotosPage() {
 								</h3>
 							</div>
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-								{group.photos.map((photo) => (
-									<div
-										key={photo.id}
-										className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
-									>
-										<Image
-											src={
-												showWatermarkProp
-													? photo.imageUrl
-													: photo.originalUrl ||
-														photo.imageUrl
-											}
-											alt={photo.caption || "活动照片"}
-											fill
-											sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
-											className="object-cover cursor-pointer transition-transform hover:scale-105"
-											onClick={() =>
-												setSelectedImage(
-													showWatermarkProp
-														? photo.imageUrl
-														: photo.originalUrl ||
-																photo.imageUrl,
-												)
-											}
-											loading="lazy"
-										/>
-										{canDelete && (
-											<Button
-												variant="destructive"
-												size="sm"
-												className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
-												onClick={() =>
-													handleDeletePhoto(photo.id)
+								{group.photos.map((photo) => {
+									const displayUrl = showWatermarkProp
+										? photo.imageUrl
+										: photo.originalUrl || photo.imageUrl;
+									const thumbnailUrl =
+										photo.thumbnailUrl || displayUrl;
+
+									return (
+										<div
+											key={photo.id}
+											className="relative group aspect-square overflow-hidden rounded-lg border bg-muted"
+										>
+											<Image
+												src={thumbnailUrl}
+												alt={
+													photo.caption || "活动照片"
 												}
-											>
-												×
-											</Button>
-										)}
-										<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
-											{formatRelativeTime(
-												photo.createdAt,
+												fill
+												sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+												className="object-cover cursor-pointer transition-transform hover:scale-105"
+												onClick={() =>
+													setSelectedImage(displayUrl)
+												}
+												loading="lazy"
+											/>
+											{canDelete && (
+												<Button
+													variant="destructive"
+													size="sm"
+													className="absolute top-1 right-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+													onClick={() =>
+														handleDeletePhoto(
+															photo.id,
+														)
+													}
+												>
+													×
+												</Button>
 											)}
+											<div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+												{formatRelativeTime(
+													photo.createdAt,
+												)}
+											</div>
 										</div>
-									</div>
-								))}
+									);
+								})}
 							</div>
 						</div>
 					))}
@@ -909,6 +912,8 @@ export default function EventPhotosPage() {
 							const displayUrl = showWatermarkProp
 								? photo.imageUrl
 								: photo.originalUrl || photo.imageUrl;
+							const thumbnailUrl =
+								photo.thumbnailUrl || displayUrl;
 
 							return (
 								<div
@@ -922,7 +927,7 @@ export default function EventPhotosPage() {
 								>
 									<div className="relative h-20 w-20 overflow-hidden rounded-md bg-muted">
 										<Image
-											src={displayUrl}
+											src={thumbnailUrl}
 											alt={photo.caption || "活动照片"}
 											fill
 											sizes="80px"
@@ -992,6 +997,7 @@ export default function EventPhotosPage() {
 						const displayUrl = showWatermarkProp
 							? photo.imageUrl
 							: photo.originalUrl || photo.imageUrl;
+						const thumbnailUrl = photo.thumbnailUrl || displayUrl;
 
 						return (
 							<div
@@ -1002,7 +1008,7 @@ export default function EventPhotosPage() {
 								)}
 							>
 								<Image
-									src={displayUrl}
+									src={thumbnailUrl}
 									alt={photo.caption || "活动照片"}
 									fill
 									sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"

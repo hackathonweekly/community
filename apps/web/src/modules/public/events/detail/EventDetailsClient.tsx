@@ -82,6 +82,7 @@ export function EventDetailsClient({
 		showWorks,
 		projectSubmissions,
 		photos,
+		isLoadingPhotos,
 		isBookmarked,
 		isLiked,
 		likeCount,
@@ -170,7 +171,7 @@ export function EventDetailsClient({
 	const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 	const touchStartTabRef = useRef(activeTab);
 	const tabOrder = useMemo(() => {
-		const orderedTabs = ["intro"];
+		const orderedTabs = ["intro", "album"];
 		if (showWorks) {
 			orderedTabs.push("works");
 		}
@@ -514,6 +515,12 @@ export function EventDetailsClient({
 											</TabsTrigger>
 										)}
 										<TabsTrigger
+											value="album"
+											className={TAB_TRIGGER_CLASS}
+										>
+											相册
+										</TabsTrigger>
+										<TabsTrigger
 											value="participants"
 											className={TAB_TRIGGER_CLASS}
 										>
@@ -559,14 +566,17 @@ export function EventDetailsClient({
 												}
 											/>
 										)}
+									</TabsContent>
 
-										{photos.length > 0 && (
-											<AlbumSection
-												photos={photos}
-												locale={locale}
-												eventId={eventIdentifier}
-											/>
-										)}
+									<TabsContent
+										value="album"
+										className="focus:outline-none mt-2 md:mt-4"
+									>
+										<AlbumSection
+											photos={photos}
+											isLoading={isLoadingPhotos}
+											eventId={eventIdentifier}
+										/>
 									</TabsContent>
 
 									{showWorks && (
@@ -738,7 +748,7 @@ export function EventDetailsClient({
 				onContact={handleOpenContact}
 				onShowQR={() => setShowQRGenerator(true)}
 				canCancel={canCancel}
-				hasPhotos={photos.length > 0}
+				hasPhotos={true}
 				registerDisabled={registerDisabledDisplay}
 				canShowQr={existingRegistration?.status === "APPROVED"}
 				canContact={canContactOrganizer}

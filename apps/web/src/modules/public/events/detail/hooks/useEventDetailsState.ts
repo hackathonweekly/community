@@ -38,7 +38,10 @@ export function useEventDetailsState(event: EventData, locale: string) {
 		event.id,
 		showWorks,
 	);
-	const { photos = [] } = useEventPhotos(event.id, t);
+	const [activeTab, setActiveTab] = useState("intro");
+	const { photos = [], isLoadingPhotos } = useEventPhotos(event.id, {
+		enabled: activeTab === "album",
+	});
 	const { isBookmarked, isLiked, likeCount, toggleBookmark, toggleLike } =
 		useEventEngagement(event.id, user?.id);
 	const { userFeedback, hasSubmittedFeedback } = useUserFeedback(
@@ -65,7 +68,6 @@ export function useEventDetailsState(event: EventData, locale: string) {
 	const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
 	const [inviteCode, setInviteCode] = useState<string | null>(null);
 	const [latestRegistration, setLatestRegistration] = useState<any>(null);
-	const [activeTab, setActiveTab] = useState("intro");
 	const [isLoginRedirecting, setIsLoginRedirecting] = useState(false);
 	const loginRedirectTimerRef = useRef<number | null>(null);
 	const tabsRef = useRef<HTMLDivElement | null>(null);
@@ -360,6 +362,7 @@ export function useEventDetailsState(event: EventData, locale: string) {
 		// Query data
 		projectSubmissions,
 		photos,
+		isLoadingPhotos,
 		isBookmarked,
 		isLiked,
 		likeCount,

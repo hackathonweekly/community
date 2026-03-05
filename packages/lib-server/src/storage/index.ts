@@ -5,7 +5,11 @@
  * Only S3-compatible storage is supported.
  */
 
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+	DeleteObjectCommand,
+	PutObjectCommand,
+	S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl as getS3SignedUrl } from "@aws-sdk/s3-request-presigner";
 import { logger } from "@community/lib-server/logs";
 
@@ -224,6 +228,28 @@ export async function uploadFileToS3(
 	} catch (e) {
 		logger.error(e);
 		throw new Error("Could not upload file to S3");
+	}
+}
+
+export async function deleteFileFromS3(
+	path: string,
+	options: {
+		bucket: string;
+	},
+): Promise<void> {
+	const { bucket } = options;
+	const s3Client = getS3Client();
+
+	try {
+		const command = new DeleteObjectCommand({
+			Bucket: bucket,
+			Key: path,
+		});
+
+		await s3Client.send(command);
+	} catch (e) {
+		logger.error(e);
+		throw new Error("Could not delete file from S3");
 	}
 }
 

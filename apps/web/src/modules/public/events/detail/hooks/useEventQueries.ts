@@ -187,12 +187,20 @@ export function useEventEngagement(eventId: string, userId?: string) {
 }
 
 // Event photos hook
+export interface EventPhotoPreview {
+	id: string;
+	imageUrl: string;
+	thumbnailUrl?: string | null;
+	caption?: string | null;
+	createdAt?: string;
+}
+
 export function useEventPhotos(
 	eventId: string,
-	t: (key: string, values?: any) => string,
+	options?: {
+		enabled?: boolean;
+	},
 ) {
-	const queryClient = useQueryClient();
-
 	const { data: photos = [], isLoading: isLoadingPhotos } = useQuery({
 		queryKey: eventKeys.photos(eventId),
 		queryFn: async () => {
@@ -203,97 +211,24 @@ export function useEventPhotos(
 				});
 				if (!response.ok) throw new Error("Failed to fetch photos");
 				const data = await response.json();
-				return data.data.photos.map((photo: any) => photo.imageUrl);
+				return (data.data.photos ?? []).map(
+					(photo: any): EventPhotoPreview => ({
+						id: photo.id,
+						imageUrl: photo.imageUrl,
+						thumbnailUrl: photo.thumbnailUrl ?? photo.imageUrl,
+						caption: photo.caption ?? null,
+						createdAt: photo.createdAt,
+					}),
+				);
 			});
 		},
+		enabled: options?.enabled ?? true,
 		staleTime: 5 * 60 * 1000, // 5 minutes
-	});
-
-	const uploadPhotosMutation = useMutation({
-		mutationFn: async (newPhotos: string[]) => {
-			const existingPhotos = photos;
-			const addedPhotos = newPhotos.filter(
-				(url) => !existingPhotos.includes(url),
-			);
-
-			if (addedPhotos.length === 0) {
-				return newPhotos;
-			}
-
-			// 上传新照片
-			for (const photoUrl of addedPhotos) {
-				const response = await fetch(`/api/events/${eventId}/photos`, {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({ imageUrl: photoUrl }),
-				});
-
-				if (!response.ok) {
-					const errorText = await response.text();
-					try {
-						const errorData = JSON.parse(errorText);
-						throw new Error(
-							errorData.error ||
-								`HTTP ${response.status}: ${response.statusText}`,
-						);
-					} catch {
-						throw new Error(
-							`HTTP ${response.status}: ${response.statusText} - ${errorText}`,
-						);
-					}
-				}
-			}
-
-			return newPhotos;
-		},
-		onMutate: async (newPhotos) => {
-			// 取消正在进行的查询
-			await queryClient.cancelQueries({
-				queryKey: eventKeys.photos(eventId),
-			});
-
-			// 保存之前的数据
-			const previousPhotos = queryClient.getQueryData(
-				eventKeys.photos(eventId),
-			);
-
-			// 乐观更新
-			queryClient.setQueryData(eventKeys.photos(eventId), newPhotos);
-
-			return { previousPhotos };
-		},
-		onError: (error, newPhotos, context) => {
-			// 回滚
-			queryClient.setQueryData(
-				eventKeys.photos(eventId),
-				context?.previousPhotos,
-			);
-			toast.error(
-				t("events.photoUploadError", {
-					error:
-						error instanceof Error
-							? error.message
-							: t("events.unknownError"),
-				}),
-			);
-		},
-		onSuccess: () => {
-			toast.success(t("events.photoUploadSuccess"));
-		},
-		onSettled: () => {
-			// 重新获取以确保数据同步
-			queryClient.invalidateQueries({
-				queryKey: eventKeys.photos(eventId),
-			});
-		},
 	});
 
 	return {
 		photos,
 		isLoadingPhotos,
-		handlePhotosChange: uploadPhotosMutation.mutate,
-		isUploadingPhotos: uploadPhotosMutation.isPending,
 	};
 }
 
