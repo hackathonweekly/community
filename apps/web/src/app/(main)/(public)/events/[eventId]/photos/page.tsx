@@ -1100,11 +1100,11 @@ export default function EventPhotosPage() {
 						}
 					}}
 				>
-					<div className="bg-muted/50 p-1 rounded-lg mb-4 border border-border">
-						<TabsList className="grid w-full grid-cols-2 h-auto bg-transparent gap-0">
+					<div className="border-b border-border/30 mb-4">
+						<TabsList className="w-full justify-start bg-transparent p-0 border-none gap-6 h-auto">
 							<TabsTrigger
 								value="all"
-								className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border rounded-md text-muted-foreground font-medium text-xs py-2"
+								className="relative flex-none !rounded-none !border-none !bg-transparent !shadow-none px-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-bold transition-colors after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-foreground after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:origin-center"
 							>
 								<Grid3x3 className="h-4 w-4 mr-2" />
 								所有照片
@@ -1112,7 +1112,7 @@ export default function EventPhotosPage() {
 							<TabsTrigger
 								value="my"
 								disabled={!session?.user}
-								className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border rounded-md text-muted-foreground font-medium text-xs py-2 disabled:opacity-50"
+								className="relative flex-none !rounded-none !border-none !bg-transparent !shadow-none px-2 py-3 text-sm font-medium text-muted-foreground hover:text-foreground data-[state=active]:text-foreground data-[state=active]:font-bold transition-colors after:absolute after:bottom-0 after:left-2 after:right-2 after:h-[2px] after:bg-foreground after:scale-x-0 data-[state=active]:after:scale-x-100 after:transition-transform after:origin-center disabled:opacity-50"
 							>
 								<User className="h-4 w-4 mr-2" />
 								我的照片

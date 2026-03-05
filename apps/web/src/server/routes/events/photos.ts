@@ -1,5 +1,6 @@
 import { ensureImageSafe } from "@community/lib-server/content-moderation";
 import { db } from "@community/lib-server/database/prisma/client";
+import { getEventById } from "@community/lib-server/database";
 import {
 	deleteFileFromS3,
 	uploadFileToS3,
@@ -70,11 +71,8 @@ export const eventPhotosRouter = new Hono()
 				const { cursor, limit } = c.req.valid("query");
 				const take = Math.min(limit ?? 24, 100);
 
-				// 验证活动是否存在
-				const event = await db.event.findUnique({
-					where: { id: eventId },
-					select: { id: true, status: true },
-				});
+				// 验证活动是否存在（支持 slug/shortId）
+				const event = await getEventById(eventId);
 
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
@@ -83,7 +81,7 @@ export const eventPhotosRouter = new Hono()
 				// 获取已审核通过的照片
 				const photos = await db.eventPhoto.findMany({
 					where: {
-						eventId,
+						eventId: event.id,
 						isApproved: true,
 					},
 					include: {
@@ -154,11 +152,8 @@ export const eventPhotosRouter = new Hono()
 				const take = Math.min(limit ?? 24, 100);
 				const user = c.get("user");
 
-				// 验证活动是否存在
-				const event = await db.event.findUnique({
-					where: { id: eventId },
-					select: { id: true, status: true },
-				});
+				// 验证活动是否存在（支持 slug/shortId）
+				const event = await getEventById(eventId);
 
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
@@ -167,7 +162,7 @@ export const eventPhotosRouter = new Hono()
 				// 获取当前用户上传的照片
 				const photos = await db.eventPhoto.findMany({
 					where: {
-						eventId,
+						eventId: event.id,
 						userId: user.id,
 						isApproved: true,
 					},
@@ -238,16 +233,8 @@ export const eventPhotosRouter = new Hono()
 				const { id: eventId } = c.req.valid("param");
 				const validatedData = c.req.valid("json");
 
-				// 首先获取活动信息
-				const event = await db.event.findUnique({
-					where: { id: eventId },
-					select: {
-						id: true,
-						title: true,
-						status: true,
-						organizerId: true,
-					},
-				});
+				// 首先获取活动信息（支持 slug/shortId）
+				const event = await getEventById(eventId);
 
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
@@ -266,7 +253,7 @@ export const eventPhotosRouter = new Hono()
 					// 如果不是组织者，检查是否是已确认参加的成员
 					const registration = await db.eventRegistration.findFirst({
 						where: {
-							eventId,
+							eventId: event.id,
 							userId: user.id,
 							status: "APPROVED",
 						},
@@ -404,7 +391,7 @@ export const eventPhotosRouter = new Hono()
 				// 创建照片记录
 				const photo = await db.eventPhoto.create({
 					data: {
-						eventId,
+						eventId: event.id,
 						userId: user.id,
 						imageUrl: thumbnailPhotoPath,
 						watermarkedUrl: compressedPhotoPath,

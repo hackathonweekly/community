@@ -1,5 +1,6 @@
 "use client";
 
+import { CalendarClock, Globe, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
 	type TouchEvent,
@@ -9,7 +10,6 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { CalendarClock, Globe, MapPin } from "lucide-react";
 
 import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
@@ -171,11 +171,11 @@ export function EventDetailsClient({
 	const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 	const touchStartTabRef = useRef(activeTab);
 	const tabOrder = useMemo(() => {
-		const orderedTabs = ["intro", "album"];
+		const orderedTabs = ["intro"];
 		if (showWorks) {
 			orderedTabs.push("works");
 		}
-		orderedTabs.push("participants", "organizer", "disclaimer");
+		orderedTabs.push("participants", "album", "organizer", "disclaimer");
 		return orderedTabs;
 	}, [showWorks]);
 
@@ -339,30 +339,6 @@ export function EventDetailsClient({
 							) : null}
 						</div>
 
-						<div className="grid gap-2 rounded-lg border border-border/40 bg-muted/20 p-3 lg:hidden">
-							<div className="flex items-start gap-2">
-								<CalendarClock className="mt-0.5 h-4 w-4 text-muted-foreground" />
-								<div className="min-w-0">
-									<p className="text-sm font-semibold text-foreground">
-										{mobileDateLabel}
-									</p>
-									<p className="text-xs text-muted-foreground">
-										{mobileTimeLabel}
-									</p>
-								</div>
-							</div>
-							<div className="flex items-start gap-2">
-								{event.isOnline ? (
-									<Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
-								) : (
-									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-								)}
-								<p className="line-clamp-2 text-sm font-medium text-foreground">
-									{mobileLocationLabel}
-								</p>
-							</div>
-						</div>
-
 						{event.series ? (
 							<div className="rounded-lg border border-border/50 bg-muted/20 p-3">
 								<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -478,6 +454,30 @@ export function EventDetailsClient({
 							</button>
 						</div>
 
+						<div className="grid gap-2 rounded-lg border border-border/40 bg-muted/20 p-3 lg:hidden">
+							<div className="flex items-start gap-2">
+								<CalendarClock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								<div className="min-w-0">
+									<p className="text-sm font-semibold text-foreground">
+										{mobileDateLabel}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{mobileTimeLabel}
+									</p>
+								</div>
+							</div>
+							<div className="flex items-start gap-2">
+								{event.isOnline ? (
+									<Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								) : (
+									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								)}
+								<p className="line-clamp-2 text-sm font-medium text-foreground">
+									{mobileLocationLabel}
+								</p>
+							</div>
+						</div>
+
 						{/* Tabs + Content */}
 						<div
 							ref={tabsRef}
@@ -515,16 +515,16 @@ export function EventDetailsClient({
 											</TabsTrigger>
 										)}
 										<TabsTrigger
-											value="album"
-											className={TAB_TRIGGER_CLASS}
-										>
-											相册
-										</TabsTrigger>
-										<TabsTrigger
 											value="participants"
 											className={TAB_TRIGGER_CLASS}
 										>
 											报名者
+										</TabsTrigger>
+										<TabsTrigger
+											value="album"
+											className={TAB_TRIGGER_CLASS}
+										>
+											相册
 										</TabsTrigger>
 										<TabsTrigger
 											value="organizer"

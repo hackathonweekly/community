@@ -1237,9 +1237,19 @@ app.get("/:eventId/registration", async (c) => {
 		}
 
 		const eventId = c.req.param("eventId");
+
+		// Resolve event to handle both UUID and slug/shortId
+		const event = await getEventById(eventId);
+		if (!event) {
+			return c.json({
+				success: true,
+				data: null,
+			});
+		}
+
 		const registration = await getRegistrationByUserAndEvent(
 			session.user.id,
-			eventId,
+			event.id,
 		);
 
 		return c.json({
