@@ -1,10 +1,14 @@
-import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
 import { SidebarContentLayout } from "@/modules/account/shared/components/SidebarContentLayout";
+import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import {
+	COMMUNITY_FEEDBACK_FORM_LABEL,
+	COMMUNITY_FEEDBACK_FORM_URL,
+} from "@/modules/shared/lib/community-feedback";
 import { getSession } from "@shared/auth/lib/server";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import type { PropsWithChildren } from "react";
-import { SettingsNav, SettingsMobileNav } from "./SettingsNav";
+import { SettingsMobileNav, SettingsNav } from "./SettingsNav";
 
 export default async function SettingsLayout({ children }: PropsWithChildren) {
 	const t = await getTranslations();
@@ -47,6 +51,16 @@ export default async function SettingsLayout({ children }: PropsWithChildren) {
 				>
 					{children}
 				</SidebarContentLayout>
+				<div className="mt-5 text-xs text-muted-foreground">
+					<a
+						href={COMMUNITY_FEEDBACK_FORM_URL}
+						target="_blank"
+						rel="noreferrer"
+						className="transition-colors hover:text-foreground"
+					>
+						{COMMUNITY_FEEDBACK_FORM_LABEL}
+					</a>
+				</div>
 			</div>
 		</>
 	);

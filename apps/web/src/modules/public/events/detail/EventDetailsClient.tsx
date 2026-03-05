@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
 	type TouchEvent,
 	useCallback,
@@ -8,31 +9,31 @@ import {
 	useRef,
 	useState,
 } from "react";
-import { useTranslations } from "next-intl";
 
-import { QRGenerator } from "@shared/events/components/QRGenerator";
-import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 import { RegistrationSuccessModal } from "@/modules/public/events/components/registration-success-modal";
 import { EventSeriesSubscriptionButton } from "@community/ui/shared/EventSeriesSubscriptionButton";
+import { EventShareModal } from "@shared/events/components/EventShareModal";
+import { QRGenerator } from "@shared/events/components/QRGenerator";
 
+import { COMMUNITY_FEEDBACK_FORM_URL } from "@/modules/shared/lib/community-feedback";
+import { UserAvatar } from "@community/ui/shared/UserAvatar";
+import { Badge } from "@community/ui/ui/badge";
 import {
 	Tabs,
 	TabsContent,
 	TabsList,
 	TabsTrigger,
 } from "@community/ui/ui/tabs";
-import { UserAvatar } from "@community/ui/shared/UserAvatar";
-import { Badge } from "@community/ui/ui/badge";
 import Link from "next/link";
 import { EventActionSidebar } from "./components/EventActionSidebar";
 import { Hero } from "./components/Hero";
 import { OrganizationCard } from "./components/OrganizationCard";
 import { OrganizerCard } from "./components/OrganizerCard";
 import { MobileCTA } from "./components/common/MobileCTA";
-import { getEventTypeLabels } from "./components/utils";
+import { SectionCard } from "./components/common/SectionCard";
 import { AlbumSection } from "./components/sections/AlbumSection";
 import { AwardsSection } from "./components/sections/AwardsSection";
 import { HostsSection } from "./components/sections/HostsSection";
@@ -40,10 +41,10 @@ import { IntroSection } from "./components/sections/IntroSection";
 import { ParticipantsSection } from "./components/sections/ParticipantsSection";
 import { VolunteersSection } from "./components/sections/VolunteersSection";
 import { WorksSection } from "./components/sections/WorksSection";
-import { SectionCard } from "./components/common/SectionCard";
 import type { EventData } from "./components/types";
-import { useEventDetailsState } from "./hooks/useEventDetailsState";
+import { getEventTypeLabels } from "./components/utils";
 import { useEventActions } from "./hooks/useEventActions";
+import { useEventDetailsState } from "./hooks/useEventDetailsState";
 
 export interface EventDetailsProps {
 	event: EventData;
@@ -661,6 +662,16 @@ export function EventDetailsClient({
 						</div>
 					</div>
 				</div>
+			</div>
+			<div className="px-4 pb-4 text-center text-xs text-muted-foreground lg:px-8">
+				<a
+					href={COMMUNITY_FEEDBACK_FORM_URL}
+					target="_blank"
+					rel="noreferrer"
+					className="transition-colors hover:text-foreground"
+				>
+					活动页有建议或 Bug？点击这里反馈
+				</a>
 			</div>
 
 			<MobileCTA
