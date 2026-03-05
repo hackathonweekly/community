@@ -113,7 +113,6 @@ export default function EventPhotosPage() {
 		new Set(),
 	);
 	const [isBatchDeleting, setIsBatchDeleting] = useState(false);
-	const [showWatermark, setShowWatermark] = useState(true);
 	const allPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 	const myPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -666,7 +665,6 @@ export default function EventPhotosPage() {
 		loadMoreRef,
 		isFetchingMore,
 		hasMore,
-		showWatermark: showWatermarkProp = true,
 		selectionMode: selectionModeProp = false,
 		selectedPhotoIds: selectedPhotoIdsProp = new Set<string>(),
 		onToggleSelect,
@@ -682,7 +680,6 @@ export default function EventPhotosPage() {
 		loadMoreRef?: React.RefObject<HTMLDivElement | null>;
 		isFetchingMore?: boolean;
 		hasMore?: boolean;
-		showWatermark?: boolean;
 		selectionMode?: boolean;
 		selectedPhotoIds?: Set<string>;
 		onToggleSelect?: (photoId: string) => void;
@@ -854,9 +851,7 @@ export default function EventPhotosPage() {
 							</div>
 							<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
 								{group.photos.map((photo) => {
-									const displayUrl = showWatermarkProp
-										? photo.imageUrl
-										: photo.originalUrl || photo.imageUrl;
+									const displayUrl = photo.imageUrl;
 									const thumbnailUrl =
 										photo.thumbnailUrl || displayUrl;
 
@@ -916,9 +911,7 @@ export default function EventPhotosPage() {
 							const isSelected =
 								selectionModeProp &&
 								selectedPhotoIdsProp.has(photo.id);
-							const displayUrl = showWatermarkProp
-								? photo.imageUrl
-								: photo.originalUrl || photo.imageUrl;
+							const displayUrl = photo.imageUrl;
 							const thumbnailUrl =
 								photo.thumbnailUrl || displayUrl;
 
@@ -958,12 +951,6 @@ export default function EventPhotosPage() {
 										<p className="text-xs text-muted-foreground truncate">
 											{photo.user?.name}
 										</p>
-										{!showWatermarkProp &&
-											photo.originalUrl && (
-												<p className="text-[11px] text-muted-foreground/80 truncate">
-													原图链接可右键保存
-												</p>
-											)}
 									</div>
 									{selectionModeProp && onToggleSelect ? (
 										<Checkbox
@@ -1001,9 +988,7 @@ export default function EventPhotosPage() {
 						const isSelected =
 							selectionModeProp &&
 							selectedPhotoIdsProp.has(photo.id);
-						const displayUrl = showWatermarkProp
-							? photo.imageUrl
-							: photo.originalUrl || photo.imageUrl;
+						const displayUrl = photo.imageUrl;
 						const thumbnailUrl = photo.thumbnailUrl || displayUrl;
 
 						return (
@@ -1175,18 +1160,6 @@ export default function EventPhotosPage() {
 										按拍摄者分组
 									</button>
 								</div>
-
-								<div className="flex items-center gap-2 ml-auto rounded-lg border border-border bg-card px-3 py-1.5">
-									<span className="text-xs text-muted-foreground">
-										显示水印
-									</span>
-									<Switch
-										checked={showWatermark}
-										onCheckedChange={(checked) =>
-											setShowWatermark(!!checked)
-										}
-									/>
-								</div>
 							</div>
 
 							<PhotoGrid
@@ -1200,7 +1173,6 @@ export default function EventPhotosPage() {
 								loadMoreRef={allPhotosLoadMoreRef}
 								isFetchingMore={isFetchingMorePhotos}
 								hasMore={Boolean(hasNextPage)}
-								showWatermark={showWatermark}
 								onManualLoadMore={() => {
 									if (hasNextPage && !isFetchingMorePhotos) {
 										fetchNextPage();
@@ -1269,18 +1241,6 @@ export default function EventPhotosPage() {
 											: `删除选中 (${selectedPhotoIds.size})`}
 									</Button>
 								</div>
-
-								<div className="flex items-center gap-2 ml-auto rounded-lg border border-border bg-card px-3 py-1.5">
-									<span className="text-xs text-muted-foreground">
-										显示水印
-									</span>
-									<Switch
-										checked={showWatermark}
-										onCheckedChange={(checked) =>
-											setShowWatermark(!!checked)
-										}
-									/>
-								</div>
 							</div>
 
 							<PhotoGrid
@@ -1295,7 +1255,6 @@ export default function EventPhotosPage() {
 								loadMoreRef={myPhotosLoadMoreRef}
 								isFetchingMore={isFetchingMoreMyPhotos}
 								hasMore={Boolean(hasMoreMyPhotos)}
-								showWatermark={showWatermark}
 								selectionMode={selectionMode}
 								selectedPhotoIds={selectedPhotoIds}
 								onToggleSelect={(photoId) => {
