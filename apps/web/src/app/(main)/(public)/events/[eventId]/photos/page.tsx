@@ -224,6 +224,9 @@ export default function EventPhotosPage() {
 	const allPhotosError = allPhotosErrorRaw ?? null;
 	const myPhotosError = myPhotosErrorRaw ?? null;
 
+	// Check if user can upload
+	const canUpload = !!session?.user && !!registrationData?.isRegistered;
+
 	useEffect(() => {
 		const target = allPhotosLoadMoreRef.current;
 		if (!target || !hasNextPage) return;
@@ -771,9 +774,13 @@ export default function EventPhotosPage() {
 		if (photos.length === 0) {
 			return (
 				<div className="flex flex-col items-center justify-center py-12 text-center">
-					<Grid3x3 className="h-12 w-12 text-muted-foreground/50 mb-4" />
-					<p className="text-muted-foreground">还没有照片</p>
-					<p className="text-sm text-muted-foreground/70 mt-2">
+					<div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+						<Grid3x3 className="h-6 w-6 text-muted-foreground" />
+					</div>
+					<p className="font-brand text-lg font-bold text-foreground">
+						还没有照片
+					</p>
+					<p className="text-sm text-muted-foreground mt-2">
 						成为第一个上传照片的人！
 					</p>
 				</div>
@@ -1053,9 +1060,9 @@ export default function EventPhotosPage() {
 	};
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="min-h-screen bg-background pb-20 lg:pb-6">
 			{/* Header */}
-			<div className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+			<div className="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur">
 				<div className="flex items-center justify-between h-14 px-4">
 					<Button
 						variant="ghost"
@@ -1093,11 +1100,11 @@ export default function EventPhotosPage() {
 						}
 					}}
 				>
-					<div className="bg-card rounded-xl p-1 mb-4">
-						<TabsList className="grid w-full grid-cols-2 h-auto bg-transparent">
+					<div className="bg-muted/50 p-1 rounded-lg mb-4 border border-border">
+						<TabsList className="grid w-full grid-cols-2 h-auto bg-transparent gap-0">
 							<TabsTrigger
 								value="all"
-								className="data-[state=active]:bg-background py-2 pl-4 pr-5 rounded-lg"
+								className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border rounded-md text-muted-foreground font-medium text-xs py-2"
 							>
 								<Grid3x3 className="h-4 w-4 mr-2" />
 								所有照片
@@ -1105,7 +1112,7 @@ export default function EventPhotosPage() {
 							<TabsTrigger
 								value="my"
 								disabled={!session?.user}
-								className="data-[state=active]:bg-background py-2 pl-4 pr-5 rounded-lg disabled:opacity-50"
+								className="data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:font-bold data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border rounded-md text-muted-foreground font-medium text-xs py-2 disabled:opacity-50"
 							>
 								<User className="h-4 w-4 mr-2" />
 								我的照片
@@ -1117,37 +1124,40 @@ export default function EventPhotosPage() {
 						<TabsContent value="all">
 							{/* Controls for all photos */}
 							<div className="flex flex-wrap items-center gap-2 mb-4">
-								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+								<div className="bg-muted/50 p-1 rounded-lg border border-border">
 									<button
 										onClick={() => setSortBy("newest")}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											sortBy === "newest"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										最新上传
 									</button>
 									<button
 										onClick={() => setSortBy("oldest")}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											sortBy === "oldest"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										最早上传
 									</button>
 								</div>
 
-								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+								<div className="bg-muted/50 p-1 rounded-lg border border-border">
 									<button
 										onClick={() => setGroupBy("none")}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											groupBy === "none"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										网格视图
 									</button>
@@ -1155,17 +1165,18 @@ export default function EventPhotosPage() {
 										onClick={() =>
 											setGroupBy("photographer")
 										}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											groupBy === "photographer"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										按拍摄者分组
 									</button>
 								</div>
 
-								<div className="flex items-center gap-2 ml-auto rounded-lg border bg-background px-3 py-1.5">
+								<div className="flex items-center gap-2 ml-auto rounded-lg border border-border bg-card px-3 py-1.5">
 									<span className="text-xs text-muted-foreground">
 										显示水印
 									</span>
@@ -1200,30 +1211,32 @@ export default function EventPhotosPage() {
 
 						<TabsContent value="my">
 							<div className="flex flex-wrap items-center gap-2 mb-4">
-								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+								<div className="bg-muted/50 p-1 rounded-lg border border-border">
 									<button
 										onClick={() => setViewMode("grid")}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											viewMode === "grid"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										网格视图
 									</button>
 									<button
 										onClick={() => setViewMode("list")}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											viewMode === "list"
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										列表视图
 									</button>
 								</div>
 
-								<div className="flex items-center gap-1 bg-background rounded-lg p-1 border">
+								<div className="bg-muted/50 p-1 rounded-lg border border-border">
 									<button
 										onClick={() => {
 											const next = !selectionMode;
@@ -1232,11 +1245,12 @@ export default function EventPhotosPage() {
 												setSelectedPhotoIds(new Set());
 											}
 										}}
-										className={`px-3 py-1.5 text-xs sm:text-sm rounded-md transition-colors ${
+										className={cn(
+											"px-3 py-1.5 text-xs rounded-md transition-colors",
 											selectionMode
-												? "bg-primary text-primary-foreground"
-												: "text-muted-foreground hover:text-foreground"
-										}`}
+												? "bg-card text-foreground font-bold shadow-sm border border-border"
+												: "text-muted-foreground font-medium hover:bg-muted/70",
+										)}
 									>
 										批量管理
 									</button>
@@ -1248,6 +1262,7 @@ export default function EventPhotosPage() {
 											isBatchDeleting
 										}
 										onClick={handleBatchDelete}
+										className="text-xs font-bold"
 									>
 										{isBatchDeleting
 											? "删除中..."
@@ -1255,7 +1270,7 @@ export default function EventPhotosPage() {
 									</Button>
 								</div>
 
-								<div className="flex items-center gap-2 ml-auto rounded-lg border bg-background px-3 py-1.5">
+								<div className="flex items-center gap-2 ml-auto rounded-lg border border-border bg-card px-3 py-1.5">
 									<span className="text-xs text-muted-foreground">
 										显示水印
 									</span>
@@ -1310,8 +1325,8 @@ export default function EventPhotosPage() {
 			</div>
 
 			{isUploading && (
-				<div className="fixed bottom-24 left-0 right-0 z-40 px-4">
-					<div className="mx-auto max-w-lg rounded-xl border bg-background/95 p-4 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
+				<div className="fixed bottom-24 lg:bottom-20 left-0 right-0 z-40 px-4">
+					<div className="mx-auto max-w-lg rounded-xl border border-border bg-card/95 p-4 shadow-lg backdrop-blur">
 						<div className="flex items-center justify-between text-sm font-medium">
 							<span>
 								正在上传照片
@@ -1339,62 +1354,93 @@ export default function EventPhotosPage() {
 			)}
 
 			{/* Upload Button */}
-			<div className="fixed bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4">
-				<Dialog
-					open={uploadOpen}
-					onOpenChange={(open) => {
-						if (open && !checkUploadPermission()) {
-							return;
-						}
-						setUploadOpen(open);
-					}}
-				>
-					<DialogTrigger asChild>
-						<Button
-							className="rounded-full px-6 sm:px-8 h-12 sm:h-14 text-sm sm:text-base shadow-lg"
-							disabled={isUploading}
-						>
-							<Upload className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-							{isUploading ? "上传中..." : "上传照片"}
-						</Button>
-					</DialogTrigger>
-					<DialogContent className="sm:max-w-md">
-						<DialogHeader>
-							<DialogTitle>从相册上传</DialogTitle>
-						</DialogHeader>
-						<div className="py-4">
-							<label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70 transition-colors">
-								<div className="flex flex-col items-center justify-center pt-5 pb-6">
-									<Upload className="w-10 h-10 text-muted-foreground mb-4" />
-									<p className="text-sm font-medium text-foreground">
-										点击选择图片或拖拽到此处
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										支持 JPG、PNG、WEBP 格式，单个文件最大
-										10MB
-									</p>
-								</div>
-								<input
-									type="file"
-									accept="image/*"
-									multiple
-									onChange={handleImageUpload}
-									disabled={isUploading}
-									className="hidden"
-								/>
-							</label>
-						</div>
-						{isUploading && (
-							<div className="w-full h-1 bg-muted rounded-full overflow-hidden">
-								<div
-									className="h-full bg-primary transition-[width] duration-200"
-									style={{ width: `${uploadProgress}%` }}
-								/>
+			{canUpload ? (
+				<div className="fixed bottom-20 lg:bottom-4 left-0 right-0 flex justify-center gap-3 sm:gap-4 px-4 z-30">
+					<Dialog
+						open={uploadOpen}
+						onOpenChange={(open) => {
+							if (open && !checkUploadPermission()) {
+								return;
+							}
+							setUploadOpen(open);
+						}}
+					>
+						<DialogTrigger asChild>
+							<Button
+								className="rounded-full px-6 h-12 text-sm font-bold shadow-lg bg-primary text-primary-foreground"
+								disabled={isUploading}
+							>
+								<Upload className="h-5 w-5 mr-2" />
+								{isUploading ? "上传中..." : "上传照片"}
+							</Button>
+						</DialogTrigger>
+						<DialogContent className="sm:max-w-md">
+							<DialogHeader>
+								<DialogTitle>从相册上传</DialogTitle>
+							</DialogHeader>
+							<div className="py-4">
+								<label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer bg-muted/50 hover:bg-muted/70 transition-colors">
+									<div className="flex flex-col items-center justify-center pt-5 pb-6">
+										<Upload className="w-10 h-10 text-muted-foreground mb-4" />
+										<p className="text-sm font-medium text-foreground">
+											点击选择图片或拖拽到此处
+										</p>
+										<p className="text-xs text-muted-foreground mt-1">
+											支持 JPG、PNG、WEBP
+											格式，单个文件最大 10MB
+										</p>
+									</div>
+									<input
+										type="file"
+										accept="image/*"
+										multiple
+										onChange={handleImageUpload}
+										disabled={isUploading}
+										className="hidden"
+									/>
+								</label>
 							</div>
-						)}
-					</DialogContent>
-				</Dialog>
-			</div>
+							{isUploading && (
+								<div className="w-full h-1 bg-muted rounded-full overflow-hidden">
+									<div
+										className="h-full bg-primary transition-[width] duration-200"
+										style={{ width: `${uploadProgress}%` }}
+									/>
+								</div>
+							)}
+						</DialogContent>
+					</Dialog>
+				</div>
+			) : (
+				<div className="fixed bottom-20 lg:bottom-4 left-0 right-0 flex justify-center px-4 z-30">
+					<div className="rounded-xl border border-border bg-card p-4 shadow-lg max-w-md mx-auto">
+						<p className="text-sm font-bold text-foreground mb-2">
+							{!session?.user
+								? "需要登录并报名"
+								: "需要报名参加活动"}
+						</p>
+						<p className="text-xs text-muted-foreground mb-3">
+							{!session?.user
+								? "您需要登录并报名参加活动后才能上传照片"
+								: "您需要报名参加活动后才能上传照片"}
+						</p>
+						<Button
+							className="rounded-full px-4 py-1.5 text-xs font-bold w-full"
+							onClick={() => {
+								if (!session?.user) {
+									router.push(
+										`/auth/login?callbackUrl=${encodeURIComponent(window.location.href)}`,
+									);
+								} else {
+									router.push(`/events/${eventId}`);
+								}
+							}}
+						>
+							{!session?.user ? "去登录" : "去报名"}
+						</Button>
+					</div>
+				</div>
+			)}
 
 			{/* Image Preview Modal */}
 			{selectedImage && (

@@ -12,10 +12,12 @@ export function AlbumSection({
 	photos,
 	isLoading,
 	eventId,
+	canUpload,
 }: {
 	photos: EventPhotoPreview[];
 	isLoading: boolean;
 	eventId: string;
+	canUpload?: boolean;
 }) {
 	const [selectedPhotoUrl, setSelectedPhotoUrl] = useState<string | null>(
 		null,
@@ -88,17 +90,27 @@ export function AlbumSection({
 				<div className="flex flex-col items-center justify-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed border-border">
 					<ImageIcon className="h-8 w-8 mb-3 opacity-40" />
 					<p className="text-sm font-medium mb-1">暂无活动照片</p>
-					<p className="text-xs text-muted-foreground">
-						切换到完整相册页可上传你的现场照片
-					</p>
-					<Button
-						asChild
-						variant="outline"
-						size="sm"
-						className="mt-3"
-					>
-						<a href={`/events/${eventId}/photos`}>去上传照片</a>
-					</Button>
+					{canUpload ? (
+						<>
+							<p className="text-xs text-muted-foreground">
+								切换到完整相册页可上传你的现场照片
+							</p>
+							<Button
+								asChild
+								variant="outline"
+								size="sm"
+								className="mt-3"
+							>
+								<a href={`/events/${eventId}/photos`}>
+									去上传照片
+								</a>
+							</Button>
+						</>
+					) : (
+						<p className="text-xs text-muted-foreground">
+							登录并报名后可上传照片
+						</p>
+					)}
 				</div>
 			)}
 		</SectionCard>

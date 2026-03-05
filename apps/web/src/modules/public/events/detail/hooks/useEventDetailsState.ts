@@ -38,7 +38,26 @@ export function useEventDetailsState(event: EventData, locale: string) {
 		event.id,
 		showWorks,
 	);
-	const [activeTab, setActiveTab] = useState("intro");
+
+	// Initialize activeTab from URL parameter
+	const getInitialTab = () => {
+		const tabParam = searchParams.get("tab");
+		if (!tabParam) return "intro";
+		// Support both "album" and "photo" as aliases
+		if (tabParam === "photo") return "album";
+		// Validate tab parameter
+		const validTabs = [
+			"intro",
+			"album",
+			"works",
+			"participants",
+			"organizer",
+			"disclaimer",
+		];
+		return validTabs.includes(tabParam) ? tabParam : "intro";
+	};
+
+	const [activeTab, setActiveTab] = useState(getInitialTab());
 	const { photos = [], isLoadingPhotos } = useEventPhotos(event.id, {
 		enabled: activeTab === "album",
 	});
@@ -328,6 +347,21 @@ export function useEventDetailsState(event: EventData, locale: string) {
 			}
 		};
 	}, []);
+
+	// Update URL when tab changes
+	useEffect(() => {
+		const url = new URL(window.location.href);
+		const currentTabParam = url.searchParams.get("tab");
+		const normalizedTab = activeTab === "album" ? "album" : activeTab;
+
+		if (activeTab === "intro") {
+			url.searchParams.delete("tab");
+		} else if (currentTabParam !== normalizedTab) {
+			url.searchParams.set("tab", normalizedTab);
+		}
+
+		window.history.replaceState({}, "", url.toString());
+	}, [activeTab]);
 
 	// --- Helpers exposed to actions ---
 	const buildRedirectTarget = () => {

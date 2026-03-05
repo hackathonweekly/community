@@ -576,6 +576,12 @@ export function EventDetailsClient({
 											photos={photos}
 											isLoading={isLoadingPhotos}
 											eventId={eventIdentifier}
+											canUpload={
+												!!user &&
+												!!existingRegistration?.status &&
+												existingRegistration.status !==
+													"CANCELLED"
+											}
 										/>
 									</TabsContent>
 
