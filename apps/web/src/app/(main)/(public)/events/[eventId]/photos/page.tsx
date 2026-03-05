@@ -30,6 +30,7 @@ import Image from "next/image";
 import { config } from "@community/config";
 import { buildPublicUrl } from "@community/lib-client/uploads/client";
 import { cn } from "@community/lib-shared/utils";
+import { useConfirmationAlert } from "@/modules/shared/components/ConfirmationAlertProvider";
 
 interface Photo {
 	id: string;
@@ -93,6 +94,7 @@ export default function EventPhotosPage() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const queryClient = useQueryClient();
+	const { confirm } = useConfirmationAlert();
 
 	const eventId = params.eventId as string;
 	const [activeTab, setActiveTab] = useState<"all" | "my">("all");
@@ -562,33 +564,39 @@ export default function EventPhotosPage() {
 
 	// Handle photo delete
 	const handleDeletePhoto = async (photoId: string) => {
-		if (!confirm("确定要删除这张照片吗？")) return;
+		confirm({
+			title: "确定要删除这张照片吗？",
+			destructive: true,
+			onConfirm: async () => {
+				try {
+					const res = await fetch(`/api/events/${eventId}/photos`, {
+						method: "DELETE",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ photoId }),
+					});
 
-		try {
-			const res = await fetch(`/api/events/${eventId}/photos`, {
-				method: "DELETE",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ photoId }),
-			});
+					if (!res.ok) {
+						const errorData = await res.json().catch(() => ({}));
+						throw new Error(errorData.error || "删除失败");
+					}
 
-			if (!res.ok) {
-				const errorData = await res.json().catch(() => ({}));
-				throw new Error(errorData.error || "删除失败");
-			}
-
-			toast.success("照片已删除");
-			queryClient.invalidateQueries({
-				queryKey: ["event-photos", eventId],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ["my-event-photos", eventId],
-			});
-		} catch (error) {
-			console.error("Delete error:", error);
-			toast.error(
-				error instanceof Error ? error.message : "删除失败，请重试",
-			);
-		}
+					toast.success("照片已删除");
+					queryClient.invalidateQueries({
+						queryKey: ["event-photos", eventId],
+					});
+					queryClient.invalidateQueries({
+						queryKey: ["my-event-photos", eventId],
+					});
+				} catch (error) {
+					console.error("Delete error:", error);
+					toast.error(
+						error instanceof Error
+							? error.message
+							: "删除失败，请重试",
+					);
+				}
+			},
+		});
 	};
 
 	const handleBatchDelete = async () => {
@@ -597,40 +605,54 @@ export default function EventPhotosPage() {
 			toast.error("请先选择要删除的照片");
 			return;
 		}
-		if (!confirm(`确定删除选中的 ${ids.length} 张照片吗？`)) return;
-		setIsBatchDeleting(true);
+		confirm({
+			title: `确定删除选中的 ${ids.length} 张照片吗？`,
+			destructive: true,
+			onConfirm: async () => {
+				setIsBatchDeleting(true);
 
-		try {
-			await Promise.all(
-				ids.map(async (photoId) => {
-					const res = await fetch(`/api/events/${eventId}/photos`, {
-						method: "DELETE",
-						headers: { "Content-Type": "application/json" },
-						body: JSON.stringify({ photoId }),
+				try {
+					await Promise.all(
+						ids.map(async (photoId) => {
+							const res = await fetch(
+								`/api/events/${eventId}/photos`,
+								{
+									method: "DELETE",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({ photoId }),
+								},
+							);
+							if (!res.ok) {
+								const errorData = await res
+									.json()
+									.catch(() => ({}));
+								throw new Error(errorData.error || "删除失败");
+							}
+						}),
+					);
+
+					toast.success(`已删除 ${ids.length} 张照片`);
+					clearSelection();
+					queryClient.invalidateQueries({
+						queryKey: ["event-photos", eventId],
 					});
-					if (!res.ok) {
-						const errorData = await res.json().catch(() => ({}));
-						throw new Error(errorData.error || "删除失败");
-					}
-				}),
-			);
-
-			toast.success(`已删除 ${ids.length} 张照片`);
-			clearSelection();
-			queryClient.invalidateQueries({
-				queryKey: ["event-photos", eventId],
-			});
-			queryClient.invalidateQueries({
-				queryKey: ["my-event-photos", eventId],
-			});
-		} catch (error) {
-			console.error("Batch delete error:", error);
-			toast.error(
-				error instanceof Error ? error.message : "删除失败，请重试",
-			);
-		} finally {
-			setIsBatchDeleting(false);
-		}
+					queryClient.invalidateQueries({
+						queryKey: ["my-event-photos", eventId],
+					});
+				} catch (error) {
+					console.error("Batch delete error:", error);
+					toast.error(
+						error instanceof Error
+							? error.message
+							: "删除失败，请重试",
+					);
+				} finally {
+					setIsBatchDeleting(false);
+				}
+			},
+		});
 	};
 
 	// Share album
