@@ -307,9 +307,9 @@ export function EventDetailsClient({
 			<div className="mx-auto max-w-7xl px-4 py-6 lg:px-8">
 				<div className="relative grid grid-cols-1 gap-8 lg:grid-cols-12">
 					{/* Left Column: Header + Content */}
-					<div className="lg:col-span-8 space-y-3 lg:space-y-4">
+					<div className="lg:col-span-8 space-y-2.5 lg:space-y-3.5">
 						{/* Header: Badges + Title + Description */}
-						<div className="pb-4 border-b border-border/40">
+						<div className="pb-1">
 							<div className="mb-2 flex flex-wrap items-center gap-2">
 								<Badge
 									variant={
