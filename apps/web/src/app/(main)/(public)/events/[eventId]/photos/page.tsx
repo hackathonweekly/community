@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
 import {
-	useInfiniteQuery,
-	useQuery,
-	useQueryClient,
-} from "@tanstack/react-query";
-import { Loader2, Grid3x3, User, Upload, Share2, Download } from "lucide-react";
-import { Checkbox } from "@community/ui/ui/checkbox";
+	PHOTO_ALBUM_SHARE_OPTIONS,
+	buildPhotoAlbumShareText,
+} from "@/modules/public/events/photos/share-options";
+import { useConfirmationAlert } from "@/modules/shared/components/ConfirmationAlertProvider";
+import { config } from "@community/config";
+import { useSession } from "@community/lib-client/auth/client";
+import { buildPublicUrl } from "@community/lib-client/uploads/client";
+import { cn } from "@community/lib-shared/utils";
 import { Button } from "@community/ui/ui/button";
-import {
-	Tabs,
-	TabsList,
-	TabsTrigger,
-	TabsContent,
-} from "@community/ui/ui/tabs";
+import { Checkbox } from "@community/ui/ui/checkbox";
 import {
 	Dialog,
 	DialogContent,
@@ -23,14 +18,39 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@community/ui/ui/dialog";
-import { Switch } from "@community/ui/ui/switch";
-import { useSession } from "@community/lib-client/auth/client";
-import { toast } from "sonner";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@community/ui/ui/dropdown-menu";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@community/ui/ui/tabs";
+import {
+	useInfiniteQuery,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
+import {
+	Download,
+	Grid3x3,
+	Link2,
+	Loader2,
+	QrCode,
+	Share2,
+	Smartphone,
+	Upload,
+	User,
+} from "lucide-react";
 import Image from "next/image";
-import { config } from "@community/config";
-import { buildPublicUrl } from "@community/lib-client/uploads/client";
-import { cn } from "@community/lib-shared/utils";
-import { useConfirmationAlert } from "@/modules/shared/components/ConfirmationAlertProvider";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import QRCode from "react-qr-code";
+import { toast } from "sonner";
 
 interface Photo {
 	id: string;
@@ -115,6 +135,8 @@ export default function EventPhotosPage() {
 		new Set(),
 	);
 	const [isBatchDeleting, setIsBatchDeleting] = useState(false);
+	const [shareQrOpen, setShareQrOpen] = useState(false);
+	const [shareQrUrl, setShareQrUrl] = useState("");
 	const allPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 	const myPhotosLoadMoreRef = useRef<HTMLDivElement | null>(null);
 
@@ -656,26 +678,90 @@ export default function EventPhotosPage() {
 	};
 
 	// Share album
-	const handleShare = async () => {
-		const url = window.location.href;
-		const eventTitle = eventData?.data?.title || "活动";
-		const shareText = `活动【${eventTitle}】现场照片来啦！${url}`;
+	const eventTitle = eventData?.data?.title || "活动";
+
+	const resolveShareUrl = useCallback(() => {
+		if (typeof window === "undefined") {
+			return "";
+		}
+		return window.location.href;
+	}, []);
+
+	const handleOpenShareQr = () => {
+		const shareUrl = resolveShareUrl();
+		if (!shareUrl) {
+			toast.error("暂时无法获取分享链接");
+			return;
+		}
+		setShareQrUrl(shareUrl);
+		setShareQrOpen(true);
+	};
+
+	const handleNativeShare = async () => {
+		const shareUrl = resolveShareUrl();
+		if (!shareUrl) {
+			toast.error("暂时无法获取分享链接");
+			return;
+		}
+
+		if (!navigator.share) {
+			toast.info("当前设备不支持原生分享，请使用复制链接");
+			return;
+		}
 
 		try {
-			if (navigator.share) {
-				await navigator.share({
-					title: "活动相册",
-					text: shareText,
-					url,
-				});
-			} else {
-				await navigator.clipboard.writeText(shareText);
-				toast.success("分享文案已复制到剪贴板");
+			await navigator.share({
+				title: `${eventTitle}活动相册`,
+				text: buildPhotoAlbumShareText(eventTitle),
+				url: shareUrl,
+			});
+		} catch (error) {
+			if (error instanceof DOMException && error.name === "AbortError") {
+				return;
 			}
-		} catch {
 			toast.error("分享失败");
 		}
 	};
+
+	const handleCopyShareLink = async () => {
+		const shareUrl = resolveShareUrl();
+		if (!shareUrl) {
+			toast.error("暂时无法获取分享链接");
+			return;
+		}
+
+		try {
+			if (navigator.clipboard?.writeText) {
+				await navigator.clipboard.writeText(shareUrl);
+				toast.success("链接已复制");
+				return;
+			}
+
+			window.prompt("复制链接", shareUrl);
+			toast.success("请手动复制链接");
+		} catch {
+			toast.error("复制失败");
+		}
+	};
+
+	const handleShareOptionClick = async (
+		optionId: (typeof PHOTO_ALBUM_SHARE_OPTIONS)[number]["id"],
+	) => {
+		switch (optionId) {
+			case "qr":
+				handleOpenShareQr();
+				return;
+			case "native":
+				await handleNativeShare();
+				return;
+			case "copyLink":
+				await handleCopyShareLink();
+				return;
+			default:
+				return;
+		}
+	};
+	const shareQrCodeValue = shareQrUrl || "https://hackathonweekly.com/events";
 
 	const PhotoGrid = ({
 		photos,
@@ -1080,14 +1166,37 @@ export default function EventPhotosPage() {
 					</Button>
 					<h1 className="font-semibold">活动相册</h1>
 					<div className="flex items-center gap-2">
-						<Button
-							variant="ghost"
-							size="icon"
-							onClick={handleShare}
-							title="分享"
-						>
-							<Share2 className="h-4 w-4" />
-						</Button>
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									title="分享"
+								>
+									<Share2 className="h-4 w-4" />
+								</Button>
+							</DropdownMenuTrigger>
+							<DropdownMenuContent align="end" className="w-40">
+								{PHOTO_ALBUM_SHARE_OPTIONS.map((option) => (
+									<DropdownMenuItem
+										key={option.id}
+										className="gap-2"
+										onClick={() =>
+											handleShareOptionClick(option.id)
+										}
+									>
+										{option.id === "qr" ? (
+											<QrCode className="h-4 w-4" />
+										) : option.id === "native" ? (
+											<Smartphone className="h-4 w-4" />
+										) : (
+											<Link2 className="h-4 w-4" />
+										)}
+										<span>{option.label}</span>
+									</DropdownMenuItem>
+								))}
+							</DropdownMenuContent>
+						</DropdownMenu>
 					</div>
 				</div>
 			</div>
@@ -1304,6 +1413,31 @@ export default function EventPhotosPage() {
 					</div>
 				</Tabs>
 			</div>
+
+			<Dialog open={shareQrOpen} onOpenChange={setShareQrOpen}>
+				<DialogContent className="sm:max-w-sm">
+					<DialogHeader>
+						<DialogTitle>分享二维码</DialogTitle>
+					</DialogHeader>
+					<div className="flex flex-col items-center gap-4 py-2">
+						<div className="rounded-xl border border-border bg-white p-3 shadow-sm">
+							<QRCode value={shareQrCodeValue} size={200} />
+						</div>
+						<p className="text-xs text-center text-muted-foreground">
+							扫码即可查看当前活动相册
+						</p>
+						<Button
+							variant="outline"
+							size="sm"
+							className="w-full"
+							onClick={handleCopyShareLink}
+						>
+							<Link2 className="mr-2 h-4 w-4" />
+							复制链接
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 
 			{isUploading && (
 				<div className="fixed bottom-24 lg:bottom-20 left-0 right-0 z-40 px-4">
