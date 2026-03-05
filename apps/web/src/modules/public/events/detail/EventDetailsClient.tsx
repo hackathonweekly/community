@@ -9,11 +9,16 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { CalendarClock, Globe, MapPin } from "lucide-react";
 
 import { EventRegistrationModal } from "@/modules/public/events/components";
 import ContactOrganizerDialog from "@/modules/public/events/components/ContactOrganizerDialog";
 import { SimpleEventFeedbackDialog } from "@/modules/public/events/components/SimpleEventFeedbackDialog";
 import { RegistrationSuccessModal } from "@/modules/public/events/components/registration-success-modal";
+import {
+	formatEventDateLong,
+	formatEventTime,
+} from "@/modules/shared/lib/format-event-date";
 import { EventSeriesSubscriptionButton } from "@community/ui/shared/EventSeriesSubscriptionButton";
 import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { QRGenerator } from "@shared/events/components/QRGenerator";
@@ -60,7 +65,7 @@ const TAB_TRIGGER_CLASS =
 const SWIPE_MIN_DISTANCE = 48;
 const SWIPE_MAX_VERTICAL_OFFSET = 72;
 const SWIPE_IGNORE_SELECTOR =
-	"input, textarea, select, button, a, [role='button'], [data-slot='tabs-list'], [data-swipe-ignore='true']";
+	"input, textarea, select, [contenteditable='true'], [data-slot='tabs-list'], [data-swipe-ignore='true']";
 
 export function EventDetailsClient({
 	event,
@@ -147,6 +152,20 @@ export function EventDetailsClient({
 		? Math.max(0, event.maxAttendees - participantCount)
 		: null;
 	const tags = event.tags ?? [];
+	const formatLocale = locale.startsWith("zh") ? "zh" : "en";
+	const isSameEventDay =
+		new Date(event.startTime).toDateString() ===
+		new Date(event.endTime).toDateString();
+	const mobileDateLabel = formatEventDateLong(event.startTime, formatLocale);
+	const mobileTimeLabel = isSameEventDay
+		? `${formatEventTime(event.startTime, formatLocale)} - ${formatEventTime(
+				event.endTime,
+				formatLocale,
+			)}`
+		: `${formatEventTime(event.startTime, formatLocale)} → ${formatEventDateLong(event.endTime, formatLocale)} ${formatEventTime(event.endTime, formatLocale)}`;
+	const mobileLocationLabel = event.isOnline
+		? "线上活动"
+		: event.address?.trim() || "地点待定";
 	const tabsHeaderRef = useRef<HTMLDivElement | null>(null);
 	const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 	const touchStartTabRef = useRef(activeTab);
@@ -317,6 +336,30 @@ export function EventDetailsClient({
 										.slice(0, 200)}
 								</p>
 							) : null}
+						</div>
+
+						<div className="grid gap-2 rounded-lg border border-border/40 bg-muted/20 p-3 lg:hidden">
+							<div className="flex items-start gap-2">
+								<CalendarClock className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								<div className="min-w-0">
+									<p className="text-sm font-semibold text-foreground">
+										{mobileDateLabel}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{mobileTimeLabel}
+									</p>
+								</div>
+							</div>
+							<div className="flex items-start gap-2">
+								{event.isOnline ? (
+									<Globe className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								) : (
+									<MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
+								)}
+								<p className="line-clamp-2 text-sm font-medium text-foreground">
+									{mobileLocationLabel}
+								</p>
+							</div>
 						</div>
 
 						{event.series ? (
@@ -493,8 +536,13 @@ export function EventDetailsClient({
 
 								<div
 									className="touch-pan-y"
-									onTouchStart={handleContentTouchStart}
-									onTouchEnd={handleContentTouchEnd}
+									onTouchStartCapture={
+										handleContentTouchStart
+									}
+									onTouchEndCapture={handleContentTouchEnd}
+									onTouchCancel={() => {
+										touchStartRef.current = null;
+									}}
 								>
 									<TabsContent
 										value="intro"

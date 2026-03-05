@@ -64,6 +64,9 @@ export function MobileCTA({
 	hasImportantInfo?: boolean;
 }) {
 	const [isMoreOpen, setIsMoreOpen] = useState(false);
+	const handleManage = () => {
+		window.location.assign(`/events/${eventId}/manage`);
+	};
 
 	const moreActions = (
 		[
@@ -145,6 +148,15 @@ export function MobileCTA({
 			>
 				<div className="container max-w-6xl py-3">
 					<div className="flex gap-2">
+						{isEventAdmin ? (
+							<Button
+								className="h-11 shrink-0 px-3 text-sm font-semibold"
+								onClick={handleManage}
+							>
+								<LayoutDashboard className="mr-1.5 h-4 w-4" />
+								管理
+							</Button>
+						) : null}
 						<Button
 							variant="outline"
 							className="h-11 px-3"
