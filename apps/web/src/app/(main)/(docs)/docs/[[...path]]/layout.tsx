@@ -1,11 +1,7 @@
 import { TabBar } from "@/modules/public/shared/components/TabBar";
-import {
-	COMMUNITY_FEEDBACK_FORM_LABEL,
-	COMMUNITY_FEEDBACK_FORM_URL,
-} from "@/modules/shared/lib/community-feedback";
 import { config } from "@community/config";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getLocale } from "next-intl/server";
 import Image from "next/image";
 import type { PropsWithChildren } from "react";
 import { docsSource } from "../../../../docs-source";
@@ -13,7 +9,6 @@ import { docsSource } from "../../../../docs-source";
 export default async function DocumentationLayout({
 	children,
 }: PropsWithChildren) {
-	const t = await getTranslations();
 	const locale = await getLocale();
 	const tree =
 		docsSource.pageTree[locale] ??
@@ -62,16 +57,6 @@ export default async function DocumentationLayout({
 					}}
 				>
 					{children}
-					<div className="mt-8 border-t border-border/50 pt-5 text-xs text-muted-foreground">
-						<a
-							href={COMMUNITY_FEEDBACK_FORM_URL}
-							target="_blank"
-							rel="noreferrer"
-							className="transition-colors hover:text-foreground"
-						>
-							{COMMUNITY_FEEDBACK_FORM_LABEL}
-						</a>
-					</div>
 				</DocsLayout>
 			</div>
 			<TabBar />

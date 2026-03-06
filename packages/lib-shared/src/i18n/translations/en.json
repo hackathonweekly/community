@@ -2501,6 +2501,7 @@
 	"mePage": {
 		"darkMode": "Dark mode",
 		"discoverOrganizations": "Discover Organizations",
+		"feedbackSuggestion": "Feedback",
 		"language": "Language",
 		"logout": "Log out",
 		"messages": "Messages",

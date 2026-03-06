@@ -1,10 +1,7 @@
 "use client";
 
 import { clearCache } from "@/actions/clear-cache";
-import {
-	COMMUNITY_FEEDBACK_FORM_LABEL,
-	COMMUNITY_FEEDBACK_FORM_URL,
-} from "@/modules/shared/lib/community-feedback";
+import { COMMUNITY_FEEDBACK_FORM_URL } from "@/modules/shared/lib/community-feedback";
 import { config } from "@community/config";
 import {
 	useEventBookmarksQuery,
@@ -415,6 +412,20 @@ export default function MePage() {
 					isLoading={false}
 					showCount={false}
 				/>
+				<Button
+					asChild
+					variant="outline"
+					size="sm"
+					className="h-10 w-full justify-center"
+				>
+					<a
+						href={COMMUNITY_FEEDBACK_FORM_URL}
+						target="_blank"
+						rel="noreferrer"
+					>
+						{t("mePage.feedbackSuggestion")}
+					</a>
+				</Button>
 				<SettingsRow label={t("mePage.darkMode")}>
 					<ColorModeToggle />
 				</SettingsRow>
@@ -423,16 +434,6 @@ export default function MePage() {
 						<LocaleSwitch onLocaleChange={updateLocale} />
 					) : null}
 				</SettingsRow>
-				<div className="px-1 pt-1 text-xs text-muted-foreground">
-					<a
-						href={COMMUNITY_FEEDBACK_FORM_URL}
-						target="_blank"
-						rel="noreferrer"
-						className="transition-colors hover:text-foreground"
-					>
-						{COMMUNITY_FEEDBACK_FORM_LABEL}
-					</a>
-				</div>
 			</Section>
 
 			<Button

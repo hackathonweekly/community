@@ -2560,6 +2560,7 @@
 	"mePage": {
 		"darkMode": "深色模式",
 		"discoverOrganizations": "发现更多组织",
+		"feedbackSuggestion": "反馈建议",
 		"language": "语言",
 		"logout": "退出登录",
 		"messages": "我的消息",
