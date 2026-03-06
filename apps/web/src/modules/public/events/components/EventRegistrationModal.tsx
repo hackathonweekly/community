@@ -1,9 +1,15 @@
 "use client";
 
 import { Button } from "@community/ui/ui/button";
-import { RadioGroup, RadioGroupItem } from "@community/ui/ui/radio-group";
 import { Label } from "@community/ui/ui/label";
+import { RadioGroup, RadioGroupItem } from "@community/ui/ui/radio-group";
 
+import { resolveRegistrationFieldConfig } from "@community/lib-shared/events/registration-fields";
+import {
+	type PhoneValidationResult,
+	validateFullPhoneNumber,
+} from "@community/lib-shared/utils/phone-validation";
+import { PROFILE_LIMITS } from "@community/lib-shared/utils/profile-limits";
 import {
 	Dialog,
 	DialogContent,
@@ -12,20 +18,21 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@community/ui/ui/dialog";
-import {
-	validateFullPhoneNumber,
-	type PhoneValidationResult,
-} from "@community/lib-shared/utils/phone-validation";
-import { resolveRegistrationFieldConfig } from "@community/lib-shared/events/registration-fields";
-import { PROFILE_LIMITS } from "@community/lib-shared/utils/profile-limits";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { MiniProgramUpgradePrompt } from "./MiniProgramUpgradePrompt";
+import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
 import { ProfileSection } from "./ProfileSection";
 import { ProjectSection } from "./ProjectSection";
-import { TicketSelection } from "./TicketSelection";
 import { QuestionsForm } from "./QuestionsForm";
+import { TicketSelection } from "./TicketSelection";
+import { WeChatBindingPrompt } from "./WeChatBindingPrompt";
+import {
+	parseRegistrationErrorPayload,
+	resolveRegistrationErrorMessage,
+} from "./registrationErrorUtils";
 import type {
 	EventRegistration,
 	Project,
@@ -33,14 +40,7 @@ import type {
 	TicketType,
 	UserProfile,
 } from "./types";
-import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
 import { useTicketSelection } from "./useTicketSelection";
-import { MiniProgramUpgradePrompt } from "./MiniProgramUpgradePrompt";
-import { WeChatBindingPrompt } from "./WeChatBindingPrompt";
-import {
-	parseRegistrationErrorPayload,
-	resolveRegistrationErrorMessage,
-} from "./registrationErrorUtils";
 import {
 	buildWechatPaymentClientContext,
 	buildWechatPaymentClientContextQuery,
@@ -883,8 +883,8 @@ export function EventRegistrationModal({
 	return (
 		<>
 			<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-				<DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-					<DialogHeader>
+				<DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col gap-0 overflow-hidden p-0">
+					<DialogHeader className="border-b border-border/60 px-4 pb-3 pt-4 pr-10 sm:px-6 sm:pb-4 sm:pt-5">
 						<DialogTitle>
 							{t("title", { title: event.title })}
 						</DialogTitle>
@@ -898,134 +898,153 @@ export function EventRegistrationModal({
 						</DialogDescription>
 					</DialogHeader>
 
-					<form onSubmit={handleSubmit} className="space-y-6">
-						{/* Profile Section */}
-						<ProfileSection
-							userProfile={userProfile}
-							showInlineProfileEdit={showInlineProfileEdit}
-							editingProfile={editingProfile}
-							phoneValidation={phoneValidation}
-							emailError={emailError}
-							savingProfile={savingProfile}
-							profileLoading={profileLoading}
-							fieldConfig={fieldConfig}
-							onToggleInlineEdit={setShowInlineProfileEdit}
-							onSaveProfile={handleSaveProfile}
-							onUpdateEditingProfile={(profile) =>
-								setEditingProfile((prev) => ({
-									...prev,
-									...profile,
-								}))
-							}
-							onPhoneNumberChange={handlePhoneNumberChange}
-							onEmailChange={(value) => {
-								setEmailError(null);
-								setEditingProfile((prev) => ({
-									...prev,
-									email: value,
-								}));
-							}}
-							onLifeStatusChange={(value) =>
-								setEditingProfile((prev) => ({
-									...prev,
-									lifeStatus: value,
-								}))
-							}
-						/>
-
-						{/* Project Selection - Only show if required */}
-						{event.requireProjectSubmission && (
-							<ProjectSection
-								projects={projects}
-								projectsLoading={projectsLoading}
-								selectedProjectId={selectedProjectId}
-								showInlineProjectEdit={showInlineProjectEdit}
-								editingProject={editingProject}
-								savingProject={savingProject}
-								onProjectSelect={setSelectedProjectId}
-								onRefreshProjects={fetchUserProjects}
-								onCreateNewProject={() => {
-									const currentPath =
-										window.location.pathname;
-									router.push(
-										`/projects/create?returnTo=${encodeURIComponent(currentPath)}`,
-									);
-								}}
-								onToggleInlineEdit={setShowInlineProjectEdit}
-								onSaveProject={handleSaveProject}
-								onUpdateEditingProject={(project) =>
-									setEditingProject((prev) => ({
+					<form
+						onSubmit={handleSubmit}
+						className="flex min-h-0 flex-1 flex-col"
+					>
+						<div className="flex-1 space-y-6 overflow-y-auto px-4 py-4 sm:px-6">
+							{/* Profile Section */}
+							<ProfileSection
+								userProfile={userProfile}
+								showInlineProfileEdit={showInlineProfileEdit}
+								editingProfile={editingProfile}
+								phoneValidation={phoneValidation}
+								emailError={emailError}
+								savingProfile={savingProfile}
+								profileLoading={profileLoading}
+								fieldConfig={fieldConfig}
+								onToggleInlineEdit={setShowInlineProfileEdit}
+								onSaveProfile={handleSaveProfile}
+								onUpdateEditingProfile={(profile) =>
+									setEditingProfile((prev) => ({
 										...prev,
-										...project,
+										...profile,
+									}))
+								}
+								onPhoneNumberChange={handlePhoneNumberChange}
+								onEmailChange={(value) => {
+									setEmailError(null);
+									setEditingProfile((prev) => ({
+										...prev,
+										email: value,
+									}));
+								}}
+								onLifeStatusChange={(value) =>
+									setEditingProfile((prev) => ({
+										...prev,
+										lifeStatus: value,
 									}))
 								}
 							/>
-						)}
 
-						{/* Ticket Type Selection */}
-						<TicketSelection
-							availableTicketTypes={availableTicketTypes}
-							selectedTicketType={selectedTicketType}
-							onTicketTypeChange={setSelectedTicketType}
-							selectedQuantity={selectedQuantity}
-							onQuantityChange={setSelectedQuantity}
-						/>
-
-						{/* Digital Card Consent */}
-						{event.askDigitalCardConsent && (
-							<div className="space-y-3">
-								<Label className="text-sm font-medium">
-									是否愿意在现场屏幕中公开自我介绍并展示数字名片
-									<span className="text-red-500 ml-1">*</span>
-								</Label>
-								<RadioGroup
-									value={
-										allowDigitalCardDisplay === null
-											? ""
-											: String(allowDigitalCardDisplay)
+							{/* Project Selection - Only show if required */}
+							{event.requireProjectSubmission && (
+								<ProjectSection
+									projects={projects}
+									projectsLoading={projectsLoading}
+									selectedProjectId={selectedProjectId}
+									showInlineProjectEdit={
+										showInlineProjectEdit
 									}
-									onValueChange={(value) =>
-										setAllowDigitalCardDisplay(
-											value === "true",
-										)
+									editingProject={editingProject}
+									savingProject={savingProject}
+									onProjectSelect={setSelectedProjectId}
+									onRefreshProjects={fetchUserProjects}
+									onCreateNewProject={() => {
+										const currentPath =
+											window.location.pathname;
+										router.push(
+											`/projects/create?returnTo=${encodeURIComponent(currentPath)}`,
+										);
+									}}
+									onToggleInlineEdit={
+										setShowInlineProjectEdit
 									}
-								>
-									<div className="flex items-center space-x-2">
-										<RadioGroupItem
-											value="true"
-											id="consent-yes"
-										/>
-										<Label
-											htmlFor="consent-yes"
-											className="font-normal cursor-pointer"
-										>
-											非常愿意
-										</Label>
-									</div>
-									<div className="flex items-center space-x-2">
-										<RadioGroupItem
-											value="false"
-											id="consent-no"
-										/>
-										<Label
-											htmlFor="consent-no"
-											className="font-normal cursor-pointer"
-										>
-											下次一定
-										</Label>
-									</div>
-								</RadioGroup>
-							</div>
-						)}
+									onSaveProject={handleSaveProject}
+									onUpdateEditingProject={(project) =>
+										setEditingProject((prev) => ({
+											...prev,
+											...project,
+										}))
+									}
+								/>
+							)}
 
-						{/* Questions */}
-						<QuestionsForm
-							questions={event.questions}
-							answers={answers}
-							onAnswerChange={handleAnswerChange}
-						/>
+							{/* Ticket Type Selection */}
+							<TicketSelection
+								availableTicketTypes={availableTicketTypes}
+								selectedTicketType={selectedTicketType}
+								onTicketTypeChange={setSelectedTicketType}
+								selectedQuantity={selectedQuantity}
+								onQuantityChange={setSelectedQuantity}
+							/>
 
-						<DialogFooter>
+							{/* Digital Card Consent */}
+							{event.askDigitalCardConsent && (
+								<div className="space-y-3">
+									<Label className="text-sm font-medium">
+										是否愿意在现场屏幕中公开自我介绍并展示数字名片
+										<span className="text-red-500 ml-1">
+											*
+										</span>
+									</Label>
+									<RadioGroup
+										value={
+											allowDigitalCardDisplay === null
+												? ""
+												: String(
+														allowDigitalCardDisplay,
+													)
+										}
+										onValueChange={(value) =>
+											setAllowDigitalCardDisplay(
+												value === "true",
+											)
+										}
+									>
+										<div className="flex items-center space-x-2">
+											<RadioGroupItem
+												value="true"
+												id="consent-yes"
+											/>
+											<Label
+												htmlFor="consent-yes"
+												className="font-normal cursor-pointer"
+											>
+												非常愿意
+											</Label>
+										</div>
+										<div className="flex items-center space-x-2">
+											<RadioGroupItem
+												value="false"
+												id="consent-no"
+											/>
+											<Label
+												htmlFor="consent-no"
+												className="font-normal cursor-pointer"
+											>
+												下次一定
+											</Label>
+										</div>
+									</RadioGroup>
+								</div>
+							)}
+
+							{/* Questions */}
+							<QuestionsForm
+								questions={event.questions}
+								answers={answers}
+								onAnswerChange={handleAnswerChange}
+							/>
+						</div>
+
+						<DialogFooter
+							className="border-t border-border/60 bg-background px-4 pb-3 pt-3 sm:px-6 sm:pb-4 sm:pt-4"
+							style={{
+								paddingBottom:
+									"max(0.75rem, env(safe-area-inset-bottom))",
+							}}
+						>
 							<Button
 								type="button"
 								variant="outline"
