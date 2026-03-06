@@ -1,4 +1,6 @@
 import type { CommunicationType } from "@prisma/client";
+import { sendEmail } from "@community/lib-server/mail/send";
+import { getBaseUrl } from "@community/lib-shared/utils";
 
 // 邮件发送服务接口
 export interface EmailService {
@@ -7,6 +9,8 @@ export interface EmailService {
 		subject: string;
 		content: string;
 		recipientName?: string;
+		senderName?: string;
+		imageUrl?: string;
 	}): Promise<{
 		success: boolean;
 		messageId?: string;
@@ -34,6 +38,8 @@ class MockEmailService implements EmailService {
 		subject: string;
 		content: string;
 		recipientName?: string;
+		senderName?: string;
+		imageUrl?: string;
 	}) {
 		// 模拟发送延迟
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -48,8 +54,10 @@ class MockEmailService implements EmailService {
 
 		console.log(`[模拟邮件发送] 
 收件人: ${data.recipientName || "未知"} <${data.to}>
+发送者: ${data.senderName || "HackathonWeekly"}
 主题: ${data.subject}
-内容: ${data.content.substring(0, 50)}...`);
+内容: ${data.content.substring(0, 50)}...
+图片: ${data.imageUrl || "无"}`);
 
 		return {
 			success: true,
@@ -94,15 +102,33 @@ class RealEmailService implements EmailService {
 		subject: string;
 		content: string;
 		recipientName?: string;
+		senderName?: string;
+		imageUrl?: string;
 	}) {
 		try {
-			// TODO: 集成现有的邮件发送系统
-			// 这里应该调用项目中已有的邮件发送服务
-			// 例如: src/lib/mail/ 中的邮件服务
+			const sent = await sendEmail({
+				to: data.to,
+				templateId: "simplifiedEmail",
+				context: {
+					title: data.subject,
+					content: data.content,
+					senderName: data.senderName || "HackathonWeekly",
+					unsubscribeUrl: `${getBaseUrl()}/settings/notifications`,
+					imageUrl: data.imageUrl,
+				},
+			});
 
-			// 暂时使用模拟实现
-			const mockService = new MockEmailService();
-			return await mockService.sendEmail(data);
+			if (!sent) {
+				return {
+					success: false,
+					error: "邮件发送失败",
+				};
+			}
+
+			return {
+				success: true,
+				messageId: `email_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`,
+			};
 		} catch (error) {
 			return {
 				success: false,
@@ -196,13 +222,23 @@ export class BatchCommunicationService {
 		}>;
 		subject: string;
 		content: string;
+		imageUrl?: string;
+		senderName?: string;
 		onProgress?: (
 			sent: number,
 			total: number,
 			current: { name: string; status: string },
 		) => void;
 	}) {
-		const { type, records, subject, content, onProgress } = data;
+		const {
+			type,
+			records,
+			subject,
+			content,
+			imageUrl,
+			senderName,
+			onProgress,
+		} = data;
 		const service = CommunicationServiceFactory.getService(type);
 		const results: Array<{
 			recordId: string;
@@ -227,6 +263,8 @@ export class BatchCommunicationService {
 						subject,
 						content,
 						recipientName: record.recipientName,
+						senderName,
+						imageUrl,
 					});
 				} else if (type === "SMS" && record.recipientPhone) {
 					result = await (service as SMSService).sendSMS({

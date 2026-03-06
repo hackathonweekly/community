@@ -38,6 +38,7 @@ interface CommunicationRecord {
 	type: "EMAIL" | "SMS";
 	subject: string;
 	content: string;
+	imageUrl?: string;
 	status: "PENDING" | "SENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
 	totalRecipients: number;
 	sentCount: number;
@@ -229,7 +230,16 @@ export function CommunicationHistory({
 						<div className="space-y-3">
 							{/* 内容预览 */}
 							<div className="text-sm text-muted-foreground bg-muted p-3 rounded-md">
-								<p className="line-clamp-2">{comm.content}</p>
+								<p className="line-clamp-2 whitespace-pre-wrap">
+									{comm.content}
+								</p>
+								{comm.imageUrl && (
+									<img
+										src={comm.imageUrl}
+										alt="提醒图片"
+										className="mt-2 h-20 w-full rounded border object-cover"
+									/>
+								)}
 							</div>
 
 							{/* 发送统计 */}

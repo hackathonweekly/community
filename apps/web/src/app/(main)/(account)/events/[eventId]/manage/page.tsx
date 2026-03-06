@@ -9,6 +9,7 @@ import {
 } from "@community/ui/ui/tabs";
 import { EventAdminManager } from "@/modules/account/events/components/EventAdminManager";
 import { EventCheckIn } from "@/modules/account/events/components/EventCheckIn";
+import EventCommunicationsPage from "@/modules/account/events/components/EventCommunicationsPage";
 import { EventFeedback } from "@/modules/account/events/components/EventFeedback";
 import { EventInvitesTab } from "@/modules/account/events/components/EventInvitesTab";
 import { EventManageHeader } from "@/modules/account/events/components/EventManageHeader";
@@ -120,7 +121,7 @@ export default function EventManagePage() {
 	const hasHackathonTab = event.type === "HACKATHON";
 	const hasSubmissionTab = isEventSubmissionsEnabled(event as any);
 	const desktopTabCount =
-		7 + Number(hasHackathonTab) + Number(hasSubmissionTab);
+		8 + Number(hasHackathonTab) + Number(hasSubmissionTab);
 
 	return (
 		<>
@@ -249,6 +250,15 @@ export default function EventManagePage() {
 								</span>
 							</TabsTrigger>
 							<TabsTrigger
+								value="reminders"
+								className={tabTriggerClass}
+							>
+								<span className="lg:hidden">提醒</span>
+								<span className="hidden lg:inline">
+									{t("tabs.reminders")}
+								</span>
+							</TabsTrigger>
+							<TabsTrigger
 								value="admins"
 								className={tabTriggerClass}
 							>
@@ -354,6 +364,10 @@ export default function EventManagePage() {
 								adminView={true}
 								isOrganizer={true}
 							/>
+						</TabsContent>
+
+						<TabsContent value="reminders" className="mt-3 lg:mt-6">
+							<EventCommunicationsPage embedded />
 						</TabsContent>
 
 						<TabsContent value="admins" className="mt-3 lg:mt-6">

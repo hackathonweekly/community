@@ -67,6 +67,7 @@ interface CommunicationData {
 	type: "EMAIL" | "SMS";
 	subject: string;
 	content: string;
+	imageUrl?: string;
 	status: "PENDING" | "SENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
 	totalRecipients: number;
 	sentCount: number;
@@ -310,6 +311,13 @@ export function CommunicationDetails({
 								<div className="text-muted-foreground whitespace-pre-wrap">
 									{communication.content}
 								</div>
+								{communication.imageUrl && (
+									<img
+										src={communication.imageUrl}
+										alt="提醒图片"
+										className="mt-3 h-40 w-full rounded-md border object-cover"
+									/>
+								)}
 							</div>
 						</CardContent>
 					</Card>

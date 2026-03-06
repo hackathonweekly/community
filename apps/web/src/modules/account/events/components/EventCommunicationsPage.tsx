@@ -10,7 +10,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@community/ui/ui/tabs";
-import { Alert, AlertDescription } from "@community/ui/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@community/ui/ui/alert";
 import { Button } from "@community/ui/ui/button";
 import { Skeleton } from "@community/ui/ui/skeleton";
 import { Badge } from "@community/ui/ui/badge";
@@ -43,11 +43,34 @@ interface CommunicationLimitInfo {
 	maxAllowed: number;
 }
 
+interface CommunicationRecipient {
+	userId: string;
+	name: string;
+	email: string | null;
+	status: "APPROVED" | "PENDING";
+	checkedIn: boolean;
+	isSendableEmail: boolean;
+}
+
+type RecipientScope =
+	| "ALL"
+	| "APPROVED_ONLY"
+	| "UNCHECKED_IN_ONLY"
+	| "SELECTED";
+
+interface CommunicationSendSummary {
+	validRecipients: number;
+	missingEmailCount: number;
+	virtualEmailCount: number;
+	unmatchedSelectedCount: number;
+}
+
 interface CommunicationRecord {
 	id: string;
 	type: "EMAIL" | "SMS";
 	subject: string;
 	content: string;
+	imageUrl?: string;
 	status: "PENDING" | "SENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
 	totalRecipients: number;
 	sentCount: number;
@@ -84,7 +107,13 @@ interface CommunicationDetailRecord {
 	};
 }
 
-export default function EventCommunicationsPage() {
+interface EventCommunicationsPageProps {
+	embedded?: boolean;
+}
+
+export default function EventCommunicationsPage({
+	embedded = false,
+}: EventCommunicationsPageProps = {}) {
 	const params = useParams();
 	const router = useRouter();
 	const eventId = params.eventId as string;
@@ -97,6 +126,9 @@ export default function EventCommunicationsPage() {
 	const [communications, setCommunications] = useState<CommunicationRecord[]>(
 		[],
 	);
+	const [recipients, setRecipients] = useState<CommunicationRecipient[]>([]);
+	const [sendSummary, setSendSummary] =
+		useState<CommunicationSendSummary | null>(null);
 	const [selectedCommunication, setSelectedCommunication] =
 		useState<CommunicationRecord | null>(null);
 	const [communicationRecords, setCommunicationRecords] = useState<
@@ -113,11 +145,15 @@ export default function EventCommunicationsPage() {
 				setLoading(true);
 
 				// 并行加载活动信息、通信限制和通信历史
-				const [eventRes, limitRes, commRes] = await Promise.all([
-					fetch(`/api/events/${eventId}`),
-					fetch(`/api/event-communications/${eventId}/limit`),
-					fetch(`/api/event-communications/${eventId}`),
-				]);
+				const [eventRes, limitRes, commRes, recipientRes] =
+					await Promise.all([
+						fetch(`/api/events/${eventId}`),
+						fetch(`/api/event-communications/${eventId}/limit`),
+						fetch(`/api/event-communications/${eventId}`),
+						fetch(
+							`/api/event-communications/${eventId}/recipients`,
+						),
+					]);
 
 				if (!eventRes.ok) {
 					if (eventRes.status === 404) {
@@ -133,15 +169,18 @@ export default function EventCommunicationsPage() {
 					throw new Error("加载活动信息失败");
 				}
 
-				const [eventData, limitData, commData] = await Promise.all([
-					eventRes.json(),
-					limitRes.json(),
-					commRes.json(),
-				]);
+				const [eventData, limitData, commData, recipientData] =
+					await Promise.all([
+						eventRes.json(),
+						limitRes.json(),
+						commRes.json(),
+						recipientRes.json(),
+					]);
 
 				setEvent(eventData.data);
 				setLimitInfo(limitData.data);
 				setCommunications(commData.data.communications || []);
+				setRecipients(recipientData.data?.recipients || []);
 			} catch (error) {
 				console.error("加载数据失败:", error);
 				toast.error("加载数据失败，请重试");
@@ -160,6 +199,9 @@ export default function EventCommunicationsPage() {
 		type: "EMAIL";
 		subject: string;
 		content: string;
+		imageUrl?: string;
+		recipientScope: RecipientScope;
+		selectedRecipientIds?: string[];
 	}) => {
 		try {
 			setSending(true);
@@ -181,22 +223,65 @@ export default function EventCommunicationsPage() {
 				throw new Error(result.error || "发送失败");
 			}
 
-			toast.success(result.message || "通信发送已启动");
+			const stats = result.stats || {};
+			const missingEmailCount =
+				typeof stats.missingEmailCount === "number"
+					? stats.missingEmailCount
+					: 0;
+			const virtualEmailCount =
+				typeof stats.virtualEmailCount === "number"
+					? stats.virtualEmailCount
+					: 0;
+			const unmatchedSelectedCount =
+				typeof stats.unmatchedSelectedCount === "number"
+					? stats.unmatchedSelectedCount
+					: 0;
+			const validRecipients =
+				typeof stats.validRecipients === "number"
+					? stats.validRecipients
+					: 0;
+
+			setSendSummary({
+				validRecipients,
+				missingEmailCount,
+				virtualEmailCount,
+				unmatchedSelectedCount,
+			});
+
+			toast.success(`提醒发送已启动，预计实际通知 ${validRecipients} 人`);
+
+			const skippedByEmail = missingEmailCount + virtualEmailCount;
+			if (skippedByEmail > 0) {
+				toast.info(
+					`有 ${skippedByEmail} 人因邮箱未填写或无效被跳过（未填写 ${missingEmailCount} 人，虚拟邮箱 ${virtualEmailCount} 人）`,
+				);
+			}
+			if (unmatchedSelectedCount > 0) {
+				toast.info(
+					`有 ${unmatchedSelectedCount} 位手动选择参与者不在可发送名单中，已自动跳过`,
+				);
+			}
+			if (result.warning) {
+				toast.warning(result.warning);
+			}
 
 			// 刷新限制信息和通信历史
-			const [limitRes, commRes] = await Promise.all([
+			const [limitRes, commRes, recipientRes] = await Promise.all([
 				fetch(`/api/event-communications/${eventId}/limit`),
 				fetch(`/api/event-communications/${eventId}`),
+				fetch(`/api/event-communications/${eventId}/recipients`),
 			]);
 
-			if (limitRes.ok && commRes.ok) {
-				const [limitData, commData] = await Promise.all([
+			if (limitRes.ok && commRes.ok && recipientRes.ok) {
+				const [limitData, commData, recipientData] = await Promise.all([
 					limitRes.json(),
 					commRes.json(),
+					recipientRes.json(),
 				]);
 
 				setLimitInfo(limitData.data);
 				setCommunications(commData.data.communications || []);
+				setRecipients(recipientData.data?.recipients || []);
 			}
 		} catch (error) {
 			console.error("发送失败:", error);
@@ -398,26 +483,46 @@ export default function EventCommunicationsPage() {
 
 	return (
 		<div className="space-y-6">
-			{/* 页面标题 */}
-			<div className="flex items-center space-x-3">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={() => router.back()}
-					className="p-2"
-				>
-					<ArrowLeft className="h-4 w-4" />
-				</Button>
-				<div>
-					<h1 className="text-2xl font-bold flex items-center space-x-2">
-						<MessageSquare className="h-6 w-6 text-blue-500" />
-						<span>活动通信</span>
-					</h1>
-					<p className="text-muted-foreground mt-1">
-						{event.title} · {event._count.registrations} 名参与者
-					</p>
+			{!embedded && (
+				<div className="flex items-center space-x-3">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={() => router.back()}
+						className="p-2"
+					>
+						<ArrowLeft className="h-4 w-4" />
+					</Button>
+					<div>
+						<h1 className="text-2xl font-bold flex items-center space-x-2">
+							<MessageSquare className="h-6 w-6 text-blue-500" />
+							<span>活动通信</span>
+						</h1>
+						<p className="text-muted-foreground mt-1">
+							{event.title} · {event._count.registrations}{" "}
+							名参与者
+						</p>
+					</div>
 				</div>
-			</div>
+			)}
+
+			{sendSummary && (
+				<Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+					<CheckCircle className="h-4 w-4 text-emerald-600" />
+					<AlertTitle>最近一次发送摘要</AlertTitle>
+					<AlertDescription>
+						本次实际通知 {sendSummary.validRecipients}{" "}
+						人。因邮箱未填写或无效跳过{" "}
+						{sendSummary.missingEmailCount +
+							sendSummary.virtualEmailCount}{" "}
+						人（未填写 {sendSummary.missingEmailCount} 人，虚拟邮箱{" "}
+						{sendSummary.virtualEmailCount} 人）。
+						{sendSummary.unmatchedSelectedCount > 0
+							? `另有 ${sendSummary.unmatchedSelectedCount} 位手动选择参与者不在可发送名单中。`
+							: ""}
+					</AlertDescription>
+				</Alert>
+			)}
 
 			{/* 统计数据 */}
 			{renderStats()}
@@ -448,9 +553,9 @@ export default function EventCommunicationsPage() {
 
 				<TabsContent value="send">
 					<SendCommunicationForm
-						eventId={eventId}
 						eventTitle={event.title}
 						participantCount={event._count.registrations}
+						participants={recipients}
 						limitInfo={limitInfo}
 						onSend={handleSendCommunication}
 						disabled={sending}

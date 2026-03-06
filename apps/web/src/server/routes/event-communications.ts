@@ -8,18 +8,34 @@ import {
 	getEventCommunications,
 	getCommunicationRecords,
 	canSendCommunication,
+	getEventCommunicationRecipients,
 	retryFailedCommunicationRecords,
 	batchUpdateCommunicationRecords,
 	updateCommunicationStats,
 } from "@community/lib-server/database/prisma/queries/event-communications";
 import { getEventById } from "@community/lib-server/database/prisma/queries/events";
 import { BatchCommunicationService } from "@community/lib-server/services/communication-service";
+import {
+	parseCommunicationContent,
+	serializeCommunicationContent,
+} from "@community/lib-server/services/event-communication-content";
+import {
+	COMMUNICATION_RECIPIENT_SCOPE,
+	type CommunicationRecipientScope,
+} from "@community/lib-server/services/event-communication-recipients";
 import { db } from "@community/lib-server/database";
 
 // 通信配置常量
 const COMMUNICATION_LIMITS = {
 	MAX_PER_EVENT: 8,
 } as const;
+
+const COMMUNICATION_RECIPIENT_SCOPE_VALUES = [
+	COMMUNICATION_RECIPIENT_SCOPE.ALL,
+	COMMUNICATION_RECIPIENT_SCOPE.APPROVED_ONLY,
+	COMMUNICATION_RECIPIENT_SCOPE.UNCHECKED_IN_ONLY,
+	COMMUNICATION_RECIPIENT_SCOPE.SELECTED,
+] as const satisfies readonly CommunicationRecipientScope[];
 
 const app = new Hono<{
 	Variables: {
@@ -39,12 +55,13 @@ const app = new Hono<{
 			if (!event) {
 				return c.json({ error: "活动不存在" }, 404);
 			}
+			const canonicalEventId = event.id;
 
 			// 只有活动组织者或管理员可以查看
 			if (event.organizerId !== user.id) {
 				const isAdmin = await db.eventAdmin.findFirst({
 					where: {
-						eventId,
+						eventId: canonicalEventId,
 						userId: user.id,
 						status: "ACCEPTED",
 						OR: [
@@ -59,11 +76,55 @@ const app = new Hono<{
 				}
 			}
 
-			const limitInfo = await canSendCommunication(eventId);
+			const limitInfo = await canSendCommunication(canonicalEventId);
 			return c.json({ data: limitInfo });
 		} catch (error) {
 			console.error("获取通信限制信息失败:", error);
 			return c.json({ error: "获取通信限制信息失败" }, 500);
+		}
+	})
+	.get("/:eventId/recipients", authMiddleware, async (c) => {
+		const eventId = c.req.param("eventId");
+		const user = c.get("user");
+
+		try {
+			const event = await getEventById(eventId);
+			if (!event) {
+				return c.json({ error: "活动不存在" }, 404);
+			}
+			const canonicalEventId = event.id;
+
+			if (event.organizerId !== user.id) {
+				const isAdmin = await db.eventAdmin.findFirst({
+					where: {
+						eventId: canonicalEventId,
+						userId: user.id,
+						status: "ACCEPTED",
+						OR: [
+							{ canEditEvent: true },
+							{ canManageRegistrations: true },
+						],
+					},
+				});
+
+				if (!isAdmin) {
+					return c.json(
+						{ error: "无权限查看此活动的参与者信息" },
+						403,
+					);
+				}
+			}
+
+			const recipients =
+				await getEventCommunicationRecipients(canonicalEventId);
+			return c.json({
+				data: {
+					recipients,
+				},
+			});
+		} catch (error) {
+			console.error("获取活动参与者列表失败:", error);
+			return c.json({ error: "获取活动参与者列表失败" }, 500);
 		}
 	})
 	// 获取活动通信历史
@@ -94,11 +155,12 @@ const app = new Hono<{
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
 				}
+				const canonicalEventId = event.id;
 
 				if (event.organizerId !== user.id) {
 					const isAdmin = await db.eventAdmin.findFirst({
 						where: {
-							eventId,
+							eventId: canonicalEventId,
 							userId: user.id,
 							status: "ACCEPTED",
 							OR: [
@@ -116,11 +178,28 @@ const app = new Hono<{
 					}
 				}
 
-				const result = await getEventCommunications(eventId, {
+				const result = await getEventCommunications(canonicalEventId, {
 					page,
 					limit,
 				});
-				return c.json({ data: result });
+				return c.json({
+					data: {
+						...result,
+						communications: result.communications.map(
+							(communication) => {
+								const parsedContent = parseCommunicationContent(
+									communication.content,
+								);
+
+								return {
+									...communication,
+									content: parsedContent.content,
+									imageUrl: parsedContent.imageUrl,
+								};
+							},
+						),
+					},
+				});
 			} catch (error) {
 				console.error("获取通信历史失败:", error);
 				return c.json({ error: "获取通信历史失败" }, 500);
@@ -143,6 +222,18 @@ const app = new Hono<{
 					.string()
 					.min(1, "内容不能为空")
 					.max(2000, "内容最长2000字符"),
+				imageUrl: z
+					.string()
+					.url("图片地址格式不正确")
+					.max(1000, "图片地址过长")
+					.optional(),
+				recipientScope: z
+					.enum(COMMUNICATION_RECIPIENT_SCOPE_VALUES)
+					.default(COMMUNICATION_RECIPIENT_SCOPE.ALL),
+				selectedRecipientIds: z
+					.array(z.string().min(1))
+					.max(1000, "选择人数过多")
+					.optional(),
 				scheduledAt: z
 					.string()
 					.optional()
@@ -152,7 +243,15 @@ const app = new Hono<{
 		async (c) => {
 			const eventId = c.req.param("eventId");
 			const user = c.get("user");
-			const { type, subject, content, scheduledAt } = c.req.valid("json");
+			const {
+				type,
+				subject,
+				content,
+				imageUrl,
+				recipientScope,
+				selectedRecipientIds,
+				scheduledAt,
+			} = c.req.valid("json");
 
 			try {
 				// 检查用户权限
@@ -160,11 +259,12 @@ const app = new Hono<{
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
 				}
+				const canonicalEventId = event.id;
 
 				if (event.organizerId !== user.id) {
 					const isAdmin = await db.eventAdmin.findFirst({
 						where: {
-							eventId,
+							eventId: canonicalEventId,
 							userId: user.id,
 							status: "ACCEPTED",
 							OR: [
@@ -181,7 +281,7 @@ const app = new Hono<{
 
 				// 检查是否可以发送
 				const { canSend, remainingCount } =
-					await canSendCommunication(eventId);
+					await canSendCommunication(canonicalEventId);
 				if (!canSend) {
 					return c.json(
 						{
@@ -192,12 +292,26 @@ const app = new Hono<{
 				}
 
 				// 创建通信记录
+				const serializedContent = serializeCommunicationContent({
+					content,
+					imageUrl,
+				});
+
+				if (
+					recipientScope === COMMUNICATION_RECIPIENT_SCOPE.SELECTED &&
+					(!selectedRecipientIds || selectedRecipientIds.length === 0)
+				) {
+					return c.json({ error: "请选择至少 1 位参与者" }, 400);
+				}
+
 				const communication = await createEventCommunication({
-					eventId,
+					eventId: canonicalEventId,
 					sentBy: user.id,
 					type,
 					subject,
-					content,
+					content: serializedContent,
+					recipientScope,
+					selectedRecipientIds,
 					scheduledAt,
 				});
 
@@ -213,6 +327,10 @@ const app = new Hono<{
 
 				const stats = {
 					totalRegistrations: communication.totalRegistrations,
+					scopeEligibleCount: communication.scopeEligibleCount,
+					scopeExcludedCount: communication.scopeExcludedCount,
+					unmatchedSelectedCount:
+						communication.unmatchedSelectedCount,
 					validRecipients: communication.validRecipientsCount,
 					skippedRecipients: communication.unverifiedUsersCount,
 					virtualEmailCount: communication.virtualEmailCount ?? 0,
@@ -220,16 +338,31 @@ const app = new Hono<{
 				};
 
 				let warning: string | null = null;
+				if ((communication.unmatchedSelectedCount ?? 0) > 0) {
+					warning = `注意：有 ${communication.unmatchedSelectedCount} 位已选择参与者不在本活动可发送名单中，已自动跳过`;
+				}
 				if (communication.unverifiedUsersCount > 0) {
 					if (type === "EMAIL") {
-						warning = `注意：有 ${communication.unverifiedUsersCount} 个用户缺少有效邮箱或使用虚拟邮箱（@wechat.app），已自动跳过`;
+						const emailWarning = `注意：有 ${communication.unverifiedUsersCount} 个用户缺少有效邮箱或使用虚拟邮箱（@wechat.app），已自动跳过`;
+						warning = warning
+							? `${warning}；${emailWarning}`
+							: emailWarning;
 					} else {
-						warning = `注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号未验证或缺失而无法收到消息`;
+						const smsWarning = `注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号未验证或缺失而无法收到消息`;
+						warning = warning
+							? `${warning}；${smsWarning}`
+							: smsWarning;
 					}
 				}
 
 				return c.json({
-					data: communication,
+					data: {
+						...communication,
+						content,
+						imageUrl,
+						recipientScope,
+						selectedRecipientIds,
+					},
 					message: scheduledAt ? "通信已计划发送" : "通信发送已启动",
 					stats,
 					warning,
@@ -272,11 +405,12 @@ const app = new Hono<{
 				if (!event) {
 					return c.json({ error: "活动不存在" }, 404);
 				}
+				const canonicalEventId = event.id;
 
 				if (event.organizerId !== user.id) {
 					const isAdmin = await db.eventAdmin.findFirst({
 						where: {
-							eventId,
+							eventId: canonicalEventId,
 							userId: user.id,
 							status: "ACCEPTED",
 							OR: [
@@ -317,11 +451,12 @@ const app = new Hono<{
 			if (!event) {
 				return c.json({ error: "活动不存在" }, 404);
 			}
+			const canonicalEventId = event.id;
 
 			if (event.organizerId !== user.id) {
 				const isAdmin = await db.eventAdmin.findFirst({
 					where: {
-						eventId,
+						eventId: canonicalEventId,
 						userId: user.id,
 						status: "ACCEPTED",
 						OR: [
@@ -368,6 +503,11 @@ async function processCommunicationSending(communicationId: string) {
 		const communication = await db.eventCommunication.findUnique({
 			where: { id: communicationId },
 			include: {
+				sender: {
+					select: {
+						name: true,
+					},
+				},
 				records: {
 					where: { status: "PENDING" },
 					include: {
@@ -392,6 +532,8 @@ async function processCommunicationSending(communicationId: string) {
 			return;
 		}
 
+		const parsedContent = parseCommunicationContent(communication.content);
+
 		// 准备发送数据
 		const sendData = {
 			type: communication.type,
@@ -402,7 +544,9 @@ async function processCommunicationSending(communicationId: string) {
 				recipientName: record.recipient.name,
 			})),
 			subject: communication.subject,
-			content: communication.content,
+			content: parsedContent.content,
+			imageUrl: parsedContent.imageUrl,
+			senderName: communication.sender.name || "活动组织者",
 		};
 
 		// 批量发送
@@ -438,6 +582,10 @@ async function processRetryRecords(records: any[]) {
 	const communicationId = records[0].communicationId;
 
 	try {
+		const parsedContent = parseCommunicationContent(
+			records[0].communication.content,
+		);
+
 		const sendData = {
 			type: records[0].communication.type,
 			records: records.map((record) => ({
@@ -447,7 +595,9 @@ async function processRetryRecords(records: any[]) {
 				recipientName: record.recipient.name,
 			})),
 			subject: records[0].communication.subject,
-			content: records[0].communication.content,
+			content: parsedContent.content,
+			imageUrl: parsedContent.imageUrl,
+			senderName: records[0].communication.sender?.name || "活动组织者",
 		};
 
 		const result = await BatchCommunicationService.sendBatch(sendData);

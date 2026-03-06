@@ -10,6 +10,7 @@ interface SimplifiedEmailProps {
 	content: string;
 	senderName: string;
 	unsubscribeUrl: string;
+	imageUrl?: string;
 }
 
 export function SimplifiedEmail({
@@ -19,6 +20,7 @@ export function SimplifiedEmail({
 	content,
 	senderName,
 	unsubscribeUrl,
+	imageUrl,
 }: SimplifiedEmailProps) {
 	const t = createTranslator({
 		locale,
@@ -42,6 +44,10 @@ export function SimplifiedEmail({
 			)
 			.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
 			.replace(/\*(.*?)\*/g, "<em>$1</em>")
+			.replace(
+				/!\[(.*?)\]\((.*?)\)/g,
+				'<img src="$2" alt="$1" style="display: block; max-width: 100%; border-radius: 12px; margin: 16px 0;" />',
+			)
 			.replace(
 				/\[(.*?)\]\((.*?)\)/g,
 				'<a href="$2" style="color: #0ea5e9; text-decoration: underline;">$1</a>',
@@ -78,6 +84,22 @@ export function SimplifiedEmail({
 
 			{/* 邮件内容 */}
 			<Section style={{ marginBottom: 32 }}>
+				{imageUrl && (
+					<div style={{ marginBottom: 20 }}>
+						<img
+							src={imageUrl}
+							alt="notification-image"
+							style={{
+								width: "100%",
+								maxHeight: 320,
+								objectFit: "cover",
+								borderRadius: 12,
+								border: "1px solid #e5e7eb",
+							}}
+						/>
+					</div>
+				)}
+
 				<div
 					style={{
 						fontSize: 16,

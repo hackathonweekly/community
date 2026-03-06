@@ -3,12 +3,26 @@ import {
 	isSendableEmail,
 	isVirtualEmail,
 } from "@community/lib-server/mail/address";
+import {
+	COMMUNICATION_RECIPIENT_SCOPE,
+	resolveScopedRecipients,
+	type CommunicationRecipientScope,
+} from "@community/lib-server/services/event-communication-recipients";
 import type { CommunicationType, CommunicationStatus } from "@prisma/client";
 
 // 通信配置常量
 const COMMUNICATION_LIMITS = {
 	MAX_PER_EVENT: 8,
 } as const;
+
+interface EventCommunicationRecipient {
+	userId: string;
+	name: string;
+	email: string | null;
+	status: "APPROVED" | "PENDING";
+	checkedIn: boolean;
+	isSendableEmail: boolean;
+}
 
 // 检查是否可以发送通信
 export async function canSendCommunication(eventId: string): Promise<{
@@ -30,6 +44,62 @@ export async function canSendCommunication(eventId: string): Promise<{
 	};
 }
 
+export async function getEventCommunicationRecipients(
+	eventId: string,
+): Promise<EventCommunicationRecipient[]> {
+	const registrations = await db.eventRegistration.findMany({
+		where: {
+			eventId,
+			status: {
+				in: ["APPROVED", "PENDING"],
+			},
+		},
+		select: {
+			userId: true,
+			status: true,
+			user: {
+				select: {
+					name: true,
+					email: true,
+				},
+			},
+		},
+		orderBy: {
+			registeredAt: "asc",
+		},
+	});
+
+	if (registrations.length === 0) {
+		return [];
+	}
+
+	const checkIns = await db.eventCheckIn.findMany({
+		where: {
+			eventId,
+			userId: {
+				in: registrations.map((registration) => registration.userId),
+			},
+		},
+		select: {
+			userId: true,
+		},
+	});
+
+	const checkedInUserIdSet = new Set(checkIns.map((item) => item.userId));
+
+	return registrations.map((registration) => {
+		const email = registration.user.email?.trim() || null;
+		return {
+			userId: registration.userId,
+			name: registration.user.name,
+			email,
+			status: registration.status === "APPROVED" ? "APPROVED" : "PENDING",
+			checkedIn: checkedInUserIdSet.has(registration.userId),
+			isSendableEmail: isSendableEmail(email),
+		};
+	});
+}
+
 // 创建活动通信记录
 export async function createEventCommunication(data: {
 	eventId: string;
@@ -38,6 +108,8 @@ export async function createEventCommunication(data: {
 	subject: string;
 	content: string;
 	scheduledAt?: Date;
+	recipientScope?: CommunicationRecipientScope;
+	selectedRecipientIds?: string[];
 }) {
 	const { canSend } = await canSendCommunication(data.eventId);
 
@@ -73,11 +145,34 @@ export async function createEventCommunication(data: {
 		throw new Error("该活动暂无报名用户，无法发送通信");
 	}
 
-	// 验证通信类型和用户信息（只发送给已验证的用户）
+	const checkIns = await db.eventCheckIn.findMany({
+		where: {
+			eventId: data.eventId,
+			userId: {
+				in: registrations.map((registration) => registration.userId),
+			},
+		},
+		select: {
+			userId: true,
+		},
+	});
+	const checkedInUserIdSet = new Set(checkIns.map((item) => item.userId));
+
+	const resolvedRecipients = resolveScopedRecipients({
+		recipients: registrations.map((registration) => ({
+			...registration,
+			checkedIn: checkedInUserIdSet.has(registration.userId),
+		})),
+		scope: data.recipientScope || COMMUNICATION_RECIPIENT_SCOPE.ALL,
+		selectedRecipientIds: data.selectedRecipientIds,
+	});
+	const scopedRegistrations = resolvedRecipients.recipients;
+
+	// 验证通信类型和用户信息（只发送给有效邮箱用户）
 	let skippedVirtualEmails = 0;
 	let missingEmailCount = 0;
 
-	const validRecipients = registrations.filter((reg) => {
+	const validRecipients = scopedRegistrations.filter((reg) => {
 		if (data.type === "EMAIL") {
 			const email = reg.user.email;
 			if (!email || email.trim().length === 0) {
@@ -104,17 +199,24 @@ export async function createEventCommunication(data: {
 
 	if (validRecipients.length === 0) {
 		const missingField =
-			data.type === "EMAIL" ? "已验证邮箱" : "已验证手机号";
+			data.type === "EMAIL" ? "有效邮箱" : "已验证手机号";
 		throw new Error(
 			`所有报名用户都没有${missingField}，无法发送${data.type === "EMAIL" ? "邮件" : "短信"}`,
 		);
 	}
 
 	return await db.$transaction(async (tx) => {
+		const { eventId, sentBy, type, subject, content, scheduledAt } = data;
+
 		// 创建通信记录
 		const communication = await tx.eventCommunication.create({
 			data: {
-				...data,
+				eventId,
+				sentBy,
+				type,
+				subject,
+				content,
+				scheduledAt,
 				totalRecipients: validRecipients.length,
 				status: data.scheduledAt ? "PENDING" : "SENDING",
 			},
@@ -152,9 +254,14 @@ export async function createEventCommunication(data: {
 			...communication,
 			validRecipientsCount: validRecipients.length,
 			totalRegistrations: registrations.length,
+			scopeEligibleCount: scopedRegistrations.length,
+			scopeExcludedCount: resolvedRecipients.scopeExcludedCount,
+			unmatchedSelectedCount: resolvedRecipients.unmatchedSelectedCount,
 			unverifiedUsersCount: unreachableEmailCount,
 			virtualEmailCount: skippedVirtualEmails,
 			missingEmailCount,
+			recipientScope:
+				data.recipientScope || COMMUNICATION_RECIPIENT_SCOPE.ALL,
 		};
 	});
 }
@@ -368,6 +475,11 @@ export async function retryFailedCommunicationRecords(communicationId: string) {
 					type: true,
 					subject: true,
 					content: true,
+					sender: {
+						select: {
+							name: true,
+						},
+					},
 				},
 			},
 		},

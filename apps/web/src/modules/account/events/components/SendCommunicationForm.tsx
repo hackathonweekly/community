@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,7 +22,16 @@ import {
 	FormMessage,
 } from "@community/ui/ui/form";
 import { Input } from "@community/ui/ui/input";
+import { ImageUpload } from "@community/ui/ui/image-upload";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@community/ui/ui/select";
 import { Textarea } from "@community/ui/ui/textarea";
+import { Checkbox } from "@community/ui/ui/checkbox";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -36,13 +45,57 @@ import {
 import { Badge } from "@community/ui/ui/badge";
 import { Progress } from "@community/ui/ui/progress";
 import { Alert, AlertDescription } from "@community/ui/ui/alert";
-import { Mail, Send, Users, AlertCircle, CheckCircle } from "lucide-react";
+import {
+	Mail,
+	Send,
+	Users,
+	AlertCircle,
+	CheckCircle,
+	Search,
+} from "lucide-react";
 
-const formSchema = z.object({
-	type: z.literal("EMAIL"),
-	subject: z.string().min(1, "主题不能为空").max(200, "主题最长200字符"),
-	content: z.string().min(1, "内容不能为空").max(2000, "内容最长2000字符"),
-});
+const RECIPIENT_SCOPE = {
+	ALL: "ALL",
+	APPROVED_ONLY: "APPROVED_ONLY",
+	UNCHECKED_IN_ONLY: "UNCHECKED_IN_ONLY",
+	SELECTED: "SELECTED",
+} as const;
+
+type RecipientScope = (typeof RECIPIENT_SCOPE)[keyof typeof RECIPIENT_SCOPE];
+
+const formSchema = z
+	.object({
+		type: z.literal("EMAIL"),
+		subject: z.string().min(1, "主题不能为空").max(200, "主题最长200字符"),
+		content: z
+			.string()
+			.min(1, "内容不能为空")
+			.max(2000, "内容最长2000字符"),
+		imageUrl: z
+			.string()
+			.url("图片地址格式不正确")
+			.max(1000, "图片地址过长")
+			.optional(),
+		recipientScope: z.enum([
+			RECIPIENT_SCOPE.ALL,
+			RECIPIENT_SCOPE.APPROVED_ONLY,
+			RECIPIENT_SCOPE.UNCHECKED_IN_ONLY,
+			RECIPIENT_SCOPE.SELECTED,
+		]),
+		selectedRecipientIds: z.array(z.string()).optional(),
+	})
+	.superRefine((data, context) => {
+		if (
+			data.recipientScope === RECIPIENT_SCOPE.SELECTED &&
+			(data.selectedRecipientIds?.length ?? 0) === 0
+		) {
+			context.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ["selectedRecipientIds"],
+				message: "请至少选择 1 位参与者",
+			});
+		}
+	});
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -53,10 +106,19 @@ interface CommunicationLimitInfo {
 	maxAllowed: number;
 }
 
+interface CommunicationRecipient {
+	userId: string;
+	name: string;
+	email: string | null;
+	status: "APPROVED" | "PENDING";
+	checkedIn: boolean;
+	isSendableEmail: boolean;
+}
+
 interface SendCommunicationFormProps {
-	eventId: string;
 	eventTitle: string;
 	participantCount: number;
+	participants: CommunicationRecipient[];
 	limitInfo: CommunicationLimitInfo;
 	onSend: (data: FormData) => Promise<void>;
 	disabled?: boolean;
@@ -64,9 +126,9 @@ interface SendCommunicationFormProps {
 }
 
 export function SendCommunicationForm({
-	eventId,
 	eventTitle,
 	participantCount,
+	participants,
 	limitInfo,
 	onSend,
 	disabled = false,
@@ -75,6 +137,7 @@ export function SendCommunicationForm({
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [showConfirm, setShowConfirm] = useState(false);
 	const [formData, setFormData] = useState<FormData | null>(null);
+	const [participantSearch, setParticipantSearch] = useState("");
 
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
@@ -82,14 +145,98 @@ export function SendCommunicationForm({
 			type: "EMAIL" as const,
 			subject: "",
 			content: "",
+			imageUrl: undefined,
+			recipientScope: RECIPIENT_SCOPE.ALL,
+			selectedRecipientIds: [],
 		},
 	});
 
 	const watchedSubject = form.watch("subject");
 	const watchedContent = form.watch("content");
+	const watchedImageUrl = form.watch("imageUrl");
+	const watchedRecipientScope = form.watch("recipientScope");
+	const watchedSelectedRecipientIds =
+		form.watch("selectedRecipientIds") || [];
+
+	const participantLookup = useMemo(() => {
+		const map = new Map<string, CommunicationRecipient>();
+		participants.forEach((participant) => {
+			map.set(participant.userId, participant);
+		});
+		return map;
+	}, [participants]);
+
+	const approvedParticipants = useMemo(
+		() =>
+			participants.filter(
+				(participant) => participant.status === "APPROVED",
+			),
+		[participants],
+	);
+
+	const uncheckedInParticipants = useMemo(
+		() =>
+			approvedParticipants.filter(
+				(participant) => participant.checkedIn === false,
+			),
+		[approvedParticipants],
+	);
+
+	const sendableParticipants = useMemo(
+		() => participants.filter((participant) => participant.isSendableEmail),
+		[participants],
+	);
+
+	const filteredParticipants = useMemo(() => {
+		const keyword = participantSearch.trim().toLowerCase();
+		if (!keyword) {
+			return participants;
+		}
+
+		return participants.filter((participant) => {
+			return (
+				participant.name.toLowerCase().includes(keyword) ||
+				participant.email?.toLowerCase().includes(keyword)
+			);
+		});
+	}, [participants, participantSearch]);
+
+	const selectedCount = watchedSelectedRecipientIds.length;
+	const selectedSendableCount = watchedSelectedRecipientIds.filter(
+		(userId) => participantLookup.get(userId)?.isSendableEmail,
+	).length;
+
+	const resolveExpectedRecipientCount = (data: FormData) => {
+		if (data.recipientScope === RECIPIENT_SCOPE.APPROVED_ONLY) {
+			return approvedParticipants.filter(
+				(participant) => participant.isSendableEmail,
+			).length;
+		}
+
+		if (data.recipientScope === RECIPIENT_SCOPE.UNCHECKED_IN_ONLY) {
+			return uncheckedInParticipants.filter(
+				(participant) => participant.isSendableEmail,
+			).length;
+		}
+
+		if (data.recipientScope === RECIPIENT_SCOPE.SELECTED) {
+			return (data.selectedRecipientIds || []).filter(
+				(userId) => participantLookup.get(userId)?.isSendableEmail,
+			).length;
+		}
+
+		return sendableParticipants.length;
+	};
 
 	const handleSubmit = (data: FormData) => {
-		setFormData(data);
+		const payload: FormData = {
+			...data,
+			selectedRecipientIds:
+				data.recipientScope === RECIPIENT_SCOPE.SELECTED
+					? data.selectedRecipientIds || []
+					: undefined,
+		};
+		setFormData(payload);
 		setShowConfirm(true);
 	};
 
@@ -99,7 +246,15 @@ export function SendCommunicationForm({
 		setIsSubmitting(true);
 		try {
 			await onSend(formData);
-			form.reset();
+			form.reset({
+				type: "EMAIL",
+				subject: "",
+				content: "",
+				imageUrl: undefined,
+				recipientScope: RECIPIENT_SCOPE.ALL,
+				selectedRecipientIds: [],
+			});
+			setParticipantSearch("");
 			setShowConfirm(false);
 			setFormData(null);
 		} catch (error) {
@@ -113,6 +268,19 @@ export function SendCommunicationForm({
 
 	const getTypeIcon = () => <Mail className="h-4 w-4" />;
 
+	const getScopeLabel = (scope: RecipientScope) => {
+		switch (scope) {
+			case RECIPIENT_SCOPE.APPROVED_ONLY:
+				return "仅已通过审核参与者";
+			case RECIPIENT_SCOPE.UNCHECKED_IN_ONLY:
+				return "仅未签到参与者";
+			case RECIPIENT_SCOPE.SELECTED:
+				return "指定参与者";
+			default:
+				return "全部参与者";
+		}
+	};
+
 	const contentLength = watchedContent?.length || 0;
 	const subjectLength = watchedSubject?.length || 0;
 
@@ -123,19 +291,18 @@ export function SendCommunicationForm({
 					<div>
 						<CardTitle className="flex items-center space-x-2">
 							<Send className="h-5 w-5" />
-							<span>发送通知</span>
+							<span>发送提醒邮件</span>
 						</CardTitle>
 						<CardDescription>
-							向 {eventTitle} 的所有参与者发送邮件通知
+							向 {eventTitle} 的参与者发送邮件提醒
 							<br />
 							<span className="text-amber-600 text-sm">
 								⚠️
-								系统会自动跳过虚拟邮箱（@wechat.app）或缺少邮箱的用户
+								系统会自动跳过虚拟邮箱（@wechat.app）或无效邮箱
 							</span>
 							<br />
-							<span className="text-red-600 text-sm">
-								📱
-								短信功能已停用：国内运营商目前短信管控严格，无法发送自定义短信内容
+							<span className="text-blue-600 text-sm">
+								🖼️ 支持上传一张提醒图片，邮件中会展示
 							</span>
 						</CardDescription>
 					</div>
@@ -147,7 +314,6 @@ export function SendCommunicationForm({
 					</div>
 				</div>
 
-				{/* 发送限制信息 */}
 				<div className="space-y-2">
 					<div className="flex items-center justify-between text-sm">
 						<span className="text-muted-foreground">
@@ -194,11 +360,10 @@ export function SendCommunicationForm({
 						onSubmit={form.handleSubmit(handleSubmit)}
 						className="space-y-6"
 					>
-						{/* 通信类型 */}
 						<FormField
 							control={form.control}
 							name="type"
-							render={({ field }) => (
+							render={() => (
 								<FormItem>
 									<FormLabel>通信类型</FormLabel>
 									<FormControl>
@@ -221,7 +386,263 @@ export function SendCommunicationForm({
 							)}
 						/>
 
-						{/* 主题 */}
+						<FormField
+							control={form.control}
+							name="recipientScope"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>发送范围</FormLabel>
+									<Select
+										onValueChange={(value) =>
+											field.onChange(
+												value as RecipientScope,
+											)
+										}
+										value={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="选择发送范围" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
+											<SelectItem
+												value={RECIPIENT_SCOPE.ALL}
+											>
+												全部参与者（有效邮箱{" "}
+												{sendableParticipants.length}{" "}
+												人）
+											</SelectItem>
+											<SelectItem
+												value={
+													RECIPIENT_SCOPE.APPROVED_ONLY
+												}
+											>
+												仅已通过审核（有效邮箱{" "}
+												{
+													approvedParticipants.filter(
+														(item) =>
+															item.isSendableEmail,
+													).length
+												}{" "}
+												人）
+											</SelectItem>
+											<SelectItem
+												value={
+													RECIPIENT_SCOPE.UNCHECKED_IN_ONLY
+												}
+											>
+												仅未签到参与者（有效邮箱{" "}
+												{
+													uncheckedInParticipants.filter(
+														(item) =>
+															item.isSendableEmail,
+													).length
+												}{" "}
+												人）
+											</SelectItem>
+											<SelectItem
+												value={RECIPIENT_SCOPE.SELECTED}
+											>
+												指定参与者（手动选择）
+											</SelectItem>
+										</SelectContent>
+									</Select>
+									<FormDescription>
+										无效邮箱会自动跳过，不会报错中断。
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						{watchedRecipientScope === RECIPIENT_SCOPE.SELECTED && (
+							<FormField
+								control={form.control}
+								name="selectedRecipientIds"
+								render={({ field }) => {
+									const selectedIds = field.value || [];
+									const selectedIdSet = new Set(selectedIds);
+									const visibleSendableIds =
+										filteredParticipants
+											.filter(
+												(participant) =>
+													participant.isSendableEmail,
+											)
+											.map(
+												(participant) =>
+													participant.userId,
+											);
+
+									const updateSelected = (ids: string[]) => {
+										field.onChange(
+											Array.from(new Set(ids)),
+										);
+									};
+
+									const toggleOne = (
+										userId: string,
+										checked: boolean,
+									) => {
+										if (checked) {
+											updateSelected([
+												...selectedIds,
+												userId,
+											]);
+											return;
+										}
+										updateSelected(
+											selectedIds.filter(
+												(id) => id !== userId,
+											),
+										);
+									};
+
+									const selectAllVisibleSendable = () => {
+										updateSelected([
+											...selectedIds,
+											...visibleSendableIds,
+										]);
+									};
+
+									return (
+										<FormItem>
+											<FormLabel>选择参与者</FormLabel>
+											<div className="space-y-3 rounded-lg border p-3">
+												<div className="flex flex-col gap-2 lg:flex-row">
+													<div className="relative flex-1">
+														<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+														<Input
+															value={
+																participantSearch
+															}
+															onChange={(event) =>
+																setParticipantSearch(
+																	event.target
+																		.value,
+																)
+															}
+															placeholder="搜索姓名或邮箱"
+															className="pl-9"
+														/>
+													</div>
+													<div className="flex gap-2">
+														<Button
+															type="button"
+															variant="outline"
+															size="sm"
+															onClick={
+																selectAllVisibleSendable
+															}
+														>
+															全选可发送
+														</Button>
+														<Button
+															type="button"
+															variant="ghost"
+															size="sm"
+															onClick={() =>
+																updateSelected(
+																	[],
+																)
+															}
+														>
+															清空
+														</Button>
+													</div>
+												</div>
+												<div className="max-h-56 space-y-2 overflow-y-auto rounded-md border bg-muted/30 p-2">
+													{filteredParticipants.length ===
+														0 && (
+														<p className="text-sm text-muted-foreground">
+															没有匹配的参与者
+														</p>
+													)}
+													{filteredParticipants.map(
+														(participant) => (
+															<div
+																key={
+																	participant.userId
+																}
+																className="flex items-center justify-between rounded-md border bg-background p-2"
+															>
+																<div className="flex min-w-0 flex-1 items-center gap-2">
+																	<Checkbox
+																		checked={selectedIdSet.has(
+																			participant.userId,
+																		)}
+																		onCheckedChange={(
+																			checked,
+																		) =>
+																			toggleOne(
+																				participant.userId,
+																				checked ===
+																					true,
+																			)
+																		}
+																		disabled={
+																			!participant.isSendableEmail
+																		}
+																	/>
+																	<div className="min-w-0">
+																		<p className="truncate text-sm font-medium">
+																			{
+																				participant.name
+																			}
+																		</p>
+																		<p className="truncate text-xs text-muted-foreground">
+																			{participant.email ||
+																				"无邮箱"}
+																		</p>
+																	</div>
+																</div>
+																<div className="ml-2 flex items-center gap-1">
+																	<Badge
+																		variant="outline"
+																		className="text-[10px]"
+																	>
+																		{participant.status ===
+																		"APPROVED"
+																			? "已通过"
+																			: "待审核"}
+																	</Badge>
+																	{participant.checkedIn && (
+																		<Badge
+																			variant="outline"
+																			className="text-[10px]"
+																		>
+																			已签到
+																		</Badge>
+																	)}
+																	{!participant.isSendableEmail && (
+																		<Badge
+																			variant="destructive"
+																			className="text-[10px]"
+																		>
+																			无效邮箱
+																		</Badge>
+																	)}
+																</div>
+															</div>
+														),
+													)}
+												</div>
+											</div>
+											<FormDescription className="flex justify-between">
+												<span>
+													已选择 {selectedCount}{" "}
+													人（可发送{" "}
+													{selectedSendableCount} 人）
+												</span>
+												<span>无效邮箱会自动跳过</span>
+											</FormDescription>
+											<FormMessage />
+										</FormItem>
+									);
+								}}
+							/>
+						)}
+
 						<FormField
 							control={form.control}
 							name="subject"
@@ -248,7 +669,6 @@ export function SendCommunicationForm({
 							)}
 						/>
 
-						{/* 内容 */}
 						<FormField
 							control={form.control}
 							name="content"
@@ -274,7 +694,38 @@ export function SendCommunicationForm({
 							)}
 						/>
 
-						{/* 发送按钮 */}
+						<FormField
+							control={form.control}
+							name="imageUrl"
+							render={({ field }) => (
+								<FormItem>
+									<FormControl>
+										<ImageUpload
+											label="提醒图片（可选）"
+											value={field.value}
+											onChange={field.onChange}
+											onRemove={() =>
+												field.onChange(undefined)
+											}
+											description="支持 JPG、PNG、WebP，建议宽图，邮件内会自动展示"
+											className="p-4"
+										/>
+									</FormControl>
+									<FormDescription className="flex justify-between">
+										<span>
+											不上传也可正常发送，仅发送文字消息
+										</span>
+										{watchedImageUrl ? (
+											<span className="text-xs text-muted-foreground">
+												已上传图片
+											</span>
+										) : null}
+									</FormDescription>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
 						<div className="flex justify-end">
 							<Button
 								type="submit"
@@ -301,21 +752,19 @@ export function SendCommunicationForm({
 					</form>
 				</Form>
 
-				{/* 确认发送对话框 */}
 				<AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
 					<AlertDialogContent>
 						<AlertDialogHeader>
 							<AlertDialogTitle className="flex items-center space-x-2">
 								{formData && getTypeIcon()}
 								<span>
-									确认发送
-									{formData && getTypeLabel()}
+									确认发送{formData && getTypeLabel()}
 								</span>
 							</AlertDialogTitle>
 							<AlertDialogDescription asChild>
 								<div className="space-y-3">
 									<p>
-										您即将向该活动的所有参与者发送消息，请确认以下信息：
+										您即将向活动参与者发送提醒，请确认以下信息：
 									</p>
 
 									{formData && (
@@ -328,12 +777,39 @@ export function SendCommunicationForm({
 											</div>
 											<div>
 												<span className="font-medium">
-													接收人数：
+													发送范围：
 												</span>
 												<span>
-													{participantCount} 人
+													{getScopeLabel(
+														formData.recipientScope,
+													)}
 												</span>
 											</div>
+											<div>
+												<span className="font-medium">
+													预计可发送：
+												</span>
+												<span>
+													{resolveExpectedRecipientCount(
+														formData,
+													)}{" "}
+													人
+												</span>
+											</div>
+											{formData.recipientScope ===
+												RECIPIENT_SCOPE.SELECTED && (
+												<div>
+													<span className="font-medium">
+														已选择参与者：
+													</span>
+													<span>
+														{formData
+															.selectedRecipientIds
+															?.length || 0}{" "}
+														人
+													</span>
+												</div>
+											)}
 											<div>
 												<span className="font-medium">
 													主题：
@@ -346,13 +822,25 @@ export function SendCommunicationForm({
 												<span className="font-medium">
 													内容预览：
 												</span>
-												<div className="text-foreground bg-card p-2 rounded border mt-1 max-h-20 overflow-y-auto">
+												<div className="text-foreground bg-card p-2 rounded border mt-1 max-h-20 overflow-y-auto whitespace-pre-wrap">
 													{formData.content.length >
 													100
 														? `${formData.content.substring(0, 100)}...`
 														: formData.content}
 												</div>
 											</div>
+											{formData.imageUrl && (
+												<div>
+													<span className="font-medium">
+														图片预览：
+													</span>
+													<img
+														src={formData.imageUrl}
+														alt="提醒图片预览"
+														className="mt-1 h-24 w-full rounded-md border object-cover"
+													/>
+												</div>
+											)}
 										</div>
 									)}
 
@@ -361,7 +849,7 @@ export function SendCommunicationForm({
 										<div className="space-y-1">
 											<p>
 												发送后无法撤回，请仔细检查消息内容。此操作将消耗
-												1 次发送机会， 您还剩余{" "}
+												1 次发送机会，您还剩余{" "}
 												<strong>
 													{limitInfo.remainingCount}
 												</strong>{" "}
@@ -369,7 +857,7 @@ export function SendCommunicationForm({
 											</p>
 											<p className="text-amber-700">
 												⚠️
-												系统会跳过虚拟邮箱（@wechat.app）或缺少邮箱的用户，未验证邮箱仍会发送。
+												无效邮箱（包括虚拟邮箱）会自动跳过。
 											</p>
 										</div>
 									</div>
