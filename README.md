@@ -1,7 +1,7 @@
 # HackathonWeekly Community
 
 [![AGPL-3.0 License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![Commercial License](https://img.shields.io/badge/license-Commercial-green.svg)](LICENSE.COMMERCIAL)
+[![Commercial License](https://img.shields.io/badge/license-Commercial-green.svg)](docs/legal/commercial-terms.md)
 
 HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的开源社区网站。
 
@@ -26,7 +26,7 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 ### 代码授权
 
 - **非商用/开源使用**：[AGPL-3.0](LICENSE) - 可自由使用，但必须开源
-- **商业使用**：需要[商业授权](LICENSE.COMMERCIAL) - 联系微信 **makerjackie**
+- **商业使用**：需要[商业授权](docs/legal/commercial-terms.md) - 联系微信 **makerjackie**
 
 **什么算商业使用？**
 任何公司或组织用于业务目的的使用都需要商业授权，包括但不限于：
@@ -37,7 +37,7 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 ### 文档授权
 
-文档、文章等内容采用 [CC BY-NC-SA 4.0](LICENSE-DOCS) - 禁止商用，允许非商业分享和修改
+文档、文章等内容采用 [CC BY-NC-SA 4.0](docs/legal/docs-content-license.md) - 禁止商用，允许非商业分享和修改
 
 ## 品牌声明
 

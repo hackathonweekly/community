@@ -1,7 +1,7 @@
 {
 	"name": "community",
 	"private": true,
-	"license": "AGPL-3.0",
+	"license": "AGPL-3.0-only",
 	"packageManager": "pnpm@9.12.3",
 	"engines": {
 		"node": ">=20"

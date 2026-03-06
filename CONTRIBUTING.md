@@ -284,8 +284,8 @@ Closes #issue_number
 ## 📄 许可证
 
 本项目采用双授权模式：
-- 代码：[AGPL-3.0](LICENSE) 用于非商用，商业使用需要[商业授权](LICENSE.COMMERCIAL)
-- 文档：[CC BY-NC-SA 4.0](LICENSE-DOCS) 禁止商用
+- 代码：[AGPL-3.0](LICENSE) 用于非商用，商业使用需要[商业授权](docs/legal/commercial-terms.md)
+- 文档：[CC BY-NC-SA 4.0](docs/legal/docs-content-license.md) 禁止商用
 
 详细说明请参阅 [CLA.md](CLA.md)
 
