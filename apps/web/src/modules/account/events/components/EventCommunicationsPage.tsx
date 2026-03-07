@@ -370,16 +370,16 @@ export default function EventCommunicationsPage({
 		);
 
 		return (
-			<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+			<div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
 				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center space-x-2">
-							<Send className="h-5 w-5 text-blue-500" />
-							<div>
-								<div className="text-2xl font-bold text-blue-600">
+					<CardContent className="p-3 lg:p-4">
+						<div className="flex items-center gap-2 lg:gap-3">
+							<Send className="h-4 w-4 flex-shrink-0 text-blue-500 lg:h-5 lg:w-5" />
+							<div className="min-w-0">
+								<div className="text-xl font-bold text-blue-600 lg:text-2xl">
 									{limitInfo.totalUsed}
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-xs text-muted-foreground lg:text-sm">
 									已使用次数
 								</div>
 							</div>
@@ -388,14 +388,14 @@ export default function EventCommunicationsPage({
 				</Card>
 
 				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center space-x-2">
-							<Clock className="h-5 w-5 text-yellow-500" />
-							<div>
-								<div className="text-2xl font-bold text-yellow-600">
+					<CardContent className="p-3 lg:p-4">
+						<div className="flex items-center gap-2 lg:gap-3">
+							<Clock className="h-4 w-4 flex-shrink-0 text-yellow-500 lg:h-5 lg:w-5" />
+							<div className="min-w-0">
+								<div className="text-xl font-bold text-yellow-600 lg:text-2xl">
 									{limitInfo.remainingCount}
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-xs text-muted-foreground lg:text-sm">
 									剩余次数
 								</div>
 							</div>
@@ -404,14 +404,14 @@ export default function EventCommunicationsPage({
 				</Card>
 
 				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center space-x-2">
-							<CheckCircle className="h-5 w-5 text-green-500" />
-							<div>
-								<div className="text-2xl font-bold text-green-600">
+					<CardContent className="p-3 lg:p-4">
+						<div className="flex items-center gap-2 lg:gap-3">
+							<CheckCircle className="h-4 w-4 flex-shrink-0 text-green-500 lg:h-5 lg:w-5" />
+							<div className="min-w-0">
+								<div className="text-xl font-bold text-green-600 lg:text-2xl">
 									{totalDelivered}
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-xs text-muted-foreground lg:text-sm">
 									成功送达
 								</div>
 							</div>
@@ -420,14 +420,14 @@ export default function EventCommunicationsPage({
 				</Card>
 
 				<Card>
-					<CardContent className="p-4">
-						<div className="flex items-center space-x-2">
-							<XCircle className="h-5 w-5 text-red-500" />
-							<div>
-								<div className="text-2xl font-bold text-red-600">
+					<CardContent className="p-3 lg:p-4">
+						<div className="flex items-center gap-2 lg:gap-3">
+							<XCircle className="h-4 w-4 flex-shrink-0 text-red-500 lg:h-5 lg:w-5" />
+							<div className="min-w-0">
+								<div className="text-xl font-bold text-red-600 lg:text-2xl">
 									{totalFailed}
 								</div>
-								<div className="text-sm text-muted-foreground">
+								<div className="text-xs text-muted-foreground lg:text-sm">
 									发送失败
 								</div>
 							</div>
@@ -528,23 +528,23 @@ export default function EventCommunicationsPage({
 			{renderStats()}
 
 			{/* 主要内容 */}
-			<Tabs defaultValue="send" className="space-y-6">
-				<TabsList className="grid w-full grid-cols-2">
+			<Tabs defaultValue="send" className="space-y-4 lg:space-y-6">
+				<TabsList className="grid w-full grid-cols-2 h-auto">
 					<TabsTrigger
 						value="send"
-						className="flex items-center space-x-2"
+						className="flex items-center gap-1.5 py-2.5 lg:gap-2 lg:py-3"
 					>
-						<Send className="h-4 w-4" />
-						<span>发送通知</span>
+						<Send className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+						<span className="text-sm lg:text-base">发送通知</span>
 					</TabsTrigger>
 					<TabsTrigger
 						value="history"
-						className="flex items-center space-x-2"
+						className="flex items-center gap-1.5 py-2.5 lg:gap-2 lg:py-3"
 					>
-						<Clock className="h-4 w-4" />
-						<span>通信历史</span>
+						<Clock className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+						<span className="text-sm lg:text-base">通信历史</span>
 						{communications.length > 0 && (
-							<Badge variant="secondary" className="ml-1">
+							<Badge variant="secondary" className="ml-1 text-xs">
 								{communications.length}
 							</Badge>
 						)}

@@ -475,6 +475,17 @@ export async function retryFailedCommunicationRecords(communicationId: string) {
 					type: true,
 					subject: true,
 					content: true,
+					event: {
+						select: {
+							id: true,
+							title: true,
+							organizer: {
+								select: {
+									email: true,
+								},
+							},
+						},
+					},
 					sender: {
 						select: {
 							name: true,

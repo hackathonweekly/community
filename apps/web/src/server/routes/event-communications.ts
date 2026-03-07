@@ -24,6 +24,7 @@ import {
 	type CommunicationRecipientScope,
 } from "@community/lib-server/services/event-communication-recipients";
 import { db } from "@community/lib-server/database";
+import { getBaseUrl } from "@community/lib-shared/utils";
 
 // 通信配置常量
 const COMMUNICATION_LIMITS = {
@@ -503,6 +504,17 @@ async function processCommunicationSending(communicationId: string) {
 		const communication = await db.eventCommunication.findUnique({
 			where: { id: communicationId },
 			include: {
+				event: {
+					select: {
+						id: true,
+						title: true,
+						organizer: {
+							select: {
+								email: true,
+							},
+						},
+					},
+				},
 				sender: {
 					select: {
 						name: true,
@@ -543,10 +555,13 @@ async function processCommunicationSending(communicationId: string) {
 				recipientPhone: record.recipientPhone || undefined,
 				recipientName: record.recipient.name,
 			})),
-			subject: communication.subject,
+			subject: `【${communication.event.title}】${communication.subject}`,
 			content: parsedContent.content,
 			imageUrl: parsedContent.imageUrl,
 			senderName: communication.sender.name || "活动组织者",
+			eventTitle: communication.event.title,
+			eventUrl: `${getBaseUrl()}/events/${communication.event.id}`,
+			organizerEmail: communication.event.organizer.email || undefined,
 		};
 
 		// 批量发送
@@ -594,10 +609,14 @@ async function processRetryRecords(records: any[]) {
 				recipientPhone: record.recipientPhone || undefined,
 				recipientName: record.recipient.name,
 			})),
-			subject: records[0].communication.subject,
+			subject: `【${records[0].communication.event.title}】${records[0].communication.subject}`,
 			content: parsedContent.content,
 			imageUrl: parsedContent.imageUrl,
 			senderName: records[0].communication.sender?.name || "活动组织者",
+			eventTitle: records[0].communication.event.title,
+			eventUrl: `${getBaseUrl()}/events/${records[0].communication.event.id}`,
+			organizerEmail:
+				records[0].communication.event.organizer?.email || undefined,
 		};
 
 		const result = await BatchCommunicationService.sendBatch(sendData);

@@ -7,7 +7,6 @@ import {
 	Tailwind,
 } from "@react-email/components";
 import React, { type PropsWithChildren } from "react";
-import { Logo } from "./Logo";
 
 export default function Wrapper({ children }: PropsWithChildren) {
 	return (
@@ -25,31 +24,16 @@ export default function Wrapper({ children }: PropsWithChildren) {
 					theme: {
 						extend: {
 							colors: {
-								border: "#e3ebf6",
-								background: "#fafafe",
-								foreground: "#292b35",
-								primary: {
-									DEFAULT: "#4e6df5",
-									foreground: "#f6f7f9",
-								},
-								secondary: {
-									DEFAULT: "#292b35",
-									foreground: "#ffffff",
-								},
-								card: {
-									DEFAULT: "#ffffff",
-									foreground: "#292b35",
-								},
+								border: "#e5e5e5",
+								background: "#ffffff",
+								foreground: "#000000",
 							},
 						},
 					},
 				}}
 			>
 				<Section className="bg-background p-4">
-					<Container className="rounded-lg bg-card p-6 text-card-foreground">
-						<Logo />
-						{children}
-					</Container>
+					<Container className="bg-card p-6">{children}</Container>
 				</Section>
 			</Tailwind>
 		</Html>

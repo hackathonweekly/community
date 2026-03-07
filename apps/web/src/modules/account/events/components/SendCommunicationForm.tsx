@@ -286,41 +286,37 @@ export function SendCommunicationForm({
 
 	return (
 		<Card className={className}>
-			<CardHeader>
-				<div className="flex items-center justify-between">
-					<div>
-						<CardTitle className="flex items-center space-x-2">
-							<Send className="h-5 w-5" />
-							<span>发送提醒邮件</span>
+			<CardHeader className="space-y-3 lg:space-y-4">
+				<div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+					<div className="space-y-1.5">
+						<CardTitle className="flex items-center gap-2 text-lg lg:text-xl">
+							<Send className="h-4 w-4 lg:h-5 lg:w-5" />
+							<span>发送通知邮件</span>
 						</CardTitle>
-						<CardDescription>
-							向 {eventTitle} 的参与者发送邮件提醒
-							<br />
-							<span className="text-amber-600 text-sm">
+						<CardDescription className="space-y-1 text-xs lg:text-sm">
+							<div>向 {eventTitle} 的参与者发送邮件通知</div>
+							<div className="text-amber-600">
 								⚠️
 								系统会自动跳过虚拟邮箱（@wechat.app）或无效邮箱
-							</span>
-							<br />
-							<span className="text-blue-600 text-sm">
-								🖼️ 支持上传一张提醒图片，邮件中会展示
-							</span>
+							</div>
+							<div className="text-blue-600">
+								🖼️ 支持上传一张通知图片，邮件中会展示
+							</div>
 						</CardDescription>
 					</div>
-					<div className="text-right">
-						<div className="flex items-center space-x-2 text-sm text-muted-foreground">
-							<Users className="h-4 w-4" />
-							<span>{participantCount} 名参与者</span>
-						</div>
+					<div className="flex items-center gap-1.5 text-xs text-muted-foreground lg:text-sm">
+						<Users className="h-3.5 w-3.5 lg:h-4 lg:w-4" />
+						<span>{participantCount} 名参与者</span>
 					</div>
 				</div>
 
 				<div className="space-y-2">
-					<div className="flex items-center justify-between text-sm">
+					<div className="flex items-center justify-between text-xs lg:text-sm">
 						<span className="text-muted-foreground">
 							发送次数限制
 						</span>
-						<div className="flex items-center space-x-2">
-							<span className="font-medium">
+						<div className="flex items-center gap-2">
+							<span className="font-medium text-xs lg:text-sm">
 								{limitInfo.totalUsed} / {limitInfo.maxAllowed}
 							</span>
 							<Badge
@@ -329,7 +325,7 @@ export function SendCommunicationForm({
 										? "default"
 										: "destructive"
 								}
-								className="text-xs"
+								className="text-[10px] lg:text-xs"
 							>
 								剩余 {limitInfo.remainingCount} 次
 							</Badge>
@@ -339,14 +335,14 @@ export function SendCommunicationForm({
 						value={
 							(limitInfo.totalUsed / limitInfo.maxAllowed) * 100
 						}
-						className="h-2"
+						className="h-1.5 lg:h-2"
 					/>
 				</div>
 
 				{!limitInfo.canSend && (
 					<Alert variant="destructive">
 						<AlertCircle className="h-4 w-4" />
-						<AlertDescription>
+						<AlertDescription className="text-xs lg:text-sm">
 							该活动已达到最大通信次数限制（{limitInfo.maxAllowed}{" "}
 							次），无法继续发送消息。
 						</AlertDescription>
@@ -365,16 +361,18 @@ export function SendCommunicationForm({
 							name="type"
 							render={() => (
 								<FormItem>
-									<FormLabel>通信类型</FormLabel>
+									<FormLabel className="text-sm lg:text-base">
+										通信类型
+									</FormLabel>
 									<FormControl>
-										<div className="border rounded-lg p-3 bg-muted">
-											<div className="flex items-center space-x-2">
-												<Mail className="h-4 w-4 text-primary" />
-												<div>
-													<div className="font-medium">
+										<div className="rounded-lg border bg-muted p-2.5 lg:p-3">
+											<div className="flex items-center gap-2">
+												<Mail className="h-3.5 w-3.5 flex-shrink-0 text-primary lg:h-4 lg:w-4" />
+												<div className="min-w-0">
+													<div className="text-sm font-medium lg:text-base">
 														邮件通知
 													</div>
-													<div className="text-xs text-muted-foreground">
+													<div className="text-[10px] text-muted-foreground lg:text-xs">
 														发送到用户邮箱
 													</div>
 												</div>
@@ -391,7 +389,9 @@ export function SendCommunicationForm({
 							name="recipientScope"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>发送范围</FormLabel>
+									<FormLabel className="text-sm lg:text-base">
+										发送范围
+									</FormLabel>
 									<Select
 										onValueChange={(value) =>
 											field.onChange(
@@ -401,7 +401,7 @@ export function SendCommunicationForm({
 										value={field.value}
 									>
 										<FormControl>
-											<SelectTrigger>
+											<SelectTrigger className="text-sm lg:text-base">
 												<SelectValue placeholder="选择发送范围" />
 											</SelectTrigger>
 										</FormControl>
@@ -448,7 +448,7 @@ export function SendCommunicationForm({
 											</SelectItem>
 										</SelectContent>
 									</Select>
-									<FormDescription>
+									<FormDescription className="text-xs lg:text-sm">
 										无效邮箱会自动跳过，不会报错中断。
 									</FormDescription>
 									<FormMessage />
@@ -648,19 +648,22 @@ export function SendCommunicationForm({
 							name="subject"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>消息主题</FormLabel>
+									<FormLabel className="text-sm lg:text-base">
+										消息主题
+									</FormLabel>
 									<FormControl>
 										<Input
 											placeholder="请输入消息主题"
 											{...field}
 											maxLength={200}
+											className="text-sm lg:text-base"
 										/>
 									</FormControl>
-									<FormDescription className="flex justify-between">
+									<FormDescription className="flex justify-between text-xs lg:text-sm">
 										<span>
 											简洁明了的主题有助于提高消息打开率
 										</span>
-										<span className="text-xs text-muted-foreground">
+										<span className="text-[10px] text-muted-foreground lg:text-xs">
 											{subjectLength}/200
 										</span>
 									</FormDescription>
@@ -674,18 +677,20 @@ export function SendCommunicationForm({
 							name="content"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>消息内容</FormLabel>
+									<FormLabel className="text-sm lg:text-base">
+										消息内容
+									</FormLabel>
 									<FormControl>
 										<Textarea
 											placeholder="请输入邮件内容..."
-											className="min-h-[120px] resize-none"
+											className="min-h-[100px] resize-none text-sm lg:min-h-[120px] lg:text-base"
 											{...field}
 											maxLength={2000}
 										/>
 									</FormControl>
-									<FormDescription className="flex justify-between">
+									<FormDescription className="flex justify-between text-xs lg:text-sm">
 										<span>支持换行，会保持原有格式</span>
-										<span className="text-xs text-muted-foreground">
+										<span className="text-[10px] text-muted-foreground lg:text-xs">
 											{contentLength}/2000
 										</span>
 									</FormDescription>
@@ -701,22 +706,22 @@ export function SendCommunicationForm({
 								<FormItem>
 									<FormControl>
 										<ImageUpload
-											label="提醒图片（可选）"
+											label="通知图片（可选）"
 											value={field.value}
 											onChange={field.onChange}
 											onRemove={() =>
 												field.onChange(undefined)
 											}
 											description="支持 JPG、PNG、WebP，建议宽图，邮件内会自动展示"
-											className="p-4"
+											className="p-3 lg:p-4"
 										/>
 									</FormControl>
-									<FormDescription className="flex justify-between">
+									<FormDescription className="flex justify-between text-xs lg:text-sm">
 										<span>
 											不上传也可正常发送，仅发送文字消息
 										</span>
 										{watchedImageUrl ? (
-											<span className="text-xs text-muted-foreground">
+											<span className="text-[10px] text-muted-foreground lg:text-xs">
 												已上传图片
 											</span>
 										) : null}
@@ -726,7 +731,7 @@ export function SendCommunicationForm({
 							)}
 						/>
 
-						<div className="flex justify-end">
+						<div className="flex justify-end pt-2">
 							<Button
 								type="submit"
 								disabled={
@@ -734,16 +739,17 @@ export function SendCommunicationForm({
 									!limitInfo.canSend ||
 									isSubmitting
 								}
-								className="min-w-[120px]"
+								className="w-full min-w-[120px] lg:w-auto"
+								size="lg"
 							>
 								{isSubmitting ? (
 									<>
-										<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+										<div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
 										发送中...
 									</>
 								) : (
 									<>
-										<Send className="h-4 w-4 mr-2" />
+										<Send className="mr-2 h-4 w-4" />
 										发送{getTypeLabel()}
 									</>
 								)}

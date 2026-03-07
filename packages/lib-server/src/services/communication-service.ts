@@ -11,6 +11,9 @@ export interface EmailService {
 		recipientName?: string;
 		senderName?: string;
 		imageUrl?: string;
+		eventTitle?: string;
+		eventUrl?: string;
+		organizerEmail?: string;
 	}): Promise<{
 		success: boolean;
 		messageId?: string;
@@ -40,6 +43,9 @@ class MockEmailService implements EmailService {
 		recipientName?: string;
 		senderName?: string;
 		imageUrl?: string;
+		eventTitle?: string;
+		eventUrl?: string;
+		organizerEmail?: string;
 	}) {
 		// 模拟发送延迟
 		await new Promise((resolve) => setTimeout(resolve, 100));
@@ -52,9 +58,10 @@ class MockEmailService implements EmailService {
 			};
 		}
 
-		console.log(`[模拟邮件发送] 
+		console.log(`[模拟邮件发送]
 收件人: ${data.recipientName || "未知"} <${data.to}>
 发送者: ${data.senderName || "HackathonWeekly"}
+活动: ${data.eventTitle || "无"}
 主题: ${data.subject}
 内容: ${data.content.substring(0, 50)}...
 图片: ${data.imageUrl || "无"}`);
@@ -104,6 +111,9 @@ class RealEmailService implements EmailService {
 		recipientName?: string;
 		senderName?: string;
 		imageUrl?: string;
+		eventTitle?: string;
+		eventUrl?: string;
+		organizerEmail?: string;
 	}) {
 		try {
 			const sent = await sendEmail({
@@ -115,6 +125,9 @@ class RealEmailService implements EmailService {
 					senderName: data.senderName || "HackathonWeekly",
 					unsubscribeUrl: `${getBaseUrl()}/settings/notifications`,
 					imageUrl: data.imageUrl,
+					eventTitle: data.eventTitle,
+					eventUrl: data.eventUrl,
+					organizerEmail: data.organizerEmail,
 				},
 			});
 
@@ -169,10 +182,7 @@ export class CommunicationServiceFactory {
 	static getEmailService(): EmailService {
 		if (!CommunicationServiceFactory.emailService) {
 			// 根据环境变量决定使用哪种实现
-			if (
-				process.env.NODE_ENV === "development" ||
-				process.env.USE_MOCK_EMAIL === "true"
-			) {
+			if (process.env.USE_MOCK_EMAIL === "true") {
 				CommunicationServiceFactory.emailService =
 					new MockEmailService();
 			} else {
@@ -224,6 +234,9 @@ export class BatchCommunicationService {
 		content: string;
 		imageUrl?: string;
 		senderName?: string;
+		eventTitle?: string;
+		eventUrl?: string;
+		organizerEmail?: string;
 		onProgress?: (
 			sent: number,
 			total: number,
@@ -237,6 +250,9 @@ export class BatchCommunicationService {
 			content,
 			imageUrl,
 			senderName,
+			eventTitle,
+			eventUrl,
+			organizerEmail,
 			onProgress,
 		} = data;
 		const service = CommunicationServiceFactory.getService(type);
@@ -265,6 +281,9 @@ export class BatchCommunicationService {
 						recipientName: record.recipientName,
 						senderName,
 						imageUrl,
+						eventTitle,
+						eventUrl,
+						organizerEmail,
 					});
 				} else if (type === "SMS" && record.recipientPhone) {
 					result = await (service as SMSService).sendSMS({

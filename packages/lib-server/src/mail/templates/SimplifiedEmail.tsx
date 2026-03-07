@@ -1,5 +1,4 @@
 import Wrapper from "../components/Wrapper";
-import { Logo } from "../components/Logo";
 import { Text, Hr, Heading, Section } from "@react-email/components";
 import { createTranslator } from "use-intl/core";
 
@@ -11,6 +10,9 @@ interface SimplifiedEmailProps {
 	senderName: string;
 	unsubscribeUrl: string;
 	imageUrl?: string;
+	eventTitle?: string;
+	eventUrl?: string;
+	organizerEmail?: string;
 }
 
 export function SimplifiedEmail({
@@ -21,6 +23,9 @@ export function SimplifiedEmail({
 	senderName,
 	unsubscribeUrl,
 	imageUrl,
+	eventTitle,
+	eventUrl,
+	organizerEmail,
 }: SimplifiedEmailProps) {
 	const t = createTranslator({
 		locale,
@@ -60,30 +65,42 @@ export function SimplifiedEmail({
 
 	return (
 		<Wrapper>
-			<Section style={{ textAlign: "center", marginBottom: 32 }}>
-				<Logo />
+			{/* 简洁的头部 */}
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
 				<Heading
 					style={{
-						fontSize: 28,
-						fontWeight: 700,
-						margin: "24px 0 8px",
-						color: "#1f2937",
-						lineHeight: 1.2,
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
 					}}
 				>
 					{title}
 				</Heading>
 
-				<Text style={{ fontSize: 16, color: "#6b7280", margin: 0 }}>
+				<Text style={{ fontSize: 13, color: "#999", margin: 0 }}>
 					{t("mail.common.from")} {senderName}
 				</Text>
 			</Section>
 
-			<Hr style={{ margin: "32px 0" }} />
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-			{/* 邮件内容 */}
-			<Section style={{ marginBottom: 32 }}>
+			{/* 邮件内容 - 主体 */}
+			<Section style={{ marginBottom: 24 }}>
 				{imageUrl && (
 					<div style={{ marginBottom: 20 }}>
 						<img
@@ -93,8 +110,8 @@ export function SimplifiedEmail({
 								width: "100%",
 								maxHeight: 320,
 								objectFit: "cover",
-								borderRadius: 12,
-								border: "1px solid #e5e7eb",
+								borderRadius: 8,
+								border: "1px solid #e5e5e5",
 							}}
 						/>
 					</div>
@@ -102,115 +119,79 @@ export function SimplifiedEmail({
 
 				<div
 					style={{
-						fontSize: 16,
-						lineHeight: 1.6,
-						color: "#374151",
-						padding: "0 8px",
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
 					}}
 					dangerouslySetInnerHTML={{ __html: htmlContent }}
 				/>
 			</Section>
 
-			{/* 联系支持 */}
-			<Section style={{ marginBottom: 32 }}>
-				<div
-					style={{
-						background: "#f8fafc",
-						borderRadius: 12,
-						padding: 20,
-						textAlign: "center",
-					}}
-				>
+			{/* 活动信息 */}
+			{eventTitle && eventUrl && (
+				<Section style={{ marginBottom: 24 }}>
 					<Text
 						style={{
-							fontSize: 16,
-							fontWeight: 600,
-							margin: "0 0 12px",
-							color: "#1f2937",
+							fontSize: 13,
+							color: "#666",
+							margin: "0 0 8px",
 						}}
 					>
-						💬 {t("mail.common.needHelp")}
-					</Text>
-					<Text
-						style={{
-							fontSize: 14,
-							margin: "0 0 16px",
-							color: "#6b7280",
-						}}
-					>
-						{t("mail.common.contactSupport")}
-					</Text>
-					<div>
+						此通知来自活动：
 						<a
-							href="mailto:support@hackathonweekly.com"
+							href={eventUrl}
 							style={{
-								display: "inline-block",
-								background: "#0ea5e9",
-								color: "white",
-								padding: "10px 20px",
-								borderRadius: 6,
-								textDecoration: "none",
-								fontSize: 14,
-								fontWeight: 600,
-								marginRight: 8,
+								color: "#000",
+								textDecoration: "underline",
+								fontWeight: 500,
+								marginLeft: 4,
 							}}
 						>
-							📧 {t("mail.common.emailSupport")}
+							{eventTitle}
 						</a>
-						<a
-							href="https://hackathonweekly.com/help"
+					</Text>
+					{organizerEmail && (
+						<Text
 							style={{
-								display: "inline-block",
-								background: "#6b7280",
-								color: "white",
-								padding: "10px 20px",
-								borderRadius: 6,
-								textDecoration: "none",
-								fontSize: 14,
-								fontWeight: 600,
+								fontSize: 13,
+								color: "#666",
+								margin: 0,
 							}}
 						>
-							📚 {t("mail.common.helpCenter")}
-						</a>
-					</div>
-				</div>
-			</Section>
+							如有疑问，请联系组织者：
+							<a
+								href={`mailto:${organizerEmail}`}
+								style={{
+									color: "#000",
+									textDecoration: "underline",
+									marginLeft: 4,
+								}}
+							>
+								{organizerEmail}
+							</a>
+						</Text>
+					)}
+				</Section>
+			)}
 
 			{/* 页脚 */}
-			<Hr style={{ margin: "32px 0" }} />
-			<Section style={{ textAlign: "center" }}>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+			<Section>
 				<Text
-					style={{ fontSize: 14, color: "#666", margin: "0 0 16px" }}
+					style={{ fontSize: 12, color: "#999", margin: "0 0 8px" }}
 				>
-					{t("mail.common.sentAt")}{" "}
-					{new Date().toLocaleDateString(
-						locale === "zh" ? "zh-CN" : "en-US",
-						{
-							year: "numeric",
-							month: "long",
-							day: "numeric",
-						},
-					)}
-				</Text>
-
-				<Text
-					style={{ fontSize: 12, color: "#999", margin: "0 0 16px" }}
-				>
-					{t("mail.common.official")}
-					<br />
-					HackathonWeekly Team
+					© {new Date().getFullYear()} HackathonWeekly Team
 				</Text>
 
 				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
-					{t("mail.common.unsubscribe")}{" "}
 					<a
 						href={unsubscribeUrl}
 						style={{
-							color: "#0ea5e9",
+							color: "#999",
 							textDecoration: "underline",
 						}}
 					>
-						{t("mail.common.clickHere")}
+						取消订阅
 					</a>
 				</Text>
 			</Section>
