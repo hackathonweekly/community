@@ -509,7 +509,7 @@ export function SendCommunicationForm({
 										<FormItem>
 											<FormLabel>选择参与者</FormLabel>
 											<div className="space-y-3 rounded-lg border p-3">
-												<div className="flex flex-col gap-2 lg:flex-row">
+												<div className="flex flex-col gap-2 lg:flex-row lg:items-center">
 													<div className="relative flex-1">
 														<Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 														<Input
@@ -523,10 +523,10 @@ export function SendCommunicationForm({
 																)
 															}
 															placeholder="搜索姓名或邮箱"
-															className="pl-9"
+															className="pl-9 text-sm lg:text-base"
 														/>
 													</div>
-													<div className="flex gap-2">
+													<div className="flex gap-2 lg:flex-shrink-0">
 														<Button
 															type="button"
 															variant="outline"
@@ -534,6 +534,7 @@ export function SendCommunicationForm({
 															onClick={
 																selectAllVisibleSendable
 															}
+															className="flex-1 text-xs lg:flex-none lg:text-sm"
 														>
 															全选可发送
 														</Button>
@@ -546,6 +547,7 @@ export function SendCommunicationForm({
 																	[],
 																)
 															}
+															className="flex-1 text-xs lg:flex-none lg:text-sm"
 														>
 															清空
 														</Button>
@@ -564,7 +566,7 @@ export function SendCommunicationForm({
 																key={
 																	participant.userId
 																}
-																className="flex items-center justify-between rounded-md border bg-background p-2"
+																className="flex flex-col gap-2 rounded-md border bg-background p-2 lg:flex-row lg:items-center lg:justify-between"
 															>
 																<div className="flex min-w-0 flex-1 items-center gap-2">
 																	<Checkbox
@@ -583,8 +585,9 @@ export function SendCommunicationForm({
 																		disabled={
 																			!participant.isSendableEmail
 																		}
+																		className="flex-shrink-0"
 																	/>
-																	<div className="min-w-0">
+																	<div className="min-w-0 flex-1">
 																		<p className="truncate text-sm font-medium">
 																			{
 																				participant.name
@@ -596,7 +599,7 @@ export function SendCommunicationForm({
 																		</p>
 																	</div>
 																</div>
-																<div className="ml-2 flex items-center gap-1">
+																<div className="flex flex-wrap items-center gap-1 pl-6 lg:ml-2 lg:pl-0">
 																	<Badge
 																		variant="outline"
 																		className="text-[10px]"
