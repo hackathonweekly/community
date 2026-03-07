@@ -1,16 +1,6 @@
-import {
-	Body,
-	Button,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventRegistrationRejectedProps {
 	locale: Locale;
@@ -33,81 +23,147 @@ export const EventRegistrationRejected = ({
 	rejectionReason,
 	alternativeEventsUrl,
 }: EventRegistrationRejectedProps) => {
-	const previewText =
-		locale === "zh"
-			? `关于你的活动报名申请 - ${eventTitle}`
-			: `About your event registration - ${eventTitle}`;
-
 	return (
-		<Html>
-			<Head />
-			<Preview>{previewText}</Preview>
-			<Body style={main}>
-				<Container style={container}>
-					<Heading style={h1}>
-						{locale === "zh"
-							? "关于你的活动报名"
-							: "About Your Event Registration"}
-					</Heading>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-					<Text style={text}>
-						{locale === "zh"
-							? `你好 ${userName}，`
-							: `Hi ${userName},`}
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{locale === "zh"
+						? "关于你的活动报名"
+						: "About Your Event Registration"}
+				</Heading>
+
+				<Text style={{ fontSize: 13, color: "#999", margin: 0 }}>
+					{locale === "zh" ? `你好 ${userName}` : `Hi ${userName}`}
+				</Text>
+			</Section>
+
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{locale === "zh"
+						? `感谢你对「${eventTitle}」的关注和报名申请。`
+						: `Thank you for your interest in "${eventTitle}" and for submitting your registration.`}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					📅 {eventDate}
+					<br />📍 {eventLocation}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{locale === "zh"
+						? "很抱歉，由于以下原因，我们无法批准你这次的报名申请："
+						: "We regret to inform you that we are unable to approve your registration for this event due to the following reason:"}
+				</Text>
+
+				{rejectionReason && (
+					<div
+						style={{
+							backgroundColor: "#fef2f2",
+							border: "1px solid #fecaca",
+							borderRadius: 8,
+							padding: 16,
+							margin: "0 0 12px",
+						}}
+					>
+						<Text
+							style={{
+								fontSize: 14,
+								lineHeight: 1.5,
+								color: "#991b1b",
+								margin: 0,
+								fontStyle: "italic",
+							}}
+						>
+							{rejectionReason}
+						</Text>
+					</div>
+				)}
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: 0,
+					}}
+				>
+					{locale === "zh"
+						? "我们深感抱歉，也感谢你的理解。请不要灰心，我们鼓励你关注我们未来的活动！"
+						: "We sincerely apologize and appreciate your understanding. Please don't be discouraged, and we encourage you to stay tuned for our future events!"}
+				</Text>
+			</Section>
+
+			{alternativeEventsUrl && (
+				<Section style={{ marginBottom: 24 }}>
+					<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+						<a
+							href={alternativeEventsUrl}
+							style={{
+								color: "#000",
+								textDecoration: "underline",
+								fontWeight: 500,
+							}}
+						>
+							{locale === "zh"
+								? "浏览其他活动"
+								: "Browse Other Events"}
+						</a>
 					</Text>
+				</Section>
+			)}
 
-					<Text style={text}>
-						{locale === "zh"
-							? `感谢你对「${eventTitle}」的关注和报名申请。`
-							: `Thank you for your interest in "${eventTitle}" and for submitting your registration.`}
-					</Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-					<Section style={eventCard}>
-						<Heading as="h2" style={eventTitleStyle}>
-							{eventTitle}
-						</Heading>
-						<Text style={eventDetails}>📅 {eventDate}</Text>
-						<Text style={eventDetails}>📍 {eventLocation}</Text>
-					</Section>
-
-					<Text style={text}>
-						{locale === "zh"
-							? "很抱歉，由于以下原因，我们无法批准你这次的报名申请："
-							: "We regret to inform you that we are unable to approve your registration for this event due to the following reason:"}
-					</Text>
-
-					{rejectionReason && (
-						<Section style={reasonBox}>
-							<Text style={reasonText}>{rejectionReason}</Text>
-						</Section>
-					)}
-
-					<Text style={text}>
-						{locale === "zh"
-							? "我们深感抱歉，也感谢你的理解。请不要灰心，我们鼓励你关注我们未来的活动！"
-							: "We sincerely apologize and appreciate your understanding. Please don't be discouraged, and we encourage you to stay tuned for our future events!"}
-					</Text>
-
-					{alternativeEventsUrl && (
-						<Section style={buttonContainer}>
-							<Button href={alternativeEventsUrl} style={button}>
-								{locale === "zh"
-									? "浏览其他活动"
-									: "Browse Other Events"}
-							</Button>
-						</Section>
-					)}
-
-					<Hr style={hr} />
-
-					<Text style={footer}>
-						{locale === "zh"
-							? "如有任何问题或需要进一步说明，请随时联系我们。我们期待在未来的活动中见到你！"
-							: "If you have any questions or need further clarification, please don't hesitate to contact us. We look forward to seeing you at future events!"}
-					</Text>
-				</Container>
-			</Body>
-		</Html>
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };
 

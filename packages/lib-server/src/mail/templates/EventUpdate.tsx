@@ -1,16 +1,6 @@
-import {
-	Body,
-	Button,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventUpdateProps {
 	locale: Locale;
@@ -56,83 +46,137 @@ export const EventUpdate = ({
 		}
 	};
 
-	const getPreviewText = () => {
-		return locale === "zh"
-			? `${eventTitle} - 活动信息有重要更新`
-			: `${eventTitle} - Important Event Update`;
-	};
-
 	const updateLines = updateDetails
 		.split(/\n+/)
 		.map((line) => line.trim())
 		.filter(Boolean);
 
 	return (
-		<Html>
-			<Head />
-			<Preview>{getPreviewText()}</Preview>
-			<Body style={main}>
-				<Container style={container}>
-					<Heading style={h1}>{getUpdateTypeTitle()}</Heading>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-					<Text style={text}>
-						{locale === "zh"
-							? `你好 ${userName}，`
-							: `Hi ${userName},`}
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{getUpdateTypeTitle()}
+				</Heading>
+
+				<Text style={{ fontSize: 13, color: "#999", margin: 0 }}>
+					{locale === "zh" ? `你好 ${userName}` : `Hi ${userName}`}
+				</Text>
+			</Section>
+
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{locale === "zh"
+						? `你报名的活动「${eventTitle}」有重要更新：`
+						: `There's an important update for the event "${eventTitle}" you registered for:`}
+				</Text>
+
+				<div
+					style={{
+						backgroundColor: "#fff3cd",
+						border: "1px solid #ffeaa7",
+						borderRadius: 8,
+						padding: 16,
+						margin: "12px 0",
+					}}
+				>
+					<Text
+						style={{
+							fontSize: 14,
+							fontWeight: 600,
+							color: "#856404",
+							margin: "0 0 8px",
+						}}
+					>
+						{locale === "zh" ? "更新内容：" : "Update Details:"}
 					</Text>
-
-					<Text style={text}>
-						{locale === "zh"
-							? `你报名的活动「${eventTitle}」有重要更新：`
-							: `There's an important update for the event "${eventTitle}" you registered for:`}
-					</Text>
-
-					<Section style={eventCard}>
-						<Heading as="h2" style={eventTitleStyle}>
-							{eventTitle}
-						</Heading>
-						<Text style={eventDetails}>📅 {eventDate}</Text>
-						<Text style={eventDetails}>📍 {eventLocation}</Text>
-					</Section>
-
-					<Section style={updateBox}>
-						<Heading as="h3" style={updateHeader}>
-							{locale === "zh" ? "更新内容：" : "Update Details:"}
-						</Heading>
-						{updateLines.map((line, index) => (
-							<Text
-								key={`update-${index}`}
-								style={
+					{updateLines.map((line, index) => (
+						<Text
+							key={`update-${index}`}
+							style={{
+								fontSize: 14,
+								lineHeight: 1.5,
+								color: "#856404",
+								margin:
 									index === updateLines.length - 1
-										? updateText
-										: updateTextWithSpacing
-								}
-							>
-								{line}
-							</Text>
-						))}
-					</Section>
+										? 0
+										: "0 0 8px",
+							}}
+						>
+							{line}
+						</Text>
+					))}
+				</div>
 
-					{updateType !== "CANCELLED" && (
-						<Section style={buttonContainer}>
-							<Button href={eventUrl} style={button}>
-								{locale === "zh"
-									? "查看活动详情"
-									: "View Event Details"}
-							</Button>
-						</Section>
-					)}
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "12px 0 0",
+					}}
+				>
+					📅 {eventDate}
+					<br />📍 {eventLocation}
+				</Text>
+			</Section>
 
-					<Hr style={hr} />
-
-					<Text style={footer}>
-						{locale === "zh"
-							? "如有任何问题，请随时联系我们。"
-							: "If you have any questions, feel free to contact us."}
+			{updateType !== "CANCELLED" && (
+				<Section style={{ marginBottom: 24 }}>
+					<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+						<a
+							href={eventUrl}
+							style={{
+								color: "#000",
+								textDecoration: "underline",
+								fontWeight: 500,
+							}}
+						>
+							{locale === "zh"
+								? "查看活动详情"
+								: "View Event Details"}
+						</a>
 					</Text>
-				</Container>
-			</Body>
-		</Html>
+				</Section>
+			)}
+
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };
 

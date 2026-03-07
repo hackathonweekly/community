@@ -1,13 +1,6 @@
-import {
-	Button,
-	Container,
-	Head,
-	Html,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventRegistrationApprovedProps {
 	locale: Locale;
@@ -29,61 +22,138 @@ export const EventRegistrationApproved = ({
 	userName,
 }: EventRegistrationApprovedProps) => {
 	return (
-		<Html>
-			<Head />
-			<Preview>
-				{translations.mail.eventRegistrationApproved.preview}
-			</Preview>
-			<Container>
-				<Section>
-					<Text>
-						{translations.mail.eventRegistrationApproved.greeting.replace(
-							"{name}",
-							userName,
-						)}
-					</Text>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-					<Text>
-						{translations.mail.eventRegistrationApproved.message.replace(
-							"{eventTitle}",
-							eventTitle,
-						)}
-					</Text>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.greeting.replace(
+						"{name}",
+						userName,
+					)}
+				</Heading>
+			</Section>
 
-					<Text>
-						<strong>
-							{
-								translations.mail.eventRegistrationApproved
-									.eventDetails
-							}
-							:
-						</strong>
-					</Text>
-					<Text>
-						{translations.mail.eventRegistrationApproved.eventTitle}
-						: {eventTitle}
-					</Text>
-					<Text>
-						{translations.mail.eventRegistrationApproved.eventDate}:{" "}
-						{eventDate}
-					</Text>
-					<Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.message.replace(
+						"{eventTitle}",
+						eventTitle,
+					)}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					<strong>
 						{
 							translations.mail.eventRegistrationApproved
-								.eventLocation
+								.eventDetails
 						}
-						: {eventLocation}
-					</Text>
+						:
+					</strong>
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.eventTitle}:{" "}
+					{eventTitle}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.eventDate}:{" "}
+					{eventDate}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.eventLocation}:{" "}
+					{eventLocation}
+				</Text>
 
-					<Button href={eventUrl}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: 0,
+					}}
+				>
+					{translations.mail.eventRegistrationApproved.footer}
+				</Text>
+			</Section>
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={eventUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
 						{translations.mail.eventRegistrationApproved.viewEvent}
-					</Button>
+					</a>
+				</Text>
+			</Section>
 
-					<Text>
-						{translations.mail.eventRegistrationApproved.footer}
-					</Text>
-				</Section>
-			</Container>
-		</Html>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };

@@ -1,13 +1,6 @@
-import {
-	Button,
-	Container,
-	Head,
-	Html,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventOrderCancelledProps {
 	locale: Locale;
@@ -21,6 +14,7 @@ interface EventOrderCancelledProps {
 }
 
 export const EventOrderCancelled = ({
+	locale,
 	translations,
 	eventTitle,
 	eventDate,
@@ -30,58 +24,146 @@ export const EventOrderCancelled = ({
 	userName,
 }: EventOrderCancelledProps) => {
 	return (
-		<Html>
-			<Head />
-			<Preview>{translations.mail.eventOrderCancelled.preview}</Preview>
-			<Container>
-				<Section>
-					<Text>
-						{translations.mail.eventOrderCancelled.greeting.replace(
-							"{name}",
-							userName,
-						)}
-					</Text>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-					<Text>
-						{translations.mail.eventOrderCancelled.message.replace(
-							"{eventTitle}",
-							eventTitle,
-						)}
-					</Text>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{translations.mail.eventOrderCancelled.greeting.replace(
+						"{name}",
+						userName,
+					)}
+				</Heading>
+			</Section>
 
-					<Text>
-						<strong>
-							{translations.mail.eventOrderCancelled.orderNumber}:
-						</strong>{" "}
-						{orderNo}
-					</Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-					<Text>
-						<strong>
-							{translations.mail.eventOrderCancelled.eventDetails}
-							:
-						</strong>
-					</Text>
-					<Text>
-						{translations.mail.eventOrderCancelled.eventTitle}:{" "}
-						{eventTitle}
-					</Text>
-					<Text>
-						{translations.mail.eventOrderCancelled.eventDate}:{" "}
-						{eventDate}
-					</Text>
-					<Text>
-						{translations.mail.eventOrderCancelled.eventLocation}:{" "}
-						{eventLocation}
-					</Text>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{translations.mail.eventOrderCancelled.message.replace(
+						"{eventTitle}",
+						eventTitle,
+					)}
+				</Text>
 
-					<Button href={eventUrl}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					<strong>
+						{translations.mail.eventOrderCancelled.orderNumber}:
+					</strong>{" "}
+					{orderNo}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					<strong>
+						{translations.mail.eventOrderCancelled.eventDetails}:
+					</strong>
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{translations.mail.eventOrderCancelled.eventTitle}:{" "}
+					{eventTitle}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{translations.mail.eventOrderCancelled.eventDate}:{" "}
+					{eventDate}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{translations.mail.eventOrderCancelled.eventLocation}:{" "}
+					{eventLocation}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{translations.mail.eventOrderCancelled.footer}
+				</Text>
+
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={eventUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
 						{translations.mail.eventOrderCancelled.viewEvent}
-					</Button>
+					</a>
+				</Text>
+			</Section>
 
-					<Text>{translations.mail.eventOrderCancelled.footer}</Text>
-				</Section>
-			</Container>
-		</Html>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };

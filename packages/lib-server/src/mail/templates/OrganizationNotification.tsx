@@ -1,5 +1,4 @@
-import { Heading, Text, Hr } from "@react-email/components";
-import React from "react";
+import { Heading, Text, Hr, Section } from "@react-email/components";
 import { createTranslator } from "use-intl/core";
 import Wrapper from "../components/Wrapper";
 import { defaultLocale } from "../translations";
@@ -41,29 +40,57 @@ export function OrganizationNotification({
 
 	return (
 		<Wrapper>
-			<Heading className="text-xl mb-4">
-				{getTypeIcon(type)} {organizationName}
-			</Heading>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-			<Heading className="text-lg mb-4">{subject}</Heading>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{getTypeIcon(type)} {subject}
+				</Heading>
 
-			<Hr className="my-4" />
+				<Text style={{ fontSize: 13, color: "#999", margin: 0 }}>
+					{organizationName}
+				</Text>
+			</Section>
 
-			<div
-				dangerouslySetInnerHTML={{ __html: content }}
-				style={{
-					lineHeight: 1.6,
-					fontSize: "16px",
-					color: "#374151",
-				}}
-			/>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-			<Hr className="my-6" />
+			<Section style={{ marginBottom: 24 }}>
+				<div
+					dangerouslySetInnerHTML={{ __html: content }}
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+					}}
+				/>
+			</Section>
 
-			<Text className="text-sm text-muted-foreground">
-				这封邮件来自 {organizationName}
-				。如果您不希望接收此类邮件，请联系组织管理员。
-			</Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
 		</Wrapper>
 	);
 }

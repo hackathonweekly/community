@@ -1,7 +1,5 @@
-import { Heading, Text } from "@react-email/components";
-import React from "react";
+import { Heading, Text, Hr, Section } from "@react-email/components";
 import { createTranslator } from "use-intl/core";
-import PrimaryButton from "../components/PrimaryButton";
 import Wrapper from "../components/Wrapper";
 import { defaultLocale } from "../translations";
 import { defaultTranslations } from "../translations";
@@ -25,47 +23,92 @@ export function OrganizationApplicationApproved({
 
 	return (
 		<Wrapper>
-			<Heading className="text-lg font-bold text-gray-900 mb-4">
-				🎉 申请已通过！欢迎加入 {organizationName}
-			</Heading>
-
-			<Text className="text-gray-700 mb-4">
-				{applicantName}，恭喜您！
-			</Text>
-
-			<Text className="text-gray-700 mb-4">
-				您申请加入 <strong>{organizationName}</strong>{" "}
-				的申请已经通过审核。
-				现在您已经是该组织的正式成员，可以参与组织的各项活动和交流。
-			</Text>
-
-			<div className="bg-green-50 p-4 rounded-lg mb-6">
-				<Text className="text-green-800 text-sm font-medium mb-2">
-					✅ 接下来您可以：
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
 				</Text>
-				<Text className="text-green-700 text-sm mb-1">
-					• 访问组织主页，了解最新动态
-				</Text>
-				<Text className="text-green-700 text-sm mb-1">
-					• 参与组织举办的各种活动
-				</Text>
-				<Text className="text-green-700 text-sm mb-1">
-					• 与其他成员交流合作
-				</Text>
-				<Text className="text-green-700 text-sm">
-					• 贡献您的技能和经验
-				</Text>
-			</div>
 
-			<PrimaryButton href={organizationUrl}>访问组织主页</PrimaryButton>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					🎉 申请已通过！欢迎加入 {organizationName}
+				</Heading>
+			</Section>
 
-			<Text className="text-gray-700 mt-6">
-				感谢您的耐心等待，期待您在组织中的积极参与！
-			</Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-			<Text className="text-xs text-gray-500 mt-6">
-				如果您有任何问题，请联系组织管理员。
-			</Text>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{applicantName}，恭喜您！
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					您申请加入 <strong>{organizationName}</strong>{" "}
+					的申请已经通过审核。
+					现在您已经是该组织的正式成员，可以参与组织的各项活动和交流。
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					感谢您的耐心等待，期待您在组织中的积极参与！
+				</Text>
+
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={organizationUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
+						访问组织主页
+					</a>
+				</Text>
+			</Section>
+
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
 		</Wrapper>
 	);
 }

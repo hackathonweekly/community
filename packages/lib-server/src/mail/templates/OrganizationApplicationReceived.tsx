@@ -1,7 +1,5 @@
-import { Heading, Text } from "@react-email/components";
-import React from "react";
+import { Heading, Text, Hr, Section } from "@react-email/components";
 import { createTranslator } from "use-intl/core";
-import PrimaryButton from "../components/PrimaryButton";
 import Wrapper from "../components/Wrapper";
 import { defaultLocale } from "../translations";
 import { defaultTranslations } from "../translations";
@@ -29,42 +27,134 @@ export function OrganizationApplicationReceived({
 
 	return (
 		<Wrapper>
-			<Heading className="text-lg font-bold text-gray-900 mb-4">
-				新的组织加入申请
-			</Heading>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-			<Text className="text-gray-700 mb-4">
-				您好，您的组织 <strong>{organizationName}</strong>{" "}
-				收到了一份新的加入申请。
-			</Text>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					新的组织加入申请
+				</Heading>
+			</Section>
 
-			<div className="bg-gray-50 p-4 rounded-lg mb-4">
-				<Text className="text-sm text-gray-600 mb-2">
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					您好，您的组织 <strong>{organizationName}</strong>{" "}
+					收到了一份新的加入申请。
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
 					<strong>申请人信息：</strong>
 				</Text>
-				<Text className="text-sm mb-1">
-					<strong>姓名：</strong> {applicantName}
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					姓名：{applicantName}
 				</Text>
-				<Text className="text-sm mb-1">
-					<strong>邮箱：</strong> {applicantEmail}
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					邮箱：{applicantEmail}
 				</Text>
-				<Text className="text-sm mb-2">
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
 					<strong>申请理由：</strong>
 				</Text>
-				<Text className="text-sm bg-white p-3 rounded border">
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+						padding: 12,
+						background: "#f9fafb",
+						borderRadius: 8,
+					}}
+				>
 					{reason}
 				</Text>
-			</div>
 
-			<Text className="text-gray-700 mb-6">
-				请及时查看申请并做出审核决定。申请人正在等待您的回复。
-			</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					请及时查看申请并做出审核决定。申请人正在等待您的回复。
+				</Text>
 
-			<PrimaryButton href={dashboardUrl}>查看申请详情</PrimaryButton>
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={dashboardUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
+						查看申请详情
+					</a>
+				</Text>
+			</Section>
 
-			<Text className="text-xs text-gray-500 mt-6">
-				您收到这封邮件是因为您是组织 {organizationName} 的管理员。
-			</Text>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
 		</Wrapper>
 	);
 }

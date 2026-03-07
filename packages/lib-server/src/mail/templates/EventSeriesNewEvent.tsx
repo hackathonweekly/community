@@ -1,13 +1,6 @@
-import {
-	Button,
-	Container,
-	Head,
-	Html,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventSeriesNewEventProps {
 	locale: Locale;
@@ -21,7 +14,7 @@ interface EventSeriesNewEventProps {
 }
 
 export const EventSeriesNewEvent = ({
-	locale: _locale,
+	locale,
 	translations,
 	seriesName,
 	eventTitle,
@@ -32,51 +25,138 @@ export const EventSeriesNewEvent = ({
 }: EventSeriesNewEventProps) => {
 	const t = translations.mail.eventSeriesNewEvent;
 
-	const preview = t.preview
-		.replace("{seriesName}", seriesName)
-		.replace("{eventTitle}", eventTitle);
-
 	return (
-		<Html>
-			<Head />
-			<Preview>{preview}</Preview>
-			<Container>
-				<Section>
-					<Text>{t.greeting}</Text>
-					<Text>
-						{t.announcement
-							.replace("{seriesName}", seriesName)
-							.replace("{eventTitle}", eventTitle)}
-					</Text>
-				</Section>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-				<Section>
-					<Text>
-						<strong>{t.eventDetails}</strong>
-					</Text>
-					<Text>
-						{t.eventTitleLabel}: {eventTitle}
-					</Text>
-					<Text>
-						{t.eventDateLabel}: {eventDate}
-					</Text>
-					<Text>
-						{t.eventLocationLabel}: {eventLocation}
-					</Text>
-				</Section>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{t.greeting}
+				</Heading>
+			</Section>
 
-				<Section style={{ textAlign: "center", margin: "24px 0" }}>
-					<Button href={eventUrl}>{t.viewEvent}</Button>
-				</Section>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-				<Section style={{ textAlign: "center", margin: "0 0 24px 0" }}>
-					<Button href={seriesUrl}>{t.viewSeries}</Button>
-				</Section>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{t.announcement
+						.replace("{seriesName}", seriesName)
+						.replace("{eventTitle}", eventTitle)}
+				</Text>
 
-				<Section>
-					<Text>{t.footer.replace("{seriesName}", seriesName)}</Text>
-				</Section>
-			</Container>
-		</Html>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					<strong>{t.eventDetails}</strong>
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{t.eventTitleLabel}: {eventTitle}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 4px",
+					}}
+				>
+					{t.eventDateLabel}: {eventDate}
+				</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{t.eventLocationLabel}: {eventLocation}
+				</Text>
+
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{t.footer.replace("{seriesName}", seriesName)}
+				</Text>
+
+				<Text
+					style={{ fontSize: 13, color: "#666", margin: "0 0 8px" }}
+				>
+					<a
+						href={eventUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
+						{t.viewEvent}
+					</a>
+				</Text>
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={seriesUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
+						{t.viewSeries}
+					</a>
+				</Text>
+			</Section>
+
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
+
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };

@@ -1,17 +1,6 @@
-import {
-	Body,
-	Button,
-	Container,
-	Head,
-	Heading,
-	Hr,
-	Html,
-	Link,
-	Preview,
-	Section,
-	Text,
-} from "@react-email/components";
+import { Hr, Heading, Section, Text } from "@react-email/components";
 import type { Locale, Messages } from "@community/lib-shared/i18n";
+import Wrapper from "../components/Wrapper";
 
 interface EventFeedbackRequestProps {
 	locale: Locale;
@@ -32,112 +21,200 @@ export const EventFeedbackRequest = ({
 	feedbackUrl,
 	eventUrl,
 }: EventFeedbackRequestProps) => {
-	const previewText =
-		locale === "zh"
-			? `感谢参与 ${eventTitle}，期待你的反馈`
-			: `Thank you for attending ${eventTitle}, we'd love your feedback`;
-
 	return (
-		<Html>
-			<Head />
-			<Preview>{previewText}</Preview>
-			<Body style={main}>
-				<Container style={container}>
-					<Heading style={h1}>
-						{locale === "zh"
-							? "感谢你的参与！"
-							: "Thank you for attending!"}
-					</Heading>
+		<Wrapper>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 13,
+						color: "#999",
+						margin: "0 0 20px",
+						textAlign: "center",
+					}}
+				>
+					{locale === "zh"
+						? "周周黑客松 HackathonWeekly"
+						: "HackathonWeekly"}
+				</Text>
 
-					<Text style={text}>
-						{locale === "zh"
-							? `你好 ${userName}，`
-							: `Hi ${userName},`}
-					</Text>
+				<Heading
+					style={{
+						fontSize: 22,
+						fontWeight: 600,
+						margin: "0 0 12px",
+						color: "#000",
+						lineHeight: 1.4,
+					}}
+				>
+					{locale === "zh"
+						? "感谢你的参与！"
+						: "Thank you for attending!"}
+				</Heading>
 
-					<Text style={text}>
-						{locale === "zh"
-							? `感谢你参与了「${eventTitle}」活动。我们希望这次活动对你有所帮助！`
-							: `Thank you for participating in "${eventTitle}". We hope you found the event valuable!`}
-					</Text>
+				<Text style={{ fontSize: 13, color: "#999", margin: 0 }}>
+					{locale === "zh" ? `你好 ${userName}` : `Hi ${userName}`}
+				</Text>
+			</Section>
 
-					<Section style={eventCard}>
-						<Heading as="h2" style={eventTitleStyle}>
-							{eventTitle}
-						</Heading>
-						<Text style={eventDetails}>📅 {eventDate}</Text>
-					</Section>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-					<Text style={text}>
-						{locale === "zh"
-							? "你的反馈对我们非常重要，能帮助我们不断改进活动质量。请花几分钟时间分享你的想法："
-							: "Your feedback is incredibly valuable to us and helps us improve our events. Please take a few minutes to share your thoughts:"}
-					</Text>
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{locale === "zh"
+						? `感谢你参与了「${eventTitle}」活动。我们希望这次活动对你有所帮助！`
+						: `Thank you for participating in "${eventTitle}". We hope you found the event valuable!`}
+				</Text>
 
-					<Section style={buttonContainer}>
-						<Button href={feedbackUrl} style={button}>
-							{locale === "zh"
-								? "提交活动反馈"
-								: "Submit Event Feedback"}
-						</Button>
-					</Section>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					📅 {eventDate}
+				</Text>
 
-					<Text style={feedbackPoints}>
-						{locale === "zh"
-							? "反馈内容包括："
-							: "Your feedback will cover:"}
-					</Text>
-					<Text style={listItem}>
-						•{" "}
-						{locale === "zh"
-							? "活动整体评分"
-							: "Overall event rating"}
-					</Text>
-					<Text style={listItem}>
-						•{" "}
-						{locale === "zh"
-							? "内容质量评价"
-							: "Content quality assessment"}
-					</Text>
-					<Text style={listItem}>
-						•{" "}
-						{locale === "zh"
-							? "组织和安排反馈"
-							: "Organization and logistics feedback"}
-					</Text>
-					<Text style={listItem}>
-						•{" "}
-						{locale === "zh"
-							? "改进建议"
-							: "Suggestions for improvement"}
-					</Text>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: "0 0 12px",
+					}}
+				>
+					{locale === "zh"
+						? "你的反馈对我们非常重要，能帮助我们不断改进活动质量。请花几分钟时间分享你的想法："
+						: "Your feedback is incredibly valuable to us and helps us improve our events. Please take a few minutes to share your thoughts:"}
+				</Text>
 
-					<Hr style={hr} />
+				<Text
+					style={{
+						fontSize: 14,
+						fontWeight: 600,
+						color: "#333",
+						margin: "0 0 8px",
+					}}
+				>
+					{locale === "zh"
+						? "反馈内容包括："
+						: "Your feedback will cover:"}
+				</Text>
+				<Text
+					style={{
+						fontSize: 14,
+						lineHeight: 1.6,
+						color: "#555",
+						margin: "0 0 4px",
+						paddingLeft: 8,
+					}}
+				>
+					•{" "}
+					{locale === "zh" ? "活动整体评分" : "Overall event rating"}
+				</Text>
+				<Text
+					style={{
+						fontSize: 14,
+						lineHeight: 1.6,
+						color: "#555",
+						margin: "0 0 4px",
+						paddingLeft: 8,
+					}}
+				>
+					•{" "}
+					{locale === "zh"
+						? "内容质量评价"
+						: "Content quality assessment"}
+				</Text>
+				<Text
+					style={{
+						fontSize: 14,
+						lineHeight: 1.6,
+						color: "#555",
+						margin: "0 0 4px",
+						paddingLeft: 8,
+					}}
+				>
+					•{" "}
+					{locale === "zh"
+						? "组织和安排反馈"
+						: "Organization and logistics feedback"}
+				</Text>
+				<Text
+					style={{
+						fontSize: 14,
+						lineHeight: 1.6,
+						color: "#555",
+						margin: "0 0 12px",
+						paddingLeft: 8,
+					}}
+				>
+					•{" "}
+					{locale === "zh"
+						? "改进建议"
+						: "Suggestions for improvement"}
+				</Text>
 
-					<Text style={text}>
+				<Text
+					style={{
+						fontSize: 15,
+						lineHeight: 1.7,
+						color: "#333",
+						margin: 0,
+					}}
+				>
+					{locale === "zh"
+						? "再次感谢你的参与，期待在下次活动中见到你！"
+						: "Thank you again for your participation, and we look forward to seeing you at future events!"}
+				</Text>
+			</Section>
+
+			<Section style={{ marginBottom: 24 }}>
+				<Text
+					style={{ fontSize: 13, color: "#666", margin: "0 0 8px" }}
+				>
+					<a
+						href={feedbackUrl}
+						style={{
+							color: "#000",
+							textDecoration: "underline",
+							fontWeight: 500,
+						}}
+					>
 						{locale === "zh"
-							? "如果你想回顾活动详情，可以访问："
-							: "If you'd like to revisit the event details, you can visit:"}
-					</Text>
+							? "提交活动反馈"
+							: "Submit Event Feedback"}
+					</a>
+				</Text>
+				<Text style={{ fontSize: 13, color: "#666", margin: 0 }}>
+					<a
+						href={eventUrl}
+						style={{
+							color: "#0ea5e9",
+							textDecoration: "underline",
+						}}
+					>
+						{locale === "zh" ? "查看活动页面" : "View Event Page"}
+					</a>
+				</Text>
+			</Section>
 
-					<Section style={linkContainer}>
-						<Link href={eventUrl} style={link}>
-							{locale === "zh"
-								? "查看活动页面"
-								: "View Event Page"}
-						</Link>
-					</Section>
+			<Hr style={{ borderColor: "#e5e5e5", margin: "20px 0" }} />
 
-					<Hr style={hr} />
-
-					<Text style={footer}>
-						{locale === "zh"
-							? "再次感谢你的参与，期待在下次活动中见到你！"
-							: "Thank you again for your participation, and we look forward to seeing you at future events!"}
-					</Text>
-				</Container>
-			</Body>
-		</Html>
+			<Section>
+				<Text style={{ fontSize: 12, color: "#999", margin: 0 }}>
+					© {new Date().getFullYear()} HackathonWeekly Team
+				</Text>
+			</Section>
+		</Wrapper>
 	);
 };
 
