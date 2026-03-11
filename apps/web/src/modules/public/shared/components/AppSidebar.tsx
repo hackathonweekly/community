@@ -359,7 +359,7 @@ function NavGroup({
 
 function UnreadBadge() {
 	const { data } = useUnreadNotificationsCountQuery({ enabled: true });
-	const count = data?.count ?? 0;
+	const count = data ?? 0;
 	if (count === 0) return null;
 	return (
 		<SidebarMenuBadge className="bg-destructive text-destructive-foreground rounded-full text-[10px] min-w-4 h-4 px-1">

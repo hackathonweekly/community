@@ -1,6 +1,7 @@
 "use client";
 
 import { useKeyboardDetection } from "@community/lib-client/hooks/use-keyboard-detection";
+import { useUnreadNotificationsCountQuery } from "@community/lib-client/api/api-hooks";
 import { cn } from "@community/lib-shared/utils";
 import { isWeChatBrowser } from "@community/lib-shared/utils/browser-detect";
 import { Drawer, DrawerContent } from "@community/ui/ui/drawer";
@@ -42,6 +43,10 @@ export function TabBar() {
 	const router = useRouter();
 	const t = useTranslations();
 	const { user } = useSession();
+	const { data: unreadNotificationsCount = 0 } =
+		useUnreadNotificationsCountQuery({
+			enabled: Boolean(user),
+		});
 
 	const [isWeChat, setIsWeChat] = useState(false);
 	const isKeyboardVisible = useKeyboardDetection();
@@ -271,14 +276,25 @@ export function TabBar() {
 								{isActive && (
 									<span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-foreground" />
 								)}
-								<tab.icon
-									className={cn(
-										"h-6 w-6 transition-colors",
-										isActive
-											? "text-foreground"
-											: "text-muted-foreground",
-									)}
-								/>
+								<div className="relative">
+									<tab.icon
+										className={cn(
+											"h-6 w-6 transition-colors",
+											isActive
+												? "text-foreground"
+												: "text-muted-foreground",
+										)}
+									/>
+									{tab.href === "/notifications" &&
+									user &&
+									unreadNotificationsCount > 0 ? (
+										<span className="absolute -top-1.5 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] leading-none font-semibold text-destructive-foreground">
+											{unreadNotificationsCount > 99
+												? "99+"
+												: unreadNotificationsCount}
+										</span>
+									) : null}
+								</div>
 								<span
 									className={cn(
 										"text-[10px] transition-colors",
