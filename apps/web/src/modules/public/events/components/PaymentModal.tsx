@@ -28,7 +28,6 @@ import {
 	type WechatPayPayload,
 	type WechatPaymentChannel,
 } from "@community/lib-shared/payments/wechat-payment";
-import { ensureWechatMiniProgramBridge } from "./wechat-payment-client-context";
 
 export interface PaymentOrderData {
 	orderId: string;
@@ -129,21 +128,16 @@ const invokeMiniProgramBridgePay = async (
 		);
 	}
 
-	const requestPayment = ensureWechatMiniProgramBridge()?.requestPayment;
-	if (!requestPayment) {
+	const navigateTo = (window as any).wx?.miniProgram?.navigateTo;
+	if (typeof navigateTo !== "function") {
 		throw new WechatBridgeError(
 			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
+			"wx.miniProgram.navigateTo not available",
 		);
 	}
 
-	const result = await requestPayment(params);
-	if (!result.ok) {
-		const code =
-			result.errCode === "PAY_CANCELLED"
-				? WECHAT_BRIDGE_ERROR_CODES.PAY_CANCELLED
-				: WECHAT_BRIDGE_ERROR_CODES.PAY_FAILED;
-		throw new WechatBridgeError(code, result.errMsg);
-	}
+	const encodedParams = encodeURIComponent(JSON.stringify(params));
+	navigateTo({ url: `/pages/pay/pay?params=${encodedParams}` });
 };
 
 export function PaymentModal({
