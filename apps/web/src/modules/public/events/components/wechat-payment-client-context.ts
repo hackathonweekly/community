@@ -32,6 +32,7 @@ interface MiniProgramBridgeEnvelope {
 
 interface WechatMiniProgramRuntime {
 	postMessage?: (params: { data: MiniProgramBridgeEnvelope }) => void;
+	navigateTo?: (params: { url: string }) => void;
 }
 
 interface WechatRuntime {
@@ -392,34 +393,17 @@ export const buildWechatPaymentClientContext =
 			console.warn("WeChat JSSDK init failed", error);
 		}
 
-		const bridge = ensureWechatMiniProgramBridge();
-		if (!bridge?.getCapabilities) {
-			console.warn("Mini Program bridge unavailable after JSSDK init", {
-				hasWx: typeof window.wx !== "undefined",
-				hasMiniProgram: typeof window.wx?.miniProgram !== "undefined",
-				postMessageType: typeof window.wx?.miniProgram?.postMessage,
-			});
-			return {
-				environmentType,
-				miniProgramBridgeSupported: false,
-			};
-		}
+		// Use navigateTo detection instead of postMessage-based capability
+		// handshake, since postMessage only delivers on web-view back/share
+		// and cannot be used for real-time communication.
+		const hasNavigateTo =
+			typeof window.wx?.miniProgram?.navigateTo === "function";
 
-		try {
-			const capabilities = await bridge.getCapabilities();
-			return {
-				environmentType,
-				miniProgramBridgeSupported:
-					capabilities.supportsRequestPayment === true,
-				miniProgramBridgeVersion: capabilities.bridgeVersion,
-				shellVersion: capabilities.shellVersion,
-			};
-		} catch {
-			return {
-				environmentType,
-				miniProgramBridgeSupported: false,
-			};
-		}
+		return {
+			environmentType,
+			miniProgramBridgeSupported: hasNavigateTo,
+			miniProgramBridgeVersion: hasNavigateTo ? "1.3.0" : undefined,
+		};
 	};
 
 export const buildWechatPaymentClientContextQuery = (
