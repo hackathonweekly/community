@@ -382,6 +382,15 @@ export function EventRegistrationCard({
 							</div>
 						)}
 					</div>
+				) : isEventEnded ? (
+					<div className="lg:block hidden">
+						<Button
+							disabled
+							className="w-full cursor-not-allowed bg-muted text-muted-foreground"
+						>
+							活动已结束
+						</Button>
+					</div>
 				) : (
 					<div className="lg:block hidden">
 						<Button asChild className="w-full">

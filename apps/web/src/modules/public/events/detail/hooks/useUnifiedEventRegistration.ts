@@ -95,11 +95,11 @@ export function useUnifiedEventRegistration({
 		if (isEventEnded) {
 			return "🏁 已结束";
 		}
-		if (!user) {
-			return "登录后报名";
-		}
 		if (canRegister) {
 			return t("events.registration.registerNow");
+		}
+		if (!user) {
+			return "登录后报名";
 		}
 		return getRegistrationStatusText();
 	};
