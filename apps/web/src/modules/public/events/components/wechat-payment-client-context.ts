@@ -32,6 +32,7 @@ interface MiniProgramBridgeEnvelope {
 
 interface WechatMiniProgramRuntime {
 	postMessage?: (params: { data: MiniProgramBridgeEnvelope }) => void;
+	navigateTo?: (params: { url: string }) => void;
 }
 
 interface WechatRuntime {
@@ -49,6 +50,7 @@ const BRIDGE_NAME = "HW_MINI_PAYMENT_BRIDGE";
 const BRIDGE_GET_CAPABILITIES = "HW_MINI_BRIDGE_GET_CAPABILITIES";
 const BRIDGE_REQUEST_PAYMENT = "HW_MINI_BRIDGE_REQUEST_PAYMENT";
 const BRIDGE_RESPONSE_TYPE = "HW_MINI_BRIDGE_RESPONSE";
+const WECHAT_JSSDK_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
 
 const CAPABILITIES_TIMEOUT_MS = 5_000;
 const REQUEST_PAYMENT_TIMEOUT_MS = 35_000;
@@ -62,6 +64,7 @@ const pendingBridgeRequests = new Map<
 >();
 
 let messageListenerBound = false;
+let wechatJSSDKLoadPromise: Promise<void> | null = null;
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
 	typeof value === "object" && value !== null;
@@ -201,6 +204,74 @@ const bindMiniProgramMessageListener = () => {
 	messageListenerBound = true;
 };
 
+const isWeChatUserAgent = () => {
+	if (typeof window === "undefined") {
+		return false;
+	}
+
+	return window.navigator.userAgent.toLowerCase().includes("micromessenger");
+};
+
+const ensureWechatJSSDK = async () => {
+	if (typeof window === "undefined" || typeof document === "undefined") {
+		return;
+	}
+
+	if (!isWeChatUserAgent()) {
+		return;
+	}
+
+	if (typeof window.wx?.miniProgram?.postMessage === "function") {
+		return;
+	}
+
+	if (wechatJSSDKLoadPromise) {
+		return wechatJSSDKLoadPromise;
+	}
+
+	wechatJSSDKLoadPromise = new Promise<void>((resolve, reject) => {
+		const existingScript = document.querySelector(
+			`script[src="${WECHAT_JSSDK_SRC}"]`,
+		) as HTMLScriptElement | null;
+
+		if (existingScript) {
+			if (
+				existingScript.dataset.hwLoaded === "true" ||
+				typeof window.wx !== "undefined"
+			) {
+				resolve();
+				return;
+			}
+			existingScript.addEventListener("load", () => resolve(), {
+				once: true,
+			});
+			existingScript.addEventListener(
+				"error",
+				() => reject(new Error("Failed to load WeChat JSSDK")),
+				{ once: true },
+			);
+			return;
+		}
+
+		const script = document.createElement("script");
+		script.src = WECHAT_JSSDK_SRC;
+		script.async = true;
+		script.onload = () => {
+			script.dataset.hwLoaded = "true";
+			resolve();
+		};
+		script.onerror = () => reject(new Error("Failed to load WeChat JSSDK"));
+		document.head.appendChild(script);
+	});
+
+	try {
+		await wechatJSSDKLoadPromise;
+	} catch (error) {
+		wechatJSSDKLoadPromise = null;
+		throw error;
+	}
+};
+
 const callMiniProgramBridge = <TResult>(params: {
 	type: string;
 	payload?: unknown;
@@ -316,29 +387,23 @@ export const buildWechatPaymentClientContext =
 			return { environmentType };
 		}
 
-		const bridge = ensureWechatMiniProgramBridge();
-		if (!bridge?.getCapabilities) {
-			return {
-				environmentType,
-				miniProgramBridgeSupported: false,
-			};
+		try {
+			await ensureWechatJSSDK();
+		} catch (error) {
+			console.warn("WeChat JSSDK init failed", error);
 		}
 
-		try {
-			const capabilities = await bridge.getCapabilities();
-			return {
-				environmentType,
-				miniProgramBridgeSupported:
-					capabilities.supportsRequestPayment === true,
-				miniProgramBridgeVersion: capabilities.bridgeVersion,
-				shellVersion: capabilities.shellVersion,
-			};
-		} catch {
-			return {
-				environmentType,
-				miniProgramBridgeSupported: false,
-			};
-		}
+		// Use navigateTo detection instead of postMessage-based capability
+		// handshake, since postMessage only delivers on web-view back/share
+		// and cannot be used for real-time communication.
+		const hasNavigateTo =
+			typeof window.wx?.miniProgram?.navigateTo === "function";
+
+		return {
+			environmentType,
+			miniProgramBridgeSupported: hasNavigateTo,
+			miniProgramBridgeVersion: hasNavigateTo ? "1.3.0" : undefined,
+		};
 	};
 
 export const buildWechatPaymentClientContextQuery = (
