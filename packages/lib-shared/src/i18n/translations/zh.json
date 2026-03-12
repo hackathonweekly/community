@@ -2643,6 +2643,11 @@
 			"createNewOrganization": "创建新组织",
 			"title": "您的组织"
 		},
+		"tabs": {
+			"overview": "概览",
+			"events": "活动",
+			"members": "成员"
+		},
 		"public": {
 			"aboutUs": "关于我们",
 			"alreadyMember": "✓ 已是{role}",

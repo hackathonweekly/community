@@ -2584,6 +2584,11 @@
 			"createNewOrganization": "Create new organization",
 			"title": "Your organizations"
 		},
+		"tabs": {
+			"overview": "Overview",
+			"events": "Events",
+			"members": "Members"
+		},
 		"public": {
 			"aboutUs": "About Us",
 			"alreadyMember": "✓ Already a {role}",

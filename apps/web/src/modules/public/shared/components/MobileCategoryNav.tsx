@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@community/lib-shared/utils";
+import { useSession } from "@shared/auth/hooks/use-session";
+import { useQuery } from "@tanstack/react-query";
 
 const CATEGORY_ROUTES = [
 	{ key: "events", href: "/events" },
@@ -12,7 +14,6 @@ const CATEGORY_ROUTES = [
 	{ key: "orgs", href: "/orgs" },
 	{ key: "tasks", href: "/tasks" },
 	{ key: "posts", href: "/posts" },
-	{ key: "members", href: "/members" },
 ] as const;
 
 const LIST_PREFIXES = CATEGORY_ROUTES.map((r) => r.href);
@@ -22,6 +23,33 @@ const LOCALE_PREFIX_PATTERN = /^\/[a-z]{2}(?:-[A-Z]{2})?(?=\/|$)/;
 export function MobileCategoryNav() {
 	const pathname = usePathname();
 	const t = useTranslations("tab_nav");
+	const { user } = useSession();
+
+	const { data: userOrgsData } = useQuery({
+		queryKey: ["user-organizations-mobile-category-nav"],
+		queryFn: async () => {
+			const response = await fetch("/api/user/organizations");
+			if (!response.ok) throw new Error("Failed to fetch");
+			return response.json();
+		},
+		enabled: !!user,
+		staleTime: 1000 * 60 * 10,
+	});
+
+	const userOrgs = userOrgsData?.data?.organizations ?? [];
+	const hasOrgs = userOrgs.length > 0;
+
+	const preferredOrgSlug =
+		typeof window === "undefined"
+			? null
+			: localStorage.getItem("preferred-org-slug");
+
+	const resolvedOrgSlug = hasOrgs
+		? preferredOrgSlug &&
+			userOrgs.some((o: { slug: string }) => o.slug === preferredOrgSlug)
+			? preferredOrgSlug
+			: userOrgs[0].slug
+		: null;
 
 	const normalizedPathname = useMemo(() => {
 		const withoutLocale = pathname.replace(LOCALE_PREFIX_PATTERN, "");
@@ -53,9 +81,14 @@ export function MobileCategoryNav() {
 			const nextIndex =
 				direction === "left" ? currentIndex + 1 : currentIndex - 1;
 			if (nextIndex < 0 || nextIndex >= CATEGORY_ROUTES.length) return;
-			router.push(CATEGORY_ROUTES[nextIndex].href);
+			const targetRoute = CATEGORY_ROUTES[nextIndex];
+			const targetHref =
+				targetRoute.key === "orgs" && resolvedOrgSlug
+					? `/orgs/${resolvedOrgSlug}`
+					: targetRoute.href;
+			router.push(targetHref);
 		},
-		[currentIndex, router],
+		[currentIndex, resolvedOrgSlug, router],
 	);
 
 	useEffect(() => {
@@ -114,7 +147,9 @@ export function MobileCategoryNav() {
 		};
 	}, [isListPage, handleSwipe]);
 
-	if (!isListPage) {
+	const shouldShowOnOrgDetailPage = /^\/orgs\/[^/]+/.test(normalizedPathname);
+
+	if (!isListPage && !shouldShowOnOrgDetailPage) {
 		return null;
 	}
 
@@ -124,7 +159,6 @@ export function MobileCategoryNav() {
 		orgs: t("organizations"),
 		tasks: t("tasks"),
 		posts: t("posts"),
-		members: t("members"),
 	};
 
 	return (
@@ -132,10 +166,14 @@ export function MobileCategoryNav() {
 			<div className="flex overflow-x-auto scrollbar-hide px-4 gap-1">
 				{CATEGORY_ROUTES.map(({ key, href }) => {
 					const isActive = normalizedPathname.startsWith(href);
+					const targetHref =
+						key === "orgs" && resolvedOrgSlug
+							? `/orgs/${resolvedOrgSlug}`
+							: href;
 					return (
 						<Link
 							key={key}
-							href={href}
+							href={targetHref}
 							className={cn(
 								"flex-shrink-0 px-3 py-2.5 text-sm font-medium transition-colors whitespace-nowrap",
 								isActive

@@ -38,6 +38,10 @@ Use `pnpm` (Node.js >= 20). From repo root:
 ## UI
 - When adding new components / UI, please read STYLE_GUIDE.md
 - The project uses a single codebase for both desktop and mobile (responsive design via Tailwind breakpoints, no separate mobile app). Use `lg:hidden` for mobile-only components and `hidden lg:block` for desktop-only. Key mobile components: `TabBar` (bottom nav) and `MobileCategoryNav` (top category scroll nav).
+- Mobile navigation rule: `MobileCategoryNav` (global categories like 活动/作品/组织/任务/动态) should appear on list pages (e.g. `/events`, `/projects`, `/orgs`, `/tasks`, `/posts`) and also on organization detail pages (`/orgs/[slug]`) in mobile.
+- Organization detail uses its own top tabs (`overview/events/members`, query param `?tab=`) and can coexist with global mobile top category nav when required by product behavior.
+- `MobileCategoryNav` "组织" tab behavior: if the user has joined organizations, navigate to their preferred/last visited organization page (`/orgs/{preferredSlug}`); otherwise navigate to `/orgs` discovery.
+- On `/orgs/[slug]`, keep an explicit way to return to discovery (`/orgs`) and support organization switching for users who belong to multiple organizations.
 
 ## Agent-Specific Instructions
 - If using AI assistance, read `CLAUDE.md`. For proposals/spec changes, start with `openspec/AGENTS.md`.

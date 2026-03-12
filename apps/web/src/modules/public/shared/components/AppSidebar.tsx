@@ -38,7 +38,6 @@ import {
 	Building2Icon,
 	CalendarDaysIcon,
 	ClipboardListIcon,
-	CompassIcon,
 	FolderOpenIcon,
 	LogOutIcon,
 	MessageSquareIcon,
@@ -47,7 +46,6 @@ import {
 	ShieldCheckIcon,
 	TrophyIcon,
 	UserCircle2Icon,
-	UsersIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import NextLink from "next/link";
@@ -145,12 +143,14 @@ export function AppSidebar() {
 				href: "/posts",
 				icon: MessageSquareIcon,
 			},
-			...(user && hasOrgs
+			...(user
 				? [
 						{
-							label: t("tab_nav.members"),
-							href: `/orgs/${resolvedOrgSlug}/members`,
-							icon: UsersIcon,
+							label: t("tab_nav.organizations"),
+							href: resolvedOrgSlug
+								? `/orgs/${resolvedOrgSlug}`
+								: "/orgs",
+							icon: Building2Icon,
 						},
 					]
 				: []),
@@ -179,13 +179,7 @@ export function AppSidebar() {
 							icon: Building2Icon,
 						},
 					]
-				: [
-						{
-							label: t("tab_nav.discoverOrgs"),
-							href: "/orgs",
-							icon: CompassIcon,
-						},
-					]),
+				: []),
 		],
 	};
 
@@ -238,19 +232,11 @@ export function AppSidebar() {
 	const isActive = (href: string) => {
 		if (href === "/") return pathname === "/";
 		if (href.startsWith("/?tag=")) return false;
-		// "成员" link: match any /orgs/*/members path
-		if (href.includes("/orgs/") && href.endsWith("/members")) {
-			return /^\/orgs\/[^/]+\/members/.test(pathname);
-		}
-		// "我的社区" link: match /orgs/{slug} but not /members subpath, and not /orgs list
+		// "组织" link: match /orgs/{slug} detail pages, but not /orgs list
 		if (/^\/orgs\/[^/]+$/.test(href)) {
-			return (
-				/^\/orgs\/[^/]+/.test(pathname) &&
-				!pathname.includes("/members") &&
-				pathname !== "/orgs"
-			);
+			return /^\/orgs\/[^/]+/.test(pathname) && pathname !== "/orgs";
 		}
-		// "发现组织" link: exact match /orgs
+		// "组织列表" link: exact match /orgs
 		if (href === "/orgs") return pathname === "/orgs";
 		return pathname.startsWith(href);
 	};

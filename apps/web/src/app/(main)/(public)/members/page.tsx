@@ -42,7 +42,7 @@ export default function MembersPage() {
 				? organizations.find((o) => o.slug === savedSlug) ||
 					organizations[0]
 				: organizations[0];
-			router.replace(`/orgs/${targetOrg.slug}/members`);
+			router.replace(`/orgs/${targetOrg.slug}?tab=members`);
 		}
 	}, [isLoading, organizations, router]);
 
