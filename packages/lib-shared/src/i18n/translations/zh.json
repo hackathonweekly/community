@@ -4149,6 +4149,7 @@
 		"welcome": "欢迎 {name}！"
 	},
 	"tab_nav": {
+		"about": "关于我们",
 		"blog": "博客",
 		"changelog": "更新日志",
 		"collab_docs": "协作文档",

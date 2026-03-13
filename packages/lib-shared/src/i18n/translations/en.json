@@ -4032,6 +4032,7 @@
 		"welcome": "Welcome {name}!"
 	},
 	"tab_nav": {
+		"about": "About Us",
 		"blog": "Blog",
 		"changelog": "Changelog",
 		"collab_docs": "Collaboration Docs",

@@ -1,6 +1,7 @@
 "use client";
 
 import { clearCache } from "@/actions/clear-cache";
+import { getResourceNavItemKeys } from "@/modules/public/shared/lib/sidebar-nav-policy";
 import { config } from "@community/config";
 import { useUnreadNotificationsCountQuery } from "@community/lib-client/api/api-hooks";
 import { authClient } from "@community/lib-client/auth/client";
@@ -39,6 +40,7 @@ import {
 	CalendarDaysIcon,
 	ClipboardListIcon,
 	FolderOpenIcon,
+	InfoIcon,
 	LogOutIcon,
 	MessageSquareIcon,
 	MoreHorizontalIcon,
@@ -169,18 +171,28 @@ export function AppSidebar() {
 
 	const resourcesGroup: NavGroupConfig = {
 		label: t("tab_nav.groupResources"),
-		items: [
-			{ label: t("tab_nav.docs"), href: "/docs", icon: BookOpenIcon },
-			...(!user
-				? [
-						{
-							label: t("tab_nav.organizations"),
-							href: "/orgs",
-							icon: Building2Icon,
-						},
-					]
-				: []),
-		],
+		items: getResourceNavItemKeys(Boolean(user)).map((itemKey) => {
+			switch (itemKey) {
+				case "docs":
+					return {
+						label: t("tab_nav.docs"),
+						href: "/docs",
+						icon: BookOpenIcon,
+					};
+				case "organizations":
+					return {
+						label: t("tab_nav.organizations"),
+						href: "/orgs",
+						icon: Building2Icon,
+					};
+				case "about":
+					return {
+						label: t("tab_nav.about"),
+						href: "/",
+						icon: InfoIcon,
+					};
+			}
+		}),
 	};
 
 	const adminGroup: NavGroupConfig | null =
