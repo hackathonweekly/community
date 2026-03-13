@@ -35,7 +35,8 @@ RUN apt-get update && \
 # Copy pruned manifests and lockfile
 COPY --from=pruner /app/out/json/ ./
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
-# Ensure Prisma schema exists before postinstall runs
+# Ensure Prisma config and schema exist before postinstall runs
+COPY --from=pruner /app/out/full/apps/web/prisma.config.ts ./apps/web/prisma.config.ts
 COPY --from=pruner /app/out/full/packages/lib-server/src/database/prisma ./packages/lib-server/src/database/prisma
 
 # Install deps for the pruned workspace
