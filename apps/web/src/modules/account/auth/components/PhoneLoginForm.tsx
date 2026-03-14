@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const formSchema = z.object({
 	phoneNumber: z.string().min(1, "手机号不能为空"),

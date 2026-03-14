@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "@/hooks/router";
 import { Button } from "@community/ui/ui/button";
 import {
 	Dialog,
@@ -9,7 +10,6 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@community/ui/ui/dialog";
-import { useRouter } from "@/hooks/router";
 import { useSession } from "@dashboard/auth/hooks/use-session";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -60,6 +60,11 @@ export function PhoneBindingPrompt() {
 		return query ? `${pathname}?${query}` : pathname;
 	}, [pathname, searchParams]);
 
+	const bindHref = useMemo(() => {
+		const redirectTo = currentPath || "/";
+		return `/auth/bind-phone?redirectTo=${encodeURIComponent(redirectTo)}`;
+	}, [currentPath]);
+
 	const skip = useCallback((durationMs = SKIP_DURATION_MS) => {
 		try {
 			window.localStorage.setItem(
@@ -73,11 +78,10 @@ export function PhoneBindingPrompt() {
 	}, []);
 
 	const goBind = useCallback(() => {
-		const redirectTo = currentPath || "/";
-		router.push(
-			`/auth/bind-phone?redirectTo=${encodeURIComponent(redirectTo)}`,
-		);
-	}, [currentPath, router]);
+		setOpen(false);
+		router.push(bindHref);
+		window.location.assign(bindHref);
+	}, [bindHref, router]);
 
 	useEffect(() => {
 		if (!loaded || !user) return;
@@ -132,10 +136,14 @@ export function PhoneBindingPrompt() {
 					{t("auth.phoneBindingPrompt.note")}
 				</div>
 				<DialogFooter>
-					<Button variant="secondary" onClick={() => skip()}>
+					<Button
+						type="button"
+						variant="secondary"
+						onClick={() => skip()}
+					>
 						{t("auth.phoneBindingPrompt.skip")}
 					</Button>
-					<Button onClick={goBind}>
+					<Button type="button" onClick={goBind}>
 						{t("auth.phoneBindingPrompt.bindNow")}
 					</Button>
 				</DialogFooter>

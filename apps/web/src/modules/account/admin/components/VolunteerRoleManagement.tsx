@@ -37,7 +37,7 @@ import {
 } from "@community/ui/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { toast } from "sonner";
 import {
 	Form,

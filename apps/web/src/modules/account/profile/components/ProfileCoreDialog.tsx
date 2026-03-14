@@ -30,7 +30,7 @@ import { Textarea } from "@community/ui/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { User } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { LIFE_STATUS_OPTIONS } from "@community/lib-shared/utils/life-status";
 import { PROFILE_LIMITS } from "@community/lib-shared/utils/profile-limits";
 

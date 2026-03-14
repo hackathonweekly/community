@@ -19,7 +19,7 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import * as z from "zod/v4";
 
 const formSchema = z.object({
 	email: z.string().email(),

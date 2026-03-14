@@ -22,7 +22,7 @@ import { Textarea } from "@community/ui/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { HandHeart, Search } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const resourceMatchingSchema = z.object({
 	whatICanOffer: z.string().max(500, "能提供的帮助不能超过500字").optional(),

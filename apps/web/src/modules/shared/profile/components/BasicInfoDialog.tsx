@@ -32,7 +32,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDebounceCallback } from "usehooks-ts";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { WechatQrCodeUpload } from "@account/profile/components/WechatQrCodeUpload";
 
 // 性别选项配置

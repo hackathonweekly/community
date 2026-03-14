@@ -31,4 +31,5 @@ export const { useSession } = authClient as any;
 
 export type AuthClientErrorCodes = typeof authClient.$ERROR_CODES & {
 	INVALID_INVITATION: string;
+	USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: string;
 };

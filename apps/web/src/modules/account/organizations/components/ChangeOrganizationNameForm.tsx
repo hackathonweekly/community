@@ -11,7 +11,7 @@ import { Input } from "@community/ui/ui/input";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const formSchema = z.object({
 	name: z.string().min(3),

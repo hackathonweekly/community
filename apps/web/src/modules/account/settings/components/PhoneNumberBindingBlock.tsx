@@ -31,7 +31,7 @@ import { CheckCircle2Icon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 const phoneBindingSchema = z.object({
 	phoneNumber: z.string().min(1, "请输入手机号"),

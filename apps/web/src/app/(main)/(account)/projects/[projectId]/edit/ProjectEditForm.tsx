@@ -18,7 +18,7 @@ import { ProjectTagSelector } from "@account/profile/components/ProjectTagSelect
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PricingType, ProjectStage } from "@community/lib-shared/prisma-enums";
 import { type SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ProjectMilestoneSelectorModal } from "../../create/ProjectMilestoneSelectorModal";
 import { ProjectStageSelector } from "../../create/ProjectStageSelector";
 import { TeamRecruitmentSection } from "../../create/TeamRecruitmentSection";

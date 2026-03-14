@@ -28,7 +28,7 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { withQuery } from "ufo";
-import { z } from "zod";
+import { z } from "zod/v4";
 import {
 	type OAuthProvider,
 	oAuthProviders,

@@ -35,7 +35,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { authClient } from "@community/lib-client/auth/client";
 
 const formSchema = z.object({

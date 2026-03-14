@@ -23,7 +23,7 @@ import { Textarea } from "@community/ui/ui/textarea";
 import { AlertTriangle, Lock, Shield, CheckCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { useEffect } from "react";
 
 const identityVerificationSchema = z.object({

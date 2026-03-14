@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { clearCache } from "@/actions/clear-cache";
 import { useRouter } from "@/hooks/router";
 import { authClient } from "@community/lib-client/auth/client";

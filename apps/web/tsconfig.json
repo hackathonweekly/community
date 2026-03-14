@@ -47,7 +47,9 @@
 			"@community/lib-server/*": ["../../packages/lib-server/src/*"],
 			"@community/lib-shared/*": ["../../packages/lib-shared/src/*"],
 			"@community/config": ["../../packages/config/src/index.ts"],
-			"@community/config/*": ["../../packages/config/src/*"]
+			"@community/config/*": ["../../packages/config/src/*"],
+			"zod": ["./node_modules/zod"],
+			"zod/*": ["./node_modules/zod/*"]
 		}
 	},
 	"include": [

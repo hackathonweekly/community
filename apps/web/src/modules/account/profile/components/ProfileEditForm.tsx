@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { useQueryClient } from "@tanstack/react-query";
 import { cacheInvalidation } from "@community/lib-client/cache-config";
 import {
