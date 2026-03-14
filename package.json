@@ -20,11 +20,11 @@
 		"prepare": "husky"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
+		"@biomejs/biome": "2.4.7",
 		"husky": "^9.1.7",
 		"playwright-core": "^1.58.2",
-		"puppeteer": "^24.37.3",
-		"turbo": "^2.5.0"
+		"puppeteer": "^24.39.1",
+		"turbo": "^2.8.17"
 	},
 	"pnpm": {
 		"overrides": {
