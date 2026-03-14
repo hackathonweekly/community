@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@community/ui/ui/button";
 import {
 	Dialog,
@@ -53,7 +53,6 @@ export function PhoneBindingPrompt() {
 	const { user, loaded } = useSession();
 
 	const [open, setOpen] = useState(false);
-	const noteRef = useRef<HTMLDivElement>(null);
 
 	const currentPath = useMemo(() => {
 		const query = searchParams?.toString();
@@ -117,13 +116,7 @@ export function PhoneBindingPrompt() {
 				else setOpen(true);
 			}}
 		>
-			<DialogContent
-				className="sm:max-w-md"
-				onOpenAutoFocus={(event) => {
-					event.preventDefault();
-					noteRef.current?.focus();
-				}}
-			>
+			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
 					<DialogTitle>
 						{t("auth.phoneBindingPrompt.title")}
@@ -132,11 +125,7 @@ export function PhoneBindingPrompt() {
 						{t("auth.phoneBindingPrompt.description")}
 					</DialogDescription>
 				</DialogHeader>
-				<div
-					ref={noteRef}
-					tabIndex={-1}
-					className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
-				>
+				<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
 					{t("auth.phoneBindingPrompt.note")}
 				</div>
 				<DialogFooter>
@@ -147,7 +136,7 @@ export function PhoneBindingPrompt() {
 					>
 						{t("auth.phoneBindingPrompt.skip")}
 					</Button>
-					<Button asChild>
+					<Button asChild onClick={() => setOpen(false)}>
 						<Link href={bindHref}>
 							{t("auth.phoneBindingPrompt.bindNow")}
 						</Link>
