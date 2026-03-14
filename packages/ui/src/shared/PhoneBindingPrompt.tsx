@@ -1,6 +1,9 @@
 "use client";
 
-import { useRouter } from "@/hooks/router";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@community/ui/ui/button";
 import {
 	Dialog,
@@ -11,9 +14,6 @@ import {
 	DialogTitle,
 } from "@community/ui/ui/dialog";
 import { useSession } from "@dashboard/auth/hooks/use-session";
-import { useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 const PHONE_BINDING_SKIP_UNTIL_KEY = "hw.phoneBinding.skipUntil";
 const SKIP_DURATION_MS = 24 * 60 * 60 * 1000;
@@ -48,12 +48,12 @@ function needsPhoneBinding(user: {
 
 export function PhoneBindingPrompt() {
 	const t = useTranslations();
-	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const { user, loaded } = useSession();
 
 	const [open, setOpen] = useState(false);
+	const noteRef = useRef<HTMLDivElement>(null);
 
 	const currentPath = useMemo(() => {
 		const query = searchParams?.toString();
@@ -76,12 +76,6 @@ export function PhoneBindingPrompt() {
 		}
 		setOpen(false);
 	}, []);
-
-	const goBind = useCallback(() => {
-		setOpen(false);
-		router.push(bindHref);
-		window.location.assign(bindHref);
-	}, [bindHref, router]);
 
 	useEffect(() => {
 		if (!loaded || !user) return;
@@ -123,7 +117,13 @@ export function PhoneBindingPrompt() {
 				else setOpen(true);
 			}}
 		>
-			<DialogContent className="sm:max-w-md">
+			<DialogContent
+				className="sm:max-w-md"
+				onOpenAutoFocus={(event) => {
+					event.preventDefault();
+					noteRef.current?.focus();
+				}}
+			>
 				<DialogHeader>
 					<DialogTitle>
 						{t("auth.phoneBindingPrompt.title")}
@@ -132,7 +132,11 @@ export function PhoneBindingPrompt() {
 						{t("auth.phoneBindingPrompt.description")}
 					</DialogDescription>
 				</DialogHeader>
-				<div className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+				<div
+					ref={noteRef}
+					tabIndex={-1}
+					className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+				>
 					{t("auth.phoneBindingPrompt.note")}
 				</div>
 				<DialogFooter>
@@ -143,8 +147,10 @@ export function PhoneBindingPrompt() {
 					>
 						{t("auth.phoneBindingPrompt.skip")}
 					</Button>
-					<Button type="button" onClick={goBind}>
-						{t("auth.phoneBindingPrompt.bindNow")}
+					<Button asChild>
+						<Link href={bindHref}>
+							{t("auth.phoneBindingPrompt.bindNow")}
+						</Link>
 					</Button>
 				</DialogFooter>
 			</DialogContent>
