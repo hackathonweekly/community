@@ -64,12 +64,13 @@ function logConsoleWelcome() {
 
 	console.log(`%c${config.appName}`, CONSOLE_BANNER_STYLE);
 	console.log("%c中文", CONSOLE_SUBTITLE_STYLE);
+	console.log("%c让点子在周末长成 demo。", CONSOLE_SUBTITLE_STYLE);
 	console.log(
-		"%cHackathonWeekly 是一个面向黑客松和 AI Builder 的开源社区。",
+		"%cHackathonWeekly 是一个给黑客松、AI Builder 和社区组织者一起做事的开源社区。",
 		CONSOLE_SUBTITLE_STYLE,
 	);
 	console.log(
-		"%c在这里你可以发现活动、发布项目、加入组织，一起把点子做成 demo。",
+		"%c在这里你可以发现活动、发布项目、加入组织，也可以直接修一个 bug 或提一个 PR。",
 		CONSOLE_SUBTITLE_STYLE,
 	);
 	console.log(
@@ -92,11 +93,15 @@ function logConsoleWelcome() {
 	);
 	console.log("%cEnglish", CONSOLE_SUBTITLE_STYLE);
 	console.log(
-		"%cHackathonWeekly is an open-source community for hackathons and AI builders.",
+		"%cBuild fast. Meet good people. Ship in public.",
 		CONSOLE_SUBTITLE_STYLE,
 	);
 	console.log(
-		"%cYou can discover events, share projects, join organizations, and ship ideas into demos here.",
+		"%cHackathonWeekly is an open-source community for hackathons, AI builders, and community organizers.",
+		CONSOLE_SUBTITLE_STYLE,
+	);
+	console.log(
+		"%cYou can discover events, share projects, join organizations, or just pick an issue and send a PR.",
 		CONSOLE_SUBTITLE_STYLE,
 	);
 	console.log(
