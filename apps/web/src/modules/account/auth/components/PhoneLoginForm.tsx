@@ -1,5 +1,11 @@
 "use client";
 
+import { useRouter } from "@/hooks/router";
+import { sendPhoneOTP } from "@community/lib-client/auth/phone-api";
+import {
+	AppErrorHandler,
+	ErrorType,
+} from "@community/lib-client/error/handler";
 import { Alert } from "@community/ui/ui/alert";
 import { Button } from "@community/ui/ui/button";
 import {
@@ -11,17 +17,12 @@ import {
 	FormMessage,
 } from "@community/ui/ui/form";
 import { PhoneInput } from "@community/ui/ui/phone-input";
-import { useRouter } from "@/hooks/router";
-import { sendPhoneOTP } from "@community/lib-client/auth/phone-api";
-import {
-	AppErrorHandler,
-	ErrorType,
-} from "@community/lib-client/error/handler";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangleIcon, ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -40,9 +41,16 @@ export function PhoneLoginForm() {
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			phoneNumber: "",
+			phoneNumber: searchParams.get("phoneNumber") ?? "",
 		},
 	});
+
+	useEffect(() => {
+		const phoneNumber = searchParams.get("phoneNumber");
+		if (phoneNumber) {
+			form.setValue("phoneNumber", phoneNumber);
+		}
+	}, [form, searchParams]);
 
 	const onSubmit: SubmitHandler<FormValues> = async (values) => {
 		form.clearErrors("root");
@@ -98,10 +106,9 @@ export function PhoneLoginForm() {
 		}
 
 		// 成功发送验证码，跳转到验证码页面
-		const queryString = searchParams.toString();
-		router.push(
-			`/auth/login/phone/verify?phoneNumber=${encodeURIComponent(values.phoneNumber)}${queryString ? `&${queryString}` : ""}`,
-		);
+		const nextSearchParams = new URLSearchParams(searchParams.toString());
+		nextSearchParams.set("phoneNumber", values.phoneNumber);
+		router.push(`/auth/login/phone/verify?${nextSearchParams.toString()}`);
 	};
 
 	return (

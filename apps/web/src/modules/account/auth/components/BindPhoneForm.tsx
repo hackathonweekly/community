@@ -1,5 +1,17 @@
 "use client";
 
+import { useRouter } from "@/hooks/router";
+import { sessionQueryKey } from "@account/auth/lib/api";
+import { config } from "@community/config";
+import {
+	sendPhoneOTP,
+	verifyPhoneOTP,
+} from "@community/lib-client/auth/phone-api";
+import { isPhoneNumberAlreadyInUseError } from "@community/lib-client/auth/phone-errors";
+import {
+	AppErrorHandler,
+	ErrorType,
+} from "@community/lib-client/error/handler";
 import { Alert } from "@community/ui/ui/alert";
 import { Button } from "@community/ui/ui/button";
 import {
@@ -16,18 +28,7 @@ import {
 	InputOTPSlot,
 } from "@community/ui/ui/input-otp";
 import { PhoneInput } from "@community/ui/ui/phone-input";
-import { config } from "@community/config";
-import {
-	sendPhoneOTP,
-	verifyPhoneOTP,
-} from "@community/lib-client/auth/phone-api";
-import {
-	AppErrorHandler,
-	ErrorType,
-} from "@community/lib-client/error/handler";
-import { sessionQueryKey } from "@account/auth/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "@/hooks/router";
 import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangleIcon, CheckCircleIcon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -37,6 +38,7 @@ import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { useSession } from "../hooks/use-session";
+import { PhoneNumberConflictActions } from "./PhoneNumberConflictActions";
 
 const formSchema = z.object({
 	phoneNumber: z.string().min(1, "手机号不能为空"),
@@ -55,6 +57,8 @@ export function BindPhoneForm() {
 	const [isOtpSent, setIsOtpSent] = useState(false);
 	const [otpCountdown, setOtpCountdown] = useState(0);
 	const [bindingSuccess, setBindingSuccess] = useState(false);
+	const [showPhoneConflictActions, setShowPhoneConflictActions] =
+		useState(false);
 
 	const redirectTo = searchParams.get("redirectTo");
 	const redirectPath = redirectTo ?? config.auth.redirectAfterSignIn;
@@ -97,6 +101,7 @@ export function BindPhoneForm() {
 
 	// 发送手机验证码
 	const sendPhoneOtp = async (fullPhoneNumber: string) => {
+		setShowPhoneConflictActions(false);
 		const result = await sendPhoneOTP(fullPhoneNumber, "VERIFY");
 
 		if (result.error) {
@@ -130,6 +135,11 @@ export function BindPhoneForm() {
 			}
 			if (result.error.message?.includes("INVALID_PHONE_NUMBER")) {
 				friendlyMessage = t("auth.bindPhone.errors.invalidPhoneNumber");
+			} else if (isPhoneNumberAlreadyInUseError(result.error.message)) {
+				friendlyMessage = t(
+					"auth.bindPhone.errors.phoneNumberAlreadyInUse",
+				);
+				setShowPhoneConflictActions(true);
 			} else if (
 				result.error.message?.includes(
 					"Missing required environment variable",
@@ -153,8 +163,17 @@ export function BindPhoneForm() {
 		return true;
 	};
 
+	const resetToPhoneEntry = () => {
+		setIsOtpSent(false);
+		setOtpCountdown(0);
+		setShowPhoneConflictActions(false);
+		form.setValue("otp", "");
+		form.clearErrors("root");
+	};
+
 	const onSubmit: SubmitHandler<FormValues> = async (values) => {
 		form.clearErrors("root");
+		setShowPhoneConflictActions(false);
 
 		try {
 			if (!isOtpSent) {
@@ -189,6 +208,11 @@ export function BindPhoneForm() {
 						friendlyMessage = t(
 							"auth.bindPhone.errors.codeExpiredOrIncorrect",
 						);
+					} else if (isPhoneNumberAlreadyInUseError(error.message)) {
+						friendlyMessage = t(
+							"auth.bindPhone.errors.phoneNumberAlreadyInUse",
+						);
+						setShowPhoneConflictActions(true);
 					} else {
 						friendlyMessage = error.message;
 					}
@@ -201,6 +225,7 @@ export function BindPhoneForm() {
 
 				// 绑定成功，显示成功提示
 				setBindingSuccess(true);
+				setShowPhoneConflictActions(false);
 
 				// 绑定后强制刷新会话，确保跨页面/SSR 的 user 字段（如 phoneNumberVerified）立即生效
 				try {
@@ -216,8 +241,12 @@ export function BindPhoneForm() {
 				}, 1500);
 			}
 		} catch (e: any) {
+			const isPhoneConflict = isPhoneNumberAlreadyInUseError(e?.message);
+			setShowPhoneConflictActions(isPhoneConflict);
 			form.setError("root", {
-				message: e?.message || t("auth.bindPhone.errors.bindingFailed"),
+				message: isPhoneConflict
+					? t("auth.bindPhone.errors.phoneNumberAlreadyInUse")
+					: e?.message || t("auth.bindPhone.errors.bindingFailed"),
 			});
 		}
 	};
@@ -267,7 +296,7 @@ export function BindPhoneForm() {
 						form.formState.errors.root?.message && (
 							<Alert variant="destructive">
 								<AlertTriangleIcon />
-								<div>
+								<div className="space-y-3">
 									{typeof form.formState.errors.root
 										.message === "string" ? (
 										<div className="text-sm font-medium">
@@ -275,6 +304,24 @@ export function BindPhoneForm() {
 										</div>
 									) : (
 										form.formState.errors.root.message
+									)}
+									{showPhoneConflictActions && (
+										<>
+											<p className="text-sm text-destructive/90">
+												{t(
+													"auth.bindPhone.phoneNumberAlreadyInUseHelp",
+												)}
+											</p>
+											<PhoneNumberConflictActions
+												phoneNumber={form.watch(
+													"phoneNumber",
+												)}
+												redirectTo={redirectPath}
+												onUseAnotherPhone={
+													resetToPhoneEntry
+												}
+											/>
+										</>
 									)}
 								</div>
 							</Alert>
@@ -311,11 +358,8 @@ export function BindPhoneForm() {
 								<Button
 									variant="ghost"
 									size="sm"
-									onClick={() => {
-										setIsOtpSent(false);
-										setOtpCountdown(0);
-										form.setValue("otp", "");
-									}}
+									type="button"
+									onClick={resetToPhoneEntry}
 									className="p-0 h-auto text-sm text-muted-foreground hover:text-foreground"
 								>
 									{t("auth.bindPhone.backToModifyPhone")}
@@ -393,6 +437,7 @@ export function BindPhoneForm() {
 									<Button
 										variant="link"
 										size="sm"
+										type="button"
 										onClick={() =>
 											sendPhoneOtp(
 												form.watch("phoneNumber"),

@@ -1,7 +1,19 @@
 "use client";
 
+import { useToast } from "@/hooks/use-toast";
+import { PhoneNumberConflictActions } from "@account/auth/components/PhoneNumberConflictActions";
+import { useSession } from "@account/auth/hooks/use-session";
+import {
+	sendPhoneOTP,
+	verifyPhoneOTP,
+} from "@community/lib-client/auth/phone-api";
+import { isPhoneNumberAlreadyInUseError } from "@community/lib-client/auth/phone-errors";
+import {
+	AppErrorHandler,
+	ErrorType,
+} from "@community/lib-client/error/handler";
+import { Alert } from "@community/ui/ui/alert";
 import { Button } from "@community/ui/ui/button";
-import { PhoneInput } from "@community/ui/ui/phone-input";
 import {
 	Form,
 	FormControl,
@@ -15,19 +27,10 @@ import {
 	InputOTPGroup,
 	InputOTPSlot,
 } from "@community/ui/ui/input-otp";
-import {
-	sendPhoneOTP,
-	verifyPhoneOTP,
-} from "@community/lib-client/auth/phone-api";
-import {
-	AppErrorHandler,
-	ErrorType,
-} from "@community/lib-client/error/handler";
-import { useSession } from "@account/auth/hooks/use-session";
-import { SettingsItem } from "@shared/components/SettingsItem";
-import { useToast } from "@/hooks/use-toast";
+import { PhoneInput } from "@community/ui/ui/phone-input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2Icon, Loader2Icon } from "lucide-react";
+import { SettingsItem } from "@shared/components/SettingsItem";
+import { AlertTriangleIcon, CheckCircle2Icon, Loader2Icon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -48,6 +51,8 @@ export function PhoneNumberBindingBlock() {
 	const [isOtpSent, setIsOtpSent] = useState(false);
 	const [otpCountdown, setOtpCountdown] = useState(0);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [showPhoneConflictActions, setShowPhoneConflictActions] =
+		useState(false);
 
 	const form = useForm<PhoneBindingFormValues>({
 		resolver: zodResolver(phoneBindingSchema),
@@ -74,6 +79,7 @@ export function PhoneNumberBindingBlock() {
 
 	// 发送验证码
 	const sendOTP = async (phoneNumber: string) => {
+		setShowPhoneConflictActions(false);
 		setIsSubmitting(true);
 		const result = await sendPhoneOTP(phoneNumber, "REGISTRATION");
 
@@ -101,6 +107,13 @@ export function PhoneNumberBindingBlock() {
 
 				if (result.error.message?.includes("INVALID_PHONE_NUMBER")) {
 					friendlyMessage = "手机号格式不正确";
+				} else if (
+					isPhoneNumberAlreadyInUseError(result.error.message)
+				) {
+					friendlyMessage = t(
+						"auth.bindPhone.errors.phoneNumberAlreadyInUse",
+					);
+					setShowPhoneConflictActions(true);
 				} else {
 					friendlyMessage = result.error.message;
 				}
@@ -118,8 +131,17 @@ export function PhoneNumberBindingBlock() {
 		return true;
 	};
 
+	const resetToPhoneEntry = () => {
+		setIsOtpSent(false);
+		setOtpCountdown(0);
+		setShowPhoneConflictActions(false);
+		form.setValue("otp", "");
+		form.clearErrors("root");
+	};
+
 	// 验证验证码并绑定手机号
 	const verifyAndBind = async (phoneNumber: string, code: string) => {
+		setShowPhoneConflictActions(false);
 		setIsSubmitting(true);
 		const result = await verifyPhoneOTP(
 			phoneNumber,
@@ -155,6 +177,13 @@ export function PhoneNumberBindingBlock() {
 					result.error.message?.includes("验证码错误或已过期")
 				) {
 					friendlyMessage = "验证码错误或已过期，请重新获取";
+				} else if (
+					isPhoneNumberAlreadyInUseError(result.error.message)
+				) {
+					friendlyMessage = t(
+						"auth.bindPhone.errors.phoneNumberAlreadyInUse",
+					);
+					setShowPhoneConflictActions(true);
 				} else {
 					friendlyMessage = result.error.message;
 				}
@@ -173,6 +202,7 @@ export function PhoneNumberBindingBlock() {
 		form.reset();
 		setIsOtpSent(false);
 		setOtpCountdown(0);
+		setShowPhoneConflictActions(false);
 		setIsSubmitting(false);
 		return true;
 	};
@@ -224,6 +254,8 @@ export function PhoneNumberBindingBlock() {
 	};
 
 	const onSubmit = async (values: PhoneBindingFormValues) => {
+		form.clearErrors("root");
+		setShowPhoneConflictActions(false);
 		if (!isOtpSent) {
 			// 发送验证码
 			await sendOTP(values.phoneNumber);
@@ -321,11 +353,7 @@ export function PhoneNumberBindingBlock() {
 										variant="ghost"
 										size="sm"
 										type="button"
-										onClick={() => {
-											setIsOtpSent(false);
-											setOtpCountdown(0);
-											form.setValue("otp", "");
-										}}
+										onClick={resetToPhoneEntry}
 										className="p-0 h-auto text-sm text-muted-foreground hover:text-foreground"
 									>
 										← 返回修改手机号
@@ -422,9 +450,31 @@ export function PhoneNumberBindingBlock() {
 
 						{/* 错误信息 */}
 						{form.formState.errors.root?.message && (
-							<div className="text-sm text-destructive">
-								{form.formState.errors.root.message}
-							</div>
+							<Alert variant="destructive">
+								<AlertTriangleIcon />
+								<div className="space-y-3">
+									<div className="text-sm font-medium">
+										{form.formState.errors.root.message}
+									</div>
+									{showPhoneConflictActions && (
+										<>
+											<p className="text-sm text-destructive/90">
+												{t(
+													"auth.bindPhone.phoneNumberAlreadyInUseHelp",
+												)}
+											</p>
+											<PhoneNumberConflictActions
+												phoneNumber={form.watch(
+													"phoneNumber",
+												)}
+												onUseAnotherPhone={
+													resetToPhoneEntry
+												}
+											/>
+										</>
+									)}
+								</div>
+							</Alert>
 						)}
 
 						{/* 提交按钮 */}
