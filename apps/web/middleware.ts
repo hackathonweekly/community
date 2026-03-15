@@ -122,7 +122,11 @@ export default async function middleware(req: NextRequest) {
 	const session = shouldFetchSession ? await getSession(req) : null;
 
 	if (pathname.startsWith("/auth")) {
-		if (session && pathname !== "/auth/reset-password") {
+		if (
+			session &&
+			pathname !== "/auth/reset-password" &&
+			pathname !== "/auth/bind-phone"
+		) {
 			const redirectTo =
 				req.nextUrl.searchParams.get("redirectTo") ??
 				req.nextUrl.searchParams.get("callbackUrl");
