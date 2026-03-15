@@ -32,6 +32,7 @@ import {
 	Cog6ToothIcon,
 	DocumentTextIcon,
 	RectangleStackIcon,
+	ShieldCheckIcon,
 	SparklesIcon,
 	UsersIcon,
 } from "@heroicons/react/24/outline";
@@ -40,6 +41,7 @@ import { useSession } from "@shared/auth/hooks/use-session";
 import { UserLevelBadges } from "@shared/level/components/LevelBadge";
 import { OrganizationLogo } from "@shared/organizations/components/OrganizationLogo";
 import { useOrganizationsByRoleQuery } from "@shared/organizations/lib/api";
+import { isAdmin } from "@community/lib-shared/auth/permissions";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -394,6 +396,17 @@ export default function MePage() {
 			</Section>
 
 			<Section title={t("mePage.settingsAndHelp")}>
+				{isAdmin(user) && (
+					<ListRow
+						item={{
+							title: "超级管理中心",
+							href: "/admin/dashboard",
+							icon: ShieldCheckIcon,
+						}}
+						isLoading={false}
+						showCount={false}
+					/>
+				)}
 				<ListRow
 					item={{
 						title: t("tab_nav.docs"),
