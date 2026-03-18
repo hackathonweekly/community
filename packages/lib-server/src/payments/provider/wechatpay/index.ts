@@ -34,12 +34,13 @@ const resolveConfig = () => {
 	const appId =
 		process.env.WECHAT_SERVICE_ACCOUNT_APP_ID ||
 		process.env.WECHAT_PAY_APP_ID;
+	const miniProgramAppId = process.env.WECHAT_MINIPROGRAM_APP_ID;
 
 	if (!mchId || !serialNo || !apiV3Key) {
 		throw new Error("WeChat Pay configuration is missing.");
 	}
 
-	return { mchId, serialNo, apiV3Key, notifyUrl, appId };
+	return { mchId, serialNo, apiV3Key, notifyUrl, appId, miniProgramAppId };
 };
 
 const normalizePrivateKey = (value: string) =>
@@ -303,23 +304,24 @@ export const createWechatNativeOrder = async (params: {
 	};
 };
 
-const buildJsapiParams = (params: { prepayId: string }) => {
-	const { appId } = resolveConfig();
-	if (!appId) {
+const buildJsapiParams = (params: { prepayId: string; appId?: string }) => {
+	const config = resolveConfig();
+	const effectiveAppId = params.appId || config.appId;
+	if (!effectiveAppId) {
 		throw new Error("WeChat Pay App ID is missing.");
 	}
 
 	const timeStamp = Math.floor(Date.now() / 1000).toString();
 	const nonceStr = randomBytes(16).toString("hex");
 	const pkg = `prepay_id=${params.prepayId}`;
-	const message = `${appId}\n${timeStamp}\n${nonceStr}\n${pkg}\n`;
+	const message = `${effectiveAppId}\n${timeStamp}\n${nonceStr}\n${pkg}\n`;
 
 	const paySign = createSign("RSA-SHA256")
 		.update(message)
 		.sign(resolvePrivateKey(), "base64");
 
 	return {
-		appId,
+		appId: effectiveAppId,
 		timeStamp,
 		nonceStr,
 		package: pkg,
@@ -328,26 +330,28 @@ const buildJsapiParams = (params: { prepayId: string }) => {
 	};
 };
 
-export const buildWechatJsapiParams = (prepayId: string) =>
-	buildJsapiParams({ prepayId });
+export const buildWechatJsapiParams = (prepayId: string, appId?: string) =>
+	buildJsapiParams({ prepayId, appId });
 
 export const createWechatJsapiOrder = async (params: {
 	outTradeNo: string;
 	description: string;
 	amount: number;
 	payerOpenId: string;
+	appId?: string;
 }) => {
-	const { mchId, notifyUrl, appId } = resolveConfig();
-	if (!notifyUrl || !appId) {
+	const config = resolveConfig();
+	const effectiveAppId = params.appId || config.appId;
+	if (!config.notifyUrl || !effectiveAppId) {
 		throw new Error("WeChat Pay notify URL or App ID is missing.");
 	}
 
 	const body = {
-		mchid: mchId,
+		mchid: config.mchId,
 		out_trade_no: params.outTradeNo,
-		appid: appId,
+		appid: effectiveAppId,
 		description: params.description,
-		notify_url: notifyUrl,
+		notify_url: config.notifyUrl,
 		amount: {
 			total: params.amount,
 			currency: "CNY",
@@ -365,7 +369,10 @@ export const createWechatJsapiOrder = async (params: {
 
 	return {
 		prepayId: response.prepay_id,
-		jsapiParams: buildJsapiParams({ prepayId: response.prepay_id }),
+		jsapiParams: buildJsapiParams({
+			prepayId: response.prepay_id,
+			appId: params.appId,
+		}),
 	};
 };
 

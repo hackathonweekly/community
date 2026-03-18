@@ -63,6 +63,7 @@ const buildPayload = (params: {
 	orderNo: string;
 	codeUrl: string | null;
 	prepayId: string | null;
+	appId?: string;
 }):
 	| {
 			success: true;
@@ -98,7 +99,7 @@ const buildPayload = (params: {
 		};
 	}
 
-	const jsapiParams = buildWechatJsapiParams(params.prepayId);
+	const jsapiParams = buildWechatJsapiParams(params.prepayId, params.appId);
 
 	if (params.channel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE) {
 		const requestPaymentParams: WechatMiniProgramRequestPaymentParams = {
@@ -216,6 +217,12 @@ export const prepareEventTicketWechatPayment = async (
 	let codeUrl = order.codeUrl;
 	let paymentMethod = order.paymentMethod;
 
+	// Mini program payments must use the mini program's own appId
+	const miniProgramAppId =
+		channel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE
+			? process.env.WECHAT_MINIPROGRAM_APP_ID
+			: undefined;
+
 	const expectedPaymentMethod = mapChannelToPaymentMethod(channel);
 	if (shouldCreatePaymentInstruction({ channel, codeUrl, prepayId })) {
 		const amountInCents = Math.round(order.totalAmount * 100);
@@ -232,6 +239,7 @@ export const prepareEventTicketWechatPayment = async (
 						description,
 						amount: amountInCents,
 						payerOpenId: order.user.wechatOpenId!,
+						appId: miniProgramAppId,
 					});
 
 		if (!paymentResult) {
@@ -269,6 +277,7 @@ export const prepareEventTicketWechatPayment = async (
 		orderNo: order.orderNo,
 		codeUrl,
 		prepayId,
+		appId: miniProgramAppId,
 	});
 
 	if (!payloadResult.success) {
