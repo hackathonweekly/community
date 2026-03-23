@@ -9,7 +9,6 @@ import {
 	WECHAT_MINI_PROGRAM_MIN_BRIDGE_VERSION,
 	WECHAT_PAYMENT_CHANNELS,
 	WECHAT_PAYMENT_ERROR_CODES,
-	isWechatChannel,
 	resolveWechatPaymentChannel,
 	type WechatMiniProgramRequestPaymentParams,
 	type WechatPaymentChannel,
@@ -196,17 +195,20 @@ export const prepareEventTicketWechatPayment = async (
 
 	const channel = channelResult.channel;
 
-	// Mini program channel requires the mini program openId, not the service account openId
+	// Check if we have the required openId for the payment channel
 	if (channel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE) {
 		if (!order.user.wechatMiniOpenId) {
 			return {
 				success: false,
 				status: 400,
-				error: "未绑定小程序 OpenID，请重新进入小程序后重试",
+				error: "小程序支付需要授权，请关闭小程序重新打开后重试",
 				code: WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED,
 			};
 		}
-	} else if (isWechatChannel(channel) && !order.user.wechatOpenId) {
+	} else if (
+		channel === WECHAT_PAYMENT_CHANNELS.WECHAT_JSAPI &&
+		!order.user.wechatOpenId
+	) {
 		return {
 			success: false,
 			status: 400,
