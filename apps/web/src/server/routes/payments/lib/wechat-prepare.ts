@@ -163,6 +163,7 @@ export const prepareEventTicketWechatPayment = async (
 			user: {
 				select: {
 					wechatOpenId: true,
+					wechatMiniOpenId: true,
 				},
 			},
 		},
@@ -194,7 +195,18 @@ export const prepareEventTicketWechatPayment = async (
 	}
 
 	const channel = channelResult.channel;
-	if (isWechatChannel(channel) && !order.user.wechatOpenId) {
+
+	// Mini program channel requires the mini program openId, not the service account openId
+	if (channel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE) {
+		if (!order.user.wechatMiniOpenId) {
+			return {
+				success: false,
+				status: 400,
+				error: "未绑定小程序 OpenID，请重新进入小程序后重试",
+				code: WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED,
+			};
+		}
+	} else if (isWechatChannel(channel) && !order.user.wechatOpenId) {
 		return {
 			success: false,
 			status: 400,
@@ -238,7 +250,11 @@ export const prepareEventTicketWechatPayment = async (
 						outTradeNo: order.orderNo,
 						description,
 						amount: amountInCents,
-						payerOpenId: order.user.wechatOpenId!,
+						payerOpenId:
+							channel ===
+							WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE
+								? order.user.wechatMiniOpenId!
+								: order.user.wechatOpenId!,
 						appId: miniProgramAppId,
 					});
 

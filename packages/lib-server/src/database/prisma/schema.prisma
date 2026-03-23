@@ -56,6 +56,7 @@ model User {
   wechatId           String?      // 微信号
   wechatQrCode       String?      // 微信二维码图片URL
   wechatOpenId       String?
+  wechatMiniOpenId   String?  // 小程序下的 OpenID（与服务号 OpenID 不同）
   wechatUnionId      String?  // 微信UnionID，用于关联同一开发者账号下的多个应用（移除唯一性约束以支持微信pc/mobile绑定用户时临时创建）
   cpValue            Int          @default(0)
   joinedAt           DateTime?    @default(now())

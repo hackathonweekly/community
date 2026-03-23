@@ -56,7 +56,7 @@ export type InputJsonValueType = z.infer<typeof InputJsonValueSchema>;
 
 export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCommitted','RepeatableRead','Serializable']);
 
-export const UserScalarFieldEnumSchema = z.enum(['id','name','email','emailVerified','image','createdAt','updatedAt','username','role','banned','banReason','banExpires','onboardingComplete','paymentsCustomerId','locale','twoFactorEnabled','bio','region','phoneNumber','phoneNumberVerified','pendingInvitationId','gender','userRoleString','currentWorkOn','whatICanOffer','whatIAmLookingFor','skills','lifeStatus','lastProfileUpdate','githubUrl','twitterUrl','websiteUrl','wechatId','wechatQrCode','wechatOpenId','wechatUnionId','cpValue','joinedAt','profileViews','profilePublic','showEmail','showWechat','realName','idCard','idCardVerified','shippingAddress','shippingName','shippingPhone','identityVerifiedAt','membershipLevel']);
+export const UserScalarFieldEnumSchema = z.enum(['id','name','email','emailVerified','image','createdAt','updatedAt','username','role','banned','banReason','banExpires','onboardingComplete','paymentsCustomerId','locale','twoFactorEnabled','bio','region','phoneNumber','phoneNumberVerified','pendingInvitationId','gender','userRoleString','currentWorkOn','whatICanOffer','whatIAmLookingFor','skills','lifeStatus','lastProfileUpdate','githubUrl','twitterUrl','websiteUrl','wechatId','wechatQrCode','wechatOpenId','wechatMiniOpenId','wechatUnionId','cpValue','joinedAt','profileViews','profilePublic','showEmail','showWechat','realName','idCard','idCardVerified','shippingAddress','shippingName','shippingPhone','identityVerifiedAt','membershipLevel']);
 
 export const EventsApiTokenScalarFieldEnumSchema = z.enum(['id','userId','tokenHash','tokenLastFour','createdAt','createdByIp','createdByUserAgent','lastUsedAt','lastUsedIp','lastUsedUserAgent','revokedAt']);
 
@@ -449,6 +449,7 @@ export const UserSchema = z.object({
   wechatId: z.string().nullable(),
   wechatQrCode: z.string().nullable(),
   wechatOpenId: z.string().nullable(),
+  wechatMiniOpenId: z.string().nullable(),
   wechatUnionId: z.string().nullable(),
   cpValue: z.number().int(),
   joinedAt: z.coerce.date().nullable(),

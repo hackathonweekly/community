@@ -3,6 +3,7 @@ import {
 	getOrganizationById,
 	getPurchaseById,
 } from "@community/lib-server/database";
+import { db } from "@community/lib-server/database/prisma/client";
 import { PurchaseSchema } from "@community/lib-server/database/prisma/zod";
 import { logger } from "@community/lib-server/logs";
 import {
@@ -86,8 +87,69 @@ export const paymentsRouter = new Hono()
 			});
 		},
 	)
+	.post(
+		"/wechat/bind-mini-openid",
+		authMiddleware,
+		validator(
+			"json",
+			z.object({
+				code: z.string().min(1),
+			}),
+		),
+		describeRoute({
+			tags: ["Payments"],
+			summary: "Bind mini program OpenID",
+			description:
+				"Exchange a wx.login() code for the user's mini program OpenID and save it.",
+			responses: {
+				200: { description: "OpenID bound successfully" },
+			},
+		}),
+		async (c) => {
+			const user = c.get("user");
+			const { code } = c.req.valid("json");
+
+			const appId = process.env.WECHAT_MINIPROGRAM_APP_ID;
+			const appSecret = process.env.WECHAT_MINIPROGRAM_APP_SECRET;
+			if (!appId || !appSecret) {
+				return c.json(
+					{ success: false, error: "Mini program not configured" },
+					500,
+				);
+			}
+
+			const url = new URL("https://api.weixin.qq.com/sns/jscode2session");
+			url.searchParams.set("appid", appId);
+			url.searchParams.set("secret", appSecret);
+			url.searchParams.set("js_code", code);
+			url.searchParams.set("grant_type", "authorization_code");
+
+			const res = await fetch(url.toString());
+			const data = await res.json();
+
+			if (data.errcode || !data.openid) {
+				logger.warn("Mini program code2session failed", {
+					errcode: data.errcode,
+					errmsg: data.errmsg,
+				});
+				return c.json(
+					{
+						success: false,
+						error: data.errmsg || "code2session failed",
+					},
+					400,
+				);
+			}
+
+			await db.user.update({
+				where: { id: user.id },
+				data: { wechatMiniOpenId: data.openid },
+			});
+
+			return c.json({ success: true });
+		},
+	)
 	.get(
-		"/purchases",
 		authMiddleware,
 		validator(
 			"query",
