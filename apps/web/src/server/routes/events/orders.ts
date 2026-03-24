@@ -352,7 +352,10 @@ app.post(
 				return c.json({ success: false, error: "用户不存在" }, 404);
 			}
 
-			if (isWechatChannel(selectedChannel) && !user.wechatOpenId) {
+			if (
+				selectedChannel === WECHAT_PAYMENT_CHANNELS.WECHAT_JSAPI &&
+				!user.wechatOpenId
+			) {
 				return c.json(
 					{
 						success: false,
@@ -553,7 +556,9 @@ app.post(
 			});
 
 			if (!prepareResult.success) {
-				await cancelEventOrder(order.id);
+				if (prepareResult.code !== "WECHAT_OPENID_REQUIRED") {
+					await cancelEventOrder(order.id);
+				}
 				return c.json(
 					{
 						success: false,

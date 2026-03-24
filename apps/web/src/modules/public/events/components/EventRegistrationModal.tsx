@@ -757,25 +757,27 @@ export function EventRegistrationModal({
 	const performPaidOrder = async () => {
 		try {
 			const clientContext = await buildWechatPaymentClientContext();
+			const requestBody = {
+				ticketTypeId: resolveTicketTypeId(),
+				quantity: selectedQuantity,
+				answers: buildAnswersPayload(),
+				...(event.requireProjectSubmission && {
+					projectId: selectedProjectId,
+				}),
+				...(event.askDigitalCardConsent &&
+					allowDigitalCardDisplay !== null && {
+						allowDigitalCardDisplay: allowDigitalCardDisplay,
+					}),
+				...(inviteCode ? { inviteCode } : {}),
+				clientContext,
+			};
+
 			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					ticketTypeId: resolveTicketTypeId(),
-					quantity: selectedQuantity,
-					answers: buildAnswersPayload(),
-					...(event.requireProjectSubmission && {
-						projectId: selectedProjectId,
-					}),
-					...(event.askDigitalCardConsent &&
-						allowDigitalCardDisplay !== null && {
-							allowDigitalCardDisplay: allowDigitalCardDisplay,
-						}),
-					...(inviteCode ? { inviteCode } : {}),
-					clientContext,
-				}),
+				body: JSON.stringify(requestBody),
 			});
 
 			if (!response.ok) {
@@ -788,6 +790,49 @@ export function EventRegistrationModal({
 					errorPayload.code === "WECHAT_OPENID_REQUIRED" ||
 					errorMessage.toLowerCase().includes("openid");
 				if (shouldPromptWechatBinding) {
+					if (clientContext.environmentType === "miniprogram") {
+						const bindTokenResponse = await fetch(
+							"/api/payments/wechat/mini-bind-token",
+							{ method: "POST" },
+						);
+						if (!bindTokenResponse.ok) {
+							throw new Error(errorMessage);
+						}
+						const bindTokenResult = await bindTokenResponse.json();
+						const pendingOrderResponse = await fetch(
+							`/api/events/${event.id}/orders/pending?${buildWechatPaymentClientContextQuery(clientContext)}`,
+						);
+						if (!pendingOrderResponse.ok) {
+							throw new Error(errorMessage);
+						}
+						const pendingOrderResult =
+							await pendingOrderResponse.json();
+						const pendingOrder = pendingOrderResult?.data as
+							| PaymentOrderData
+							| undefined;
+						const requestPaymentParams =
+							pendingOrder?.payPayload &&
+							"requestPaymentParams" in pendingOrder.payPayload
+								? pendingOrder.payPayload.requestPaymentParams
+								: undefined;
+						if (!pendingOrder || !requestPaymentParams) {
+							throw new Error(errorMessage);
+						}
+						setPaymentOrder({
+							...pendingOrder,
+							payPayload: {
+								requestPaymentParams: {
+									...requestPaymentParams,
+									bindToken: bindTokenResult.data.bindToken,
+									baseUrl: window.location.origin,
+									eventId: event.id,
+								},
+							},
+						});
+						setPaymentOpen(true);
+						return;
+					}
+
 					setWechatBindingMessage(errorMessage);
 					setWechatBindingOpen(true);
 					return;

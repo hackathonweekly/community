@@ -118,16 +118,12 @@ const invokeWechatPay = (params: PaymentOrderData["jsapiParams"]) => {
 	});
 };
 
-const getSessionToken = (): string | undefined => {
-	if (typeof document === "undefined") return undefined;
-	const match = document.cookie.match(
-		/(?:^|;\s*)app-session\.session_token=([^;]*)/,
-	);
-	return match ? decodeURIComponent(match[1]) : undefined;
-};
-
 const invokeMiniProgramBridgePay = async (
-	params: WechatMiniProgramRequestPaymentParams,
+	params: WechatMiniProgramRequestPaymentParams & {
+		bindToken?: string;
+		baseUrl?: string;
+		eventId?: string;
+	},
 ) => {
 	if (typeof window === "undefined") {
 		throw new WechatBridgeError(
@@ -144,12 +140,10 @@ const invokeMiniProgramBridgePay = async (
 		);
 	}
 
-	const payload: Record<string, unknown> = { ...params };
-	const sessionToken = getSessionToken();
-	if (sessionToken) {
-		payload.sessionToken = sessionToken;
-	}
-	payload.baseUrl = window.location.origin;
+	const payload: Record<string, unknown> = {
+		...params,
+		baseUrl: window.location.origin,
+	};
 
 	const encodedParams = encodeURIComponent(JSON.stringify(payload));
 	navigateTo({ url: `/pages/pay/pay?params=${encodedParams}` });

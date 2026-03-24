@@ -62,6 +62,9 @@ export interface WechatJsapiParams {
 export interface WechatMiniProgramRequestPaymentParams
 	extends WechatJsapiParams {
 	orderNo: string;
+	bindToken?: string;
+	baseUrl?: string;
+	eventId?: string;
 }
 
 export interface WechatNativePayPayload {
