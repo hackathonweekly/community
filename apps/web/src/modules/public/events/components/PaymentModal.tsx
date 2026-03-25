@@ -144,6 +144,12 @@ const invokeMiniProgramBridgePay = async (
 		...params,
 		baseUrl: window.location.origin,
 	};
+	console.log("[MINI_BIND_RECOVERY] payment-modal:navigate", {
+		hasBindToken: Boolean((payload as { bindToken?: string }).bindToken),
+		hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
+		hasEventId: Boolean((payload as { eventId?: string }).eventId),
+		orderNo: (payload as { orderNo?: string }).orderNo,
+	});
 
 	const encodedParams = encodeURIComponent(JSON.stringify(payload));
 	navigateTo({ url: `/pages/pay/pay?params=${encodedParams}` });
