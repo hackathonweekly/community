@@ -339,6 +339,13 @@ app.post(
 				);
 			}
 			const selectedChannel = channelResult.channel;
+			logger.info("[MINI_BIND_SERVER] create-order:selected-channel", {
+				eventId,
+				userId: session.user.id,
+				selectedChannel,
+				clientContext,
+				userAgent,
+			});
 
 			const user = await db.user.findUnique({
 				where: { id: session.user.id },
@@ -548,6 +555,13 @@ app.post(
 				return { order };
 			});
 
+			logger.info("[MINI_BIND_SERVER] create-order:prepare:start", {
+				eventId,
+				orderId: order.id,
+				userId: session.user.id,
+				clientContext,
+				userAgent,
+			});
 			const prepareResult = await prepareEventTicketWechatPayment({
 				orderId: order.id,
 				userId: session.user.id,
@@ -555,8 +569,24 @@ app.post(
 				clientContext,
 			});
 
+			logger.info("[MINI_BIND_SERVER] create-order:prepare:result", {
+				success: prepareResult.success,
+				code: prepareResult.success ? undefined : prepareResult.code,
+				error: prepareResult.success ? undefined : prepareResult.error,
+				status: prepareResult.success ? 200 : prepareResult.status,
+				orderId: order.id,
+				eventId,
+			});
 			if (!prepareResult.success) {
 				if (prepareResult.code !== "WECHAT_OPENID_REQUIRED") {
+					logger.info(
+						"[MINI_BIND_SERVER] create-order:cancel-order",
+						{
+							orderId: order.id,
+							eventId,
+							code: prepareResult.code,
+						},
+					);
 					await cancelEventOrder(order.id);
 				}
 				return c.json(

@@ -194,10 +194,29 @@ export const prepareEventTicketWechatPayment = async (
 	}
 
 	const channel = channelResult.channel;
+	logger.info("[MINI_BIND_SERVER] wechat-prepare:channel", {
+		orderId: order.id,
+		orderNo: order.orderNo,
+		userId: params.userId,
+		channel,
+		environmentType: channelResult.environmentType,
+		clientContext: params.clientContext,
+		hasWechatOpenId: Boolean(order.user.wechatOpenId),
+		hasWechatMiniOpenId: Boolean(order.user.wechatMiniOpenId),
+	});
 
 	// Check if we have the required openId for the payment channel
 	if (channel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE) {
 		if (!order.user.wechatMiniOpenId) {
+			logger.info(
+				"[MINI_BIND_SERVER] wechat-prepare:missing-mini-openid",
+				{
+					orderId: order.id,
+					orderNo: order.orderNo,
+					userId: params.userId,
+					clientContext: params.clientContext,
+				},
+			);
 			return {
 				success: false,
 				status: 400,
@@ -209,6 +228,12 @@ export const prepareEventTicketWechatPayment = async (
 		channel === WECHAT_PAYMENT_CHANNELS.WECHAT_JSAPI &&
 		!order.user.wechatOpenId
 	) {
+		logger.info("[MINI_BIND_SERVER] wechat-prepare:missing-wechat-openid", {
+			orderId: order.id,
+			orderNo: order.orderNo,
+			userId: params.userId,
+			clientContext: params.clientContext,
+		});
 		return {
 			success: false,
 			status: 400,
