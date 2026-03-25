@@ -1,8 +1,8 @@
-import { getWeChatEnvironmentType } from "@community/lib-shared/utils/browser-detect";
 import type {
 	WechatMiniProgramRequestPaymentParams,
 	WechatPaymentClientContext,
 } from "@community/lib-shared/payments/wechat-payment";
+import { getWeChatEnvironmentType } from "@community/lib-shared/utils/browser-detect";
 
 interface MiniProgramBridgeCapabilities {
 	bridgeVersion?: string;
@@ -32,7 +32,11 @@ interface MiniProgramBridgeEnvelope {
 
 interface WechatMiniProgramRuntime {
 	postMessage?: (params: { data: MiniProgramBridgeEnvelope }) => void;
-	navigateTo?: (params: { url: string }) => void;
+	navigateTo?: (params: {
+		url: string;
+		success?: () => void;
+		fail?: (error: { errMsg?: string }) => void;
+	}) => void;
 }
 
 interface WechatRuntime {
@@ -51,6 +55,12 @@ const BRIDGE_GET_CAPABILITIES = "HW_MINI_BRIDGE_GET_CAPABILITIES";
 const BRIDGE_REQUEST_PAYMENT = "HW_MINI_BRIDGE_REQUEST_PAYMENT";
 const BRIDGE_RESPONSE_TYPE = "HW_MINI_BRIDGE_RESPONSE";
 const WECHAT_JSSDK_SRC = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+const MINI_BRIDGE_SEARCH_KEYS = {
+	bridgeSupported: "hwMiniBridgeSupported",
+	bridgeVersion: "hwMiniBridgeVersion",
+	shellVersion: "hwMiniShellVersion",
+} as const;
+const MINI_BRIDGE_STORAGE_KEY = "__hwMiniBridgeBootstrap__";
 
 const CAPABILITIES_TIMEOUT_MS = 5_000;
 const REQUEST_PAYMENT_TIMEOUT_MS = 35_000;
@@ -366,6 +376,97 @@ const toBooleanString = (value?: boolean) => {
 	return undefined;
 };
 
+const parseBoolean = (value: string | null): boolean | undefined => {
+	if (value === "true") {
+		return true;
+	}
+	if (value === "false") {
+		return false;
+	}
+	return undefined;
+};
+
+const readMiniBridgeBootstrapFromSearch = () => {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	const searchParams = new URLSearchParams(window.location.search);
+	const bridgeSupported = parseBoolean(
+		searchParams.get(MINI_BRIDGE_SEARCH_KEYS.bridgeSupported),
+	);
+	const bridgeVersion = searchParams.get(
+		MINI_BRIDGE_SEARCH_KEYS.bridgeVersion,
+	);
+	const shellVersion = searchParams.get(MINI_BRIDGE_SEARCH_KEYS.shellVersion);
+
+	if (bridgeSupported === undefined && !bridgeVersion && !shellVersion) {
+		return null;
+	}
+
+	return {
+		miniProgramBridgeSupported: bridgeSupported,
+		miniProgramBridgeVersion: bridgeVersion || undefined,
+		shellVersion: shellVersion || undefined,
+	};
+};
+
+const persistMiniBridgeBootstrap = (
+	context: Pick<
+		WechatPaymentClientContext,
+		| "miniProgramBridgeSupported"
+		| "miniProgramBridgeVersion"
+		| "shellVersion"
+	>,
+) => {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	try {
+		window.sessionStorage.setItem(
+			MINI_BRIDGE_STORAGE_KEY,
+			JSON.stringify(context),
+		);
+	} catch (error) {
+		console.warn("Failed to persist mini bridge bootstrap", error);
+	}
+};
+
+const readMiniBridgeBootstrapFromStorage = () => {
+	if (typeof window === "undefined") {
+		return null;
+	}
+
+	try {
+		const storedValue = window.sessionStorage.getItem(
+			MINI_BRIDGE_STORAGE_KEY,
+		);
+		if (!storedValue) {
+			return null;
+		}
+
+		const parsed = JSON.parse(storedValue) as Record<string, unknown>;
+		return {
+			miniProgramBridgeSupported:
+				typeof parsed.miniProgramBridgeSupported === "boolean"
+					? parsed.miniProgramBridgeSupported
+					: undefined,
+			miniProgramBridgeVersion:
+				typeof parsed.miniProgramBridgeVersion === "string"
+					? parsed.miniProgramBridgeVersion
+					: undefined,
+			shellVersion:
+				typeof parsed.shellVersion === "string"
+					? parsed.shellVersion
+					: undefined,
+		};
+	} catch (error) {
+		console.warn("Failed to read mini bridge bootstrap", error);
+		return null;
+	}
+};
+
 export const ensureWechatMiniProgramBridge = ():
 	| MiniProgramBridge
 	| undefined => {
@@ -393,16 +494,40 @@ export const buildWechatPaymentClientContext =
 			console.warn("WeChat JSSDK init failed", error);
 		}
 
-		// Use navigateTo detection instead of postMessage-based capability
-		// handshake, since postMessage only delivers on web-view back/share
-		// and cannot be used for real-time communication.
-		const hasNavigateTo =
-			typeof window.wx?.miniProgram?.navigateTo === "function";
+		const bootstrapContext =
+			readMiniBridgeBootstrapFromSearch() ??
+			readMiniBridgeBootstrapFromStorage();
+		if (bootstrapContext) {
+			persistMiniBridgeBootstrap(bootstrapContext);
+			return {
+				environmentType,
+				...bootstrapContext,
+			};
+		}
+
+		const bridge = window.__HWMiniAppBridge__;
+		if (typeof bridge?.getCapabilities === "function") {
+			try {
+				const capabilities = await bridge.getCapabilities();
+				const nextContext = {
+					miniProgramBridgeSupported:
+						capabilities.supportsRequestPayment === true,
+					miniProgramBridgeVersion: capabilities.bridgeVersion,
+					shellVersion: capabilities.shellVersion,
+				};
+				persistMiniBridgeBootstrap(nextContext);
+				return {
+					environmentType,
+					...nextContext,
+				};
+			} catch (error) {
+				console.warn("Mini bridge capability detection failed", error);
+			}
+		}
 
 		return {
 			environmentType,
-			miniProgramBridgeSupported: hasNavigateTo,
-			miniProgramBridgeVersion: hasNavigateTo ? "1.3.0" : undefined,
+			miniProgramBridgeSupported: false,
 		};
 	};
 

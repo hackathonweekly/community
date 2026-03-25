@@ -1,17 +1,21 @@
 "use client";
 
 import {
+	WECHAT_BRIDGE_ERROR_CODES,
+	WECHAT_PAYMENT_CHANNELS,
+	WechatBridgeError,
+	type WechatMiniProgramRequestPaymentParams,
+	type WechatPayPayload,
+	type WechatPaymentChannel,
+} from "@community/lib-shared/payments/wechat-payment";
+import { cn } from "@community/lib-shared/utils";
+import { Button } from "@community/ui/ui/button";
+import {
 	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
 } from "@community/ui/ui/dialog";
-import { Button } from "@community/ui/ui/button";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import QRCode from "react-qr-code";
-import { toast } from "sonner";
-import { useTranslations } from "next-intl";
-import type { EventRegistration } from "./types";
 import {
 	CheckCircleIcon,
 	ExclamationTriangleIcon,
@@ -19,15 +23,11 @@ import {
 	XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Loader2 } from "lucide-react";
-import { cn } from "@community/lib-shared/utils";
-import {
-	WECHAT_PAYMENT_CHANNELS,
-	WECHAT_BRIDGE_ERROR_CODES,
-	WechatBridgeError,
-	type WechatMiniProgramRequestPaymentParams,
-	type WechatPayPayload,
-	type WechatPaymentChannel,
-} from "@community/lib-shared/payments/wechat-payment";
+import { useTranslations } from "next-intl";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "react-qr-code";
+import { toast } from "sonner";
+import type { EventRegistration } from "./types";
 
 export interface PaymentOrderData {
 	orderId: string;
@@ -132,7 +132,7 @@ const invokeMiniProgramBridgePay = async (
 		);
 	}
 
-	const navigateTo = (window as any).wx?.miniProgram?.navigateTo;
+	const navigateTo = window.wx?.miniProgram?.navigateTo;
 	if (typeof navigateTo !== "function") {
 		throw new WechatBridgeError(
 			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
@@ -152,7 +152,20 @@ const invokeMiniProgramBridgePay = async (
 	});
 
 	const encodedParams = encodeURIComponent(JSON.stringify(payload));
-	navigateTo({ url: `/pages/pay/pay?params=${encodedParams}` });
+	await new Promise<void>((resolve, reject) => {
+		navigateTo({
+			url: `/pages/pay/pay?params=${encodedParams}`,
+			success: () => resolve(),
+			fail: (error: { errMsg?: string }) => {
+				reject(
+					new WechatBridgeError(
+						WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
+						error?.errMsg || "Mini program navigateTo failed",
+					),
+				);
+			},
+		});
+	});
 };
 
 export function PaymentModal({
