@@ -27,6 +27,7 @@ import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { toast } from "sonner";
+import { reportClientLog } from "@shared/debug/report-client-log";
 import type { EventRegistration } from "./types";
 
 export interface PaymentOrderData {
@@ -144,6 +145,19 @@ const invokeMiniProgramBridgePay = async (
 		...params,
 		baseUrl: window.location.origin,
 	};
+	void reportClientLog({
+		level: "info",
+		source: "payment-modal",
+		message: "mini-program payment navigate start",
+		meta: {
+			orderNo: (payload as { orderNo?: string }).orderNo ?? null,
+			hasBindToken: Boolean(
+				(payload as { bindToken?: string }).bindToken,
+			),
+			hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
+			hasEventId: Boolean((payload as { eventId?: string }).eventId),
+		},
+	});
 	console.log("[MINI_BIND_RECOVERY] payment-modal:navigate", {
 		hasBindToken: Boolean((payload as { bindToken?: string }).bindToken),
 		hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
@@ -155,8 +169,29 @@ const invokeMiniProgramBridgePay = async (
 	await new Promise<void>((resolve, reject) => {
 		navigateTo({
 			url: `/pages/pay/pay?params=${encodedParams}`,
-			success: () => resolve(),
+			success: () => {
+				void reportClientLog({
+					level: "info",
+					source: "payment-modal",
+					message: "mini-program payment navigate success",
+					meta: {
+						orderNo:
+							(payload as { orderNo?: string }).orderNo ?? null,
+					},
+				});
+				resolve();
+			},
 			fail: (error: { errMsg?: string }) => {
+				void reportClientLog({
+					level: "error",
+					source: "payment-modal",
+					message: "mini-program payment navigate failed",
+					meta: {
+						orderNo:
+							(payload as { orderNo?: string }).orderNo ?? null,
+						errMsg: error?.errMsg ?? null,
+					},
+				});
 				reject(
 					new WechatBridgeError(
 						WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
@@ -383,12 +418,31 @@ export function PaymentModal({
 				.then(() => fetchOrderStatus())
 				.catch((error) => {
 					console.error("Mini Program bridge payment error", error);
+					void reportClientLog({
+						level: "error",
+						source: "payment-modal",
+						message: "mini-program payment bridge invoke failed",
+						meta: {
+							orderId: order.orderId,
+							orderNo: order.orderNo,
+							code:
+								error instanceof WechatBridgeError
+									? error.code
+									: null,
+							message:
+								error instanceof Error
+									? error.message
+									: String(error),
+						},
+					});
 					if (error instanceof WechatBridgeError) {
 						if (
 							error.code ===
 							WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED
 						) {
-							toast.error(t("miniProgramBridgeRequired"));
+							toast.error(
+								error.message || t("miniProgramBridgeRequired"),
+							);
 							return;
 						}
 						if (

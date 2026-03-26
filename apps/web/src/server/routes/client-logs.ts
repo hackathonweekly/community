@@ -7,6 +7,8 @@ const logger = createModuleLogger("client-logs");
 
 const payloadSchema = z.object({
 	message: z.string().min(1),
+	level: z.enum(["info", "warn", "error"]).optional(),
+	category: z.string().optional(),
 	stack: z.string().optional(),
 	source: z.string().optional(),
 	line: z.number().optional(),
@@ -39,12 +41,27 @@ export const clientLogsRouter = new Hono().post(
 		}
 
 		const payload = parsed.data;
-		logger.error("Client exception", {
+		const message = payload.category
+			? `[${payload.category}] ${payload.message}`
+			: payload.message;
+		const metadata = {
 			...payload,
 			stack: payload.stack?.slice(0, 2000),
 			path: payload.path || c.req.path,
 			userAgent: payload.userAgent || c.req.header("user-agent"),
-		});
+		};
+
+		switch (payload.level) {
+			case "info":
+				logger.info(message, metadata);
+				break;
+			case "warn":
+				logger.warn(message, metadata);
+				break;
+			default:
+				logger.error(message, metadata);
+				break;
+		}
 
 		return c.json({ success: true });
 	},

@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientLog } from "@shared/debug/report-client-log";
 import { useSession } from "@shared/auth/hooks/use-session";
 import { useEffect, useRef } from "react";
 import { buildWechatPaymentClientContext } from "./wechat-payment-client-context";
@@ -142,6 +143,14 @@ export function MiniProgramOpenIdBinder() {
 			writeBindAttemptAt(Date.now());
 
 			try {
+				void reportClientLog({
+					level: "info",
+					source: "mini-openid-binder",
+					message: "mini-openid binder token request start",
+					meta: {
+						userId: user.id,
+					},
+				});
 				const response = await fetch(
 					"/api/payments/wechat/mini-bind-token",
 					{
@@ -159,6 +168,14 @@ export function MiniProgramOpenIdBinder() {
 				if (typeof bindToken !== "string" || !bindToken) {
 					throw new Error("Missing mini bind token");
 				}
+				void reportClientLog({
+					level: "info",
+					source: "mini-openid-binder",
+					message: "mini-openid binder token request success",
+					meta: {
+						userId: user.id,
+					},
+				});
 
 				if (cancelled) {
 					return;
@@ -168,8 +185,27 @@ export function MiniProgramOpenIdBinder() {
 				await new Promise<void>((resolve, reject) => {
 					navigateTo({
 						url: `/pages/bind/bind?token=${encodeURIComponent(bindToken)}&baseUrl=${baseUrl}`,
-						success: () => resolve(),
+						success: () => {
+							void reportClientLog({
+								level: "info",
+								source: "mini-openid-binder",
+								message: "mini-openid binder navigate success",
+								meta: {
+									userId: user.id,
+								},
+							});
+							resolve();
+						},
 						fail: (error) => {
+							void reportClientLog({
+								level: "error",
+								source: "mini-openid-binder",
+								message: "mini-openid binder navigate failed",
+								meta: {
+									userId: user.id,
+									errMsg: error?.errMsg ?? null,
+								},
+							});
 							reject(
 								new Error(
 									error?.errMsg ||
@@ -187,6 +223,18 @@ export function MiniProgramOpenIdBinder() {
 				awaitingReturnRef.current = true;
 			} catch (error) {
 				bindingInFlightRef.current = false;
+				void reportClientLog({
+					level: "warn",
+					source: "mini-openid-binder",
+					message: "mini-openid binder bootstrap skipped",
+					meta: {
+						userId: user.id,
+						message:
+							error instanceof Error
+								? error.message
+								: String(error),
+					},
+				});
 				console.warn("[MINI_OPENID_BIND] Bootstrap skipped", error);
 			}
 		};
