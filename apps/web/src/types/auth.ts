@@ -15,6 +15,7 @@ export type TypedSession = Session & {
 		membershipLevel?: string;
 		wechatId?: string;
 		wechatOpenId?: string;
+		wechatMiniOpenId?: string;
 		wechatUnionId?: string;
 		preferredContact?: string;
 		phoneNumber?: string;

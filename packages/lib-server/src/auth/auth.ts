@@ -431,6 +431,10 @@ export const auth = betterAuth({
 				type: "string",
 				required: false,
 			},
+			wechatMiniOpenId: {
+				type: "string",
+				required: false,
+			},
 			wechatUnionId: {
 				type: "string",
 				required: false,
@@ -778,6 +782,7 @@ export type User = {
 	membershipLevel?: string | null;
 	wechatId?: string | null;
 	wechatOpenId?: string | null;
+	wechatMiniOpenId?: string | null;
 	wechatUnionId?: string | null;
 	preferredContact?: string | null;
 	phoneNumber?: string | null;

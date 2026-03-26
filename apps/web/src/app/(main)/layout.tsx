@@ -1,13 +1,14 @@
+import { MiniProgramOpenIdBinder } from "@/modules/public/events/components/MiniProgramOpenIdBinder";
 import { config } from "@community/config";
+import { getServerQueryClient } from "@community/lib-server/server";
+import { PhoneBindingPrompt } from "@community/ui/shared/PhoneBindingPrompt";
+import { Providers } from "@community/ui/shared/Providers";
 import { SessionProvider } from "@shared/auth/components/SessionProvider";
 import { sessionQueryKey } from "@shared/auth/lib/api";
 import { getOrganizationList, getSession } from "@shared/auth/lib/server";
+import { ConfirmationAlertProvider } from "@shared/components/ConfirmationAlertProvider";
 import { ActiveOrganizationProvider } from "@shared/organizations/components/ActiveOrganizationProvider";
 import { organizationListQueryKey } from "@shared/organizations/lib/api";
-import { ConfirmationAlertProvider } from "@shared/components/ConfirmationAlertProvider";
-import { PhoneBindingPrompt } from "@community/ui/shared/PhoneBindingPrompt";
-import { Providers } from "@community/ui/shared/Providers";
-import { getServerQueryClient } from "@community/lib-server/server";
 import { HydrationBoundary, dehydrate } from "@tanstack/react-query";
 import { RootProvider as FumadocsRootProvider } from "fumadocs-ui/provider/next";
 import { NextIntlClientProvider } from "next-intl";
@@ -52,6 +53,7 @@ export default async function MainLayout({ children }: PropsWithChildren) {
 						<SessionProvider initialSession={session}>
 							<ActiveOrganizationProvider>
 								<ConfirmationAlertProvider>
+									<MiniProgramOpenIdBinder />
 									<PhoneBindingPrompt />
 									{children}
 								</ConfirmationAlertProvider>
