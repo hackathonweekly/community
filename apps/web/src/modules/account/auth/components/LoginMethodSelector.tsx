@@ -33,6 +33,7 @@ import {
 	type OAuthProvider,
 	oAuthProviders,
 } from "../constants/oauth-providers";
+import { MobileLoginHomeButton } from "./mobile-login-home-button";
 import { SocialSigninButton } from "./SocialSigninButton";
 
 const formSchema = z.object({
@@ -138,6 +139,8 @@ export function LoginMethodSelector() {
 
 	return (
 		<div>
+			<MobileLoginHomeButton />
+
 			<h1 className="font-brand font-bold text-2xl tracking-tight text-foreground">
 				{t("auth.login.title")}
 			</h1>
