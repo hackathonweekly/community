@@ -1,6 +1,7 @@
+import { randomBytes } from "crypto";
 import {
-	getOrganizationMembership,
 	getOrganizationById,
+	getOrganizationMembership,
 	getPurchaseById,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma/client";
@@ -11,11 +12,6 @@ import {
 	createCustomerPortalLink,
 	getCustomerIdFromEntity,
 } from "@community/lib-server/payments";
-import {
-	prepareEventTicketWechatPayment,
-	type WechatPrepareHttpStatus,
-} from "./lib/wechat-prepare";
-import { randomBytes } from "crypto";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
@@ -23,6 +19,10 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { authMiddleware } from "../../middleware/auth";
 import { getPurchases } from "./lib/purchases";
+import {
+	type WechatPrepareHttpStatus,
+	prepareEventTicketWechatPayment,
+} from "./lib/wechat-prepare";
 
 const MINI_BIND_TOKEN_TTL_MS = 5 * 60 * 1000;
 const miniBindTokens = new Map<
@@ -180,9 +180,14 @@ export const paymentsRouter = new Hono()
 		}),
 		async (c) => {
 			const user = c.get("user");
+			const issuedToken = issueMiniBindToken(user.id);
+			logger.info("[MINI_BIND_SERVER] mini-bind-token:issued", {
+				userId: user.id,
+				expiresAt: issuedToken.expiresAt,
+			});
 			return c.json({
 				success: true,
-				data: issueMiniBindToken(user.id),
+				data: issuedToken,
 			});
 		},
 	)
@@ -207,9 +212,21 @@ export const paymentsRouter = new Hono()
 		async (c) => {
 			const user = c.get("user");
 			const { code } = c.req.valid("json");
+			logger.info("[MINI_BIND_SERVER] bind-mini-openid:request", {
+				userId: user.id,
+				codeLength: code.length,
+			});
 			const result = await exchangeMiniProgramCode(code);
 
 			if (!result.success) {
+				logger.info(
+					"[MINI_BIND_SERVER] bind-mini-openid:exchange:failed",
+					{
+						userId: user.id,
+						error: result.error,
+						status: result.status,
+					},
+				);
 				return c.json(
 					{ success: false, error: result.error },
 					result.status,
@@ -219,6 +236,10 @@ export const paymentsRouter = new Hono()
 			await db.user.update({
 				where: { id: user.id },
 				data: { wechatMiniOpenId: result.openid },
+			});
+			logger.info("[MINI_BIND_SERVER] bind-mini-openid:success", {
+				userId: user.id,
+				openIdSuffix: result.openid.slice(-6),
 			});
 
 			return c.json({ success: true });
@@ -245,8 +266,22 @@ export const paymentsRouter = new Hono()
 		}),
 		async (c) => {
 			const { bindToken, code, eventId } = c.req.valid("json");
+			logger.info(
+				"[MINI_BIND_SERVER] bind-mini-openid-with-token:request",
+				{
+					hasBindToken: Boolean(bindToken),
+					codeLength: code.length,
+					eventId: eventId ?? null,
+				},
+			);
 			const tokenPayload = consumeMiniBindToken(bindToken);
 			if (!tokenPayload) {
+				logger.info(
+					"[MINI_BIND_SERVER] bind-mini-openid-with-token:token-invalid",
+					{
+						eventId: eventId ?? null,
+					},
+				);
 				return c.json(
 					{ success: false, error: "Bind token expired" },
 					401,
@@ -255,6 +290,15 @@ export const paymentsRouter = new Hono()
 
 			const result = await exchangeMiniProgramCode(code);
 			if (!result.success) {
+				logger.info(
+					"[MINI_BIND_SERVER] bind-mini-openid-with-token:exchange:failed",
+					{
+						userId: tokenPayload.userId,
+						eventId: eventId ?? null,
+						error: result.error,
+						status: result.status,
+					},
+				);
 				return c.json(
 					{ success: false, error: result.error },
 					result.status,
@@ -265,6 +309,14 @@ export const paymentsRouter = new Hono()
 				where: { id: tokenPayload.userId },
 				data: { wechatMiniOpenId: result.openid },
 			});
+			logger.info(
+				"[MINI_BIND_SERVER] bind-mini-openid-with-token:success",
+				{
+					userId: tokenPayload.userId,
+					eventId: eventId ?? null,
+					openIdSuffix: result.openid.slice(-6),
+				},
+			);
 
 			if (!eventId) {
 				return c.json({ success: true, data: { bound: true } });
@@ -282,6 +334,13 @@ export const paymentsRouter = new Hono()
 			});
 
 			if (!pendingOrder) {
+				logger.info(
+					"[MINI_BIND_SERVER] bind-mini-openid-with-token:no-pending-order",
+					{
+						userId: tokenPayload.userId,
+						eventId,
+					},
+				);
 				return c.json({
 					success: true,
 					data: { bound: true },
@@ -299,6 +358,22 @@ export const paymentsRouter = new Hono()
 				},
 				isExisting: true,
 			});
+			logger.info(
+				"[MINI_BIND_SERVER] bind-mini-openid-with-token:prepare:result",
+				{
+					userId: tokenPayload.userId,
+					eventId,
+					orderId: pendingOrder.id,
+					success: prepareResult.success,
+					code: prepareResult.success
+						? undefined
+						: prepareResult.code,
+					error: prepareResult.success
+						? undefined
+						: prepareResult.error,
+					status: prepareResult.success ? 200 : prepareResult.status,
+				},
+			);
 
 			if (!prepareResult.success) {
 				return c.json(

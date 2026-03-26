@@ -9,11 +9,11 @@ import {
 	WECHAT_MINI_PROGRAM_MIN_BRIDGE_VERSION,
 	WECHAT_PAYMENT_CHANNELS,
 	WECHAT_PAYMENT_ERROR_CODES,
-	resolveWechatPaymentChannel,
 	type WechatMiniProgramRequestPaymentParams,
+	type WechatPayPayload,
 	type WechatPaymentChannel,
 	type WechatPaymentClientContext,
-	type WechatPayPayload,
+	resolveWechatPaymentChannel,
 } from "@community/lib-shared/payments/wechat-payment";
 import type { PaymentMethod } from "@prisma/client";
 
@@ -169,6 +169,10 @@ export const prepareEventTicketWechatPayment = async (
 	});
 
 	if (!order) {
+		logger.info("[MINI_BIND_SERVER] wechat-prepare:order-not-found", {
+			orderId: params.orderId,
+			userId: params.userId,
+		});
 		return {
 			success: false,
 			status: 404,
@@ -183,6 +187,16 @@ export const prepareEventTicketWechatPayment = async (
 	});
 
 	if (!channelResult.ok) {
+		logger.info("[MINI_BIND_SERVER] wechat-prepare:channel-rejected", {
+			orderId: order.id,
+			orderNo: order.orderNo,
+			userId: params.userId,
+			clientContext: params.clientContext,
+			userAgent: params.userAgent,
+			errorCode: channelResult.errorCode,
+			requiresUpgrade: channelResult.requiresUpgrade,
+			minBridgeVersion: channelResult.minBridgeVersion,
+		});
 		return {
 			success: false,
 			status: 400,
@@ -266,6 +280,16 @@ export const prepareEventTicketWechatPayment = async (
 	if (shouldCreatePaymentInstruction({ channel, codeUrl, prepayId })) {
 		const amountInCents = Math.round(order.totalAmount * 100);
 		const description = `${order.event.title} 门票`;
+		logger.info("[MINI_BIND_SERVER] wechat-prepare:create-payment:start", {
+			orderId: order.id,
+			orderNo: order.orderNo,
+			userId: params.userId,
+			channel,
+			hasExistingPrepayId: Boolean(prepayId),
+			hasExistingCodeUrl: Boolean(codeUrl),
+			amountInCents,
+			appId: miniProgramAppId,
+		});
 		const paymentResult =
 			channel === WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE
 				? await createWechatNativeOrder({
@@ -286,6 +310,15 @@ export const prepareEventTicketWechatPayment = async (
 					});
 
 		if (!paymentResult) {
+			logger.info(
+				"[MINI_BIND_SERVER] wechat-prepare:create-payment:empty-result",
+				{
+					orderId: order.id,
+					orderNo: order.orderNo,
+					userId: params.userId,
+					channel,
+				},
+			);
 			return {
 				success: false,
 				status: 500,
@@ -305,6 +338,18 @@ export const prepareEventTicketWechatPayment = async (
 				paymentMethod,
 			},
 		});
+		logger.info(
+			"[MINI_BIND_SERVER] wechat-prepare:create-payment:success",
+			{
+				orderId: order.id,
+				orderNo: order.orderNo,
+				userId: params.userId,
+				channel,
+				hasPrepayId: Boolean(prepayId),
+				hasCodeUrl: Boolean(codeUrl),
+				paymentMethod,
+			},
+		);
 	} else if (!paymentMethod) {
 		paymentMethod = expectedPaymentMethod;
 		await db.eventOrder.update({
@@ -324,12 +369,34 @@ export const prepareEventTicketWechatPayment = async (
 	});
 
 	if (!payloadResult.success) {
+		logger.info("[MINI_BIND_SERVER] wechat-prepare:payload-build:failed", {
+			orderId: order.id,
+			orderNo: order.orderNo,
+			userId: params.userId,
+			channel,
+			error: payloadResult.error,
+			hasPrepayId: Boolean(prepayId),
+			hasCodeUrl: Boolean(codeUrl),
+		});
 		return {
 			success: false,
 			status: 500,
 			error: payloadResult.error,
 		};
 	}
+
+	logger.info("[MINI_BIND_SERVER] wechat-prepare:success", {
+		orderId: order.id,
+		orderNo: order.orderNo,
+		userId: params.userId,
+		channel,
+		hasPayPayload: Boolean(payloadResult.payPayload),
+		hasRequestPaymentParams:
+			"requestPaymentParams" in payloadResult.payPayload,
+		hasJsapiParams: Boolean(payloadResult.jsapiParams),
+		hasCodeUrl: Boolean(payloadResult.codeUrl),
+		isExisting: params.isExisting === true,
+	});
 
 	return {
 		success: true,

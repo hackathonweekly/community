@@ -1,35 +1,35 @@
+import { canManageEvent } from "@/features/permissions/events";
 import { auth } from "@community/lib-server/auth";
+import { db } from "@community/lib-server/database/prisma/client";
 import {
 	buildOrderExpiration,
 	cancelEventOrder,
 	generateEventOrderNo,
 	generateOrderInviteCode,
-	resolveTicketPricing,
-	redeemOrderInvite,
 	listOrderInvites,
 	markEventOrderPaid,
+	redeemOrderInvite,
+	resolveTicketPricing,
 } from "@community/lib-server/events/event-orders";
-import { db } from "@community/lib-server/database/prisma/client";
 import { logger } from "@community/lib-server/logs";
-import { canManageEvent } from "@/features/permissions/events";
+import {
+	queryWechatOrderStatus,
+	requestWechatRefund,
+} from "@community/lib-server/payments/provider/wechatpay";
+import {
+	WECHAT_PAYMENT_CHANNELS,
+	type WechatPaymentChannel,
+	isWechatChannel,
+	resolveWechatPaymentChannel,
+} from "@community/lib-shared/payments/wechat-payment";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import {
-	requestWechatRefund,
-	queryWechatOrderStatus,
-} from "@community/lib-server/payments/provider/wechatpay";
-import {
-	isWechatChannel,
-	resolveWechatPaymentChannel,
-	type WechatPaymentChannel,
-	WECHAT_PAYMENT_CHANNELS,
-} from "@community/lib-shared/payments/wechat-payment";
-import {
+	type WechatPrepareHttpStatus,
 	parseWechatClientContextFromQuery,
 	prepareEventTicketWechatPayment,
-	type WechatPrepareHttpStatus,
 } from "../payments/lib/wechat-prepare";
 
 const registerAnswersSchema = z
@@ -134,6 +134,12 @@ app.get("/:eventId/orders/pending", async (c) => {
 		const eventId = c.req.param("eventId");
 		const clientContext = parseWechatClientContextFromQuery(c.req.query());
 		const now = new Date();
+		logger.info("[MINI_BIND_SERVER] pending-order:request", {
+			eventId,
+			userId: session.user.id,
+			clientContext,
+			userAgent: c.req.header("user-agent"),
+		});
 
 		// 先清理过期订单
 		const expiredOrders = await db.eventOrder.findMany({
@@ -165,8 +171,18 @@ app.get("/:eventId/orders/pending", async (c) => {
 		});
 
 		if (!pendingOrder) {
+			logger.info("[MINI_BIND_SERVER] pending-order:not-found", {
+				eventId,
+				userId: session.user.id,
+			});
 			return c.json({ success: true, data: null });
 		}
+		logger.info("[MINI_BIND_SERVER] pending-order:found", {
+			eventId,
+			userId: session.user.id,
+			orderId: pendingOrder.id,
+			clientContext,
+		});
 		const prepareResult = await prepareEventTicketWechatPayment({
 			orderId: pendingOrder.id,
 			userId: session.user.id,
@@ -176,6 +192,14 @@ app.get("/:eventId/orders/pending", async (c) => {
 		});
 
 		if (!prepareResult.success) {
+			logger.info("[MINI_BIND_SERVER] pending-order:prepare:failed", {
+				eventId,
+				userId: session.user.id,
+				orderId: pendingOrder.id,
+				code: prepareResult.code,
+				error: prepareResult.error,
+				status: prepareResult.status,
+			});
 			return c.json(
 				{
 					success: false,
@@ -224,6 +248,17 @@ app.post(
 				answers,
 				clientContext,
 			} = c.req.valid("json");
+			logger.info("[MINI_BIND_SERVER] create-order:request", {
+				eventId,
+				userId: session.user.id,
+				ticketTypeId,
+				quantity,
+				hasInviteCode: Boolean(inviteCode),
+				hasProjectId: Boolean(projectId),
+				answersCount: answers.length,
+				clientContext,
+				userAgent: c.req.header("user-agent"),
+			});
 
 			const now = new Date();
 			const existingPendingOrder = await db.eventOrder.findFirst({
@@ -240,6 +275,15 @@ app.post(
 			});
 
 			if (existingPendingOrder) {
+				logger.info(
+					"[MINI_BIND_SERVER] create-order:existing-pending",
+					{
+						eventId,
+						userId: session.user.id,
+						orderId: existingPendingOrder.id,
+						clientContext,
+					},
+				);
 				const prepareExistingResult =
 					await prepareEventTicketWechatPayment({
 						orderId: existingPendingOrder.id,
@@ -250,6 +294,17 @@ app.post(
 					});
 
 				if (!prepareExistingResult.success) {
+					logger.info(
+						"[MINI_BIND_SERVER] create-order:existing-pending:prepare:failed",
+						{
+							eventId,
+							userId: session.user.id,
+							orderId: existingPendingOrder.id,
+							code: prepareExistingResult.code,
+							error: prepareExistingResult.error,
+							status: prepareExistingResult.status,
+						},
+					);
 					return c.json(
 						{
 							success: false,
@@ -327,6 +382,18 @@ app.post(
 			});
 
 			if (!channelResult.ok) {
+				logger.info(
+					"[MINI_BIND_SERVER] create-order:selected-channel:rejected",
+					{
+						eventId,
+						userId: session.user.id,
+						clientContext,
+						userAgent,
+						errorCode: channelResult.errorCode,
+						requiresUpgrade: channelResult.requiresUpgrade,
+						minBridgeVersion: channelResult.minBridgeVersion,
+					},
+				);
 				return c.json(
 					{
 						success: false,
