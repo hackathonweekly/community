@@ -1,10 +1,10 @@
 "use client";
 
-import { Form } from "@community/ui/ui/form";
-import { getRandomTemplate } from "@community/config/image-templates";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { DEFAULT_HACKATHON_SETTINGS } from "@/features/hackathon/config";
+import { getRandomTemplate } from "@community/config/image-templates";
 import { getPresetRegistrationFieldConfig } from "@community/lib-shared/events/registration-fields";
+import { Form } from "@community/ui/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -87,31 +87,16 @@ interface EventCreateFormProps {
 	organizations?: Organization[];
 	volunteerRoles?: VolunteerRole[];
 	onSubmit: (data: any, status?: "DRAFT" | "PUBLISHED") => void;
-	onSaveAsTemplate?: (data: any) => void;
 	isLoading?: boolean;
 	defaultValues?: Partial<EventFormData>;
 	initialData?: any;
-	template?: any;
 	sourceEvent?: EventCopySource | null;
 	isEdit?: boolean;
 	isEditMode?: boolean;
-	hideTemplateAction?: boolean;
 	user?: { email?: string | null };
 	onRefreshOrganizations?: () => void; // 新增
 	eventSeriesOptions?: EventSeriesOption[];
 }
-
-const mapTemplateTypeToEventType = (
-	templateType: string | null | undefined,
-): "MEETUP" | "HACKATHON" => {
-	switch (templateType) {
-		case "HACKATHON_LEARNING":
-		case "HACKATHON":
-			return "HACKATHON";
-		default:
-			return "MEETUP";
-	}
-};
 
 const parseDate = (value?: string | null) => {
 	if (!value) return null;
@@ -173,15 +158,12 @@ export function EventCreateForm({
 	organizations = [],
 	volunteerRoles = [],
 	onSubmit,
-	onSaveAsTemplate,
 	isLoading,
 	defaultValues,
 	initialData,
-	template,
 	sourceEvent,
 	isEdit = false,
 	isEditMode = false,
-	hideTemplateAction = false,
 	user,
 	onRefreshOrganizations, // 新增
 	eventSeriesOptions = [],
@@ -193,7 +175,7 @@ export function EventCreateForm({
 		return getDefaultEventTimes();
 	};
 
-	// 合并数据优先级：initialData > sourceEvent > template > defaultValues > 默认值
+	// 合并数据优先级：initialData > sourceEvent > defaultValues > 默认值
 	const getDefaultFormValues = () => {
 		const defaultTimes = getDefaultTimes();
 
@@ -405,108 +387,6 @@ export function EventCreateForm({
 			};
 
 			return { ...baseDefaults, ...sourceDefaults };
-		}
-
-		// 如果有 template，从模板构建表单数据
-		if (template) {
-			const templateDefaults = {
-				title: template.title,
-				richContent: template.defaultDescription || "",
-				shortDescription: template.shortDescription || "",
-				type: mapTemplateTypeToEventType(template.type),
-				maxAttendees: template.maxAttendees?.toString() || "",
-				requireApproval: template.requireApproval,
-				organizationId: template.organizationId || "none",
-				seriesId: "none",
-				isExternalEvent: template.isExternalEvent || false,
-				externalUrl: template.externalUrl || "",
-				registrationDeadline: template.registrationDeadline || "",
-				registrationSuccessInfo: template.registrationSuccessInfo || "",
-				registrationSuccessImage:
-					template.registrationSuccessImage || "",
-				coverImage: template.coverImage || "",
-				tags: template.tags || [],
-				ticketTypes:
-					template.ticketTypes?.map((tt: any) => ({
-						name: tt.name,
-						description: tt.description,
-						price: tt.price,
-						quantity: tt.maxQuantity,
-					})) || [],
-				volunteerRoles:
-					template.volunteerRoles
-						?.filter(
-							(vr: any) =>
-								!!(
-									vr?.volunteerRoleId || vr?.volunteerRole?.id
-								),
-						)
-						?.map((vr: any) => {
-							const descriptionSource =
-								typeof vr?.description === "string"
-									? vr.description
-									: typeof vr?.volunteerRole?.description ===
-											"string"
-										? vr.volunteerRole.description
-										: "";
-							return {
-								volunteerRoleId:
-									vr.volunteerRoleId ||
-									vr.volunteerRole?.id ||
-									"",
-								recruitCount:
-									typeof vr?.recruitCount === "number" &&
-									!Number.isNaN(vr.recruitCount)
-										? vr.recruitCount
-										: 1,
-								description: descriptionSource,
-								requireApproval: vr?.requireApproval ?? true,
-							};
-						}) || [],
-				questions:
-					template.questions?.map((q: any, index: number) => ({
-						question: q.question,
-						type: q.type,
-						options: q.options,
-						required: q.required,
-						order: q.order ?? index,
-					})) || [],
-				volunteerContactInfo: template.volunteerContactInfo || "",
-				volunteerWechatQrCode: template.volunteerWechatQrCode || "",
-				organizerContact: template.organizerContact || "",
-				registrationFieldConfig:
-					template.registrationFieldConfig ||
-					getPresetRegistrationFieldConfig("FULL"),
-				// 作品关联设置
-				requireProjectSubmission:
-					template.requireProjectSubmission || false,
-				// 活动插件：作品提交（黑客松默认开启）
-				submissionsEnabled:
-					typeof template.submissionsEnabled === "boolean"
-						? template.submissionsEnabled
-						: mapTemplateTypeToEventType(template.type) ===
-							"HACKATHON",
-				// 数字名片公开确认
-				askDigitalCardConsent: template.askDigitalCardConsent || false,
-				// Hackathon 字段
-				hackathonConfig: template.hackathonConfig || {
-					settings: {
-						maxTeamSize: 5,
-						allowSolo: true,
-					},
-					voting: {
-						allowPublicVoting: true,
-						enableJudgeVoting: false,
-						judgeWeight: 0,
-						publicWeight: 1,
-						publicVotingScope: "PARTICIPANTS" as const,
-						publicVotingMode: "FIXED_QUOTA" as const,
-						publicVoteQuota: 3,
-					},
-				},
-			};
-			// 模板使用默认时间，因为模板中的时间信息通常不适用于新活动
-			return { ...baseDefaults, ...templateDefaults };
 		}
 
 		// 最后使用传入的 defaultValues
@@ -744,14 +624,11 @@ export function EventCreateForm({
 					{/* Submit Buttons */}
 					<div className="sticky bottom-0 z-10 pb-2 pt-4 border-t bg-background/95 backdrop-blur-sm">
 						<FormActions
-							onSubmit={onSubmit}
-							onSaveAsTemplate={onSaveAsTemplate}
 							handleSubmit={form.handleSubmit}
 							handleFormSubmit={handleFormSubmit}
 							isLoading={isLoading}
 							isEdit={isEdit}
 							isEditMode={isEditMode}
-							hideTemplateAction={hideTemplateAction}
 						/>
 					</div>
 				</form>

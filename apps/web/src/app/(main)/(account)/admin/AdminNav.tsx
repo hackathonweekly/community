@@ -1,26 +1,26 @@
 "use client";
 
 import { cn } from "@community/lib-shared/utils";
-import { usePathname } from "next/navigation";
-import NextLink from "next/link";
 import {
-	LayoutDashboardIcon,
-	UsersIcon,
-	CalendarDaysIcon,
-	FolderOpenIcon,
-	Building2Icon,
-	ClipboardListIcon,
-	MessageSquareIcon,
-	MailIcon,
-	SettingsIcon,
-	BadgeCheckIcon,
 	AwardIcon,
-	FileTextIcon,
+	BadgeCheckIcon,
 	BugIcon,
+	Building2Icon,
+	CalendarDaysIcon,
+	ClipboardListIcon,
+	FileTextIcon,
+	FolderOpenIcon,
 	HeadphonesIcon,
-	UserCogIcon,
+	LayoutDashboardIcon,
+	MailIcon,
+	MessageSquareIcon,
+	SettingsIcon,
 	StarIcon,
+	UserCogIcon,
+	UsersIcon,
 } from "lucide-react";
+import NextLink from "next/link";
+import { usePathname } from "next/navigation";
 
 interface AdminNavItem {
 	label: string;
@@ -105,7 +105,6 @@ export function AdminNav() {
 			label: "系统",
 			items: [
 				{ label: "邮件", href: "/admin/emails", icon: MailIcon },
-				{ label: "模板", href: "/admin/templates", icon: FileTextIcon },
 				{
 					label: "客服",
 					href: "/admin/customer-service",

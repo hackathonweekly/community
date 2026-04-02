@@ -14,45 +14,44 @@ import { aiRouter } from "./routes/ai";
 import { authRouter } from "./routes/auth"; // 🔧 添加缺失的authRouter导入
 import badgesRouter from "./routes/badges";
 import certificatesRouter from "./routes/certificates";
+import { clientLogsRouter } from "./routes/client-logs";
 import commentsRouter from "./routes/comments";
 import { communityStatsRouter } from "./routes/community-stats";
 import { contactRouter } from "./routes/contact/router";
 import contributionAdminRouter from "./routes/contribution-admin";
 import contributionsRouter from "./routes/contributions";
+import { cronRouter } from "./routes/cron";
 import eventCommunicationsRouter from "./routes/event-communications";
+import { eventHostSubscriptionsRouter } from "./routes/event-host-subscriptions";
 import eventProjectsRouter from "./routes/event-projects";
 import { eventRecommendationsApp } from "./routes/event-recommendations";
-import { eventHostSubscriptionsRouter } from "./routes/event-host-subscriptions";
-import eventTemplatesRouter from "./routes/event-templates";
 import { eventSeriesRouter } from "./routes/event-series";
 import eventsRouter from "./routes/events";
-import eventsRegistrationsRouter from "./routes/events/registrations";
 import { eventsTokenRouter } from "./routes/events-token";
+import eventsRegistrationsRouter from "./routes/events/registrations";
+import { functionalRolesRouter } from "./routes/functional-roles";
 import hackathonRouter from "./routes/hackathon";
 import { healthRouter } from "./routes/health";
+import leaderboardRouter from "./routes/leaderboard";
 import { newsletterRouter } from "./routes/newsletter";
 import notificationsRouter from "./routes/notifications";
 import { organizationAdminRouter } from "./routes/organizations/admin";
 import { organizationsRouterExtended as organizationsRouter } from "./routes/organizations/router";
 import { paymentsRouter } from "./routes/payments/router";
+import { permissionsRouter } from "./routes/permissions";
+import { postsRouter } from "./routes/posts";
 import { profileRouter } from "./routes/profile";
 import { projectsRouter } from "./routes/projects";
-import { postsRouter } from "./routes/posts";
-import { permissionsRouter } from "./routes/permissions";
 import superAdminRouter from "./routes/super-admin";
 import systemConfigRouter from "./routes/system-config";
 import tasksRouter from "./routes/tasks";
 import { uploadsRouter } from "./routes/uploads";
 import { userRouter } from "./routes/user/router";
 import { usersRouter } from "./routes/users";
+import { versionRouter } from "./routes/version";
 import volunteerRolesRouter from "./routes/volunteer-roles";
 import { webhooksRouter } from "./routes/webhooks";
 import { websitesRouter } from "./routes/websites";
-import { functionalRolesRouter } from "./routes/functional-roles";
-import { versionRouter } from "./routes/version";
-import { clientLogsRouter } from "./routes/client-logs";
-import { cronRouter } from "./routes/cron";
-import leaderboardRouter from "./routes/leaderboard";
 
 export const app = new Hono().basePath("/api");
 
@@ -85,7 +84,6 @@ app.route("/", authRouter) // 🔧 Better Auth处理 /auth/* 路径
 	.route("/", eventRecommendationsApp)
 	.route("/event-host-subscriptions", eventHostSubscriptionsRouter)
 	.route("/websites", websitesRouter)
-	.route("/event-templates", eventTemplatesRouter)
 	.route("/event-series", eventSeriesRouter)
 	.route("/", eventProjectsRouter)
 	.route("/", hackathonRouter)

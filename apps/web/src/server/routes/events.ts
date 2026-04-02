@@ -1,5 +1,3 @@
-import { getRandomTemplate } from "@community/config/image-templates";
-import { getVisitorRestrictionsConfig } from "@community/lib-server/system-config/visitor-restrictions";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import {
 	EventsTokenRateLimitError,
@@ -17,6 +15,7 @@ import {
 } from "@/features/hackathon/config";
 import { NotificationService } from "@/features/notifications/service";
 import { RestrictedAction, canUserDoAction } from "@/features/permissions";
+import { getRandomTemplate } from "@community/config/image-templates";
 import { auth } from "@community/lib-server/auth";
 import {
 	ContentType,
@@ -38,17 +37,18 @@ import {
 	updateEvent,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
-import {
-	type RegistrationFieldConfig,
-	resolveRegistrationFieldConfig,
-} from "@community/lib-shared/events/registration-fields";
-import type { Locale } from "@community/lib-shared/i18n";
 import { isSendableEmail } from "@community/lib-server/mail/address";
 import {
 	sendEventHostNewEventAnnouncement,
 	sendEventSeriesNewEventAnnouncement,
 	sendEventUpdate,
 } from "@community/lib-server/mail/events";
+import { getVisitorRestrictionsConfig } from "@community/lib-server/system-config/visitor-restrictions";
+import {
+	type RegistrationFieldConfig,
+	resolveRegistrationFieldConfig,
+} from "@community/lib-shared/events/registration-fields";
+import type { Locale } from "@community/lib-shared/i18n";
 import { zValidator } from "@hono/zod-validator";
 import type { Event, RegistrationStatus } from "@prisma/client";
 import { Hono } from "hono";
@@ -2627,159 +2627,7 @@ app.delete("/:id", async (c) => {
 			500,
 		);
 	}
-}).post(
-	"/:id/save-as-template",
-	zValidator(
-		"json",
-		z.object({
-			name: z.string().min(1).max(255),
-			description: z.string().min(1),
-			organizationId: z.string().optional(),
-		}),
-	),
-	async (c) => {
-		const session = await auth.api.getSession({
-			headers: c.req.raw.headers,
-		});
-		if (!session) {
-			return c.json(
-				{
-					success: false,
-					error: "Not authenticated",
-				},
-				401,
-			);
-		}
-
-		const eventIdentifier = c.req.param("id");
-		const { name, description, organizationId } = c.req.valid("json");
-
-		try {
-			// 获取活动详情
-			const event = await db.event.findUnique({
-				where: resolveEventIdentifier(eventIdentifier),
-				include: {
-					ticketTypes: true,
-					volunteerRoles: {
-						include: {
-							volunteerRole: true,
-						},
-					},
-					questions: true,
-				},
-			});
-
-			if (!event) {
-				return c.json(
-					{
-						success: false,
-						error: "Event not found",
-					},
-					404,
-				);
-			}
-
-			// 检查权限
-			const membership = organizationId
-				? await getOrganizationMembership(
-						organizationId,
-						session.user.id,
-					)
-				: null;
-
-			const hasPermission =
-				event.organizerId === session.user.id ||
-				(organizationId && membership?.role === "admin");
-
-			if (!hasPermission) {
-				return c.json(
-					{
-						success: false,
-						error: "Not authorized to save this event as template",
-					},
-					403,
-				);
-			}
-
-			// 创建模板
-			const template = await db.eventTemplate.create({
-				data: {
-					name,
-					type: "CUSTOM",
-					description,
-					title: event.title,
-					defaultDescription: event.richContent || "",
-					shortDescription: event.shortDescription || "",
-					duration:
-						event.endTime && event.startTime
-							? Math.round(
-									(event.endTime.getTime() -
-										event.startTime.getTime()) /
-										(1000 * 60),
-								)
-							: null,
-					maxAttendees: event.maxAttendees,
-					requireApproval: event.requireApproval,
-					createdBy: session.user.id,
-					organizationId,
-					isSystemTemplate: false,
-					isActive: true,
-					ticketTypes: {
-						create: event.ticketTypes.map((ticketType) => ({
-							name: ticketType.name,
-							description: ticketType.description,
-							price: ticketType.price,
-							maxQuantity: ticketType.maxQuantity,
-							sortOrder: ticketType.sortOrder,
-						})),
-					},
-					volunteerRoles: {
-						create: event.volunteerRoles.map((role) => ({
-							volunteerRoleId: role.volunteerRoleId,
-							recruitCount: role.recruitCount,
-							description: role.description,
-							requireApproval: role.requireApproval,
-							cpReward: 0, // 默认CP奖励为0，可以后续调整
-						})),
-					},
-					questions: {
-						create: event.questions.map((question) => ({
-							question: question.question,
-							type: question.type,
-							options: question.options,
-							required: question.required,
-							order: question.order,
-						})),
-					},
-				},
-				include: {
-					ticketTypes: true,
-					volunteerRoles: {
-						include: {
-							volunteerRole: true,
-						},
-					},
-					questions: true,
-				},
-			});
-
-			return c.json({
-				success: true,
-				data: template,
-				message: "Event saved as template successfully",
-			});
-		} catch (error) {
-			console.error("Error saving event as template:", error);
-			return c.json(
-				{
-					success: false,
-					error: "Failed to save event as template",
-				},
-				500,
-			);
-		}
-	},
-);
+});
 
 // GET /api/events/:eventId/project-submissions - Get project submissions for an event
 app.get("/:eventId/project-submissions", async (c) => {

@@ -1,12 +1,6 @@
 "use client";
 
-import { Skeleton } from "@community/ui/ui/skeleton";
-import {
-	Tabs,
-	TabsContent,
-	TabsList,
-	TabsTrigger,
-} from "@community/ui/ui/tabs";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { EventAdminManager } from "@/modules/account/events/components/EventAdminManager";
 import { EventCheckIn } from "@/modules/account/events/components/EventCheckIn";
 import EventCommunicationsPage from "@/modules/account/events/components/EventCommunicationsPage";
@@ -17,20 +11,25 @@ import { EventOverviewTab } from "@/modules/account/events/components/EventOverv
 import { EventQRGeneratorModal } from "@/modules/account/events/components/EventQRGeneratorModal";
 import { EventQuickStats } from "@/modules/account/events/components/EventQuickStats";
 import { EventRegistrationsTab } from "@/modules/account/events/components/EventRegistrationsTab";
-import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { EventStatusBanner } from "@/modules/account/events/components/EventStatusBanner";
 import { HackathonManagement } from "@/modules/account/events/components/HackathonManagement";
 import { QRScanner } from "@/modules/account/events/components/QRScanner";
-import { SaveTemplateModal } from "@/modules/account/events/components/SaveTemplateModal";
 import { VolunteerManagement } from "@/modules/account/events/components/VolunteerManagement";
 import { EventSubmissionsManager } from "@/modules/account/events/components/submissions/EventSubmissionsManager";
 import { useEventManagement } from "@/modules/account/events/hooks/useEventManagement";
-import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import { Skeleton } from "@community/ui/ui/skeleton";
+import {
+	Tabs,
+	TabsContent,
+	TabsList,
+	TabsTrigger,
+} from "@community/ui/ui/tabs";
+import { EventShareModal } from "@shared/events/components/EventShareModal";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function EventManagePage() {
 	const t = useTranslations("events.manage");
@@ -62,7 +61,6 @@ export default function EventManagePage() {
 	const [isQRScannerOpen, setIsQRScannerOpen] = useState(false);
 	const [isEventQRGeneratorOpen, setIsEventQRGeneratorOpen] = useState(false);
 	const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-	const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
 
 	// 初始化：根据 URL hash 设置当前 Tab，便于通过链接直接定位
 	useEffect(() => {
@@ -403,12 +401,6 @@ export default function EventManagePage() {
 						coverImage: event.coverImage,
 						richContent: event.richContent,
 					}}
-				/>
-
-				<SaveTemplateModal
-					isOpen={isSaveTemplateOpen}
-					onClose={() => setIsSaveTemplateOpen(false)}
-					eventId={eventId}
 				/>
 			</div>
 		</>

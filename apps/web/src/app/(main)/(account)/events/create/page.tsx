@@ -1,35 +1,28 @@
 "use client";
 
+import {
+	RestrictedAction,
+	canUserDoAction,
+	getMembershipLevelName,
+} from "@/features/permissions/visitor-restrictions";
+import {
+	type EventCopySource,
+	EventCreateForm,
+} from "@/modules/account/events/components/EventCreateForm";
+import type { EventSeriesOption } from "@/modules/account/events/components/types";
+import { useUserOrganizations } from "@/modules/account/organizations/hooks/use-user-organizations";
+import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import type { MembershipLevel } from "@community/lib-shared/prisma-enums";
+import { Alert, AlertDescription } from "@community/ui/ui/alert";
 import { Badge } from "@community/ui/ui/badge";
 import { Button } from "@community/ui/ui/button";
 import { Card, CardContent } from "@community/ui/ui/card";
-import { Alert, AlertDescription } from "@community/ui/ui/alert";
-import {
-	EventCreateForm,
-	type EventCopySource,
-} from "@/modules/account/events/components/EventCreateForm";
-import type {
-	EventFormData,
-	EventSeriesOption,
-} from "@/modules/account/events/components/types";
-import {
-	buildTemplatePayload,
-	extractErrorMessage as extractTemplateErrorMessage,
-} from "@/modules/account/events/utils/template-helpers";
-import { useSession } from "@shared/auth/hooks/use-session";
-import { useUserOrganizations } from "@/modules/account/organizations/hooks/use-user-organizations";
-import {
-	canUserDoAction,
-	RestrictedAction,
-	getMembershipLevelName,
-} from "@/features/permissions/visitor-restrictions";
-import type { MembershipLevel } from "@community/lib-shared/prisma-enums";
-import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
 import {
 	ArrowLeftIcon,
 	ClockIcon,
 	PlusIcon,
 } from "@heroicons/react/24/outline";
+import { useSession } from "@shared/auth/hooks/use-session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -336,49 +329,6 @@ export default function CreateEventPage() {
 		}
 	};
 
-	const handleSaveAsTemplate = async (rawData: EventFormData) => {
-		const templateName = `${rawData.title} - 模板`;
-		const templateDescription = `基于活动"${rawData.title}"创建的模板`;
-		const templateType =
-			rawData.type === "HACKATHON"
-				? "HACKATHON_LEARNING"
-				: rawData.type === "MEETUP"
-					? "MEETUP"
-					: "CUSTOM";
-
-		const payload = buildTemplatePayload(rawData, {
-			name: templateName,
-			description: templateDescription,
-			type: templateType,
-			isPublic: false,
-		});
-
-		try {
-			const response = await fetch("/api/event-templates", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(payload),
-			});
-
-			if (!response.ok) {
-				const message = await extractTemplateErrorMessage(
-					response,
-					"保存模板失败",
-				);
-				throw new Error(message);
-			}
-
-			toast.success("模板保存成功！");
-		} catch (error) {
-			console.error("Error saving template:", error);
-			toast.error(
-				error instanceof Error ? error.message : "保存模板失败",
-			);
-		}
-	};
-
 	if (
 		organizationsLoading ||
 		volunteerRolesLoading ||
@@ -619,7 +569,6 @@ export default function CreateEventPage() {
 								eventSeriesOptions={eventSeriesOptions}
 								volunteerRoles={volunteerRoles}
 								onSubmit={handleSubmit}
-								onSaveAsTemplate={handleSaveAsTemplate}
 								isLoading={isLoading}
 								sourceEvent={selectedSourceEvent}
 								user={user ? { email: user.email } : undefined}

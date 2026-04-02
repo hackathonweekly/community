@@ -1,5 +1,4 @@
 import { initializeDefaultBadges } from "./prisma/queries/badges";
-import { initializeEventTemplates } from "./prisma/queries/event-templates";
 import { initializeSystemFunctionalRoles } from "./prisma/queries/functional-roles";
 
 async function runSeeds() {
@@ -10,11 +9,6 @@ async function runSeeds() {
 		console.log("🚀 初始化默认勋章...");
 		const badges = await initializeDefaultBadges();
 		console.log(`✅ 成功创建 ${badges.length} 个默认勋章`);
-
-		// Initialize event templates
-		console.log("🚀 初始化活动模板...");
-		const templates = await initializeEventTemplates();
-		console.log(`✅ 成功创建 ${templates.length} 个活动模板`);
 
 		// Initialize system functional roles
 		console.log("🚀 初始化系统预设职能角色...");

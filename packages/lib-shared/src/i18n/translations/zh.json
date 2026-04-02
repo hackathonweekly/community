@@ -1345,7 +1345,6 @@
 				"exportSuccess": "报名数据导出成功",
 				"fetchError": "获取活动详情失败",
 				"fetchRegistrationsError": "获取报名数据失败",
-				"loadTemplatesError": "获取活动模板失败",
 				"networkErrorDescription": "网络异常或服务器不可用",
 				"registrationSuccess": "报名已成功{status}",
 				"registrationUpdateSuccess": "报名状态更新成功",

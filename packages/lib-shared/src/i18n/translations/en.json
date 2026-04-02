@@ -1293,7 +1293,6 @@
 				"exportSuccess": "Registrations exported successfully",
 				"fetchError": "Failed to fetch event details",
 				"fetchRegistrationsError": "Failed to fetch registrations",
-				"loadTemplatesError": "Failed to load event templates",
 				"networkErrorDescription": "Network error or server unavailable",
 				"registrationSuccess": "Registration {status} successfully",
 				"registrationUpdateSuccess": "Registration status updated",

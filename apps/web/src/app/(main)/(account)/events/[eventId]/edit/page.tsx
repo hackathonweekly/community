@@ -1,9 +1,16 @@
 "use client";
 
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
+import { EventCreateForm } from "@/modules/account/events/components/EventCreateForm";
+import type { EventSeriesOption } from "@/modules/account/events/components/types";
+import { formatForDatetimeLocal } from "@/modules/account/events/utils/date-utils";
+import { normalizeSubmissionFormConfig } from "@/modules/account/events/utils/submission-form";
+import { useUserOrganizations } from "@/modules/account/organizations/hooks/use-user-organizations";
+import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
 import { Badge } from "@community/ui/ui/badge";
 import { Button } from "@community/ui/ui/button";
 import { Card, CardContent } from "@community/ui/ui/card";
-import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 import {
 	Dialog,
 	DialogContent,
@@ -14,19 +21,8 @@ import {
 	DialogTrigger,
 } from "@community/ui/ui/dialog";
 import { Skeleton } from "@community/ui/ui/skeleton";
-import { EventCreateForm } from "@/modules/account/events/components/EventCreateForm";
-import type {
-	EventFormData,
-	EventSeriesOption,
-} from "@/modules/account/events/components/types";
-import { extractErrorMessage as extractTemplateErrorMessage } from "@/modules/account/events/utils/template-helpers";
-import { formatForDatetimeLocal } from "@/modules/account/events/utils/date-utils";
-import { normalizeSubmissionFormConfig } from "@/modules/account/events/utils/submission-form";
-import { useSession } from "@shared/auth/hooks/use-session";
-import { useUserOrganizations } from "@/modules/account/organizations/hooks/use-user-organizations";
-import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 import { TrashIcon } from "@heroicons/react/24/outline";
-import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import { useSession } from "@shared/auth/hooks/use-session";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -279,46 +275,6 @@ export default function EventEditPage() {
 			toast.error(actionsT("updateError"));
 		} finally {
 			setIsSubmitting(false);
-		}
-	};
-
-	const handleSaveAsTemplate = async (data: EventFormData) => {
-		const templateName = `${data.title} - 模板`;
-		const templateDescription = `基于活动"${data.title}"创建的模板`;
-
-		try {
-			const response = await fetch(
-				`/api/events/${eventId}/save-as-template`,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						name: templateName,
-						description: templateDescription,
-						organizationId:
-							data.organizationId === "none"
-								? undefined
-								: data.organizationId,
-					}),
-				},
-			);
-
-			if (!response.ok) {
-				const message = await extractTemplateErrorMessage(
-					response,
-					"保存模板失败",
-				);
-				throw new Error(message);
-			}
-
-			toast.success("模板保存成功！");
-		} catch (error) {
-			console.error("Error saving template:", error);
-			toast.error(
-				error instanceof Error ? error.message : "保存模板失败",
-			);
 		}
 	};
 
@@ -587,7 +543,6 @@ export default function EventEditPage() {
 						eventSeriesOptions={eventSeriesOptions}
 						volunteerRoles={volunteerRoles}
 						onSubmit={handleSubmit}
-						onSaveAsTemplate={handleSaveAsTemplate}
 						isLoading={isSubmitting}
 						defaultValues={formDefaultValues}
 						isEdit={true}
