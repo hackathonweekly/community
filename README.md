@@ -3,7 +3,7 @@
 [![AGPL-3.0 License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![Commercial License](https://img.shields.io/badge/license-Commercial-green.svg)](docs/legal/commercial-terms.md)
 
-HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的开源社区网站。
+HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的开源社区网站。Created by [MakerJackie](makerjackie.com)
 
 📖 详细文档：https://hackathonweekly.com/zh/docs
 
@@ -41,7 +41,7 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 ## 品牌声明
 
-"HackathonWeekly"、"周周黑客松"、"01MVP" 的名称与 Logo 属于品牌标识，未经授权不得用于暗示官方认可、合作关系或官方版本。
+"HackathonWeekly"、"周周黑客松"的名称与 Logo 属于品牌标识，未经授权不得用于暗示官方认可、合作关系或官方版本。
 
 ## 贡献
 
@@ -55,11 +55,6 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 如果这个项目对你有帮助，欢迎通过以下方式支持我们：
 
-- [GitHub Sponsors](https://github.com/sponsors/jackiexiao)
-- [01MVP](https://01mvp.com)
+- [GitHub Sponsors](https://github.com/sponsors/makerjackie)
 
 你的支持帮助我们持续维护和改进社区平台。
-
-## Powered by 01MVP
-
-本项目由 [01MVP](https://01mvp.com) 提供支持。01MVP 是 Jackie 的产品，Jackie 是本项目的主要贡献者。01MVP 是一个帮你从 0 到 1 实现 MVP 的教程网站。
