@@ -131,7 +131,13 @@ export function CommunicationHistory({
 
 	const getSuccessRate = (comm: CommunicationRecord) => {
 		if (comm.totalRecipients === 0) return 0;
-		return Math.round((comm.deliveredCount / comm.totalRecipients) * 100);
+		const sentCount = Math.max(comm.sentCount, comm.deliveredCount);
+		return Math.round((sentCount / comm.totalRecipients) * 100);
+	};
+
+	const getUnsuccessfulCount = (comm: CommunicationRecord) => {
+		const sentCount = Math.max(comm.sentCount, comm.deliveredCount);
+		return Math.max(comm.totalRecipients - sentCount, comm.failedCount, 0);
 	};
 
 	if (communications.length === 0) {
@@ -201,7 +207,7 @@ export function CommunicationHistory({
 							<div className="flex items-center space-x-2">
 								{canRetry &&
 									comm.status === "FAILED" &&
-									comm.failedCount > 0 && (
+									getUnsuccessfulCount(comm) > 0 && (
 										<Button
 											size="sm"
 											variant="outline"
@@ -281,10 +287,10 @@ export function CommunicationHistory({
 									<XCircle className="h-4 w-4 text-red-400" />
 									<div>
 										<div className="font-medium">
-											{comm.failedCount}
+											{getUnsuccessfulCount(comm)}
 										</div>
 										<div className="text-muted-foreground">
-											发送失败
+											未发送成功
 										</div>
 									</div>
 								</div>

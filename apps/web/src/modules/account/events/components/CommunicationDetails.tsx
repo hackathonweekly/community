@@ -175,17 +175,29 @@ export function CommunicationDetails({
 		return filteredRecords.filter((record) => record.status === status);
 	};
 
+	const sentCount = Math.max(
+		communication.sentCount,
+		communication.deliveredCount,
+	);
 	const successRate =
 		communication.totalRecipients > 0
-			? Math.round(
-					(communication.deliveredCount /
-						communication.totalRecipients) *
-						100,
-				)
+			? Math.round((sentCount / communication.totalRecipients) * 100)
 			: 0;
 
-	const failedRecords = getRecordsByStatus("FAILED");
-	const canRetry = failedRecords.length > 0 && onRetry;
+	const allFailedRecords = records.filter(
+		(record) => record.status === "FAILED",
+	);
+	const allPendingRecords = records.filter(
+		(record) => record.status === "PENDING",
+	);
+	const retryableRecordCount =
+		allFailedRecords.length +
+		(communication.status === "FAILED" ? allPendingRecords.length : 0);
+	const failedDisplayCount = Math.max(
+		communication.failedCount,
+		retryableRecordCount,
+	);
+	const canRetry = retryableRecordCount > 0 && onRetry;
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -234,7 +246,7 @@ export function CommunicationDetails({
 										<RotateCcw className="h-4 w-4 mr-2" />
 										{isRetrying
 											? "重试中..."
-											: `重试失败项 (${failedRecords.length})`}
+											: `重试失败项 (${retryableRecordCount})`}
 									</Button>
 								)}
 							</div>
@@ -267,10 +279,10 @@ export function CommunicationDetails({
 								</div>
 								<div className="text-center">
 									<div className="text-2xl font-bold text-red-600">
-										{communication.failedCount}
+										{failedDisplayCount}
 									</div>
 									<div className="text-sm text-muted-foreground">
-										发送失败
+										未发送成功
 									</div>
 								</div>
 							</div>

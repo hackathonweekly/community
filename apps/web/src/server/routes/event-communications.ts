@@ -316,15 +316,9 @@ const app = new Hono<{
 					scheduledAt,
 				});
 
-				// 如果是立即发送，启动发送流程
-				if (!scheduledAt) {
-					// 异步处理发送，不阻塞响应
-					processCommunicationSending(communication.id).catch(
-						(error) => {
-							console.error("处理通信发送失败:", error);
-						},
-					);
-				}
+				const deliveryResult = scheduledAt
+					? null
+					: await processCommunicationSending(communication.id);
 
 				const stats = {
 					totalRegistrations: communication.totalRegistrations,
@@ -338,34 +332,55 @@ const app = new Hono<{
 					missingEmailCount: communication.missingEmailCount ?? 0,
 				};
 
-				let warning: string | null = null;
+				const warnings: string[] = [];
 				if ((communication.unmatchedSelectedCount ?? 0) > 0) {
-					warning = `注意：有 ${communication.unmatchedSelectedCount} 位已选择参与者不在本活动可发送名单中，已自动跳过`;
+					warnings.push(
+						`注意：有 ${communication.unmatchedSelectedCount} 位已选择参与者不在本活动可发送名单中，已自动跳过`,
+					);
 				}
 				if (communication.unverifiedUsersCount > 0) {
 					if (type === "EMAIL") {
-						const emailWarning = `注意：有 ${communication.unverifiedUsersCount} 个用户缺少有效邮箱或使用虚拟邮箱（@wechat.app），已自动跳过`;
-						warning = warning
-							? `${warning}；${emailWarning}`
-							: emailWarning;
+						warnings.push(
+							`注意：有 ${communication.unverifiedUsersCount} 个用户缺少有效邮箱或使用虚拟邮箱（@wechat.app），已自动跳过`,
+						);
 					} else {
-						const smsWarning = `注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号未验证或缺失而无法收到消息`;
-						warning = warning
-							? `${warning}；${smsWarning}`
-							: smsWarning;
+						warnings.push(
+							`注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号未验证或缺失而无法收到消息`,
+						);
 					}
 				}
+				if (deliveryResult && deliveryResult.failed > 0) {
+					warnings.push(
+						`有 ${deliveryResult.failed} 条消息发送失败，可在通信历史中查看详情`,
+					);
+				}
+
+				const warning =
+					warnings.length > 0 ? warnings.join("；") : null;
 
 				return c.json({
 					data: {
 						...communication,
+						status: deliveryResult?.status ?? communication.status,
 						content,
 						imageUrl,
 						recipientScope,
 						selectedRecipientIds,
 					},
-					message: scheduledAt ? "通信已计划发送" : "通信发送已启动",
+					message: scheduledAt
+						? "通信已计划发送"
+						: deliveryResult?.status === "FAILED"
+							? "通信发送失败"
+							: "通信发送完成",
 					stats,
+					deliveryStatus: deliveryResult?.status,
+					deliveryStats: deliveryResult
+						? {
+								total: deliveryResult.total,
+								success: deliveryResult.success,
+								failed: deliveryResult.failed,
+							}
+						: null,
 					warning,
 				});
 			} catch (error) {
@@ -479,14 +494,19 @@ const app = new Hono<{
 				return c.json({ message: "没有需要重试的失败记录" });
 			}
 
-			// 异步处理重试发送
-			processRetryRecords(failedRecords).catch((error) => {
-				console.error("处理重试发送失败:", error);
-			});
+			const retryResult = await processRetryRecords(failedRecords);
 
 			return c.json({
-				message: `已开始重试 ${failedRecords.length} 条失败记录`,
-				data: { retryCount: failedRecords.length },
+				message:
+					retryResult.status === "FAILED"
+						? `重试失败，已记录 ${retryResult.failed} 条失败记录`
+						: `已完成 ${failedRecords.length} 条失败记录重试`,
+				data: {
+					retryCount: failedRecords.length,
+					status: retryResult.status,
+					successCount: retryResult.success,
+					failedCount: retryResult.failed,
+				},
 			});
 		} catch (error) {
 			console.error("重试通信失败:", error);
@@ -497,8 +517,60 @@ const app = new Hono<{
 		}
 	});
 
+type CommunicationProcessResult = {
+	status: "PENDING" | "SENDING" | "COMPLETED" | "FAILED" | "CANCELLED";
+	total: number;
+	success: number;
+	failed: number;
+	error?: string;
+};
+
+function getCommunicationErrorMessage(error: unknown) {
+	if (!(error instanceof Error)) {
+		return "消息发送失败";
+	}
+
+	if (error.message.includes("PLUNK_API_KEY")) {
+		return "邮件服务未配置，无法发送";
+	}
+
+	if (error.message.includes("Could not send email")) {
+		return "邮件服务发送失败";
+	}
+
+	return error.message || "消息发送失败";
+}
+
+async function markPendingCommunicationRecordsFailed(
+	communicationId: string,
+	errorMessage: string,
+): Promise<CommunicationProcessResult> {
+	await db.eventCommunicationRecord.updateMany({
+		where: {
+			communicationId,
+			status: "PENDING",
+		},
+		data: {
+			status: "FAILED",
+			errorMessage,
+		},
+	});
+
+	const communication = await updateCommunicationStats(communicationId);
+
+	return {
+		status: communication.status,
+		total: communication.totalRecipients,
+		success: communication.sentCount,
+		failed: communication.failedCount,
+		error: errorMessage,
+	};
+}
+
 // 处理通信发送的异步函数
-async function processCommunicationSending(communicationId: string) {
+async function processCommunicationSending(
+	communicationId: string,
+): Promise<CommunicationProcessResult> {
 	try {
 		// 获取通信记录和待发送的记录
 		const communication = await db.eventCommunication.findUnique({
@@ -541,7 +613,14 @@ async function processCommunicationSending(communicationId: string) {
 		}
 
 		if (communication.records.length === 0) {
-			return;
+			const updatedCommunication =
+				await updateCommunicationStats(communicationId);
+			return {
+				status: updatedCommunication.status,
+				total: updatedCommunication.totalRecipients,
+				success: updatedCommunication.sentCount,
+				failed: updatedCommunication.failedCount,
+			};
 		}
 
 		const parsedContent = parseCommunicationContent(communication.content);
@@ -578,21 +657,37 @@ async function processCommunicationSending(communicationId: string) {
 		await batchUpdateCommunicationRecords(communicationId, updates);
 
 		// 更新通信主记录的统计数据
-		await updateCommunicationStats(communicationId);
+		const updatedCommunication =
+			await updateCommunicationStats(communicationId);
+		return {
+			status: updatedCommunication.status,
+			total: updatedCommunication.totalRecipients,
+			success: updatedCommunication.sentCount,
+			failed: updatedCommunication.failedCount,
+		};
 	} catch (error) {
 		console.error("处理通信发送失败:", error);
 
-		// 更新通信状态为失败
-		await db.eventCommunication.update({
-			where: { id: communicationId },
-			data: { status: "FAILED" },
-		});
+		const errorMessage = getCommunicationErrorMessage(error);
+		return await markPendingCommunicationRecordsFailed(
+			communicationId,
+			errorMessage,
+		);
 	}
 }
 
 // 处理重试记录的异步函数
-async function processRetryRecords(records: any[]) {
-	if (records.length === 0) return;
+async function processRetryRecords(
+	records: any[],
+): Promise<CommunicationProcessResult> {
+	if (records.length === 0) {
+		return {
+			status: "COMPLETED",
+			total: 0,
+			success: 0,
+			failed: 0,
+		};
+	}
 
 	const communicationId = records[0].communicationId;
 
@@ -629,9 +724,21 @@ async function processRetryRecords(records: any[]) {
 		}));
 
 		await batchUpdateCommunicationRecords(communicationId, updates);
-		await updateCommunicationStats(communicationId);
+		const updatedCommunication =
+			await updateCommunicationStats(communicationId);
+		return {
+			status: updatedCommunication.status,
+			total: updatedCommunication.totalRecipients,
+			success: updatedCommunication.sentCount,
+			failed: updatedCommunication.failedCount,
+		};
 	} catch (error) {
 		console.error("处理重试发送失败:", error);
+		const errorMessage = getCommunicationErrorMessage(error);
+		return await markPendingCommunicationRecordsFailed(
+			communicationId,
+			errorMessage,
+		);
 	}
 }
 

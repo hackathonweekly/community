@@ -419,9 +419,12 @@ export async function updateCommunicationStats(communicationId: string) {
 		_count: true,
 	});
 
-	const sentCount = stats.find((s) => s.status === "SENT")?._count || 0;
-	const deliveredCount =
+	const sentOnlyCount = stats.find((s) => s.status === "SENT")?._count || 0;
+	const deliveredOnlyCount =
 		stats.find((s) => s.status === "DELIVERED")?._count || 0;
+	const readCount = stats.find((s) => s.status === "READ")?._count || 0;
+	const sentCount = sentOnlyCount + deliveredOnlyCount + readCount;
+	const deliveredCount = deliveredOnlyCount + readCount;
 	const failedCount = stats.find((s) => s.status === "FAILED")?._count || 0;
 
 	const totalRecords = await db.eventCommunicationRecord.count({
@@ -430,9 +433,11 @@ export async function updateCommunicationStats(communicationId: string) {
 
 	// 判断整体状态
 	let status: CommunicationStatus = "SENDING";
-	if (failedCount === totalRecords) {
+	if (totalRecords === 0) {
+		status = "COMPLETED";
+	} else if (failedCount === totalRecords) {
 		status = "FAILED";
-	} else if (sentCount + deliveredCount + failedCount === totalRecords) {
+	} else if (sentCount + failedCount === totalRecords) {
 		status = "COMPLETED";
 	}
 
@@ -456,7 +461,9 @@ export async function retryFailedCommunicationRecords(communicationId: string) {
 	const failedRecords = await db.eventCommunicationRecord.findMany({
 		where: {
 			communicationId,
-			status: "FAILED",
+			status: {
+				in: ["FAILED", "PENDING"],
+			},
 			retryCount: {
 				lt: 3, // 最多重试3次
 			},

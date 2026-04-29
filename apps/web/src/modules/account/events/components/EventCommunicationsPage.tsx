@@ -240,6 +240,16 @@ export default function EventCommunicationsPage({
 				typeof stats.validRecipients === "number"
 					? stats.validRecipients
 					: 0;
+			const deliveryStatus = result.deliveryStatus || result.data?.status;
+			const deliveryStats = result.deliveryStats || {};
+			const deliverySuccessCount =
+				typeof deliveryStats.success === "number"
+					? deliveryStats.success
+					: 0;
+			const deliveryFailedCount =
+				typeof deliveryStats.failed === "number"
+					? deliveryStats.failed
+					: 0;
 
 			setSendSummary({
 				validRecipients,
@@ -248,7 +258,19 @@ export default function EventCommunicationsPage({
 				unmatchedSelectedCount,
 			});
 
-			toast.success(`提醒发送已启动，预计实际通知 ${validRecipients} 人`);
+			if (deliveryStatus === "FAILED") {
+				toast.error(
+					`邮件发送失败，${deliveryFailedCount || validRecipients} 人未发送成功`,
+				);
+			} else if (deliveryStatus === "COMPLETED") {
+				toast.success(
+					`提醒发送完成，已发送 ${deliverySuccessCount || validRecipients} 人`,
+				);
+			} else {
+				toast.success(
+					`提醒发送已启动，预计实际通知 ${validRecipients} 人`,
+				);
+			}
 
 			const skippedByEmail = missingEmailCount + virtualEmailCount;
 			if (skippedByEmail > 0) {
@@ -307,7 +329,11 @@ export default function EventCommunicationsPage({
 				throw new Error(result.error || "重试失败");
 			}
 
-			toast.success(result.message || "重试已开始");
+			if (result.data?.status === "FAILED") {
+				toast.error(result.message || "重试失败");
+			} else {
+				toast.success(result.message || "重试已完成");
+			}
 
 			// 刷新通信历史
 			const commRes = await fetch(`/api/event-communications/${eventId}`);
