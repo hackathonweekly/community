@@ -24,7 +24,7 @@ declare global {
 }
 
 const REPO_URL = "https://github.com/hackathonweekly/community";
-const MAKER_WECHAT_ID = "makerjackie";
+const MAKER_CONTACT_EMAIL = "makerjackie@qq.com";
 const DEV_GUIDE_PATH = "/docs/dev-guide";
 const CONSOLE_BANNER_STYLE = [
 	"display:inline-block",
@@ -89,7 +89,7 @@ function logConsoleWelcome() {
 		"%c联系开发者：%c%s",
 		CONSOLE_LABEL_STYLE,
 		CONSOLE_VALUE_STYLE,
-		`微信 ${MAKER_WECHAT_ID}`,
+		MAKER_CONTACT_EMAIL,
 	);
 	console.log("%cEnglish", CONSOLE_SUBTITLE_STYLE);
 	console.log(
@@ -120,7 +120,7 @@ function logConsoleWelcome() {
 		"%cContact:%c%s",
 		CONSOLE_LABEL_STYLE,
 		CONSOLE_VALUE_STYLE,
-		`WeChat ${MAKER_WECHAT_ID}`,
+		MAKER_CONTACT_EMAIL,
 	);
 }
 

@@ -26,7 +26,7 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 ### 代码授权
 
 - **非商用/开源使用**：[AGPL-3.0](LICENSE) - 可自由使用，但必须开源
-- **商业使用**：需要[商业授权](docs/legal/commercial-terms.md) - 联系微信 **makerjackie**
+- **商业使用**：需要[商业授权](docs/legal/commercial-terms.md) - 联系邮箱 **makerjackie@qq.com**
 
 **什么算商业使用？**
 任何公司或组织用于业务目的的使用都需要商业授权，包括但不限于：

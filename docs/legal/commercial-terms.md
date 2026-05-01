@@ -16,7 +16,7 @@ Any use by a company or organization for business purposes requires a commercial
 
 ## How to Obtain a Commercial License
 
-Contact us via WeChat: **makerjackie**
+Contact us via email: **makerjackie@qq.com**
 
 We offer flexible licensing terms based on your use case.
 
