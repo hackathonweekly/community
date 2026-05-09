@@ -14,7 +14,11 @@ import {
 	withHackathonConfigDefaults,
 } from "@/features/hackathon/config";
 import { NotificationService } from "@/features/notifications/service";
-import { RestrictedAction, canUserDoAction } from "@/features/permissions";
+import {
+	RestrictedAction,
+	canUserDoAction,
+	canManageEvent,
+} from "@/features/permissions";
 import { getRandomTemplate } from "@community/config/image-templates";
 import { auth } from "@community/lib-server/auth";
 import {
@@ -37,6 +41,7 @@ import {
 	updateEvent,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
+import { getEventProjectSubmissions } from "@community/lib-server/database/prisma/queries/events";
 import { isSendableEmail } from "@community/lib-server/mail/address";
 import {
 	sendEventHostNewEventAnnouncement,
@@ -51,6 +56,7 @@ import {
 import type { Locale } from "@community/lib-shared/i18n";
 import { zValidator } from "@hono/zod-validator";
 import type { Event, RegistrationStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { z } from "zod";
@@ -1092,7 +1098,6 @@ async function getEventWithAdminCheck(eventId: string, headers: Headers) {
 		const session = await auth.api.getSession({ headers });
 
 		if (session?.user?.id) {
-			const { canManageEvent } = await import("@/features/permissions");
 			isEventAdmin = await canManageEvent(eventId, session.user.id);
 		}
 	} catch (adminCheckError) {
@@ -2119,7 +2124,6 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 		// 1. Event creator
 		// 2. Event admins with canEditEvent permission
 		// 3. Organization owners/admins
-		const { canManageEvent } = await import("@/features/permissions");
 		const hasPermission = await canManageEvent(id, session.user.id);
 
 		if (!hasPermission) {
@@ -2427,7 +2431,6 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 			);
 		}
 
-		const { Prisma } = await import("@prisma/client");
 		if (error instanceof Prisma.PrismaClientValidationError) {
 			return c.json(
 				{
@@ -2507,7 +2510,6 @@ app.delete("/:id", async (c) => {
 		// 1. Event creator
 		// 2. Event admins with canEditEvent permission
 		// 3. Organization owners/admins
-		const { canManageEvent } = await import("@/features/permissions");
 		const hasPermission = await canManageEvent(id, session.user.id);
 
 		if (!hasPermission) {
@@ -2687,11 +2689,6 @@ app.get("/:eventId/project-submissions", async (c) => {
 				404,
 			);
 		}
-
-		// Import the database query function
-		const { getEventProjectSubmissions } = await import(
-			"@community/lib-server/database/prisma/queries/events"
-		);
 
 		const projectSubmissions = await getEventProjectSubmissions(event.id);
 

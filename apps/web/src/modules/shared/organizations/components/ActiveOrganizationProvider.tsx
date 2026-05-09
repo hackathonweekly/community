@@ -81,7 +81,9 @@ export function ActiveOrganizationProvider({
 		router.push(`/orgs/${newActiveOrganization.slug}`);
 	};
 
-	const [loaded, setLoaded] = useState(activeOrganization !== undefined);
+	const [loaded, setLoaded] = useState(
+		activeOrganizationSlug ? activeOrganization !== undefined : true,
+	);
 
 	useEffect(() => {
 		if (!loaded && activeOrganization !== undefined) {

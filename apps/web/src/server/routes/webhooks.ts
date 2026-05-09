@@ -2,6 +2,10 @@ import { handlePaymentWebhook } from "@community/lib-server/payments";
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
 
+// Module-level variable to avoid mutating process.env per-request
+let preferredPaymentProvider: string | undefined =
+	process.env.PREFERRED_PAYMENT_PROVIDER;
+
 export const webhooksRouter = new Hono()
 	.post(
 		"/webhooks/payments",
@@ -25,7 +29,7 @@ export const webhooksRouter = new Hono()
 		}),
 		(c) => {
 			// 强制使用微信支付处理器
-			process.env.PREFERRED_PAYMENT_PROVIDER = "wechatpay";
+			preferredPaymentProvider = "wechatpay";
 			return handlePaymentWebhook(c.req.raw);
 		},
 	);

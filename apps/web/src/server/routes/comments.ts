@@ -85,9 +85,6 @@ app.get(
 			if (session?.user?.id) {
 				const commentIds = result.comments.map((comment) => comment.id);
 				if (commentIds.length > 0) {
-					const { db } = await import(
-						"@community/lib-server/database/prisma/client"
-					);
 					const likes = await db.commentLike.findMany({
 						where: {
 							userId: session.user.id,
@@ -243,9 +240,6 @@ app.post("/", zValidator("json", createCommentSchema), async (c) => {
 		try {
 			if (data.parentId) {
 				// 回复通知
-				const { db } = await import(
-					"@community/lib-server/database/prisma/client"
-				);
 				const parentComment = await db.comment.findUnique({
 					where: { id: data.parentId },
 					select: { userId: true },
@@ -384,9 +378,6 @@ app.post("/:commentId/like", async (c) => {
 		// 发送点赞通知
 		if (result.liked) {
 			try {
-				const { db } = await import(
-					"@community/lib-server/database/prisma/client"
-				);
 				const comment = await db.comment.findUnique({
 					where: { id: commentId },
 					select: {
@@ -479,8 +470,6 @@ async function getEntityTitle(
 	entityType: CommentEntityType,
 	entityId: string,
 ): Promise<string> {
-	const { db } = await import("@community/lib-server/database/prisma/client");
-
 	try {
 		switch (entityType) {
 			case "PROJECT": {

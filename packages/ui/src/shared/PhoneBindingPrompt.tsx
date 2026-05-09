@@ -13,7 +13,7 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@community/ui/ui/dialog";
-import { useSession } from "@dashboard/auth/hooks/use-session";
+import { useSession } from "@account/auth/hooks/use-session";
 
 const PHONE_BINDING_SKIP_UNTIL_KEY = "hw.phoneBinding.skipUntil";
 const SKIP_DURATION_MS = 24 * 60 * 60 * 1000;

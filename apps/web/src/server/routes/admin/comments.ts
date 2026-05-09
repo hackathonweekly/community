@@ -4,6 +4,7 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { CommentQueries } from "@community/lib-server/database/prisma/queries/comments";
 import { SystemConfigService } from "@community/lib-server/system-config/service";
+import { db } from "@community/lib-server/database/prisma/client";
 import { CommentStatus, CommentEntityType } from "@prisma/client";
 
 const app = new Hono();
@@ -16,7 +17,6 @@ async function requireSuperAdmin(c: any) {
 	}
 
 	// 检查是否是超级管理员（这里需要根据你的作品实际权限系统调整）
-	const { db } = await import("@community/lib-server/database/prisma/client");
 	const user = await db.user.findUnique({
 		where: { id: session.user.id },
 		select: { role: true },
@@ -94,10 +94,6 @@ app.get("/stats", async (c) => {
 	}
 
 	try {
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
-
 		const [total, active, hidden, reviewing, rejected, deleted] =
 			await Promise.all([
 				db.comment.count(),
@@ -143,9 +139,6 @@ app.post("/batch-update", zValidator("json", batchUpdateSchema), async (c) => {
 		await CommentQueries.batchUpdateStatus(commentIds, status);
 
 		// 记录管理员操作日志
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
 		await db.adminLog.create({
 			data: {
 				adminId: session.user.id,
@@ -178,9 +171,6 @@ app.post("/batch-delete", zValidator("json", batchDeleteSchema), async (c) => {
 		const { commentIds } = c.req.valid("json");
 
 		// 软删除评论
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
 		await db.comment.updateMany({
 			where: { id: { in: commentIds } },
 			data: {
@@ -240,9 +230,6 @@ app.post("/config", zValidator("json", configUpdateSchema), async (c) => {
 		await SystemConfigService.setCommentConfig(config, session.user.id);
 
 		// 记录管理员操作日志
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
 		await db.adminLog.create({
 			data: {
 				adminId: session.user.id,
@@ -273,9 +260,6 @@ app.get("/:commentId", async (c) => {
 	try {
 		const { commentId } = c.req.param();
 
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
 		const comment = await db.comment.findUnique({
 			where: { id: commentId },
 			include: {
@@ -339,9 +323,6 @@ app.put(
 			});
 
 			// 记录管理员操作日志
-			const { db } = await import(
-				"@community/lib-server/database/prisma/client"
-			);
 			await db.adminLog.create({
 				data: {
 					adminId: session.user.id,
@@ -377,9 +358,6 @@ app.delete("/:commentId", async (c) => {
 		await CommentQueries.softDelete(commentId, session.user.id);
 
 		// 记录管理员操作日志
-		const { db } = await import(
-			"@community/lib-server/database/prisma/client"
-		);
 		await db.adminLog.create({
 			data: {
 				adminId: session.user.id,

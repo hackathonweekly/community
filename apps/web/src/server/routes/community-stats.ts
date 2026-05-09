@@ -80,13 +80,7 @@ export const communityStatsRouter = new Hono().get(
 			return c.json(stats);
 		} catch (error) {
 			console.error("Error fetching community stats:", error);
-			return c.json({
-				totalEvents: 200,
-				totalProjects: 150,
-				totalMembers: 6000,
-				onlineMembers: 75,
-				upcomingEvents: 3,
-			});
+			return c.json({ error: "Failed to fetch community stats" }, 500);
 		}
 	},
 );

@@ -92,9 +92,23 @@ export default async function middleware(req: NextRequest) {
 	const response = NextResponse.next();
 
 	if (localePrefixPattern.test(pathname)) {
+		const localeMatch = pathname.match(localePrefixPattern);
+		const matchedLocale = localeMatch?.[1];
 		const redirectUrl = req.nextUrl.clone();
 		redirectUrl.pathname = stripLocalePrefix(pathname);
-		return NextResponse.redirect(redirectUrl, 301);
+		const redirectResponse = NextResponse.redirect(redirectUrl, 301);
+		if (matchedLocale) {
+			const existingLocale = req.cookies.get(
+				appConfig.i18n.localeCookieName,
+			)?.value;
+			if (existingLocale !== matchedLocale) {
+				redirectResponse.cookies.set(
+					appConfig.i18n.localeCookieName,
+					matchedLocale,
+				);
+			}
+		}
+		return redirectResponse;
 	}
 
 	const legacyAppRedirect = mapLegacyAppPath(pathname);
@@ -169,12 +183,17 @@ export default async function middleware(req: NextRequest) {
 	}
 
 	if (session) {
-		let locale = req.cookies.get(appConfig.i18n.localeCookieName)?.value;
+		const existingLocale = req.cookies.get(
+			appConfig.i18n.localeCookieName,
+		)?.value;
+		let locale = existingLocale;
 		if (
 			!locale ||
 			(session.user.locale && locale !== session.user.locale)
 		) {
 			locale = session.user.locale ?? appConfig.i18n.defaultLocale;
+		}
+		if (locale !== existingLocale) {
 			response.cookies.set(appConfig.i18n.localeCookieName, locale);
 		}
 	}

@@ -43,7 +43,7 @@ import { SocialSigninButton } from "./SocialSigninButton";
 
 const formSchema = z.object({
 	email: z.string().email(),
-	password: z.string().min(1),
+	password: z.string().min(8),
 	name: z.string().min(1),
 	acceptAgreements: z.boolean().refine((val) => val === true, {
 		message:

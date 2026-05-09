@@ -41,7 +41,6 @@
 			"content-collections": ["./.content-collections/generated"],
 			"@shared/*": ["./src/modules/shared/*"],
 			"@account/*": ["./src/modules/account/*"],
-			"@dashboard/*": ["./src/modules/account/*"],
 			"@community/ui/*": ["../../packages/ui/src/*"],
 			"@community/lib-client/*": ["../../packages/lib-client/src/*"],
 			"@community/lib-server/*": ["../../packages/lib-server/src/*"],

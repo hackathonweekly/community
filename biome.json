@@ -62,9 +62,6 @@
 			"apps/web/.content-collections/**/*"
 		]
 	},
-	"javascript": {
-		"jsxRuntime": "reactClassic"
-	},
 	"css": {
 		"formatter": {
 			"enabled": false

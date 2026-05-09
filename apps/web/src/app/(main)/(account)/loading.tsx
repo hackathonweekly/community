@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Skeleton } from "@community/ui/ui/skeleton";
 
-export default function PublicLoading() {
+export default function AccountLoading() {
 	const [show, setShow] = useState(false);
 
 	useEffect(() => {
@@ -27,16 +27,20 @@ export default function PublicLoading() {
 						<Skeleton className="h-8 w-16 rounded-full" />
 						<Skeleton className="h-8 w-16 rounded-full" />
 						<Skeleton className="h-8 w-16 rounded-full" />
-						<Skeleton className="h-8 w-16 rounded-full" />
 					</div>
 				</div>
 				<div className="mx-auto max-w-6xl space-y-4 p-4 lg:p-8">
 					<Skeleton className="h-8 w-2/3" />
 					<Skeleton className="h-4 w-1/3" />
-					<div className="pt-4 space-y-3">
-						<Skeleton className="h-24 w-full rounded-xl" />
-						<Skeleton className="h-24 w-full rounded-xl" />
-						<Skeleton className="h-24 w-full rounded-xl" />
+					<div className="grid gap-4 pt-4 md:grid-cols-2">
+						<div className="space-y-3">
+							<Skeleton className="h-32 w-full rounded-xl" />
+							<Skeleton className="h-32 w-full rounded-xl" />
+						</div>
+						<div className="space-y-3">
+							<Skeleton className="h-32 w-full rounded-xl" />
+							<Skeleton className="h-32 w-full rounded-xl" />
+						</div>
 					</div>
 				</div>
 			</div>

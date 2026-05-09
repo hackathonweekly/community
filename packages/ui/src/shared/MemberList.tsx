@@ -33,7 +33,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@community/ui/ui/table";
-import { UserLevelBadges } from "@dashboard/level/components/LevelBadge";
+import { UserLevelBadges } from "@account/level/components/LevelBadge";
 import { UserAvatar } from "@community/ui/shared/UserAvatar";
 import {
 	Ban,

@@ -6,6 +6,7 @@ import "cropperjs/dist/cropper.css";
 import { config } from "@community/config";
 import { cn } from "@community/lib-shared/utils";
 import { VersionLogger } from "@community/ui/version-logger";
+import { getLocale } from "next-intl/server";
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -40,10 +41,11 @@ export const viewport: Viewport = {
 	userScalable: false,
 };
 
-export default function RootLayout({ children }: PropsWithChildren) {
+export default async function RootLayout({ children }: PropsWithChildren) {
+	const locale = await getLocale();
 	return (
 		<html
-			lang="zh"
+			lang={locale}
 			suppressHydrationWarning
 			className={cn(
 				inter.variable,
