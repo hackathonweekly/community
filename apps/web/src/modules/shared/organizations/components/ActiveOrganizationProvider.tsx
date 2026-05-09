@@ -12,7 +12,6 @@ import {
 import { useRouter } from "@/hooks/router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
-import nProgress from "nprogress";
 import { type ReactNode, useEffect, useState } from "react";
 import { ActiveOrganizationContext } from "../lib/active-organization-context";
 
@@ -43,8 +42,6 @@ export function ActiveOrganizationProvider({
 	};
 
 	const setActiveOrganization = async (organizationSlug: string | null) => {
-		nProgress.start();
-
 		const response = await authClient.organization.setActive(
 			organizationSlug
 				? {
@@ -58,7 +55,6 @@ export function ActiveOrganizationProvider({
 		const { data: newActiveOrganization } = response;
 
 		if (!newActiveOrganization) {
-			nProgress.done();
 			return;
 		}
 

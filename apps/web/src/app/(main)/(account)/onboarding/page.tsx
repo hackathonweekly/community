@@ -5,9 +5,6 @@ import { AuthWrapper } from "@shared/components/AuthWrapper";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export async function generateMetadata() {
 	const t = await getTranslations();
 

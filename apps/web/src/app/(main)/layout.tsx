@@ -15,9 +15,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, setRequestLocale } from "next-intl/server";
 import type { PropsWithChildren } from "react";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 export default async function MainLayout({ children }: PropsWithChildren) {
 	const locale = await getLocale();
 	setRequestLocale(locale);

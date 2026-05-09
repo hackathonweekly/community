@@ -12,8 +12,6 @@ import { Alert, AlertDescription } from "@community/ui/ui/alert";
 import { Button } from "@community/ui/ui/button";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
 export default async function NewOrganizationPage() {
 	const organizations = await getOrganizationList();
 	const session = await getSession();
