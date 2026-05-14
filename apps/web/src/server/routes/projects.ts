@@ -17,9 +17,61 @@ import {
 import { NotificationService } from "@/features/notifications/service";
 import { getCachedOrganizations } from "@community/lib-server/cache/organizations";
 import { ContributionType } from "@prisma/client";
+import type { EventStatus, Prisma, SubmissionStatus } from "@prisma/client";
 import { Hono } from "hono";
 import { z } from "zod";
 import { createProjectSchema, updateProjectSchema } from "./projects-schemas";
+
+const PUBLIC_EVENT_STATUSES: EventStatus[] = [
+	"PUBLISHED",
+	"REGISTRATION_CLOSED",
+	"ONGOING",
+	"COMPLETED",
+];
+
+const PUBLIC_SUBMISSION_STATUSES: SubmissionStatus[] = [
+	"SUBMITTED",
+	"UNDER_REVIEW",
+	"APPROVED",
+	"AWARDED",
+];
+
+const publicProjectVisibilityWhere: Prisma.ProjectWhereInput = {
+	user: {
+		profilePublic: true,
+	},
+	OR: [
+		{
+			isComplete: true,
+		},
+		{
+			isSubmission: true,
+			communityUseAuth: true,
+			eventSubmissions: {
+				some: {
+					status: {
+						in: PUBLIC_SUBMISSION_STATUSES,
+					},
+					event: {
+						status: {
+							in: PUBLIC_EVENT_STATUSES,
+						},
+					},
+				},
+			},
+		},
+	],
+};
+
+function getPublicProjectWhere(
+	where?: Prisma.ProjectWhereInput,
+): Prisma.ProjectWhereInput {
+	return where
+		? {
+				AND: [publicProjectVisibilityWhere, where],
+			}
+		: publicProjectVisibilityWhere;
+}
 
 // 作品完成度计算函数
 function calculateProjectCompletion(data: {
@@ -83,24 +135,19 @@ export const projectsRouter = new Hono()
 			const sort = c.req.query("sort");
 			const sortOrder = c.req.query("sortOrder") || "desc";
 
-			const where: any = {
-				user: {
-					profilePublic: true,
-				},
-				isComplete: true,
-			};
+			const filterWhere: Prisma.ProjectWhereInput = {};
 
 			// Handle special stage filters
 			if (stage === "recruiting") {
-				where.isRecruiting = true;
+				filterWhere.isRecruiting = true;
 			} else if (stage === "featured") {
-				where.featured = true;
+				filterWhere.featured = true;
 			} else if (stage === "early") {
-				where.stage = {
+				filterWhere.stage = {
 					in: ["IDEA_VALIDATION", "DEVELOPMENT", "LAUNCH"],
 				};
 			} else if (stage === "mature") {
-				where.stage = {
+				filterWhere.stage = {
 					in: ["GROWTH", "MONETIZATION", "FUNDING", "COMPLETED"],
 				};
 			} else if (
@@ -108,11 +155,11 @@ export const projectsRouter = new Hono()
 				stage !== "recruiting" &&
 				stage !== "featured"
 			) {
-				where.stage = stage;
+				filterWhere.stage = stage as any;
 			}
 
 			if (search) {
-				where.OR = [
+				filterWhere.OR = [
 					{
 						title: {
 							contains: search,
@@ -134,8 +181,7 @@ export const projectsRouter = new Hono()
 			}
 
 			if (organization) {
-				where.user = {
-					...where.user,
+				filterWhere.user = {
 					members: {
 						some: {
 							organization: {
@@ -145,6 +191,8 @@ export const projectsRouter = new Hono()
 					},
 				};
 			}
+
+			const where = getPublicProjectWhere(filterWhere);
 
 			const orderBy: any = [{ featured: "desc" }];
 			const direction = sortOrder === "asc" ? "asc" : "desc";
@@ -159,7 +207,7 @@ export const projectsRouter = new Hono()
 			}
 
 			// 优化后的查询：使用并发查询和缓存组织数据
-			const [projects, stats, totalProjects, organizations] =
+			const [projectRows, stats, totalProjects, organizations] =
 				await Promise.all([
 					db.project.findMany({
 						where,
@@ -181,6 +229,17 @@ export const projectsRouter = new Hono()
 							isRecruiting: true,
 							recruitmentTags: true,
 							recruitmentStatus: true,
+							attachments: {
+								where: {
+									fileType: "image",
+								},
+								orderBy: {
+									order: "asc",
+								},
+								select: {
+									fileUrl: true,
+								},
+							},
 							likes: session?.user
 								? {
 										where: {
@@ -237,24 +296,21 @@ export const projectsRouter = new Hono()
 						_count: {
 							stage: true,
 						},
-						where: {
-							user: {
-								profilePublic: true,
-							},
-							isComplete: true,
-						},
+						where: getPublicProjectWhere(),
 					}),
 					db.project.count({
-						where: {
-							user: {
-								profilePublic: true,
-							},
-							isComplete: true,
-						},
+						where: getPublicProjectWhere(),
 					}),
 					// 使用缓存的组织数据替代直接查询
 					getCachedOrganizations(),
 				]);
+			const projects = projectRows.map(({ attachments, ...project }) => ({
+				...project,
+				screenshots:
+					project.screenshots.length > 0
+						? project.screenshots
+						: attachments.map((attachment) => attachment.fileUrl),
+			}));
 
 			return c.json({
 				projects,
@@ -916,13 +972,9 @@ export const projectsRouter = new Hono()
 
 			// Get user's public projects
 			const projects = await db.project.findMany({
-				where: {
+				where: getPublicProjectWhere({
 					userId,
-					user: {
-						profilePublic: true, // Only show projects if user's profile is public
-					},
-					isComplete: true, // 只显示高完成度作品
-				},
+				}),
 				orderBy: [
 					{ featured: "desc" },
 					{ order: "asc" },
@@ -941,10 +993,31 @@ export const projectsRouter = new Hono()
 					featured: true,
 					createdAt: true,
 					updatedAt: true,
+					attachments: {
+						where: {
+							fileType: "image",
+						},
+						orderBy: {
+							order: "asc",
+						},
+						select: {
+							fileUrl: true,
+						},
+					},
 				},
 			});
 
-			return c.json({ projects });
+			return c.json({
+				projects: projects.map(({ attachments, ...project }) => ({
+					...project,
+					screenshots:
+						project.screenshots.length > 0
+							? project.screenshots
+							: attachments.map(
+									(attachment) => attachment.fileUrl,
+								),
+				})),
+			});
 		} catch (error) {
 			console.error("Error fetching public projects:", error);
 			return c.json({ error: "Internal server error" }, 500);
@@ -964,11 +1037,9 @@ export const projectsRouter = new Hono()
 
 			// Check if project exists and is public
 			const project = await db.project.findFirst({
-				where: {
-					...resolveProjectIdentifier(projectId),
-					user: { profilePublic: true },
-					isComplete: true, // 确保是高完成度作品
-				},
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 			});
 
 			if (!project) {
@@ -1066,7 +1137,9 @@ export const projectsRouter = new Hono()
 
 			// Resolve project identifier
 			const project = await db.project.findFirst({
-				where: resolveProjectIdentifier(projectId),
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 				select: { id: true },
 			});
 
@@ -1125,11 +1198,9 @@ export const projectsRouter = new Hono()
 
 			// Check if project exists and is public
 			const project = await db.project.findFirst({
-				where: {
-					...resolveProjectIdentifier(projectId),
-					user: { profilePublic: true },
-					isComplete: true, // 确保是高完成度作品
-				},
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 			});
 
 			if (!project) {
@@ -1186,7 +1257,9 @@ export const projectsRouter = new Hono()
 
 			// Resolve project identifier
 			const project = await db.project.findFirst({
-				where: resolveProjectIdentifier(projectId),
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 				select: { id: true },
 			});
 
@@ -1240,11 +1313,9 @@ export const projectsRouter = new Hono()
 
 			// Check if project exists and is public
 			const project = await db.project.findFirst({
-				where: {
-					...resolveProjectIdentifier(projectId),
-					user: { profilePublic: true },
-					isComplete: true, // 确保是高完成度作品
-				},
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 			});
 
 			if (!project) {
@@ -1327,7 +1398,9 @@ export const projectsRouter = new Hono()
 
 			// Get project with user information and counts
 			const project = await db.project.findFirst({
-				where: resolveProjectIdentifier(projectId),
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 				include: {
 					user: {
 						select: {
@@ -1348,12 +1421,7 @@ export const projectsRouter = new Hono()
 				},
 			});
 
-			if (
-				!project ||
-				!project.user ||
-				!project.user.profilePublic ||
-				!project.isComplete
-			) {
+			if (!project || !project.user || !project.user.profilePublic) {
 				return c.json({ error: "Project not found" }, 404);
 			}
 
@@ -1401,7 +1469,9 @@ export const projectsRouter = new Hono()
 
 			// Get the project to find the user ID
 			const project = await db.project.findFirst({
-				where: resolveProjectIdentifier(projectId),
+				where: getPublicProjectWhere(
+					resolveProjectIdentifier(projectId),
+				),
 				select: {
 					id: true,
 					userId: true,
@@ -1419,14 +1489,10 @@ export const projectsRouter = new Hono()
 
 			// Get related projects from the same user
 			const relatedProjects = await db.project.findMany({
-				where: {
+				where: getPublicProjectWhere({
 					userId: project.userId,
 					id: { not: project.id },
-					user: {
-						profilePublic: true,
-					},
-					isComplete: true,
-				},
+				}),
 				include: {
 					user: {
 						select: {
