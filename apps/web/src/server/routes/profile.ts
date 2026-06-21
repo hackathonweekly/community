@@ -411,6 +411,10 @@ export const profileRouter = new Hono()
 					validatedData.phoneNumber === ""
 				) {
 					updateData.phoneNumberVerified = false;
+				} else if (
+					validatedData.phoneNumber !== currentUser.phoneNumber
+				) {
+					updateData.phoneNumberVerified = false;
 				}
 			}
 			if (validatedData.gender !== undefined) {

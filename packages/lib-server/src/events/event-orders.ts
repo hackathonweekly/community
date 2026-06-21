@@ -270,6 +270,8 @@ export async function redeemOrderInvite(params: {
 	eventId: string;
 	code: string;
 	userId: string;
+	contactEmail?: string;
+	contactPhoneNumber?: string;
 	allowDigitalCardDisplay?: boolean;
 	answers?: Array<{ questionId: string; answer: string }>;
 }) {
@@ -277,6 +279,8 @@ export async function redeemOrderInvite(params: {
 		eventId,
 		code,
 		userId,
+		contactEmail,
+		contactPhoneNumber,
 		allowDigitalCardDisplay,
 		answers = [],
 	} = params;
@@ -343,6 +347,8 @@ export async function redeemOrderInvite(params: {
 						orderId: invite.orderId,
 						orderInviteId: invite.id,
 						inviteId: null,
+						contactEmail: contactEmail ?? null,
+						contactPhoneNumber: contactPhoneNumber ?? null,
 						allowDigitalCardDisplay,
 						reviewedAt: null,
 						reviewedBy: null,
@@ -358,6 +364,8 @@ export async function redeemOrderInvite(params: {
 						ticketTypeId: invite.order.ticketTypeId,
 						orderId: invite.orderId,
 						orderInviteId: invite.id,
+						contactEmail: contactEmail ?? null,
+						contactPhoneNumber: contactPhoneNumber ?? null,
 						allowDigitalCardDisplay,
 					},
 				});

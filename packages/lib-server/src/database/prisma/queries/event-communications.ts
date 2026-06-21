@@ -57,6 +57,7 @@ export async function getEventCommunicationRecipients(
 		select: {
 			userId: true,
 			status: true,
+			contactEmail: true,
 			user: {
 				select: {
 					name: true,
@@ -88,7 +89,10 @@ export async function getEventCommunicationRecipients(
 	const checkedInUserIdSet = new Set(checkIns.map((item) => item.userId));
 
 	return registrations.map((registration) => {
-		const email = registration.user.email?.trim() || null;
+		const email =
+			registration.contactEmail?.trim() ||
+			registration.user.email?.trim() ||
+			null;
 		return {
 			userId: registration.userId,
 			name: registration.user.name,
@@ -174,7 +178,7 @@ export async function createEventCommunication(data: {
 
 	const validRecipients = scopedRegistrations.filter((reg) => {
 		if (data.type === "EMAIL") {
-			const email = reg.user.email;
+			const email = reg.contactEmail || reg.user.email;
 			if (!email || email.trim().length === 0) {
 				missingEmailCount++;
 				return false;
@@ -188,9 +192,7 @@ export async function createEventCommunication(data: {
 			return true;
 		}
 		if (data.type === "SMS") {
-			return (
-				reg.user.phoneNumber && reg.user.phoneNumberVerified === true
-			);
+			return Boolean(reg.contactPhoneNumber || reg.user.phoneNumber);
 		}
 		return false;
 	});
@@ -198,8 +200,7 @@ export async function createEventCommunication(data: {
 	const unreachableEmailCount = skippedVirtualEmails + missingEmailCount;
 
 	if (validRecipients.length === 0) {
-		const missingField =
-			data.type === "EMAIL" ? "有效邮箱" : "已验证手机号";
+		const missingField = data.type === "EMAIL" ? "有效邮箱" : "可用手机号";
 		throw new Error(
 			`所有报名用户都没有${missingField}，无法发送${data.type === "EMAIL" ? "邮件" : "短信"}`,
 		);
@@ -242,8 +243,14 @@ export async function createEventCommunication(data: {
 			communicationId: communication.id,
 			eventId: data.eventId,
 			recipientId: reg.user.id,
-			recipientEmail: data.type === "EMAIL" ? reg.user.email : null,
-			recipientPhone: data.type === "SMS" ? reg.user.phoneNumber : null,
+			recipientEmail:
+				data.type === "EMAIL"
+					? reg.contactEmail || reg.user.email
+					: null,
+			recipientPhone:
+				data.type === "SMS"
+					? reg.contactPhoneNumber || reg.user.phoneNumber
+					: null,
 		}));
 
 		await tx.eventCommunicationRecord.createMany({

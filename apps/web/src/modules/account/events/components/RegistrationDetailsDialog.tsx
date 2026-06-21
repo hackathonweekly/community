@@ -47,6 +47,8 @@ export interface EventRegistration {
 		| "CANCELLED";
 	eventId: string;
 	registeredAt: string;
+	contactEmail?: string | null;
+	contactPhoneNumber?: string | null;
 	note?: string;
 	reviewedAt?: string;
 	reviewNote?: string;
@@ -189,6 +191,10 @@ export function RegistrationDetailsDialog({
 		}
 		return method;
 	};
+	const registrationEmail =
+		registration.contactEmail || registration.user.email;
+	const registrationPhoneNumber =
+		registration.contactPhoneNumber || registration.user.phoneNumber;
 
 	const handleManualMarkPaid = async () => {
 		if (!registration.order) return;
@@ -275,12 +281,12 @@ export function RegistrationDetailsDialog({
 									<strong>
 										{t("registrations.dialog.email")}
 									</strong>{" "}
-									{registration.user.email}
+									{registrationEmail}
 								</p>
-								{registration.user.phoneNumber && (
+								{registrationPhoneNumber && (
 									<p>
 										<strong>手机号</strong>{" "}
-										{registration.user.phoneNumber}
+										{registrationPhoneNumber}
 									</p>
 								)}
 								{registration.user.wechatId && (

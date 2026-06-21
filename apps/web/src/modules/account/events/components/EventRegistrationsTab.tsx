@@ -271,6 +271,9 @@ export function EventRegistrationsTab({
 											] ||
 											registrationStatusColors.PENDING;
 										const StatusIcon = statusInfo.icon;
+										const registrationEmail =
+											registration.contactEmail ||
+											registration.user.email;
 
 										return (
 											<TableRow key={registration.id}>
@@ -300,9 +303,7 @@ export function EventRegistrationsTab({
 															</Link>
 															<p className="text-sm text-muted-foreground">
 																{
-																	registration
-																		.user
-																		.email
+																	registrationEmail
 																}
 															</p>
 														</div>

@@ -94,6 +94,8 @@ interface Registration {
 	status: "PENDING" | "APPROVED" | "WAITLISTED" | "REJECTED" | "CANCELLED";
 	eventId: string;
 	registeredAt: string;
+	contactEmail?: string | null;
+	contactPhoneNumber?: string | null;
 	note?: string;
 	reviewedAt?: string;
 	reviewNote?: string;

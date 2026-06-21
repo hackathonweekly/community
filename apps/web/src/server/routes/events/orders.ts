@@ -11,6 +11,7 @@ import {
 	redeemOrderInvite,
 	resolveTicketPricing,
 } from "@community/lib-server/events/event-orders";
+import { syncRegistrationContactToUser } from "@community/lib-server/events/registration-contact";
 import { logger } from "@community/lib-server/logs";
 import {
 	queryWechatOrderStatus,
@@ -19,9 +20,9 @@ import {
 import {
 	WECHAT_PAYMENT_CHANNELS,
 	type WechatPaymentChannel,
-	isWechatChannel,
 	resolveWechatPaymentChannel,
 } from "@community/lib-shared/payments/wechat-payment";
+import { normalizePhoneNumber } from "@community/lib-shared/utils/phone-format";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { nanoid } from "nanoid";
@@ -41,11 +42,28 @@ const registerAnswersSchema = z
 	)
 	.default([]);
 
+const contactEmailSchema = z
+	.string()
+	.trim()
+	.email()
+	.optional()
+	.nullable()
+	.transform((value) => value || undefined);
+
+const contactPhoneNumberSchema = z
+	.string()
+	.trim()
+	.optional()
+	.nullable()
+	.transform((value) => (value ? normalizePhoneNumber(value) : undefined));
+
 const createOrderSchema = z.object({
 	ticketTypeId: z.string(),
 	quantity: z.number().int().min(1).default(1),
 	inviteCode: z.string().optional(),
 	projectId: z.string().optional(),
+	contactEmail: contactEmailSchema,
+	contactPhoneNumber: contactPhoneNumberSchema,
 	allowDigitalCardDisplay: z.boolean().optional(),
 	answers: registerAnswersSchema,
 	clientContext: z
@@ -62,6 +80,8 @@ const createOrderSchema = z.object({
 
 const redeemInviteSchema = z.object({
 	projectId: z.string().optional(),
+	contactEmail: contactEmailSchema,
+	contactPhoneNumber: contactPhoneNumberSchema,
 	allowDigitalCardDisplay: z.boolean().optional(),
 	answers: registerAnswersSchema,
 });
@@ -244,6 +264,8 @@ app.post(
 				quantity,
 				inviteCode,
 				projectId,
+				contactEmail,
+				contactPhoneNumber,
 				allowDigitalCardDisplay,
 				answers,
 				clientContext,
@@ -284,6 +306,17 @@ app.post(
 						clientContext,
 					},
 				);
+				await db.eventRegistration.updateMany({
+					where: {
+						eventId,
+						userId: session.user.id,
+						orderId: existingPendingOrder.id,
+					},
+					data: {
+						contactEmail: contactEmail ?? null,
+						contactPhoneNumber: contactPhoneNumber ?? null,
+					},
+				});
 				const prepareExistingResult =
 					await prepareEventTicketWechatPayment({
 						orderId: existingPendingOrder.id,
@@ -318,6 +351,12 @@ app.post(
 						prepareExistingResult.status as WechatPrepareHttpStatus,
 					);
 				}
+
+				await syncRegistrationContactToUser({
+					userId: session.user.id,
+					contactEmail,
+					contactPhoneNumber,
+				});
 
 				return c.json({
 					success: true,
@@ -570,6 +609,8 @@ app.post(
 							orderId: order.id,
 							orderInviteId: null,
 							inviteId,
+							contactEmail: contactEmail ?? null,
+							contactPhoneNumber: contactPhoneNumber ?? null,
 							allowDigitalCardDisplay,
 							reviewedAt: null,
 							reviewedBy: null,
@@ -586,6 +627,8 @@ app.post(
 							ticketTypeId: ticketType.id,
 							orderId: order.id,
 							inviteId,
+							contactEmail: contactEmail ?? null,
+							contactPhoneNumber: contactPhoneNumber ?? null,
 							allowDigitalCardDisplay,
 						},
 					});
@@ -620,6 +663,12 @@ app.post(
 				}
 
 				return { order };
+			});
+
+			await syncRegistrationContactToUser({
+				userId: session.user.id,
+				contactEmail,
+				contactPhoneNumber,
 			});
 
 			logger.info("[MINI_BIND_SERVER] create-order:prepare:start", {
@@ -1076,8 +1125,13 @@ app.post(
 
 			const eventId = c.req.param("eventId");
 			const code = c.req.param("code");
-			const { projectId, allowDigitalCardDisplay, answers } =
-				c.req.valid("json");
+			const {
+				projectId,
+				contactEmail,
+				contactPhoneNumber,
+				allowDigitalCardDisplay,
+				answers,
+			} = c.req.valid("json");
 
 			const event = await db.event.findUnique({
 				where: { id: eventId },
@@ -1114,8 +1168,16 @@ app.post(
 				eventId,
 				code,
 				userId: session.user.id,
+				contactEmail,
+				contactPhoneNumber,
 				allowDigitalCardDisplay,
 				answers,
+			});
+
+			await syncRegistrationContactToUser({
+				userId: session.user.id,
+				contactEmail,
+				contactPhoneNumber,
 			});
 
 			if (projectId && event.requireProjectSubmission) {

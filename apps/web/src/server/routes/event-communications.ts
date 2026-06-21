@@ -345,7 +345,7 @@ const app = new Hono<{
 						);
 					} else {
 						warnings.push(
-							`注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号未验证或缺失而无法收到消息`,
+							`注意：有 ${communication.unverifiedUsersCount} 个用户因为手机号缺失而无法收到消息`,
 						);
 					}
 				}

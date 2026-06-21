@@ -1103,6 +1103,8 @@ model EventRegistration {
   
   // Registration information
   registeredAt    DateTime            @default(now())
+  contactEmail    String?             // Email provided for this event registration
+  contactPhoneNumber String?          // Phone provided for this event registration
   note            String?             // Registration note
   allowDigitalCardDisplay Boolean?    // 是否愿意在现场屏幕公开数字名片
   

@@ -275,7 +275,11 @@ export function EventRegistrationForm({
 		}
 	};
 
-	const saveUserProfile = async (silent = false) => {
+	const saveUserProfile = async (
+		silent = false,
+		options: { includeContactFields?: boolean } = {},
+	) => {
+		const includeContactFields = options.includeContactFields ?? true;
 		const nameRequired = isFieldRequired("name");
 		const nameToSave =
 			editingProfile.name.trim() || userProfile?.name?.trim() || "";
@@ -345,10 +349,10 @@ export function EventRegistrationForm({
 			if (isFieldEnabled("name") || nameToSave) {
 				payload.name = nameToSave;
 			}
-			if (phoneToSave) {
+			if (includeContactFields && phoneToSave) {
 				payload.phoneNumber = phoneToSave;
 			}
-			if (effectiveEmail) {
+			if (includeContactFields && effectiveEmail) {
 				payload.email = effectiveEmail;
 			}
 			if (isFieldEnabled("wechatId")) {
@@ -404,21 +408,28 @@ export function EventRegistrationForm({
 				bio: editingProfile.bio,
 				userRoleString: editingProfile.userRoleString,
 				currentWorkOn: editingProfile.currentWorkOn,
-				phoneNumber: phoneToSave || userProfile?.phoneNumber,
-				email: effectiveEmail || userProfile?.email,
-				emailVerified:
-					userProfile?.email === effectiveEmail
+				phoneNumber: includeContactFields
+					? phoneToSave || userProfile?.phoneNumber
+					: userProfile?.phoneNumber,
+				email: includeContactFields
+					? effectiveEmail || userProfile?.email
+					: userProfile?.email,
+				emailVerified: includeContactFields
+					? userProfile?.email === effectiveEmail
 						? (userProfile?.emailVerified ?? null)
-						: false,
+						: false
+					: (userProfile?.emailVerified ?? null),
 				lifeStatus: editingProfile.lifeStatus,
 				wechatId: editingProfile.wechatId,
 				shippingAddress: editingProfile.shippingAddress,
 			};
 			setUserProfile(updatedProfile);
-			setEditingProfile((prev) => ({
-				...prev,
-				email: effectiveEmail,
-			}));
+			if (includeContactFields) {
+				setEditingProfile((prev) => ({
+					...prev,
+					email: effectiveEmail,
+				}));
+			}
 
 			if (!silent) {
 				toast.success(t("toasts.profileSaved"));
@@ -678,7 +689,15 @@ export function EventRegistrationForm({
 			"shippingAddress",
 		];
 
-		const hasUnsavedChanges = fieldsToCompare.some((key) => {
+		const contactFields = new Set<keyof typeof editingProfile>([
+			"phoneNumber",
+			"email",
+		]);
+
+		const hasUnsavedProfileChanges = fieldsToCompare.some((key) => {
+			if (contactFields.has(key)) {
+				return false;
+			}
 			const editingValue = (editingProfile as any)[key];
 			if (typeof editingValue !== "string") {
 				return false;
@@ -691,10 +710,12 @@ export function EventRegistrationForm({
 			return normalizedEditing !== savedValue;
 		});
 
-		if (hasUnsavedChanges) {
+		if (hasUnsavedProfileChanges) {
 			try {
 				onSubmittingChange(true);
-				await saveUserProfile(true); // Silent save, no toast notification
+				await saveUserProfile(true, {
+					includeContactFields: false,
+				}); // Silent save, no toast notification
 				// After saving, proceed with registration
 				await performRegistration();
 			} catch (error) {
@@ -742,6 +763,28 @@ export function EventRegistrationForm({
 			answer,
 		}));
 
+	const buildRegistrationContactPayload = () => {
+		const payload: {
+			contactEmail?: string;
+			contactPhoneNumber?: string;
+		} = {};
+		const phoneNumber =
+			editingProfile.phoneNumber.trim() ||
+			userProfile?.phoneNumber?.trim() ||
+			"";
+		const email =
+			editingProfile.email.trim() || normalizeEmail(userProfile?.email);
+
+		if (isFieldEnabled("phoneNumber") && phoneNumber) {
+			payload.contactPhoneNumber = phoneNumber;
+		}
+		if (isFieldEnabled("email") && email) {
+			payload.contactEmail = email;
+		}
+
+		return payload;
+	};
+
 	const performGiftRedemption = async () => {
 		try {
 			const response = await fetch(
@@ -752,6 +795,7 @@ export function EventRegistrationForm({
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
+						...buildRegistrationContactPayload(),
 						answers: buildAnswersPayload(),
 						...(event.requireProjectSubmission && {
 							projectId: selectedProjectId,
@@ -798,6 +842,7 @@ export function EventRegistrationForm({
 			const requestBody = {
 				ticketTypeId,
 				quantity: selectedQuantity,
+				...buildRegistrationContactPayload(),
 				answers: buildAnswersPayload(),
 				...(event.requireProjectSubmission && {
 					projectId: selectedProjectId,
@@ -952,6 +997,7 @@ export function EventRegistrationForm({
 				},
 				body: JSON.stringify({
 					ticketTypeId,
+					...buildRegistrationContactPayload(),
 					answers: buildAnswersPayload(),
 					...(event.requireProjectSubmission && {
 						projectId: selectedProjectId,

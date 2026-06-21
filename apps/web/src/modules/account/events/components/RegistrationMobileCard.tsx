@@ -93,6 +93,8 @@ export function RegistrationMobileCard({
 		registrationStatusColors[registration.status] ||
 		registrationStatusColors.PENDING;
 	const StatusIcon = statusInfo.icon;
+	const registrationEmail =
+		registration.contactEmail || registration.user.email;
 
 	return (
 		<div className="p-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors">
@@ -112,7 +114,7 @@ export function RegistrationMobileCard({
 								{registration.user.name}
 							</Link>
 							<p className="text-sm text-muted-foreground truncate">
-								{registration.user.email}
+								{registrationEmail}
 							</p>
 						</div>
 						<Badge

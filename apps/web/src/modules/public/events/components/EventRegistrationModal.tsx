@@ -307,7 +307,11 @@ export function EventRegistrationModal({
 		}
 	};
 
-	const saveUserProfile = async (silent = false) => {
+	const saveUserProfile = async (
+		silent = false,
+		options: { includeContactFields?: boolean } = {},
+	) => {
+		const includeContactFields = options.includeContactFields ?? true;
 		const nameRequired = isFieldRequired("name");
 		const nameToSave =
 			editingProfile.name.trim() || userProfile?.name?.trim() || "";
@@ -377,10 +381,10 @@ export function EventRegistrationModal({
 			if (isFieldEnabled("name") || nameToSave) {
 				payload.name = nameToSave;
 			}
-			if (phoneToSave) {
+			if (includeContactFields && phoneToSave) {
 				payload.phoneNumber = phoneToSave;
 			}
-			if (effectiveEmail) {
+			if (includeContactFields && effectiveEmail) {
 				payload.email = effectiveEmail;
 			}
 			if (isFieldEnabled("wechatId")) {
@@ -436,21 +440,28 @@ export function EventRegistrationModal({
 				bio: editingProfile.bio,
 				userRoleString: editingProfile.userRoleString,
 				currentWorkOn: editingProfile.currentWorkOn,
-				phoneNumber: phoneToSave || userProfile?.phoneNumber,
-				email: effectiveEmail || userProfile?.email,
-				emailVerified:
-					userProfile?.email === effectiveEmail
+				phoneNumber: includeContactFields
+					? phoneToSave || userProfile?.phoneNumber
+					: userProfile?.phoneNumber,
+				email: includeContactFields
+					? effectiveEmail || userProfile?.email
+					: userProfile?.email,
+				emailVerified: includeContactFields
+					? userProfile?.email === effectiveEmail
 						? (userProfile?.emailVerified ?? null)
-						: false,
+						: false
+					: (userProfile?.emailVerified ?? null),
 				lifeStatus: editingProfile.lifeStatus,
 				wechatId: editingProfile.wechatId,
 				shippingAddress: editingProfile.shippingAddress,
 			};
 			setUserProfile(updatedProfile);
-			setEditingProfile((prev) => ({
-				...prev,
-				email: effectiveEmail,
-			}));
+			if (includeContactFields) {
+				setEditingProfile((prev) => ({
+					...prev,
+					email: effectiveEmail,
+				}));
+			}
 
 			if (!silent) {
 				toast.success(t("toasts.profileSaved"));
@@ -697,7 +708,15 @@ export function EventRegistrationModal({
 			"shippingAddress",
 		];
 
-		const hasUnsavedChanges = fieldsToCompare.some((key) => {
+		const contactFields = new Set<keyof typeof editingProfile>([
+			"phoneNumber",
+			"email",
+		]);
+
+		const hasUnsavedProfileChanges = fieldsToCompare.some((key) => {
+			if (contactFields.has(key)) {
+				return false;
+			}
 			const editingValue = (editingProfile as any)[key];
 			if (typeof editingValue !== "string") {
 				return false;
@@ -710,9 +729,11 @@ export function EventRegistrationModal({
 			return normalizedEditing !== savedValue;
 		});
 
-		if (hasUnsavedChanges) {
+		if (hasUnsavedProfileChanges) {
 			try {
-				await saveUserProfile(true); // Silent save, no toast notification
+				await saveUserProfile(true, {
+					includeContactFields: false,
+				}); // Silent save, no toast notification
 				// After saving, proceed with registration
 				await performRegistration();
 			} catch (error) {
@@ -754,6 +775,28 @@ export function EventRegistrationModal({
 			answer,
 		}));
 
+	const buildRegistrationContactPayload = () => {
+		const payload: {
+			contactEmail?: string;
+			contactPhoneNumber?: string;
+		} = {};
+		const phoneNumber =
+			editingProfile.phoneNumber.trim() ||
+			userProfile?.phoneNumber?.trim() ||
+			"";
+		const email =
+			editingProfile.email.trim() || normalizeEmail(userProfile?.email);
+
+		if (isFieldEnabled("phoneNumber") && phoneNumber) {
+			payload.contactPhoneNumber = phoneNumber;
+		}
+		if (isFieldEnabled("email") && email) {
+			payload.contactEmail = email;
+		}
+
+		return payload;
+	};
+
 	const performPaidOrder = async () => {
 		try {
 			const clientContext = await buildWechatPaymentClientContext();
@@ -764,6 +807,7 @@ export function EventRegistrationModal({
 			const requestBody = {
 				ticketTypeId: resolveTicketTypeId(),
 				quantity: selectedQuantity,
+				...buildRegistrationContactPayload(),
 				answers: buildAnswersPayload(),
 				...(event.requireProjectSubmission && {
 					projectId: selectedProjectId,
@@ -917,6 +961,7 @@ export function EventRegistrationModal({
 				},
 				body: JSON.stringify({
 					ticketTypeId: resolveTicketTypeId(),
+					...buildRegistrationContactPayload(),
 					answers: buildAnswersPayload(),
 					...(event.requireProjectSubmission && {
 						projectId: selectedProjectId,

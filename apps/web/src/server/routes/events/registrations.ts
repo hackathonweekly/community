@@ -12,7 +12,9 @@ import {
 import { db } from "@community/lib-server/database/prisma";
 import { NotificationService } from "@/features/notifications/service";
 import { canManageEvent } from "@/features/permissions/events";
+import { syncRegistrationContactToUser } from "@community/lib-server/events/registration-contact";
 import { sendEventReviewNotificationSMS } from "@community/lib-server/sms/tencent-sms";
+import { normalizePhoneNumber } from "@community/lib-shared/utils/phone-format";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { z } from "zod";
@@ -46,6 +48,21 @@ const registerSchema = z.object({
 	ticketTypeId: z.string().optional(), // 添加票种支持
 	projectId: z.string().optional(), // 添加作品关联支持
 	inviteCode: z.string().optional(),
+	contactEmail: z
+		.string()
+		.trim()
+		.email()
+		.optional()
+		.nullable()
+		.transform((value) => value || undefined),
+	contactPhoneNumber: z
+		.string()
+		.trim()
+		.optional()
+		.nullable()
+		.transform((value) =>
+			value ? normalizePhoneNumber(value) : undefined,
+		),
 	allowDigitalCardDisplay: z.boolean().optional(), // 数字名片展示同意
 	answers: z
 		.array(
@@ -119,6 +136,8 @@ app.post(
 				projectId,
 				answers,
 				inviteCode,
+				contactEmail,
+				contactPhoneNumber,
 				allowDigitalCardDisplay,
 			} = c.req.valid("json");
 
@@ -240,8 +259,16 @@ app.post(
 				userId: session.user.id,
 				ticketTypeId,
 				inviteId,
+				contactEmail,
+				contactPhoneNumber,
 				answers,
 				allowDigitalCardDisplay,
+			});
+
+			await syncRegistrationContactToUser({
+				userId: session.user.id,
+				contactEmail,
+				contactPhoneNumber,
 			});
 
 			// If project is provided, create project submission record (only if event requires it)
@@ -937,6 +964,8 @@ app.get(
 						id: true,
 						status: true,
 						registeredAt: true,
+						contactEmail: true,
+						contactPhoneNumber: true,
 						allowDigitalCardDisplay: true,
 						userId: true,
 						ticketTypeId: true,
@@ -1117,8 +1146,13 @@ app.get(
 
 				const row = [
 					escapeCsvValue(registration.user.name),
-					escapeCsvValue(registration.user.email),
-					escapeCsvValue(registration.user.phoneNumber),
+					escapeCsvValue(
+						registration.contactEmail || registration.user.email,
+					),
+					escapeCsvValue(
+						registration.contactPhoneNumber ||
+							registration.user.phoneNumber,
+					),
 					escapeCsvValue(registration.user.wechatId),
 					escapeCsvValue(registration.status),
 					escapeCsvValue(

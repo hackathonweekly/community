@@ -1765,6 +1765,8 @@ export async function getEventRegistrations(
 				id: true,
 				status: true,
 				registeredAt: true,
+				contactEmail: true,
+				contactPhoneNumber: true,
 				note: true,
 				reviewedAt: true,
 				reviewNote: true,
@@ -1983,6 +1985,8 @@ export async function registerForEvent(data: {
 	status?: RegistrationStatus;
 	ticketTypeId?: string;
 	inviteId?: string;
+	contactEmail?: string;
+	contactPhoneNumber?: string;
 	allowDigitalCardDisplay?: boolean;
 	answers?: Array<{
 		questionId: string;
@@ -2024,6 +2028,8 @@ export async function registerForEvent(data: {
 		status,
 		ticketTypeId,
 		inviteId,
+		contactEmail,
+		contactPhoneNumber,
 		allowDigitalCardDisplay,
 		answers = [],
 	} = data;
@@ -2168,6 +2174,8 @@ export async function registerForEvent(data: {
 			status: registrationStatus,
 			ticketTypeId: validTicketTypeId,
 			inviteId,
+			contactEmail: contactEmail ?? null,
+			contactPhoneNumber: contactPhoneNumber ?? null,
 			allowDigitalCardDisplay,
 		};
 

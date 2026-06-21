@@ -120,7 +120,7 @@ export const EventPhotoScalarFieldEnumSchema = z.enum(['id','eventId','userId','
 
 export const EventAdminScalarFieldEnumSchema = z.enum(['id','eventId','userId','email','role','status','invitedBy','invitedAt','acceptedAt','canEditEvent','canManageRegistrations','canManageAdmins']);
 
-export const EventRegistrationScalarFieldEnumSchema = z.enum(['id','eventId','userId','ticketTypeId','orderId','orderInviteId','inviteId','status','registeredAt','note','allowDigitalCardDisplay','reviewedAt','reviewedBy','reviewNote']);
+export const EventRegistrationScalarFieldEnumSchema = z.enum(['id','eventId','userId','ticketTypeId','orderId','orderInviteId','inviteId','status','registeredAt','contactEmail','contactPhoneNumber','note','allowDigitalCardDisplay','reviewedAt','reviewedBy','reviewNote']);
 
 export const EventQuestionScalarFieldEnumSchema = z.enum(['id','eventId','question','description','type','options','required','order']);
 
@@ -1129,6 +1129,8 @@ export const EventRegistrationSchema = z.object({
   orderInviteId: z.string().nullable(),
   inviteId: z.string().nullable(),
   registeredAt: z.coerce.date(),
+  contactEmail: z.string().nullable(),
+  contactPhoneNumber: z.string().nullable(),
   note: z.string().nullable(),
   allowDigitalCardDisplay: z.boolean().nullable(),
   reviewedAt: z.coerce.date().nullable(),
