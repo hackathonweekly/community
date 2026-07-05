@@ -1,3 +1,7 @@
+import type {
+	CustomAnswers,
+	FeedbackConfig,
+} from "@community/lib-server/database/prisma/types/feedback";
 import type { HackathonConfig } from "../types/event-types";
 
 export interface EventData {
@@ -26,6 +30,7 @@ export interface EventData {
 	registrationSuccessImage?: string;
 	registrationPendingInfo?: string;
 	registrationPendingImage?: string;
+	feedbackConfig?: FeedbackConfig | null;
 	coverImage?: string;
 	tags: string[];
 	featured: boolean;
@@ -100,6 +105,7 @@ export interface EventData {
 		comment?: string;
 		suggestions?: string;
 		wouldRecommend: boolean;
+		customAnswers?: CustomAnswers;
 		createdAt: string;
 		user: {
 			id: string;

@@ -3,6 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 
+import { cn } from "@community/lib-shared/utils";
 import { Button } from "@community/ui/ui/button";
 import {
 	Sheet,
@@ -10,7 +11,6 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@community/ui/ui/sheet";
-import { cn } from "@community/lib-shared/utils";
 import { LayoutDashboard, ScanLine, Share2, Trophy } from "lucide-react";
 
 type MoreAction = {
@@ -21,6 +21,28 @@ type MoreAction = {
 	show?: boolean;
 	disabled?: boolean;
 };
+
+function getRegistrationStatusMeta(status?: string | null) {
+	switch (status) {
+		case "PENDING":
+			return {
+				label: "审核中",
+				description: "报名申请正在等待审核",
+			};
+		case "APPROVED":
+			return {
+				label: "已报名",
+				description: "你已获得活动名额",
+			};
+		case "WAITLISTED":
+			return {
+				label: "等待中",
+				description: "当前在等待名单中",
+			};
+		default:
+			return null;
+	}
+}
 
 export function MobileCTA({
 	locale,
@@ -35,6 +57,8 @@ export function MobileCTA({
 	onShowQR,
 	onShowSuccessInfo,
 	canCancel,
+	cancelLabel = "取消报名",
+	registrationStatus,
 	hasPhotos,
 	registerDisabled,
 	canShowQr,
@@ -54,6 +78,8 @@ export function MobileCTA({
 	onContact: () => void;
 	onShowQR: () => void;
 	canCancel: boolean;
+	cancelLabel?: string;
+	registrationStatus?: string | null;
 	hasPhotos: boolean;
 	registerDisabled?: boolean;
 	canShowQr?: boolean;
@@ -67,13 +93,15 @@ export function MobileCTA({
 	const handleManage = () => {
 		window.location.assign(`/events/${eventId}/manage`);
 	};
+	const registrationStatusMeta =
+		getRegistrationStatusMeta(registrationStatus);
 
 	const moreActions = (
 		[
 			canCancel
 				? {
 						key: "cancel",
-						label: "取消报名",
+						label: cancelLabel,
 						onClick: onCancel,
 					}
 				: null,
@@ -147,6 +175,25 @@ export function MobileCTA({
 				}}
 			>
 				<div className="container max-w-6xl py-3">
+					{canCancel && registrationStatusMeta ? (
+						<div className="mb-2 flex items-center justify-between gap-3 rounded-md border border-border bg-muted/45 px-3 py-2">
+							<div className="min-w-0">
+								<p className="text-xs font-semibold text-foreground">
+									{registrationStatusMeta.label}
+								</p>
+								<p className="truncate text-[11px] text-muted-foreground">
+									{registrationStatusMeta.description}
+								</p>
+							</div>
+							<button
+								type="button"
+								onClick={onCancel}
+								className="shrink-0 text-xs font-semibold text-destructive"
+							>
+								{cancelLabel}
+							</button>
+						</div>
+					) : null}
 					<div className="flex gap-2">
 						{isEventAdmin ? (
 							<Button

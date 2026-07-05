@@ -1,5 +1,9 @@
 "use client";
 
+import type {
+	CustomAnswers,
+	FeedbackConfig,
+} from "@community/lib-server/database/prisma/types/feedback";
 import { Avatar, AvatarFallback, AvatarImage } from "@community/ui/ui/avatar";
 import { Badge } from "@community/ui/ui/badge";
 import { Button } from "@community/ui/ui/button";
@@ -10,6 +14,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@community/ui/ui/card";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@community/ui/ui/popover";
 import { Textarea } from "@community/ui/ui/textarea";
 import {
 	HeartIcon,
@@ -18,13 +27,11 @@ import {
 	StarIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { Copy, QrCode } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type {
-	FeedbackConfig,
-	CustomAnswers,
-} from "@community/lib-server/database/prisma/types/feedback";
+import { useEffect, useState } from "react";
+import QRCode from "react-qr-code";
+import { toast } from "sonner";
 
 interface EventFeedback {
 	id: string;
@@ -75,6 +82,8 @@ export function EventFeedback({
 	const [showFeedbackForm, setShowFeedbackForm] = useState(false);
 	const [isEditing, setIsEditing] = useState(false);
 	const [submitting, setSubmitting] = useState(false);
+	const [feedbackUrl, setFeedbackUrl] = useState("");
+	const [qrPopoverOpen, setQrPopoverOpen] = useState(false);
 
 	// Form state
 	const [rating, setRating] = useState(0);
@@ -82,6 +91,7 @@ export function EventFeedback({
 	const [suggestions, setSuggestions] = useState("");
 	const [wouldRecommend, setWouldRecommend] = useState(false);
 	const t = useTranslations("events.feedback");
+	const isManagementView = adminView || isOrganizer;
 
 	const fetchFeedback = async () => {
 		try {
@@ -202,7 +212,7 @@ export function EventFeedback({
 
 	useEffect(() => {
 		// Only fetch all feedback if user is organizer or admin
-		if (adminView || isOrganizer) {
+		if (isManagementView) {
 			fetchFeedback();
 		} else {
 			// For non-organizers, just set loading to false
@@ -210,7 +220,26 @@ export function EventFeedback({
 		}
 		// Always fetch user's own feedback
 		fetchUserFeedback();
-	}, [eventId, userRegistration, adminView, isOrganizer]);
+	}, [eventId, userRegistration, isManagementView]);
+
+	useEffect(() => {
+		if (typeof window === "undefined") return;
+		setFeedbackUrl(
+			`${window.location.origin}/events/${eventId}?feedback=true`,
+		);
+	}, [eventId]);
+
+	const handleCopyFeedbackLink = async () => {
+		if (!feedbackUrl) return;
+
+		try {
+			await navigator.clipboard.writeText(feedbackUrl);
+			toast.success("反馈链接已复制");
+		} catch (error) {
+			console.error("Failed to copy feedback link:", error);
+			toast.error("复制失败，请手动复制链接");
+		}
+	};
 
 	const averageRating =
 		feedback.length > 0
@@ -255,8 +284,73 @@ export function EventFeedback({
 
 	return (
 		<div className="space-y-6">
+			{/* Feedback collection entry - Only show to organizers/admins */}
+			{isManagementView && (
+				<Card className="border-primary/20 bg-primary/5">
+					<CardHeader className="pb-3">
+						<CardTitle className="text-lg">收集活动反馈</CardTitle>
+						<CardDescription>
+							将反馈链接或二维码分享给已通过报名的参与者。
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleCopyFeedbackLink}
+								disabled={!feedbackUrl}
+								className="justify-center gap-2 sm:w-auto"
+							>
+								<Copy className="h-4 w-4" />
+								复制反馈链接
+							</Button>
+							<Popover
+								open={qrPopoverOpen}
+								onOpenChange={(nextOpen) => {
+									if (!feedbackUrl && nextOpen) return;
+									setQrPopoverOpen(nextOpen);
+								}}
+							>
+								<PopoverTrigger asChild>
+									<Button
+										type="button"
+										variant="outline"
+										disabled={!feedbackUrl}
+										className="justify-center gap-2 sm:w-auto"
+									>
+										<QrCode className="h-4 w-4" />
+										反馈二维码
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent
+									className="flex w-auto flex-col items-center gap-3 p-4"
+									align="start"
+								>
+									{feedbackUrl ? (
+										<>
+											<QRCode
+												value={feedbackUrl}
+												size={180}
+											/>
+											<p className="max-w-[180px] break-all text-center text-xs text-muted-foreground">
+												{feedbackUrl}
+											</p>
+										</>
+									) : (
+										<p className="text-xs text-muted-foreground">
+											正在生成反馈二维码
+										</p>
+									)}
+								</PopoverContent>
+							</Popover>
+						</div>
+					</CardContent>
+				</Card>
+			)}
+
 			{/* Feedback Stats - Only show to organizers/admins */}
-			{(adminView || isOrganizer) && (
+			{isManagementView && (
 				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 					<Card>
 						<CardContent className="p-4 sm:p-6">

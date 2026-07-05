@@ -14,9 +14,8 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
-import { ManagementButton } from "./ManagementButton";
-import { Button } from "@community/ui/ui/button";
 import { cn } from "@community/lib-shared/utils";
+import { Button } from "@community/ui/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -24,6 +23,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@community/ui/ui/dropdown-menu";
+import { ManagementButton } from "./ManagementButton";
 import type { EventData } from "./types";
 
 interface HeroProps {
@@ -35,6 +35,7 @@ interface HeroProps {
 	showWorksButton?: boolean;
 	canCancel: boolean;
 	onCancel: () => void;
+	cancelLabel?: string;
 	onShare: () => void;
 	onToggleBookmark: () => void;
 	onToggleLike: () => void;
@@ -57,6 +58,7 @@ export function Hero({
 	event,
 	canCancel,
 	onCancel,
+	cancelLabel = "取消报名",
 	onShare,
 	onToggleBookmark,
 	onToggleLike,
@@ -208,7 +210,7 @@ export function Hero({
 										onClick={onCancel}
 										className="text-destructive"
 									>
-										取消报名
+										{cancelLabel}
 									</DropdownMenuItem>
 								</>
 							) : null}

@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmissionFormConfig } from "@/features/event-submissions/types";
+import type { FeedbackConfig } from "@community/lib-server/database/prisma/types/feedback";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -28,6 +29,7 @@ interface Event {
 	requireApproval: boolean;
 	requireProjectSubmission?: boolean;
 	submissionsEnabled?: boolean | null;
+	feedbackConfig?: FeedbackConfig | null;
 	submissionFormConfig?: SubmissionFormConfig | null;
 	createdAt: string;
 	organizer: {

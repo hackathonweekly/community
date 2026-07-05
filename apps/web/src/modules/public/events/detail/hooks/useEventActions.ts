@@ -1,9 +1,11 @@
 "use client";
 
+import type { CustomAnswers } from "@community/lib-server/database/prisma/types/feedback";
+import { useConfirmationAlert } from "@shared/components/ConfirmationAlertProvider";
 import type { MouseEvent } from "react";
 import { toast } from "sonner";
-import { eventKeys } from "./useEventQueries";
 import type { useEventDetailsState } from "./useEventDetailsState";
+import { eventKeys } from "./useEventQueries";
 
 type State = ReturnType<typeof useEventDetailsState>;
 
@@ -15,7 +17,32 @@ interface EventLike {
 	organizer?: { email?: string };
 }
 
+function getCancelRegistrationConfirmation(status?: string | null) {
+	switch (status) {
+		case "PENDING":
+			return {
+				title: "取消报名申请",
+				message: "取消后如需参加，需要重新提交报名申请。确定取消吗？",
+				confirmLabel: "取消申请",
+			};
+		case "WAITLISTED":
+			return {
+				title: "退出等待名单",
+				message: "退出后如需参加，需要重新加入等待名单。确定退出吗？",
+				confirmLabel: "退出等待名单",
+			};
+		default:
+			return {
+				title: "取消报名",
+				message:
+					"取消后你的名额将释放，如需再次参加需要重新报名。确定取消吗？",
+				confirmLabel: "取消报名",
+			};
+	}
+}
+
 export function useEventActions(event: EventLike, state: State) {
+	const { confirm } = useConfirmationAlert();
 	const {
 		t,
 		user,
@@ -167,7 +194,18 @@ export function useEventActions(event: EventLike, state: State) {
 	};
 
 	const handleCancelRegistration = () => {
-		cancelRegistration(undefined, { onSuccess: handleDataRefresh });
+		const confirmation = getCancelRegistrationConfirmation(
+			existingRegistration?.status,
+		);
+
+		confirm({
+			...confirmation,
+			cancelLabel: "保留报名",
+			destructive: true,
+			onConfirm: () => {
+				cancelRegistration(undefined, { onSuccess: handleDataRefresh });
+			},
+		});
 	};
 
 	const handleVolunteerApply = (eventVolunteerRoleId: string) => {
@@ -189,6 +227,7 @@ export function useEventActions(event: EventLike, state: State) {
 		comment: string;
 		suggestions: string;
 		wouldRecommend: boolean;
+		customAnswers?: CustomAnswers;
 	}) => {
 		if (!user) {
 			redirectToLogin();
@@ -211,6 +250,7 @@ export function useEventActions(event: EventLike, state: State) {
 					comment: feedback.comment || undefined,
 					suggestions: feedback.suggestions || undefined,
 					wouldRecommend: feedback.wouldRecommend,
+					customAnswers: feedback.customAnswers,
 				}),
 			});
 

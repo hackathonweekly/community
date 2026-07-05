@@ -67,6 +67,17 @@ const SWIPE_MAX_VERTICAL_OFFSET = 72;
 const SWIPE_IGNORE_SELECTOR =
 	"input, textarea, select, [contenteditable='true'], [data-slot='tabs-list'], [data-swipe-ignore='true']";
 
+function getCancelRegistrationLabel(status?: string | null) {
+	switch (status) {
+		case "PENDING":
+			return "取消报名申请";
+		case "WAITLISTED":
+			return "退出等待名单";
+		default:
+			return "取消报名";
+	}
+}
+
 export function EventDetailsClient({
 	event,
 	locale = "zh",
@@ -121,6 +132,9 @@ export function EventDetailsClient({
 		// Helpers
 		redirectToLogin,
 	} = state;
+	const registrationStatus = existingRegistration?.status ?? null;
+	const cancelRegistrationLabel =
+		getCancelRegistrationLabel(registrationStatus);
 
 	const {
 		handleRegister,
@@ -287,6 +301,7 @@ export function EventDetailsClient({
 				onRegister={handleRegister}
 				canCancel={canCancel}
 				onCancel={handleCancelRegistration}
+				cancelLabel={cancelRegistrationLabel}
 				onShare={() => setShowShareModal(true)}
 				onToggleBookmark={handleBookmark}
 				onToggleLike={handleLike}
@@ -689,6 +704,8 @@ export function EventDetailsClient({
 								}
 								canCancel={canCancel}
 								onCancel={handleCancelRegistration}
+								cancelLabel={cancelRegistrationLabel}
+								registrationStatus={registrationStatus}
 								onShare={() => setShowShareModal(true)}
 								onToggleBookmark={handleBookmark}
 								onToggleLike={handleLike}
@@ -754,6 +771,8 @@ export function EventDetailsClient({
 				onContact={handleOpenContact}
 				onShowQR={() => setShowQRGenerator(true)}
 				canCancel={canCancel}
+				cancelLabel={cancelRegistrationLabel}
+				registrationStatus={registrationStatus}
 				hasPhotos={true}
 				registerDisabled={registerDisabledDisplay}
 				canShowQr={existingRegistration?.status === "APPROVED"}
@@ -832,6 +851,7 @@ export function EventDetailsClient({
 					onOpenChange={setIsFeedbackDialogOpen}
 					eventTitle={event.title}
 					eventId={eventIdentifier}
+					feedbackConfig={event.feedbackConfig}
 					onSubmit={handleFeedbackSubmit}
 					existingFeedback={userFeedback}
 					isEditing={hasSubmittedFeedback}

@@ -18,6 +18,7 @@ import {
 	Trophy,
 } from "lucide-react";
 
+import { cn } from "@community/lib-shared/utils";
 import { Button } from "@community/ui/ui/button";
 import {
 	DropdownMenu,
@@ -26,7 +27,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@community/ui/ui/dropdown-menu";
-import { cn } from "@community/lib-shared/utils";
 import type { EventData } from "./types";
 
 interface EventActionSidebarProps {
@@ -38,6 +38,8 @@ interface EventActionSidebarProps {
 	showWorksButton?: boolean;
 	canCancel: boolean;
 	onCancel: () => void;
+	cancelLabel?: string;
+	registrationStatus?: string | null;
 	onShare: () => void;
 	onToggleBookmark: () => void;
 	onToggleLike: () => void;
@@ -65,6 +67,28 @@ function formatDateRange(start: string, end: string, locale: string) {
 	return `${format(s, "MMM d, HH:mm", { locale: loc })} – ${format(e, "MMM d, HH:mm", { locale: loc })}`;
 }
 
+function getRegistrationStatusMeta(status?: string | null) {
+	switch (status) {
+		case "PENDING":
+			return {
+				label: "审核中",
+				description: "报名申请正在等待主办方审核。",
+			};
+		case "APPROVED":
+			return {
+				label: "已报名",
+				description: "你已获得活动名额，可查看活动须知。",
+			};
+		case "WAITLISTED":
+			return {
+				label: "等待中",
+				description: "当前在等待名单中，有名额后会更新状态。",
+			};
+		default:
+			return null;
+	}
+}
+
 export function EventActionSidebar({
 	event,
 	locale,
@@ -74,6 +98,8 @@ export function EventActionSidebar({
 	showWorksButton,
 	canCancel,
 	onCancel,
+	cancelLabel = "取消报名",
+	registrationStatus,
 	onShare,
 	onToggleBookmark,
 	onToggleLike,
@@ -89,6 +115,9 @@ export function EventActionSidebar({
 	canFeedback,
 	hasImportantInfo,
 }: EventActionSidebarProps) {
+	const registrationStatusMeta =
+		getRegistrationStatusMeta(registrationStatus);
+
 	return (
 		<div className="flex flex-col gap-3">
 			<div className="rounded-lg border border-border bg-card p-4 shadow-subtle">
@@ -129,6 +158,30 @@ export function EventActionSidebar({
 					>
 						{registerLabel}
 					</Button>
+
+					{canCancel && registrationStatusMeta ? (
+						<div className="rounded-md border border-border bg-muted/40 p-3">
+							<div className="flex items-start justify-between gap-3">
+								<div className="min-w-0">
+									<p className="text-sm font-semibold text-foreground">
+										{registrationStatusMeta.label}
+									</p>
+									<p className="mt-0.5 text-xs leading-5 text-muted-foreground">
+										{registrationStatusMeta.description}
+									</p>
+								</div>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onClick={onCancel}
+									className="h-8 shrink-0 px-2 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+								>
+									{cancelLabel}
+								</Button>
+							</div>
+						</div>
+					) : null}
 
 					{showWorksButton ? (
 						<Button
@@ -238,7 +291,7 @@ export function EventActionSidebar({
 										onClick={onCancel}
 										className="text-destructive"
 									>
-										取消报名
+										{cancelLabel}
 									</DropdownMenuItem>
 								</>
 							) : null}

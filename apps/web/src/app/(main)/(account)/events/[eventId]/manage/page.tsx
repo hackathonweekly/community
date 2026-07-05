@@ -359,6 +359,7 @@ export default function EventManagePage() {
 									new Date(event.endTime) < new Date() ||
 									event.status === "COMPLETED"
 								}
+								feedbackConfig={event.feedbackConfig ?? null}
 								adminView={true}
 								isOrganizer={true}
 							/>

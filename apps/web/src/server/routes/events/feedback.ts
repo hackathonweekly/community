@@ -1,3 +1,4 @@
+import { canViewEventManagementData } from "@/features/permissions/events";
 import { auth } from "@community/lib-server/auth";
 import {
 	createEventFeedback,
@@ -6,18 +7,11 @@ import {
 	getEventRegistration,
 	updateEventFeedback,
 } from "@community/lib-server/database";
-import { canViewEventManagementData } from "@/features/permissions/events";
 import {
 	CP_VALUES,
 	recordContribution,
 } from "@community/lib-server/database/prisma/queries/contributions";
-import {
-	type CustomAnswers,
-	type FeedbackConfig,
-	isValidCustomAnswers,
-	isValidFeedbackConfig,
-	validateAnswersAgainstConfig,
-} from "@community/lib-server/database/prisma/types/feedback";
+import { validateFeedbackAnswersForConfig } from "@community/lib-server/database/prisma/types/feedback";
 import { zValidator } from "@hono/zod-validator";
 import { ContributionType } from "@prisma/client";
 import { Hono } from "hono";
@@ -50,6 +44,49 @@ const updateFeedbackSchema = z.object({
 });
 
 const app = new Hono();
+
+function getCustomAnswersValidationError(
+	feedbackConfig: unknown,
+	customAnswers: unknown,
+) {
+	const validation = validateFeedbackAnswersForConfig(
+		feedbackConfig,
+		customAnswers,
+	);
+
+	if (validation.valid) {
+		return null;
+	}
+
+	if (validation.invalidConfig) {
+		return {
+			status: 500 as const,
+			body: {
+				success: false,
+				error: "Invalid feedback configuration",
+			},
+		};
+	}
+
+	if (validation.invalidAnswers) {
+		return {
+			status: 400 as const,
+			body: {
+				success: false,
+				error: "Invalid custom answers format",
+			},
+		};
+	}
+
+	return {
+		status: 400 as const,
+		body: {
+			success: false,
+			error: "Custom answers validation failed",
+			details: validation.errors,
+		},
+	};
+}
 
 // POST /api/events/:eventId/feedback - Submit event feedback
 app.post("/", zValidator("json", feedbackSchema), async (c) => {
@@ -123,43 +160,12 @@ app.post("/", zValidator("json", feedbackSchema), async (c) => {
 			);
 		}
 
-		// Validate custom answers if feedbackConfig exists
-		if (event.feedbackConfig && data.customAnswers) {
-			if (!isValidFeedbackConfig(event.feedbackConfig)) {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid feedback configuration",
-					},
-					500,
-				);
-			}
-
-			if (!isValidCustomAnswers(data.customAnswers)) {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid custom answers format",
-					},
-					400,
-				);
-			}
-
-			const validation = validateAnswersAgainstConfig(
-				data.customAnswers as CustomAnswers,
-				event.feedbackConfig as FeedbackConfig,
-			);
-
-			if (!validation.valid) {
-				return c.json(
-					{
-						success: false,
-						error: "Custom answers validation failed",
-						details: validation.errors,
-					},
-					400,
-				);
-			}
+		const customAnswersError = getCustomAnswersValidationError(
+			event.feedbackConfig,
+			data.customAnswers,
+		);
+		if (customAnswersError) {
+			return c.json(customAnswersError.body, customAnswersError.status);
 		}
 
 		const feedback = await createEventFeedback({
@@ -351,43 +357,12 @@ app.put("/", zValidator("json", updateFeedbackSchema), async (c) => {
 			);
 		}
 
-		// Validate custom answers if feedbackConfig exists
-		if (event.feedbackConfig && data.customAnswers) {
-			if (!isValidFeedbackConfig(event.feedbackConfig)) {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid feedback configuration",
-					},
-					500,
-				);
-			}
-
-			if (!isValidCustomAnswers(data.customAnswers)) {
-				return c.json(
-					{
-						success: false,
-						error: "Invalid custom answers format",
-					},
-					400,
-				);
-			}
-
-			const validation = validateAnswersAgainstConfig(
-				data.customAnswers as CustomAnswers,
-				event.feedbackConfig as FeedbackConfig,
-			);
-
-			if (!validation.valid) {
-				return c.json(
-					{
-						success: false,
-						error: "Custom answers validation failed",
-						details: validation.errors,
-					},
-					400,
-				);
-			}
+		const customAnswersError = getCustomAnswersValidationError(
+			event.feedbackConfig,
+			data.customAnswers,
+		);
+		if (customAnswersError) {
+			return c.json(customAnswersError.body, customAnswersError.status);
 		}
 
 		const updatedFeedback = await updateEventFeedback(

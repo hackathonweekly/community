@@ -74,6 +74,7 @@ export interface EventCopySource {
 		};
 	}> | null;
 	registrationFieldConfig?: EventFormData["registrationFieldConfig"];
+	feedbackConfig?: EventFormData["feedbackConfig"];
 	submissionFormConfig?: EventFormData["submissionFormConfig"];
 	hackathonConfig?: EventFormData["hackathonConfig"];
 	organizationId?: string | null;
@@ -222,6 +223,8 @@ export function EventCreateForm({
 			askDigitalCardConsent: false,
 			// 报名字段配置
 			registrationFieldConfig: getPresetRegistrationFieldConfig("FULL"),
+			// 反馈问题配置
+			feedbackConfig: undefined,
 			// Hackathon 默认值
 			hackathonConfig: {
 				settings: {
@@ -353,6 +356,7 @@ export function EventCreateForm({
 				registrationFieldConfig:
 					sourceEvent.registrationFieldConfig ||
 					getPresetRegistrationFieldConfig("FULL"),
+				feedbackConfig: sourceEvent.feedbackConfig || undefined,
 				// 作品关联设置
 				requireProjectSubmission:
 					sourceEvent.requireProjectSubmission || false,
@@ -524,6 +528,7 @@ export function EventCreateForm({
 					? formData.coverImage
 					: undefined,
 			registrationFieldConfig: formData.registrationFieldConfig,
+			feedbackConfig: formData.feedbackConfig || undefined,
 			// Add registration success fields
 			registrationSuccessInfo:
 				formData.registrationSuccessInfo || undefined,

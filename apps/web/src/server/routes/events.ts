@@ -16,8 +16,8 @@ import {
 import { NotificationService } from "@/features/notifications/service";
 import {
 	RestrictedAction,
-	canUserDoAction,
 	canManageEvent,
+	canUserDoAction,
 } from "@/features/permissions";
 import { getRandomTemplate } from "@community/config/image-templates";
 import { auth } from "@community/lib-server/auth";
@@ -202,6 +202,32 @@ const registrationFieldConfigUpdateSchema = z
 				)
 			: undefined,
 	);
+
+const feedbackQuestionSchema = z.object({
+	id: z.string(),
+	type: z.enum([
+		"text",
+		"textarea",
+		"rating",
+		"single_choice",
+		"multiple_choice",
+		"yes_no",
+	]),
+	label: z.string().min(1),
+	placeholder: z.string().optional(),
+	required: z.boolean(),
+	options: z.array(z.string()).optional(),
+	maxLength: z.number().int().positive().optional(),
+});
+
+const feedbackConfigBaseSchema = z.object({
+	questions: z.array(feedbackQuestionSchema),
+});
+
+const feedbackConfigSchema = feedbackConfigBaseSchema.optional();
+const feedbackConfigUpdateSchema = feedbackConfigBaseSchema
+	.nullable()
+	.optional();
 
 const submissionFormFieldSchema = z.object({
 	key: z.string(),
@@ -802,6 +828,7 @@ const eventSchema = z
 		organizerContact: z.string().optional(),
 		hackathonConfig: HackathonConfigSchema.optional(),
 		registrationFieldConfig: registrationFieldConfigSchema,
+		feedbackConfig: feedbackConfigSchema,
 		submissionFormConfig: submissionFormConfigSchema,
 	})
 	.refine(
@@ -1011,6 +1038,7 @@ const updateEventSchema = z.object({
 		)
 		.optional(),
 	registrationFieldConfig: registrationFieldConfigUpdateSchema,
+	feedbackConfig: feedbackConfigUpdateSchema,
 	submissionFormConfig: submissionFormConfigSchema,
 });
 
@@ -1679,6 +1707,7 @@ app.post("/", async (c) => {
 			hackathonConfig,
 			submissionFormConfig,
 			registrationFieldConfig,
+			feedbackConfig,
 			...restEventData
 		} = cleanedData;
 
@@ -1756,6 +1785,9 @@ app.post("/", async (c) => {
 			submissionsEnabled,
 			organizerId: actingUserId,
 			registrationFieldConfig: registrationFieldConfig as any,
+			...(feedbackConfig !== undefined && {
+				feedbackConfig: feedbackConfig as any,
+			}),
 			submissionFormConfig: normalizedSubmissionFormConfig,
 			hackathonConfig:
 				restEventData.type === "HACKATHON" && normalizedHackathonConfig
@@ -2062,6 +2094,7 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 			hackathonConfig,
 			submissionFormConfig,
 			registrationFieldConfig,
+			feedbackConfig,
 			...restUpdateData
 		} = cleanedData;
 
@@ -2220,6 +2253,9 @@ app.put("/:id", zValidator("json", updateEventSchema), async (c) => {
 			...(submissionsEnabled !== undefined && { submissionsEnabled }),
 			...(registrationFieldConfig !== undefined && {
 				registrationFieldConfig: registrationFieldConfig as any,
+			}),
+			...(feedbackConfig !== undefined && {
+				feedbackConfig: feedbackConfig as any,
 			}),
 			...(hackathonControlDefaults ?? {}),
 			...(normalizedHackathonConfig !== undefined && {

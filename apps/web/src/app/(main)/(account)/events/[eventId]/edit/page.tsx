@@ -8,6 +8,7 @@ import { formatForDatetimeLocal } from "@/modules/account/events/utils/date-util
 import { normalizeSubmissionFormConfig } from "@/modules/account/events/utils/submission-form";
 import { useUserOrganizations } from "@/modules/account/organizations/hooks/use-user-organizations";
 import { MobilePageHeader } from "@/modules/public/shared/components/MobilePageHeader";
+import type { FeedbackConfig } from "@community/lib-server/database/prisma/types/feedback";
 import { Badge } from "@community/ui/ui/badge";
 import { Button } from "@community/ui/ui/button";
 import { Card, CardContent } from "@community/ui/ui/card";
@@ -56,6 +57,7 @@ interface Event {
 	registrationSuccessImage?: string;
 	registrationPendingInfo?: string;
 	registrationPendingImage?: string;
+	feedbackConfig?: FeedbackConfig | null;
 	coverImage?: string;
 	tags: string[];
 	// Hackathon 配置
@@ -404,6 +406,7 @@ export default function EventEditPage() {
 		registrationPendingInfo: event.registrationPendingInfo || "",
 		registrationPendingImage: event.registrationPendingImage || "",
 		registrationFieldConfig: event.registrationFieldConfig || undefined,
+		feedbackConfig: event.feedbackConfig || undefined,
 		coverImage: event.coverImage || "", // Pass the actual cover image URL
 		tags: event.tags,
 		questions: event.questions.map((q, index) => ({

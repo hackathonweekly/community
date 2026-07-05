@@ -221,6 +221,8 @@ export async function createEvent(data: {
 	votingOpen?: boolean;
 	// Registration field config
 	registrationFieldConfig?: Prisma.InputJsonValue;
+	// Feedback question config
+	feedbackConfig?: Prisma.InputJsonValue | null;
 	// Submission form config
 	submissionFormConfig?: Prisma.InputJsonValue | null;
 }) {
@@ -241,6 +243,7 @@ export async function createEvent(data: {
 		submissionsOpen,
 		votingOpen,
 		registrationFieldConfig,
+		feedbackConfig,
 		submissionFormConfig,
 		...eventData
 	} = data; // 默认为 PUBLISHED，但可以被覆盖
@@ -270,6 +273,8 @@ export async function createEvent(data: {
 			registrationPendingImage,
 			hackathonConfig,
 			registrationFieldConfig,
+			feedbackConfig:
+				feedbackConfig === null ? Prisma.JsonNull : feedbackConfig,
 			submissionFormConfig:
 				submissionFormConfig === null
 					? Prisma.JsonNull
@@ -1025,6 +1030,7 @@ export async function updateEvent(
 			order?: number;
 		}[];
 		registrationFieldConfig: Prisma.InputJsonValue;
+		feedbackConfig: Prisma.InputJsonValue | null;
 		submissionFormConfig: Prisma.InputJsonValue | null;
 	}>,
 ) {
@@ -1047,6 +1053,7 @@ export async function updateEvent(
 		seriesId,
 		hackathonConfig,
 		registrationFieldConfig,
+		feedbackConfig,
 		submissionFormConfig,
 		...eventData
 	} = data;
@@ -1081,6 +1088,10 @@ export async function updateEvent(
 		}),
 		...(registrationFieldConfig !== undefined && {
 			registrationFieldConfig,
+		}),
+		...(feedbackConfig !== undefined && {
+			feedbackConfig:
+				feedbackConfig === null ? Prisma.JsonNull : feedbackConfig,
 		}),
 		...(submissionFormConfig !== undefined && {
 			submissionFormConfig:

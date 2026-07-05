@@ -37,6 +37,13 @@ export type Answer = string | number | boolean | string[];
 
 export type CustomAnswers = Record<string, Answer>;
 
+function isEmptyAnswer(answer: Answer | undefined): boolean {
+	if (answer === undefined) return true;
+	if (typeof answer === "string") return answer.trim() === "";
+	if (Array.isArray(answer)) return answer.length === 0;
+	return false;
+}
+
 /**
  * Helper function to validate feedback config
  */
@@ -99,7 +106,7 @@ export function validateAnswersAgainstConfig(
 
 	// Check required questions
 	for (const question of config.questions) {
-		if (question.required && !(question.id in answers)) {
+		if (question.required && isEmptyAnswer(answers[question.id])) {
 			errors.push(
 				`Required question "${question.label}" is not answered`,
 			);
@@ -187,4 +194,43 @@ export function validateAnswersAgainstConfig(
 		valid: errors.length === 0,
 		errors,
 	};
+}
+
+/**
+ * Validate an optional feedback configuration with optional submitted answers.
+ *
+ * When a feedback config exists, missing answers are normalized to an empty
+ * object so required questions cannot be bypassed by omitting customAnswers.
+ */
+export function validateFeedbackAnswersForConfig(
+	config: unknown,
+	answers: unknown,
+): {
+	valid: boolean;
+	errors: string[];
+	invalidConfig?: boolean;
+	invalidAnswers?: boolean;
+} {
+	if (!config) {
+		return { valid: true, errors: [] };
+	}
+
+	if (!isValidFeedbackConfig(config)) {
+		return {
+			valid: false,
+			errors: ["Invalid feedback configuration"],
+			invalidConfig: true,
+		};
+	}
+
+	const normalizedAnswers = answers ?? {};
+	if (!isValidCustomAnswers(normalizedAnswers)) {
+		return {
+			valid: false,
+			errors: ["Invalid custom answers format"],
+			invalidAnswers: true,
+		};
+	}
+
+	return validateAnswersAgainstConfig(normalizedAnswers, config);
 }
