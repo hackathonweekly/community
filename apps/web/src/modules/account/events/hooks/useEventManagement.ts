@@ -1,10 +1,10 @@
 "use client";
 
+import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import type { SubmissionFormConfig } from "@/features/event-submissions/types";
 
 interface Event {
 	id: string;
@@ -145,6 +145,8 @@ interface Registration {
 	} | null;
 }
 
+const REGISTRATION_LIST_LIMIT = 1000;
+
 export function useEventManagement() {
 	const params = useParams();
 	const router = useRouter();
@@ -216,8 +218,12 @@ export function useEventManagement() {
 			if (statusFilter !== "all") {
 				params.set("status", statusFilter);
 			}
-			const limit = Math.max(event?._count?.registrations ?? 0, 50);
+			const limit = Math.max(
+				event?._count?.registrations ?? 0,
+				REGISTRATION_LIST_LIMIT,
+			);
 			params.set("limit", limit.toString());
+			params.set("_t", Date.now().toString());
 
 			const controller = new AbortController();
 			const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -226,6 +232,12 @@ export function useEventManagement() {
 				`/api/events/${eventId}/registrations?${params.toString()}`,
 				{
 					signal: controller.signal,
+					cache: "no-store",
+					headers: {
+						"Cache-Control": "no-cache, no-store, must-revalidate",
+						Pragma: "no-cache",
+						Expires: "0",
+					},
 				},
 			);
 

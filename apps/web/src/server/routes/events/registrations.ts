@@ -1,17 +1,17 @@
+import { NotificationService } from "@/features/notifications/service";
+import { canManageEvent } from "@/features/permissions/events";
 import { auth } from "@community/lib-server/auth";
 import {
 	deleteEventRegistration,
+	findEventInviteByCode,
 	getEventById,
 	getEventRegistration,
 	getEventRegistrations,
 	getRegistrationByUserAndEvent,
-	findEventInviteByCode,
 	registerForEvent,
 	updateEventRegistration,
 } from "@community/lib-server/database";
 import { db } from "@community/lib-server/database/prisma";
-import { NotificationService } from "@/features/notifications/service";
-import { canManageEvent } from "@/features/permissions/events";
 import { syncRegistrationContactToUser } from "@community/lib-server/events/registration-contact";
 import { sendEventReviewNotificationSMS } from "@community/lib-server/sms/tencent-sms";
 import { normalizePhoneNumber } from "@community/lib-shared/utils/phone-format";
@@ -106,6 +106,18 @@ const getRegistrationsSchema = z.object({
 		.transform((val) => Number.parseInt(val) || 50)
 		.optional(),
 });
+
+const setPrivateNoStoreHeaders = (c: {
+	header: (name: string, value: string) => void;
+}) => {
+	c.header(
+		"Cache-Control",
+		"no-cache, no-store, must-revalidate, private, max-age=0",
+	);
+	c.header("Pragma", "no-cache");
+	c.header("Expires", "0");
+	c.header("Surrogate-Control", "no-store");
+};
 
 const app = new Hono();
 
@@ -472,6 +484,8 @@ app.get(
 	zValidator("query", getRegistrationsSchema),
 	async (c) => {
 		try {
+			setPrivateNoStoreHeaders(c);
+
 			const session = await auth.api.getSession({
 				headers: c.req.raw.headers,
 			});
@@ -896,6 +910,8 @@ app.get(
 	zValidator("query", getRegistrationsSchema),
 	async (c) => {
 		try {
+			setPrivateNoStoreHeaders(c);
+
 			const session = await auth.api.getSession({
 				headers: c.req.raw.headers,
 			});
@@ -1241,6 +1257,11 @@ app.get(
 				headers: {
 					"Content-Type": "text/csv; charset=utf-8",
 					"Content-Disposition": `attachment; filename="${encodeURIComponent(event.title)}-registrations.csv"`,
+					"Cache-Control":
+						"no-cache, no-store, must-revalidate, private, max-age=0",
+					Pragma: "no-cache",
+					Expires: "0",
+					"Surrogate-Control": "no-store",
 				},
 			});
 		} catch (error: any) {
@@ -1259,6 +1280,8 @@ app.get(
 // GET /api/events/:eventId/registration - Get current user's registration status
 app.get("/:eventId/registration", async (c) => {
 	try {
+		setPrivateNoStoreHeaders(c);
+
 		const session = await auth.api.getSession({
 			headers: c.req.raw.headers,
 		});
