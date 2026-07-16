@@ -26,14 +26,17 @@ import type {
 	FeedbackConfig,
 	QuestionType,
 } from "@community/lib-server/database/prisma/types/feedback";
-import { PlusIcon, TrashIcon, GripVertical } from "lucide-react";
-import { useState } from "react";
+import { ArrowDownIcon, ArrowUpIcon, PlusIcon, TrashIcon } from "lucide-react";
 import { nanoid } from "nanoid";
-import type { Control, UseFormSetValue } from "react-hook-form";
+import { useState } from "react";
+import type { UseFormSetValue } from "react-hook-form";
+import {
+	cloneFeedbackQuestions,
+	moveFeedbackQuestion,
+} from "./feedback-config-utils";
 import type { EventFormData } from "./types";
 
 interface FeedbackConfigModalProps {
-	control: Control<EventFormData>;
 	setValue: UseFormSetValue<EventFormData>;
 	feedbackConfig?: FeedbackConfig | null;
 	children: React.ReactNode;
@@ -57,19 +60,18 @@ const QUESTION_TYPES: Array<{
 ];
 
 export function FeedbackConfigModal({
-	control,
 	setValue,
 	feedbackConfig,
 	children,
 }: FeedbackConfigModalProps) {
 	const [open, setOpen] = useState(false);
 	const [questions, setQuestions] = useState<FeedbackConfig["questions"]>(
-		feedbackConfig?.questions || [],
+		cloneFeedbackQuestions(feedbackConfig?.questions || []),
 	);
 
 	const addQuestion = () => {
-		setQuestions([
-			...questions,
+		setQuestions((currentQuestions) => [
+			...currentQuestions,
 			{
 				id: nanoid(),
 				type: "text",
@@ -80,32 +82,59 @@ export function FeedbackConfigModal({
 	};
 
 	const removeQuestion = (index: number) => {
-		setQuestions(questions.filter((_, i) => i !== index));
+		setQuestions((currentQuestions) =>
+			currentQuestions.filter((_, i) => i !== index),
+		);
 	};
 
 	const updateQuestion = (
 		index: number,
 		updates: Partial<FeedbackConfig["questions"][0]>,
 	) => {
-		const newQuestions = [...questions];
-		newQuestions[index] = { ...newQuestions[index], ...updates };
-		setQuestions(newQuestions);
+		setQuestions((currentQuestions) =>
+			currentQuestions.map((question, questionIndex) =>
+				questionIndex === index
+					? { ...question, ...updates }
+					: question,
+			),
+		);
+	};
+
+	const moveQuestion = (fromIndex: number, toIndex: number) => {
+		setQuestions((currentQuestions) =>
+			moveFeedbackQuestion(currentQuestions, fromIndex, toIndex),
+		);
 	};
 
 	const handleSave = () => {
-		const config: FeedbackConfig = { questions };
-		setValue("feedbackConfig", config as any);
+		const config: FeedbackConfig = {
+			questions: cloneFeedbackQuestions(questions),
+		};
+		setValue("feedbackConfig", config as any, {
+			shouldDirty: true,
+			shouldTouch: true,
+			shouldValidate: true,
+		});
 		setOpen(false);
 	};
 
 	const handleCancel = () => {
 		// Reset to original config
-		setQuestions(feedbackConfig?.questions || []);
+		setQuestions(cloneFeedbackQuestions(feedbackConfig?.questions || []));
 		setOpen(false);
 	};
 
+	const handleOpenChange = (nextOpen: boolean) => {
+		if (nextOpen) {
+			setQuestions(
+				cloneFeedbackQuestions(feedbackConfig?.questions || []),
+			);
+		}
+		setOpen(nextOpen);
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
 				<DialogHeader>
@@ -128,8 +157,42 @@ export function FeedbackConfigModal({
 									<CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
 										{/* Header: number + delete */}
 										<div className="flex items-center justify-between">
-											<div className="flex items-center gap-2">
-												<GripVertical className="w-4 h-4 text-muted-foreground cursor-move" />
+											<div className="flex items-center gap-1">
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8"
+													disabled={index === 0}
+													onClick={() =>
+														moveQuestion(
+															index,
+															index - 1,
+														)
+													}
+													aria-label={`将问题 ${index + 1} 上移`}
+												>
+													<ArrowUpIcon className="w-4 h-4" />
+												</Button>
+												<Button
+													type="button"
+													variant="ghost"
+													size="icon"
+													className="h-8 w-8"
+													disabled={
+														index ===
+														questions.length - 1
+													}
+													onClick={() =>
+														moveQuestion(
+															index,
+															index + 1,
+														)
+													}
+													aria-label={`将问题 ${index + 1} 下移`}
+												>
+													<ArrowDownIcon className="w-4 h-4" />
+												</Button>
 												<span className="text-sm font-medium text-muted-foreground">
 													#{index + 1}
 												</span>

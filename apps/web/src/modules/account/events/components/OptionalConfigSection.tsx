@@ -510,7 +510,6 @@ export function OptionalConfigSection({
 						</div>
 					</div>
 					<FeedbackConfigModal
-						control={control}
 						setValue={setValue}
 						feedbackConfig={
 							watch("feedbackConfig") as

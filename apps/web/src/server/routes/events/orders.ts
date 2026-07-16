@@ -18,6 +18,7 @@ import {
 	requestWechatRefund,
 } from "@community/lib-server/payments/provider/wechatpay";
 import {
+	WECHAT_PAYMENT_ERROR_CODES,
 	WECHAT_PAYMENT_CHANNELS,
 	type WechatPaymentChannel,
 	resolveWechatPaymentChannel,
@@ -97,6 +98,23 @@ const mapChannelToPaymentMethod = (channel: WechatPaymentChannel) =>
 	channel === WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE
 		? "WECHAT_NATIVE"
 		: "WECHAT_JSAPI";
+
+interface PendingMiniProgramOrder {
+	id: string;
+	orderNo: string;
+	totalAmount: number;
+	expiredAt: Date;
+	quantity: number;
+}
+
+const buildPendingMiniProgramOrderData = (order: PendingMiniProgramOrder) => ({
+	orderId: order.id,
+	orderNo: order.orderNo,
+	totalAmount: order.totalAmount,
+	expiredAt: order.expiredAt.toISOString(),
+	quantity: order.quantity,
+	channel: WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE,
+});
 
 const ensureEventAvailableForRegistration = async (eventId: string) => {
 	const event = await db.event.findUnique({
@@ -186,6 +204,10 @@ app.get("/:eventId/orders/pending", async (c) => {
 			},
 			select: {
 				id: true,
+				orderNo: true,
+				totalAmount: true,
+				expiredAt: true,
+				quantity: true,
 			},
 			orderBy: { createdAt: "desc" },
 		});
@@ -227,6 +249,14 @@ app.get("/:eventId/orders/pending", async (c) => {
 					code: prepareResult.code,
 					requiresUpgrade: prepareResult.requiresUpgrade,
 					minBridgeVersion: prepareResult.minBridgeVersion,
+					...(prepareResult.code ===
+					WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED
+						? {
+								data: buildPendingMiniProgramOrderData(
+									pendingOrder,
+								),
+							}
+						: {}),
 				},
 				prepareResult.status as WechatPrepareHttpStatus,
 			);
@@ -292,6 +322,10 @@ app.post(
 				},
 				select: {
 					id: true,
+					orderNo: true,
+					totalAmount: true,
+					expiredAt: true,
+					quantity: true,
 				},
 				orderBy: { createdAt: "desc" },
 			});
@@ -347,6 +381,14 @@ app.post(
 								prepareExistingResult.requiresUpgrade,
 							minBridgeVersion:
 								prepareExistingResult.minBridgeVersion,
+							...(prepareExistingResult.code ===
+							WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED
+								? {
+										data: buildPendingMiniProgramOrderData(
+											existingPendingOrder,
+										),
+									}
+								: {}),
 						},
 						prepareExistingResult.status as WechatPrepareHttpStatus,
 					);
@@ -694,7 +736,10 @@ app.post(
 				eventId,
 			});
 			if (!prepareResult.success) {
-				if (prepareResult.code !== "WECHAT_OPENID_REQUIRED") {
+				if (
+					prepareResult.code !==
+					WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED
+				) {
 					logger.info(
 						"[MINI_BIND_SERVER] create-order:cancel-order",
 						{
@@ -712,6 +757,14 @@ app.post(
 						code: prepareResult.code,
 						requiresUpgrade: prepareResult.requiresUpgrade,
 						minBridgeVersion: prepareResult.minBridgeVersion,
+						...(prepareResult.code ===
+						WECHAT_PAYMENT_ERROR_CODES.WECHAT_OPENID_REQUIRED
+							? {
+									data: buildPendingMiniProgramOrderData(
+										order,
+									),
+								}
+							: {}),
 					},
 					prepareResult.status as WechatPrepareHttpStatus,
 				);

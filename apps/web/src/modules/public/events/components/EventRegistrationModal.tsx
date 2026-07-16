@@ -219,6 +219,36 @@ export function EventRegistrationModal({
 								defaultRegistrationError,
 							);
 						if (
+							errorPayload.code === "WECHAT_OPENID_REQUIRED" &&
+							clientContext.environmentType === "miniprogram"
+						) {
+							const pendingOrder = errorPayload.data as
+								| PaymentOrderData
+								| undefined;
+							if (pendingOrder?.orderId && pendingOrder.orderNo) {
+								const bindTokenResponse = await fetch(
+									"/api/payments/wechat/mini-bind-token",
+									{ method: "POST" },
+								);
+								if (bindTokenResponse.ok) {
+									const bindTokenResult =
+										await bindTokenResponse.json();
+									const bindToken =
+										bindTokenResult?.data?.bindToken;
+									if (
+										typeof bindToken === "string" &&
+										bindToken
+									) {
+										setPaymentOrder({
+											...pendingOrder,
+											miniProgramBindToken: bindToken,
+										});
+										setPaymentOpen(true);
+									}
+								}
+							}
+						}
+						if (
 							errorPayload.code === "MINI_PROGRAM_BRIDGE_REQUIRED"
 						) {
 							setMiniProgramUpgradeMessage(errorPayload.message);
@@ -800,10 +830,6 @@ export function EventRegistrationModal({
 	const performPaidOrder = async () => {
 		try {
 			const clientContext = await buildWechatPaymentClientContext();
-			console.log("[MINI_BIND_RECOVERY] modal:start", {
-				eventId: event.id,
-				clientContext,
-			});
 			const requestBody = {
 				ticketTypeId: resolveTicketTypeId(),
 				quantity: selectedQuantity,
@@ -820,10 +846,6 @@ export function EventRegistrationModal({
 				clientContext,
 			};
 
-			console.log(
-				"[MINI_BIND_RECOVERY] modal:create-order:request",
-				requestBody,
-			);
 			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
@@ -838,86 +860,32 @@ export function EventRegistrationModal({
 					defaultRegistrationError,
 				);
 				const errorMessage = errorPayload.message;
-				console.log("[MINI_BIND_RECOVERY] modal:create-order:error", {
-					status: response.status,
-					errorPayload,
-					clientContext,
-				});
 				const shouldPromptWechatBinding =
 					errorPayload.code === "WECHAT_OPENID_REQUIRED" ||
 					errorMessage.toLowerCase().includes("openid");
 				if (shouldPromptWechatBinding) {
 					if (clientContext.environmentType === "miniprogram") {
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:bind-token:request",
-						);
+						const pendingOrder = errorPayload.data as
+							| PaymentOrderData
+							| undefined;
+						if (!pendingOrder?.orderId || !pendingOrder.orderNo) {
+							throw new Error(errorMessage);
+						}
 						const bindTokenResponse = await fetch(
 							"/api/payments/wechat/mini-bind-token",
 							{ method: "POST" },
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:bind-token:response",
-							{
-								status: bindTokenResponse.status,
-							},
 						);
 						if (!bindTokenResponse.ok) {
 							throw new Error(errorMessage);
 						}
 						const bindTokenResult = await bindTokenResponse.json();
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:bind-token:payload",
-							bindTokenResult,
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:pending-order:request",
-						);
-						const pendingOrderResponse = await fetch(
-							`/api/events/${event.id}/orders/pending?${buildWechatPaymentClientContextQuery(clientContext)}`,
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:pending-order:response",
-							{
-								status: pendingOrderResponse.status,
-							},
-						);
-						if (!pendingOrderResponse.ok) {
+						const bindToken = bindTokenResult?.data?.bindToken;
+						if (typeof bindToken !== "string" || !bindToken) {
 							throw new Error(errorMessage);
 						}
-						const pendingOrderResult =
-							await pendingOrderResponse.json();
-						console.log(
-							"[MINI_BIND_RECOVERY] modal:pending-order:payload",
-							pendingOrderResult,
-						);
-						const pendingOrder = pendingOrderResult?.data as
-							| PaymentOrderData
-							| undefined;
-						const requestPaymentParams =
-							pendingOrder?.payPayload &&
-							"requestPaymentParams" in pendingOrder.payPayload
-								? pendingOrder.payPayload.requestPaymentParams
-								: undefined;
-						if (!pendingOrder || !requestPaymentParams) {
-							throw new Error(errorMessage);
-						}
-						console.log("[MINI_BIND_RECOVERY] modal:open-payment", {
-							hasBindToken: Boolean(
-								bindTokenResult.data.bindToken,
-							),
-							hasRequestPaymentParams:
-								Boolean(requestPaymentParams),
-						});
 						setPaymentOrder({
 							...pendingOrder,
-							payPayload: {
-								requestPaymentParams: {
-									...requestPaymentParams,
-									bindToken: bindTokenResult.data.bindToken,
-									baseUrl: window.location.origin,
-									eventId: event.id,
-								},
-							},
+							miniProgramBindToken: bindToken,
 						});
 						setPaymentOpen(true);
 						return;

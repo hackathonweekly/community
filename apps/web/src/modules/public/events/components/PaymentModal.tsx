@@ -38,6 +38,7 @@ export interface PaymentOrderData {
 	quantity?: number;
 	channel?: WechatPaymentChannel;
 	payPayload?: WechatPayPayload;
+	miniProgramBindToken?: string;
 	codeUrl?: string;
 	isExisting?: boolean;
 	jsapiParams?: {
@@ -83,6 +84,13 @@ interface PaymentModalProps {
 
 type PaymentPhase = "waiting" | "polling" | "success" | "failed" | "expired";
 
+type MiniProgramNavigationPayload =
+	Partial<WechatMiniProgramRequestPaymentParams> & {
+		bindToken?: string;
+		baseUrl: string;
+		eventId: string;
+	};
+
 const invokeWechatPay = (params: PaymentOrderData["jsapiParams"]) => {
 	return new Promise<void>((resolve, reject) => {
 		if (!params) {
@@ -120,11 +128,7 @@ const invokeWechatPay = (params: PaymentOrderData["jsapiParams"]) => {
 };
 
 const invokeMiniProgramBridgePay = async (
-	params: WechatMiniProgramRequestPaymentParams & {
-		bindToken?: string;
-		baseUrl?: string;
-		eventId?: string;
-	},
+	params: MiniProgramNavigationPayload,
 ) => {
 	if (typeof window === "undefined") {
 		throw new WechatBridgeError(
@@ -134,73 +138,100 @@ const invokeMiniProgramBridgePay = async (
 	}
 
 	const navigateTo = window.wx?.miniProgram?.navigateTo;
-	if (typeof navigateTo !== "function") {
+	if (typeof navigateTo === "function") {
+		const payload: Record<string, unknown> = {
+			...params,
+			baseUrl: window.location.origin,
+		};
+		void reportClientLog({
+			level: "info",
+			source: "payment-modal",
+			message: "mini-program payment navigate start",
+			meta: {
+				orderNo: (payload as { orderNo?: string }).orderNo ?? null,
+				hasBindToken: Boolean(
+					(payload as { bindToken?: string }).bindToken,
+				),
+				hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
+				hasEventId: Boolean((payload as { eventId?: string }).eventId),
+			},
+		});
+
+		const encodedParams = encodeURIComponent(JSON.stringify(payload));
+		await new Promise<void>((resolve, reject) => {
+			navigateTo({
+				url: `/pages/pay/pay?params=${encodedParams}`,
+				success: () => {
+					void reportClientLog({
+						level: "info",
+						source: "payment-modal",
+						message: "mini-program payment navigate success",
+						meta: {
+							orderNo:
+								(payload as { orderNo?: string }).orderNo ??
+								null,
+						},
+					});
+					resolve();
+				},
+				fail: (error: { errMsg?: string }) => {
+					void reportClientLog({
+						level: "error",
+						source: "payment-modal",
+						message: "mini-program payment navigate failed",
+						meta: {
+							orderNo:
+								(payload as { orderNo?: string }).orderNo ??
+								null,
+							errMsg: error?.errMsg ?? null,
+						},
+					});
+					reject(
+						new WechatBridgeError(
+							WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
+							error?.errMsg || "Mini program navigateTo failed",
+						),
+					);
+				},
+			});
+		});
+		return;
+	}
+
+	const requestPayment = window.__HWMiniAppBridge__?.requestPayment;
+	if (
+		typeof requestPayment !== "function" ||
+		!params.appId ||
+		!params.timeStamp ||
+		!params.nonceStr ||
+		!params.package ||
+		!params.signType ||
+		!params.paySign ||
+		!params.orderNo
+	) {
 		throw new WechatBridgeError(
 			WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
-			"wx.miniProgram.navigateTo not available",
+			"Mini program payment bridge not available",
 		);
 	}
 
-	const payload: Record<string, unknown> = {
-		...params,
-		baseUrl: window.location.origin,
-	};
-	void reportClientLog({
-		level: "info",
-		source: "payment-modal",
-		message: "mini-program payment navigate start",
-		meta: {
-			orderNo: (payload as { orderNo?: string }).orderNo ?? null,
-			hasBindToken: Boolean(
-				(payload as { bindToken?: string }).bindToken,
-			),
-			hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
-			hasEventId: Boolean((payload as { eventId?: string }).eventId),
-		},
+	const result = await requestPayment({
+		appId: params.appId,
+		timeStamp: params.timeStamp,
+		nonceStr: params.nonceStr,
+		package: params.package,
+		signType: params.signType,
+		paySign: params.paySign,
+		orderNo: params.orderNo,
 	});
-	console.log("[MINI_BIND_RECOVERY] payment-modal:navigate", {
-		hasBindToken: Boolean((payload as { bindToken?: string }).bindToken),
-		hasBaseUrl: Boolean((payload as { baseUrl?: string }).baseUrl),
-		hasEventId: Boolean((payload as { eventId?: string }).eventId),
-		orderNo: (payload as { orderNo?: string }).orderNo,
-	});
-
-	const encodedParams = encodeURIComponent(JSON.stringify(payload));
-	await new Promise<void>((resolve, reject) => {
-		navigateTo({
-			url: `/pages/pay/pay?params=${encodedParams}`,
-			success: () => {
-				void reportClientLog({
-					level: "info",
-					source: "payment-modal",
-					message: "mini-program payment navigate success",
-					meta: {
-						orderNo:
-							(payload as { orderNo?: string }).orderNo ?? null,
-					},
-				});
-				resolve();
-			},
-			fail: (error: { errMsg?: string }) => {
-				void reportClientLog({
-					level: "error",
-					source: "payment-modal",
-					message: "mini-program payment navigate failed",
-					meta: {
-						orderNo:
-							(payload as { orderNo?: string }).orderNo ?? null,
-						errMsg: error?.errMsg ?? null,
-					},
-				});
-				reject(
-					new WechatBridgeError(
-						WECHAT_BRIDGE_ERROR_CODES.BRIDGE_NOT_SUPPORTED,
-						error?.errMsg || "Mini program navigateTo failed",
-					),
-				);
-			},
-		});
-	});
+	if (!result.ok) {
+		throw new WechatBridgeError(
+			result.errCode === "PAY_CANCELLED"
+				? WECHAT_BRIDGE_ERROR_CODES.PAY_CANCELLED
+				: WECHAT_BRIDGE_ERROR_CODES.PAY_FAILED,
+			result.errMsg,
+		);
+	}
 };
 
 export function PaymentModal({
@@ -262,6 +293,28 @@ export function PaymentModal({
 		}
 		return undefined;
 	}, [order.payPayload]);
+
+	const miniProgramNavigationParams = useMemo<
+		MiniProgramNavigationPayload | undefined
+	>(() => {
+		const baseUrl =
+			typeof window !== "undefined" ? window.location.origin : "";
+		if (miniProgramRequestPaymentParams) {
+			return {
+				...miniProgramRequestPaymentParams,
+				baseUrl,
+				eventId,
+			};
+		}
+		if (order.miniProgramBindToken) {
+			return {
+				bindToken: order.miniProgramBindToken,
+				baseUrl,
+				eventId,
+			};
+		}
+		return undefined;
+	}, [eventId, miniProgramRequestPaymentParams, order.miniProgramBindToken]);
 
 	const paymentPhase = useMemo<PaymentPhase>(() => {
 		if (status === "PAID") return "success";
@@ -410,11 +463,11 @@ export function PaymentModal({
 
 		if (
 			resolvedChannel === WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE &&
-			miniProgramRequestPaymentParams
+			miniProgramNavigationParams
 		) {
 			jsapiInvokedRef.current = true;
 			setJsapiInvoked(true);
-			invokeMiniProgramBridgePay(miniProgramRequestPaymentParams)
+			invokeMiniProgramBridgePay(miniProgramNavigationParams)
 				.then(() => fetchOrderStatus())
 				.catch((error) => {
 					console.error("Mini Program bridge payment error", error);
@@ -475,7 +528,7 @@ export function PaymentModal({
 		open,
 		resolvedChannel,
 		resolvedJsapiParams,
-		miniProgramRequestPaymentParams,
+		miniProgramNavigationParams,
 		t,
 		fetchOrderStatus,
 	]);
@@ -599,7 +652,7 @@ export function PaymentModal({
 						resolvedChannel !==
 							WECHAT_PAYMENT_CHANNELS.WECHAT_NATIVE &&
 						(resolvedJsapiParams ||
-							miniProgramRequestPaymentParams) && (
+							miniProgramNavigationParams) && (
 							<div className="text-sm text-muted-foreground">
 								{resolvedChannel ===
 								WECHAT_PAYMENT_CHANNELS.MINIPROGRAM_BRIDGE

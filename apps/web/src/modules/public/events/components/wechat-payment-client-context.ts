@@ -467,6 +467,26 @@ const readMiniBridgeBootstrapFromStorage = () => {
 	}
 };
 
+interface MiniProgramBridgeBootstrapContext {
+	miniProgramBridgeSupported?: boolean;
+	miniProgramBridgeVersion?: string;
+	shellVersion?: string;
+}
+
+export const resolveMiniProgramNavigationContext = (params: {
+	hasNavigateTo: boolean;
+	bootstrapContext?: MiniProgramBridgeBootstrapContext | null;
+}): MiniProgramBridgeBootstrapContext | null => {
+	if (!params.hasNavigateTo) return null;
+
+	return {
+		miniProgramBridgeSupported: true,
+		miniProgramBridgeVersion:
+			params.bootstrapContext?.miniProgramBridgeVersion || "1.3.0",
+		shellVersion: params.bootstrapContext?.shellVersion,
+	};
+};
+
 export const ensureWechatMiniProgramBridge = ():
 	| MiniProgramBridge
 	| undefined => {
@@ -497,7 +517,21 @@ export const buildWechatPaymentClientContext =
 		const bootstrapContext =
 			readMiniBridgeBootstrapFromSearch() ??
 			readMiniBridgeBootstrapFromStorage();
-		if (bootstrapContext) {
+		const hasNavigateTo =
+			typeof window.wx?.miniProgram?.navigateTo === "function";
+		const navigationContext = resolveMiniProgramNavigationContext({
+			hasNavigateTo,
+			bootstrapContext,
+		});
+		if (navigationContext) {
+			persistMiniBridgeBootstrap(navigationContext);
+			return {
+				environmentType,
+				...navigationContext,
+			};
+		}
+
+		if (bootstrapContext?.miniProgramBridgeSupported === false) {
 			persistMiniBridgeBootstrap(bootstrapContext);
 			return {
 				environmentType,

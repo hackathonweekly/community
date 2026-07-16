@@ -48,10 +48,7 @@ import {
 	parseRegistrationErrorPayload,
 	resolveRegistrationErrorMessage,
 } from "./registrationErrorUtils";
-import {
-	buildWechatPaymentClientContext,
-	buildWechatPaymentClientContextQuery,
-} from "./wechat-payment-client-context";
+import { buildWechatPaymentClientContext } from "./wechat-payment-client-context";
 
 interface EventRegistrationFormProps {
 	event: {
@@ -834,11 +831,6 @@ export function EventRegistrationForm({
 		try {
 			const ticketTypeId = resolveTicketTypeId();
 			const clientContext = await buildWechatPaymentClientContext();
-			console.log("[MINI_BIND_RECOVERY] form:start", {
-				eventId: event.id,
-				ticketTypeId,
-				clientContext,
-			});
 			const requestBody = {
 				ticketTypeId,
 				quantity: selectedQuantity,
@@ -855,10 +847,6 @@ export function EventRegistrationForm({
 				clientContext,
 			};
 
-			console.log(
-				"[MINI_BIND_RECOVERY] form:create-order:request",
-				requestBody,
-			);
 			const response = await fetch(`/api/events/${event.id}/orders`, {
 				method: "POST",
 				headers: {
@@ -873,86 +861,32 @@ export function EventRegistrationForm({
 					defaultRegistrationError,
 				);
 				const errorMessage = errorPayload.message;
-				console.log("[MINI_BIND_RECOVERY] form:create-order:error", {
-					status: response.status,
-					errorPayload,
-					clientContext,
-				});
 				const shouldPromptWechatBinding =
 					errorPayload.code === "WECHAT_OPENID_REQUIRED" ||
 					errorMessage.toLowerCase().includes("openid");
 				if (shouldPromptWechatBinding) {
 					if (clientContext.environmentType === "miniprogram") {
-						console.log(
-							"[MINI_BIND_RECOVERY] form:bind-token:request",
-						);
+						const pendingOrder = errorPayload.data as
+							| PaymentOrderData
+							| undefined;
+						if (!pendingOrder?.orderId || !pendingOrder.orderNo) {
+							throw new Error(errorMessage);
+						}
 						const bindTokenResponse = await fetch(
 							"/api/payments/wechat/mini-bind-token",
 							{ method: "POST" },
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] form:bind-token:response",
-							{
-								status: bindTokenResponse.status,
-							},
 						);
 						if (!bindTokenResponse.ok) {
 							throw new Error(errorMessage);
 						}
 						const bindTokenResult = await bindTokenResponse.json();
-						console.log(
-							"[MINI_BIND_RECOVERY] form:bind-token:payload",
-							bindTokenResult,
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] form:pending-order:request",
-						);
-						const pendingOrderResponse = await fetch(
-							`/api/events/${event.id}/orders/pending?${buildWechatPaymentClientContextQuery(clientContext)}`,
-						);
-						console.log(
-							"[MINI_BIND_RECOVERY] form:pending-order:response",
-							{
-								status: pendingOrderResponse.status,
-							},
-						);
-						if (!pendingOrderResponse.ok) {
+						const bindToken = bindTokenResult?.data?.bindToken;
+						if (typeof bindToken !== "string" || !bindToken) {
 							throw new Error(errorMessage);
 						}
-						const pendingOrderResult =
-							await pendingOrderResponse.json();
-						console.log(
-							"[MINI_BIND_RECOVERY] form:pending-order:payload",
-							pendingOrderResult,
-						);
-						const pendingOrder = pendingOrderResult?.data as
-							| PaymentOrderData
-							| undefined;
-						const requestPaymentParams =
-							pendingOrder?.payPayload &&
-							"requestPaymentParams" in pendingOrder.payPayload
-								? pendingOrder.payPayload.requestPaymentParams
-								: undefined;
-						if (!pendingOrder || !requestPaymentParams) {
-							throw new Error(errorMessage);
-						}
-						console.log("[MINI_BIND_RECOVERY] form:open-payment", {
-							hasBindToken: Boolean(
-								bindTokenResult.data.bindToken,
-							),
-							hasRequestPaymentParams:
-								Boolean(requestPaymentParams),
-						});
 						setPaymentOrder({
 							...pendingOrder,
-							payPayload: {
-								requestPaymentParams: {
-									...requestPaymentParams,
-									bindToken: bindTokenResult.data.bindToken,
-									baseUrl: window.location.origin,
-									eventId: event.id,
-								},
-							},
+							miniProgramBindToken: bindToken,
 						});
 						setPaymentOpen(true);
 						return;

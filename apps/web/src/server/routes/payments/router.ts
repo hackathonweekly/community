@@ -1,4 +1,4 @@
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "node:crypto";
 import {
 	getOrganizationById,
 	getOrganizationMembership,
@@ -25,44 +25,60 @@ import {
 } from "./lib/wechat-prepare";
 
 const MINI_BIND_TOKEN_TTL_MS = 5 * 60 * 1000;
-const miniBindTokens = new Map<
-	string,
-	{
-		userId: string;
-		expiresAt: number;
-	}
->();
+const MINI_BIND_TOKEN_PREFIX = "wechat-mini-bind:";
 
-const cleanupExpiredMiniBindTokens = () => {
-	const now = Date.now();
-	for (const [token, payload] of miniBindTokens.entries()) {
-		if (payload.expiresAt <= now) {
-			miniBindTokens.delete(token);
-		}
-	}
-};
+const hashMiniBindToken = (token: string) =>
+	createHash("sha256").update(token).digest("hex");
 
-const issueMiniBindToken = (userId: string) => {
-	cleanupExpiredMiniBindTokens();
+const issueMiniBindToken = async (userId: string) => {
 	const token = randomBytes(24).toString("hex");
-	const expiresAt = Date.now() + MINI_BIND_TOKEN_TTL_MS;
-	miniBindTokens.set(token, { userId, expiresAt });
+	const expiresAt = new Date(Date.now() + MINI_BIND_TOKEN_TTL_MS);
+	await db.$transaction([
+		db.verification.deleteMany({
+			where: {
+				identifier: { startsWith: MINI_BIND_TOKEN_PREFIX },
+				expiresAt: { lte: new Date() },
+			},
+		}),
+		db.verification.create({
+			data: {
+				identifier: `${MINI_BIND_TOKEN_PREFIX}${hashMiniBindToken(token)}`,
+				value: userId,
+				expiresAt,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			},
+		}),
+	]);
 	return {
 		bindToken: token,
-		expiresAt: new Date(expiresAt).toISOString(),
+		expiresAt: expiresAt.toISOString(),
 	};
 };
 
-const consumeMiniBindToken = (bindToken: string) => {
-	cleanupExpiredMiniBindTokens();
-	const payload = miniBindTokens.get(bindToken);
-	if (!payload || payload.expiresAt <= Date.now()) {
-		miniBindTokens.delete(bindToken);
-		return null;
-	}
-	miniBindTokens.delete(bindToken);
-	return payload;
-};
+const consumeMiniBindToken = async (bindToken: string) =>
+	db.$transaction(async (tx) => {
+		const identifier = `${MINI_BIND_TOKEN_PREFIX}${hashMiniBindToken(bindToken)}`;
+		const record = await tx.verification.findFirst({
+			where: {
+				identifier,
+				expiresAt: { gt: new Date() },
+			},
+			select: { id: true, value: true },
+		});
+
+		if (!record) {
+			await tx.verification.deleteMany({ where: { identifier } });
+			return null;
+		}
+
+		const deleted = await tx.verification.deleteMany({
+			where: { id: record.id, identifier },
+		});
+		if (deleted.count !== 1) return null;
+
+		return { userId: record.value };
+	});
 
 const exchangeMiniProgramCode = async (code: string) => {
 	const appId = process.env.WECHAT_MINIPROGRAM_APP_ID;
@@ -180,7 +196,7 @@ export const paymentsRouter = new Hono()
 		}),
 		async (c) => {
 			const user = c.get("user");
-			const issuedToken = issueMiniBindToken(user.id);
+			const issuedToken = await issueMiniBindToken(user.id);
 			logger.info("[MINI_BIND_SERVER] mini-bind-token:issued", {
 				userId: user.id,
 				expiresAt: issuedToken.expiresAt,
@@ -274,7 +290,7 @@ export const paymentsRouter = new Hono()
 					eventId: eventId ?? null,
 				},
 			);
-			const tokenPayload = consumeMiniBindToken(bindToken);
+			const tokenPayload = await consumeMiniBindToken(bindToken);
 			if (!tokenPayload) {
 				logger.info(
 					"[MINI_BIND_SERVER] bind-mini-openid-with-token:token-invalid",

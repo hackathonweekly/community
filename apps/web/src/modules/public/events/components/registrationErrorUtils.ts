@@ -54,7 +54,7 @@ export const parseRegistrationError = async (
 export const parseRegistrationErrorPayload = async (
 	response: Response,
 	fallbackMessage: string,
-): Promise<{ message: string; code?: string }> => {
+): Promise<{ message: string; code?: string; data?: unknown }> => {
 	try {
 		const errorData = await response.json();
 		const parsed = getFirstErrorMessage(errorData);
@@ -64,7 +64,11 @@ export const parseRegistrationErrorPayload = async (
 			errorData && typeof errorData === "object" && "code" in errorData
 				? (errorData as { code?: string }).code
 				: undefined;
-		return { message, code };
+		const data =
+			errorData && typeof errorData === "object" && "data" in errorData
+				? (errorData as { data?: unknown }).data
+				: undefined;
+		return { message, code, data };
 	} catch {
 		const statusMessage = response.statusText?.trim();
 		return { message: statusMessage || fallbackMessage };

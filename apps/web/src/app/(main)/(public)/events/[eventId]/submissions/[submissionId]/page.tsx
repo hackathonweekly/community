@@ -44,14 +44,14 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 		requestOrigin,
 		requestHeaders: buildForwardedAuthHeaders(headerList),
 	});
+	const event = await getEventById(eventId);
 
-	if (!submission || submission.eventId !== eventId) {
+	if (!submission || !event || submission.eventId !== event.id) {
 		notFound();
 	}
 
 	// Only reveal exact vote counts during the final results stage
-	const event = await getEventById(eventId);
-	if (!event || !isEventSubmissionsEnabled(event as any)) {
+	if (!isEventSubmissionsEnabled(event as any)) {
 		notFound();
 	}
 	const isVotingOpen =
@@ -71,7 +71,8 @@ export default async function SubmissionDetailPage({ params }: PageProps) {
 			? Boolean((event as any)?.showVotesOnGallery ?? true)
 			: false;
 	const showResults = showVotesOnGallery && !isVotingOpen;
-	const submissionUrl = `${requestOrigin}/events/${eventId}/submissions/${submissionId}`;
+	const canonicalEventId = event.shortId || event.id;
+	const submissionUrl = `${requestOrigin}/events/${canonicalEventId}/submissions/${submissionId}`;
 
 	return (
 		<div className="container mx-auto max-w-6xl py-6 lg:py-8">
