@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@community/ui/ui/button";
 import { Input } from "@community/ui/ui/input";
 import { Label } from "@community/ui/ui/label";
@@ -8,6 +8,7 @@ import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
+	DialogFooter,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -29,28 +30,33 @@ import type { TicketType } from "./types";
 
 interface TicketTypesModalProps {
 	control: any;
-	ticketTypes: TicketType[];
 	children: React.ReactNode;
+	errorMessages?: string[];
+	validationAttempt?: number;
 }
 
 export function TicketTypesModal({
 	control,
-	ticketTypes,
 	children,
+	errorMessages = [],
+	validationAttempt = 0,
 }: TicketTypesModalProps) {
 	const [open, setOpen] = useState(false);
+	const errorSignature = useMemo(
+		() => errorMessages.join("\n"),
+		[errorMessages],
+	);
+
+	useEffect(() => {
+		if (validationAttempt > 0 && errorSignature) {
+			setOpen(true);
+		}
+	}, [errorSignature, validationAttempt]);
 
 	const ticketTypeFields = useFieldArray({
 		control,
 		name: "ticketTypes",
 	});
-
-	const getTicketTypeSummary = () => {
-		if (ticketTypes.length === 0) {
-			return "免费参与";
-		}
-		return `${ticketTypes.length} 种票价`;
-	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -67,6 +73,19 @@ export function TicketTypesModal({
 				</DialogHeader>
 
 				<div className="space-y-6 py-4">
+					{errorMessages.length > 0 && (
+						<div
+							role="alert"
+							className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+						>
+							<p className="font-medium">请先补全票种信息</p>
+							<ul className="mt-1 list-disc pl-5">
+								{errorMessages.map((message) => (
+									<li key={message}>{message}</li>
+								))}
+							</ul>
+						</div>
+					)}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
 							<div>
@@ -219,16 +238,12 @@ export function TicketTypesModal({
 							添加票种
 						</Button>
 					</div>
-
-					{/* <div className="flex justify-end gap-2 pt-4 border-t">
-						<Button
-							variant="outline"
-							onClick={() => setOpen(false)}
-						>
-							关闭
-						</Button>
-					</div> */}
 				</div>
+				<DialogFooter>
+					<Button type="button" onClick={() => setOpen(false)}>
+						完成
+					</Button>
+				</DialogFooter>
 			</DialogContent>
 		</Dialog>
 	);
@@ -236,7 +251,8 @@ export function TicketTypesModal({
 
 export function TicketTypesSummary({
 	ticketTypes,
-}: { ticketTypes: TicketType[] }) {
+	errorMessages = [],
+}: { ticketTypes: TicketType[]; errorMessages?: string[] }) {
 	if (ticketTypes.length === 0) {
 		return <div className="text-sm text-muted-foreground">免费参与</div>;
 	}
@@ -248,7 +264,14 @@ export function TicketTypesSummary({
 					key={index}
 					className="flex items-center justify-between text-sm"
 				>
-					<span>{ticket.name}</span>
+					<span
+						className={
+							!ticket.name.trim() ? "text-destructive" : ""
+						}
+					>
+						{ticket.name.trim() ||
+							`票种 ${index + 1}（名称未填写）`}
+					</span>
 					<div className="flex items-center gap-2">
 						<Badge variant="outline">¥{ticket.price}</Badge>
 						<span className="text-muted-foreground">
@@ -257,6 +280,11 @@ export function TicketTypesSummary({
 					</div>
 				</div>
 			))}
+			{errorMessages.length > 0 && (
+				<p role="alert" className="text-xs text-destructive">
+					{errorMessages[0]}
+				</p>
+			)}
 		</div>
 	);
 }

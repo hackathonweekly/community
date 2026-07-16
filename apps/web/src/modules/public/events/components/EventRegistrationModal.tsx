@@ -35,11 +35,16 @@ import {
 } from "./registrationErrorUtils";
 import type {
 	EventRegistration,
+	EventVolunteerRole,
 	Project,
 	Question,
 	TicketType,
 	UserProfile,
 } from "./types";
+import {
+	applyForVolunteerRole,
+	VolunteerInterestSection,
+} from "./VolunteerInterestSection";
 import { useTicketSelection } from "./useTicketSelection";
 import {
 	buildWechatPaymentClientContext,
@@ -62,6 +67,7 @@ interface EventRegistrationModalProps {
 		registrationPendingInfo?: string;
 		registrationPendingImage?: string;
 		registrationFieldConfig?: any;
+		volunteerRoles?: EventVolunteerRole[];
 	};
 	inviteCode?: string;
 	onRegistrationComplete: (registration: EventRegistration) => void;
@@ -84,6 +90,8 @@ export function EventRegistrationModal({
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
 	const [selectedQuantity, setSelectedQuantity] = useState(1);
+	const [wantsToVolunteer, setWantsToVolunteer] = useState(false);
+	const [selectedVolunteerRoleId, setSelectedVolunteerRoleId] = useState("");
 	const [paymentOrder, setPaymentOrder] = useState<PaymentOrderData | null>(
 		null,
 	);
@@ -615,6 +623,10 @@ export function EventRegistrationModal({
 			toast.error(t("validation.selectTierQuantity"));
 			return;
 		}
+		if (wantsToVolunteer && !selectedVolunteerRoleId) {
+			toast.error("请选择希望参与的志愿者角色");
+			return;
+		}
 
 		// Validate digital card consent if required
 		if (event.askDigitalCardConsent && allowDigitalCardDisplay === null) {
@@ -827,6 +839,19 @@ export function EventRegistrationModal({
 		return payload;
 	};
 
+	const submitVolunteerInterest = async () => {
+		if (!wantsToVolunteer || !selectedVolunteerRoleId) {
+			return;
+		}
+		try {
+			await applyForVolunteerRole(event.id, selectedVolunteerRoleId);
+			toast.success("活动报名和志愿者申请均已提交");
+		} catch (error) {
+			console.error("Volunteer interest submission failed", error);
+			toast.error("活动报名成功，但志愿者申请提交失败，请稍后重试");
+		}
+	};
+
 	const performPaidOrder = async () => {
 		try {
 			const clientContext = await buildWechatPaymentClientContext();
@@ -951,6 +976,7 @@ export function EventRegistrationModal({
 			}
 
 			const result = await response.json();
+			await submitVolunteerInterest();
 			onRegistrationComplete(result.data);
 			onClose();
 		} catch (error) {
@@ -977,9 +1003,10 @@ export function EventRegistrationModal({
 		}
 	};
 
-	const handlePaymentSuccess = (registration: EventRegistration) => {
+	const handlePaymentSuccess = async (registration: EventRegistration) => {
 		setPaymentOpen(false);
 		setPaymentOrder(null);
+		await submitVolunteerInterest();
 		onRegistrationComplete(registration);
 		onClose();
 	};
@@ -1139,6 +1166,16 @@ export function EventRegistrationModal({
 								questions={event.questions}
 								answers={answers}
 								onAnswerChange={handleAnswerChange}
+							/>
+
+							<VolunteerInterestSection
+								volunteerRoles={event.volunteerRoles}
+								wantsToVolunteer={wantsToVolunteer}
+								selectedRoleId={selectedVolunteerRoleId}
+								onWantsToVolunteerChange={setWantsToVolunteer}
+								onSelectedRoleChange={
+									setSelectedVolunteerRoleId
+								}
 							/>
 						</div>
 

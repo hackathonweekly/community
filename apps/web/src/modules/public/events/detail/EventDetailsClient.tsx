@@ -44,7 +44,6 @@ import { AwardsSection } from "./components/sections/AwardsSection";
 import { HostsSection } from "./components/sections/HostsSection";
 import { IntroSection } from "./components/sections/IntroSection";
 import { ParticipantsSection } from "./components/sections/ParticipantsSection";
-import { VolunteersSection } from "./components/sections/VolunteersSection";
 import { WorksSection } from "./components/sections/WorksSection";
 import type { EventData } from "./components/types";
 import { getEventTypeLabels } from "./components/utils";
@@ -123,9 +122,6 @@ export function EventDetailsClient({
 		registerDisabledDisplay,
 		awards,
 		resourcesGroups,
-		volunteerRoles,
-		volunteerStatuses,
-		hasVolunteerSection,
 		canCancel,
 		canContactOrganizer,
 		canShowFeedback,
@@ -142,7 +138,6 @@ export function EventDetailsClient({
 		handleRegistrationComplete,
 		handleShowSuccessInfo,
 		handleCancelRegistration,
-		handleVolunteerApply,
 		handleFeedbackSubmit,
 		handleBookmark,
 		handleLike,
@@ -615,22 +610,6 @@ export function EventDetailsClient({
 												onRequireLogin={redirectToLogin}
 												onSubmitWork={handleSubmitWork}
 												enabled={showWorks}
-											/>
-										</TabsContent>
-									)}
-
-									{hasVolunteerSection && (
-										<TabsContent
-											value="volunteers"
-											className="focus:outline-none mt-2 md:mt-4"
-										>
-											<VolunteersSection
-												event={event}
-												volunteerRoles={volunteerRoles}
-												volunteerStatuses={
-													volunteerStatuses
-												}
-												onApply={handleVolunteerApply}
 											/>
 										</TabsContent>
 									)}

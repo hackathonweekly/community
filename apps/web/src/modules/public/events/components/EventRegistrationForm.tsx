@@ -35,11 +35,16 @@ import { TicketSelection } from "./TicketSelection";
 import { QuestionsForm } from "./QuestionsForm";
 import type {
 	EventRegistration,
+	EventVolunteerRole,
 	Project,
 	Question,
 	TicketType,
 	UserProfile,
 } from "./types";
+import {
+	applyForVolunteerRole,
+	VolunteerInterestSection,
+} from "./VolunteerInterestSection";
 import { PaymentModal, type PaymentOrderData } from "./PaymentModal";
 import { useTicketSelection } from "./useTicketSelection";
 import { MiniProgramUpgradePrompt } from "./MiniProgramUpgradePrompt";
@@ -65,6 +70,7 @@ interface EventRegistrationFormProps {
 		registrationPendingInfo?: string;
 		registrationPendingImage?: string;
 		registrationFieldConfig?: any;
+		volunteerRoles?: EventVolunteerRole[];
 	};
 	isSubmitting: boolean;
 	onSubmittingChange: (isSubmitting: boolean) => void;
@@ -96,6 +102,8 @@ export function EventRegistrationForm({
 	const [answers, setAnswers] = useState<Record<string, string>>({});
 	const [selectedTicketType, setSelectedTicketType] = useState<string>("");
 	const [selectedQuantity, setSelectedQuantity] = useState(1);
+	const [wantsToVolunteer, setWantsToVolunteer] = useState(false);
+	const [selectedVolunteerRoleId, setSelectedVolunteerRoleId] = useState("");
 	const [paymentOrder, setPaymentOrder] = useState<PaymentOrderData | null>(
 		null,
 	);
@@ -560,6 +568,10 @@ export function EventRegistrationForm({
 			toast.error(t("validation.selectTierQuantity"));
 			return;
 		}
+		if (wantsToVolunteer && !selectedVolunteerRoleId) {
+			toast.error("请选择希望参与的志愿者角色");
+			return;
+		}
 		// Validate digital card consent if required
 		if (event.askDigitalCardConsent && allowDigitalCardDisplay === null) {
 			toast.error(t("validation.selectDigitalCardConsent"));
@@ -782,6 +794,19 @@ export function EventRegistrationForm({
 		return payload;
 	};
 
+	const submitVolunteerInterest = async () => {
+		if (!wantsToVolunteer || !selectedVolunteerRoleId) {
+			return;
+		}
+		try {
+			await applyForVolunteerRole(event.id, selectedVolunteerRoleId);
+			toast.success("活动报名和志愿者申请均已提交");
+		} catch (error) {
+			console.error("Volunteer interest submission failed", error);
+			toast.error("活动报名成功，但志愿者申请提交失败，请稍后重试");
+		}
+	};
+
 	const performGiftRedemption = async () => {
 		try {
 			const response = await fetch(
@@ -815,6 +840,7 @@ export function EventRegistrationForm({
 			}
 
 			const result = await response.json();
+			await submitVolunteerInterest();
 			onRegistrationComplete(result.data);
 		} catch (error) {
 			console.error("Error redeeming invite:", error);
@@ -953,6 +979,7 @@ export function EventRegistrationForm({
 			}
 
 			const result = await response.json();
+			await submitVolunteerInterest();
 			onRegistrationComplete(result.data);
 		} catch (error) {
 			console.error("Error registering for event:", error);
@@ -977,9 +1004,10 @@ export function EventRegistrationForm({
 		await performFreeRegistration();
 	};
 
-	const handlePaymentSuccess = (registration: EventRegistration) => {
+	const handlePaymentSuccess = async (registration: EventRegistration) => {
 		setPaymentOpen(false);
 		setPaymentOrder(null);
+		await submitVolunteerInterest();
 		onRegistrationComplete(registration);
 	};
 
@@ -1224,6 +1252,14 @@ export function EventRegistrationForm({
 						</CardContent>
 					</Card>
 				)}
+
+				<VolunteerInterestSection
+					volunteerRoles={event.volunteerRoles}
+					wantsToVolunteer={wantsToVolunteer}
+					selectedRoleId={selectedVolunteerRoleId}
+					onWantsToVolunteerChange={setWantsToVolunteer}
+					onSelectedRoleChange={setSelectedVolunteerRoleId}
+				/>
 
 				{/* Form Actions */}
 				<div className="flex gap-4 pt-4 sticky bottom-0 bg-gray-50 pb-safe-bottom">

@@ -16,6 +16,7 @@ import {
 } from "../utils/date-utils";
 import { normalizeSubmissionFormConfig } from "../utils/submission-form";
 import { BasicInfoForm } from "./BasicInfoForm";
+import { getEventFormValidationMessages } from "./event-form-error-utils";
 import { FormActions } from "./FormActions";
 import { OptionalConfigSection } from "./OptionalConfigSection";
 import {
@@ -592,7 +593,12 @@ export function EventCreateForm({
 
 	const handleFormError = (errors: FieldErrors<EventFormData>) => {
 		console.error("EventCreateForm validation errors:", errors);
-		toast.error("表单未通过校验，请检查页面中的提示信息");
+		const messages = getEventFormValidationMessages(errors);
+		toast.error(
+			messages.length > 0
+				? `请修正：${messages.slice(0, 3).join("；")}`
+				: "表单未通过校验，请检查页面中的提示信息",
+		);
 	};
 
 	return (
@@ -625,6 +631,8 @@ export function EventCreateForm({
 						watch={form.watch}
 						setValue={form.setValue}
 						volunteerRoles={volunteerRoles}
+						errors={form.formState.errors}
+						validationAttempt={form.formState.submitCount}
 					/>
 
 					{/* Submit Buttons */}

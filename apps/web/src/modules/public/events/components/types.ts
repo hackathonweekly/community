@@ -67,6 +67,21 @@ export interface EventRegistration {
 	registeredAt?: string;
 }
 
+export interface EventVolunteerRole {
+	id: string;
+	recruitCount: number;
+	description?: string;
+	volunteerRole: {
+		id: string;
+		name: string;
+		description: string;
+		cpPoints: number;
+	};
+	registrations: Array<{
+		status: "APPLIED" | "APPROVED" | "REJECTED" | "CANCELLED";
+	}>;
+}
+
 export interface Event {
 	id: string;
 	title: string;
@@ -76,4 +91,5 @@ export interface Event {
 	questions: Question[];
 	ticketTypes: TicketType[];
 	registrationFieldConfig?: any;
+	volunteerRoles?: EventVolunteerRole[];
 }

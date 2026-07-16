@@ -29,6 +29,7 @@ import QRCode from "react-qr-code";
 import { toast } from "sonner";
 import { reportClientLog } from "@shared/debug/report-client-log";
 import type { EventRegistration } from "./types";
+import { shouldReconcilePaymentProvider } from "./payment-status-utils";
 
 export interface PaymentOrderData {
 	orderId: string;
@@ -254,6 +255,8 @@ export function PaymentModal({
 	const invitesLoadedRef = useRef(false);
 	const pollFailureCountRef = useRef(0);
 	const pollErrorNotifiedRef = useRef(false);
+	const providerQueryInFlightRef = useRef(false);
+	const lastProviderQueryAtRef = useRef(0);
 
 	const expiresAt = useMemo(
 		() => new Date(order.expiredAt),
@@ -339,6 +342,8 @@ export function PaymentModal({
 		invitesLoadedRef.current = false;
 		pollFailureCountRef.current = 0;
 		pollErrorNotifiedRef.current = false;
+		providerQueryInFlightRef.current = false;
+		lastProviderQueryAtRef.current = 0;
 	}, [open, order.orderId]);
 
 	useEffect(() => {
@@ -371,10 +376,50 @@ export function PaymentModal({
 				return;
 			}
 			const result = await response.json();
-			const data = result.data;
+			let data = result.data;
 			if (!data) {
 				handlePollFailure();
 				return;
+			}
+
+			const now = Date.now();
+			if (
+				shouldReconcilePaymentProvider({
+					status: data.status,
+					now,
+					lastQueryAt: lastProviderQueryAtRef.current,
+					isQueryInFlight: providerQueryInFlightRef.current,
+				})
+			) {
+				providerQueryInFlightRef.current = true;
+				lastProviderQueryAtRef.current = now;
+				try {
+					const queryResponse = await fetch(
+						`/api/events/${eventId}/orders/${order.orderId}/query`,
+						{ method: "POST" },
+					);
+					const queryResult = await queryResponse.json();
+					if (
+						queryResponse.ok &&
+						queryResult.data?.status === "PAID"
+					) {
+						const refreshedResponse = await fetch(
+							`/api/events/${eventId}/orders/${order.orderId}`,
+						);
+						if (refreshedResponse.ok) {
+							const refreshedResult =
+								await refreshedResponse.json();
+							data = refreshedResult.data || data;
+						}
+					}
+				} catch (error) {
+					console.warn(
+						"Payment provider reconciliation failed",
+						error,
+					);
+				} finally {
+					providerQueryInFlightRef.current = false;
+				}
 			}
 
 			pollFailureCountRef.current = 0;

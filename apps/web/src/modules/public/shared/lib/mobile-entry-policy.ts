@@ -8,15 +8,15 @@ export const CATEGORY_PREFIXES = [
 ] as const;
 
 export function getMobileHomeHref(_isAuthenticated: boolean) {
-	return "/events" as const;
+	return "/" as const;
 }
 
 export function getGuestTabKeys() {
-	return ["home", "docs", "create", "notifications", "login"] as const;
+	return ["home", "events", "create", "notifications", "login"] as const;
 }
 
 export function getUserTabKeys() {
-	return ["home", "docs", "create", "notifications", "me"] as const;
+	return ["home", "events", "create", "notifications", "me"] as const;
 }
 
 export function isDiscoveryRoute(pathname: string) {

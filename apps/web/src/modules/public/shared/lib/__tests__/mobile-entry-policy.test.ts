@@ -9,15 +9,15 @@ import {
 	shouldShowVisitorLoginBanner,
 } from "../mobile-entry-policy";
 
-test("mobile home href always points to events", () => {
-	assert.equal(getMobileHomeHref(false), "/events");
-	assert.equal(getMobileHomeHref(true), "/events");
+test("mobile home href points to the community home", () => {
+	assert.equal(getMobileHomeHref(false), "/");
+	assert.equal(getMobileHomeHref(true), "/");
 });
 
-test("guest tabs remove organizations and keep login", () => {
+test("guest tabs prioritize events over unmaintained docs and keep login", () => {
 	assert.deepEqual(getGuestTabKeys(), [
 		"home",
-		"docs",
+		"events",
 		"create",
 		"notifications",
 		"login",
@@ -27,7 +27,7 @@ test("guest tabs remove organizations and keep login", () => {
 test("authenticated tabs keep me entry", () => {
 	assert.deepEqual(getUserTabKeys(), [
 		"home",
-		"docs",
+		"events",
 		"create",
 		"notifications",
 		"me",

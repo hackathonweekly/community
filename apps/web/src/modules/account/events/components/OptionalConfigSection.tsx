@@ -29,7 +29,12 @@ import {
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import type {
+	Control,
+	FieldErrors,
+	UseFormSetValue,
+	UseFormWatch,
+} from "react-hook-form";
 import {
 	AdvancedSettingsModal,
 	AdvancedSettingsSummary,
@@ -49,6 +54,7 @@ import {
 	RegistrationSuccessSummary,
 } from "./RegistrationSuccessModal";
 import { TicketTypesModal, TicketTypesSummary } from "./TicketTypesModal";
+import { getTicketTypeValidationMessages } from "./event-form-error-utils";
 import { SubmissionFormConfigSection } from "./SubmissionFormConfigSection";
 import { VolunteerModal, VolunteerSummary } from "./VolunteerModal";
 import type { SubmissionFormConfig } from "@/features/event-submissions/types";
@@ -66,6 +72,8 @@ interface OptionalConfigSectionProps {
 	watch: UseFormWatch<EventFormData>;
 	setValue: UseFormSetValue<EventFormData>;
 	volunteerRoles: VolunteerRole[];
+	errors: FieldErrors<EventFormData>;
+	validationAttempt: number;
 }
 
 export function OptionalConfigSection({
@@ -73,6 +81,8 @@ export function OptionalConfigSection({
 	watch,
 	setValue,
 	volunteerRoles,
+	errors,
+	validationAttempt,
 }: OptionalConfigSectionProps) {
 	const requireApproval = watch("requireApproval");
 	const questions = (watch("questions") || []) as Question[];
@@ -145,6 +155,9 @@ export function OptionalConfigSection({
 		(key) => registrationFieldConfig.fields[key].required,
 	).length;
 	const questionCount = questions.length;
+	const ticketErrorMessages = getTicketTypeValidationMessages(
+		errors.ticketTypes,
+	);
 	const [registrationDialogOpen, setRegistrationDialogOpen] = useState(false);
 	const rowClassName = "flex items-start justify-between gap-3 px-4 py-3 ";
 
@@ -374,7 +387,11 @@ export function OptionalConfigSection({
 					</div>
 				</div>
 
-				<div className={rowClassName}>
+				<div
+					className={`${rowClassName}${
+						ticketErrorMessages.length > 0 ? "bg-destructive/5" : ""
+					}`}
+				>
 					<div className="flex items-start gap-3 min-w-0">
 						<UsersIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
 						<div>
@@ -383,14 +400,14 @@ export function OptionalConfigSection({
 								ticketTypes={
 									(watch("ticketTypes") || []) as TicketType[]
 								}
+								errorMessages={ticketErrorMessages}
 							/>
 						</div>
 					</div>
 					<TicketTypesModal
 						control={control}
-						ticketTypes={
-							(watch("ticketTypes") || []) as TicketType[]
-						}
+						errorMessages={ticketErrorMessages}
+						validationAttempt={validationAttempt}
 					>
 						<Button
 							type="button"
@@ -398,7 +415,7 @@ export function OptionalConfigSection({
 							variant="outline"
 							className="shrink-0"
 						>
-							编辑
+							{ticketErrorMessages.length > 0 ? "修正" : "编辑"}
 						</Button>
 					</TicketTypesModal>
 				</div>

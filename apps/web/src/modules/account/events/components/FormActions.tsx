@@ -2,6 +2,7 @@ import { Button } from "@community/ui/ui/button";
 import type { UseFormHandleSubmit } from "react-hook-form";
 import { toast } from "sonner";
 import type { EventFormData } from "./types";
+import { getEventFormValidationMessages } from "./event-form-error-utils";
 
 interface FormActionsProps {
 	handleSubmit: UseFormHandleSubmit<EventFormData>;
@@ -29,21 +30,12 @@ export function FormActions({
 			},
 			(errors) => {
 				console.error("Form validation errors (draft):", errors);
-				// 显示具体的验证错误
-				const errorMessages = Object.entries(errors)
-					.map(([field, error]) => {
-						const fieldName =
-							{
-								title: "活动标题",
-								richContent: "活动详情",
-								startTime: "开始时间",
-								endTime: "结束时间",
-								location: "活动地点",
-							}[field] || field;
-						return `${fieldName}: ${error?.message || "验证失败"}`;
-					})
-					.join("\n");
-				toast.error(`保存草稿失败，请完善以下字段：\n${errorMessages}`);
+				const errorMessages = getEventFormValidationMessages(errors);
+				toast.error(
+					errorMessages.length > 0
+						? `保存草稿失败：${errorMessages.slice(0, 3).join("；")}`
+						: "保存草稿失败，请检查页面中的提示信息",
+				);
 			},
 		)();
 	};

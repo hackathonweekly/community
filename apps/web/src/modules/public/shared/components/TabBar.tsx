@@ -21,7 +21,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
-	CATEGORY_PREFIXES,
 	getGuestTabKeys,
 	getMobileHomeHref,
 	getUserTabKeys,
@@ -34,7 +33,7 @@ interface Tab {
 	isAction?: boolean;
 }
 
-type TabKey = "home" | "docs" | "create" | "notifications" | "me" | "login";
+type TabKey = "home" | "events" | "create" | "notifications" | "me" | "login";
 
 const LOCALE_PREFIX_PATTERN = /^\/[a-z]{2}(?:-[A-Z]{2})?(?=\/|$)/;
 
@@ -172,10 +171,10 @@ export function TabBar() {
 			href: getMobileHomeHref(Boolean(user)),
 			icon: HomeIcon,
 		},
-		docs: {
-			name: t("tab_nav.docs"),
-			href: "/docs",
-			icon: DocumentTextIcon,
+		events: {
+			name: t("tab_nav.events"),
+			href: "/events",
+			icon: CalendarDaysIcon,
 		},
 		create: {
 			name: t("tab_nav.create"),
@@ -204,9 +203,7 @@ export function TabBar() {
 
 	const isTabActive = (href: string) => {
 		if (href === "/events") {
-			return CATEGORY_PREFIXES.some((p) =>
-				normalizedPathname.startsWith(p),
-			);
+			return normalizedPathname.startsWith("/events");
 		}
 		if (href === "/") {
 			return normalizedPathname === "/";

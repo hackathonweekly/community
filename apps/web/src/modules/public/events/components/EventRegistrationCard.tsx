@@ -16,13 +16,11 @@ import {
 } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { enUS, zhCN } from "date-fns/locale";
-import { Timer, Users } from "lucide-react";
+import { Timer } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { useUnifiedEventRegistration } from "../detail/hooks/useUnifiedEventRegistration";
-import { VolunteerListModal } from "./VolunteerListModal";
 import { isEventSubmissionsEnabled } from "@/features/event-submissions/utils/is-event-submissions-enabled";
 
 interface EventRegistrationCardProps {
@@ -109,9 +107,6 @@ interface EventRegistrationCardProps {
 		wouldRecommend: boolean;
 	}) => void;
 	hasSubmittedFeedback?: boolean;
-	onVolunteerApply?: (eventVolunteerRoleId: string) => void;
-	onViewAllVolunteers?: () => void;
-	onDataRefresh?: () => void;
 	onShowContact?: () => void;
 	onShowFeedback?: () => void;
 }
@@ -127,9 +122,6 @@ export function EventRegistrationCard({
 	onShowShare,
 	onFeedbackSubmit,
 	hasSubmittedFeedback,
-	onVolunteerApply,
-	onViewAllVolunteers,
-	onDataRefresh,
 	onShowContact,
 	onShowFeedback,
 }: EventRegistrationCardProps) {
@@ -139,13 +131,10 @@ export function EventRegistrationCard({
 	const canShowCountdownTool =
 		locale.startsWith("zh") && Boolean(event.isEventAdmin);
 
-	const [showVolunteerModal, setShowVolunteerModal] = useState(false);
-
 	// 使用统一的Hook
 	const {
 		isEventEnded,
 		isEventDraft,
-		canApplyVolunteer,
 		isRegistering,
 		isCancellingRegistration,
 		getRegisterButtonText,
@@ -153,8 +142,6 @@ export function EventRegistrationCard({
 		handleRegisterAction,
 		handleCancelRegistrationAction,
 		shouldShowCancelButton,
-		getVolunteerStats,
-		handleVolunteerApply,
 	} = useUnifiedEventRegistration({
 		event,
 		user,
@@ -162,8 +149,6 @@ export function EventRegistrationCard({
 		canRegister,
 		pathname,
 	});
-
-	const volunteerStats = getVolunteerStats(event.volunteerRoles);
 
 	const submissionsEnabled = isEventSubmissionsEnabled(event);
 
@@ -418,36 +403,6 @@ export function EventRegistrationCard({
 					</p>
 				)}
 
-				{/* 志愿者招募区域 - 精简设计，降低视觉权重 */}
-				{volunteerStats && canApplyVolunteer && (
-					<div className="rounded-md border border-border bg-muted/60 p-3">
-						<div className="flex items-center justify-between mb-2">
-							<div className="flex items-center gap-2">
-								<Users className="h-4 w-4 text-muted-foreground" />
-								<span className="text-sm font-medium text-foreground">
-									志愿者招募
-								</span>
-								<div className="rounded-full border border-border bg-card px-2 py-0.5 text-xs text-muted-foreground">
-									{volunteerStats.totalApplied}/
-									{volunteerStats.totalNeeded}
-								</div>
-							</div>
-						</div>
-						<p className="mb-3 text-xs text-muted-foreground">
-							报名成为志愿者，亲手塑造你心目中理想的社区活动
-						</p>
-						<Button
-							onClick={() => setShowVolunteerModal(true)}
-							variant="outline"
-							className="w-full"
-							size="sm"
-						>
-							<Users className="h-4 w-4 mr-2" />
-							了解详情
-						</Button>
-					</div>
-				)}
-
 				{/* 辅助操作区域 - 所有用户可见 */}
 				<div className="mt-3 space-y-2 border-t border-border pt-3">
 					{/* 现场相册入口 - 桌面优先 */}
@@ -576,20 +531,6 @@ export function EventRegistrationCard({
 							</div>
 						)}
 				</div>
-
-				{/* 志愿者列表弹窗 */}
-				<VolunteerListModal
-					isOpen={showVolunteerModal}
-					onClose={() => setShowVolunteerModal(false)}
-					event={event}
-					currentUserId={user?.id}
-					onApplicationSuccess={(eventVolunteerRoleId?: string) => {
-						if (eventVolunteerRoleId) {
-							handleVolunteerApply(eventVolunteerRoleId);
-							onDataRefresh?.();
-						}
-					}}
-				/>
 			</CardContent>
 		</Card>
 	);
