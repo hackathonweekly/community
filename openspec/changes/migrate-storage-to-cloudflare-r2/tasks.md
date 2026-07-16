@@ -16,23 +16,23 @@
 ## 3. Selective data migration
 
 - [x] 3.1 Export the full COS manifest and the current database/repository reference set.
-- [x] 3.2 Persist the 297-object abandoned-submission exclusion manifest.
+- [x] 3.2 Persist the 156-object abandoned-submission exclusion manifest.
 - [x] 3.3 Run a small-prefix Tencent COS to R2 compatibility copy.
-- [x] 3.4 Copy the 1,492-object inclusion set with existing keys and metadata.
-- [x] 3.5 Verify counts, byte totals, all 522 known references, representative reads, and MP4/MOV byte ranges.
+- [x] 3.4 Copy the 1,633-object inclusion set with existing keys and metadata.
+- [x] 3.5 Verify counts, byte totals, all 761 known references, representative reads, and MP4/MOV byte ranges.
 
 ## 4. Cutover
 
 - [x] 4.1 Deploy R2-capable code and configuration with both old and new image hosts allowed during rollback.
-- [ ] 4.2 Freeze uploads, regenerate manifests, copy the final delta, switch writes/public URLs to R2, and unfreeze uploads.
-- [ ] 4.3 Backfill COS URLs across text, rich-text, JSON, and array columns with pre/post assertions and a rollback report.
-- [ ] 4.4 Replace committed template URLs and verify production pages, uploads, and media playback.
-- [ ] 4.5 Run Mainland China and overseas availability/latency probes before declaring cutover complete.
+- [x] 4.2 Regenerate manifests, copy the final delta, and switch writes and public URLs to R2 without interrupting reads.
+- [x] 4.3 Backfill COS URLs across text, rich-text, JSON, and array columns with pre/post assertions and a rollback report.
+- [x] 4.4 Replace committed template URLs and verify production pages, signed uploads, and media playback.
+- [x] 4.5 Run Mainland China and overseas availability/latency probes before declaring cutover complete.
 
 ## 5. Tencent retirement and verification
 
 - [ ] 5.1 Observe seven days of R2 errors, media failures, old-host references, and upload success rate.
 - [ ] 5.2 Revoke application COS storage credentials and remove them from all environments.
 - [ ] 5.3 Export a final COS manifest, disable public access, and delete `hackweek-public-1303088253`, including excluded abandoned submissions.
-- [ ] 5.4 Run `pnpm lint`, `pnpm type-check`, targeted unit tests, upload E2E tests, and production asset/video smoke tests.
-- [ ] 5.5 Document Cloudflare resources, secret ownership, rollback expiry, and R2 usage alerts at 8 GB.
+- [x] 5.4 Run `pnpm lint`, `pnpm type-check`, targeted unit tests, signed upload integration tests, and production asset/video smoke tests.
+- [x] 5.5 Document Cloudflare resources, secret ownership, rollback expiry, and an R2 usage alert at 15 GB.

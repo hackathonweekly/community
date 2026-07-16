@@ -363,7 +363,10 @@ async function main() {
 	const destination = createDestinationClient();
 	const sourceObjects = await listObjects(source, SOURCE_BUCKET);
 	const databaseReferences = await collectDatabaseReferences(
-		required(sourceEnv.DATABASE_URL, "source DATABASE_URL"),
+		required(
+			process.env.DATABASE_URL || sourceEnv.DATABASE_URL,
+			"DATABASE_URL",
+		),
 		sourceObjects,
 	);
 

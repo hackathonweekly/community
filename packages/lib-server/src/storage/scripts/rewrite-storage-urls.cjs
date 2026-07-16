@@ -101,7 +101,10 @@ async function findColumns(client) {
 async function main() {
 	const env = parseEnvFile(envFile);
 	const client = new Client({
-		connectionString: required(env.DATABASE_URL, "DATABASE_URL"),
+		connectionString: required(
+			process.env.DATABASE_URL || env.DATABASE_URL,
+			"DATABASE_URL",
+		),
 	});
 	await client.connect();
 

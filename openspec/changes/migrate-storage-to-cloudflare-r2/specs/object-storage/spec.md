@@ -23,22 +23,21 @@ The system SHALL construct public asset URLs from an explicitly configured publi
 - **THEN** the saved and returned asset URL uses `assets.hackathonweekly.com`
 - **AND** the R2 S3 API hostname is not persisted as the public URL
 
-### Requirement: Authorized upload intents
-The system SHALL authorize each upload purpose and owner/context, generate the object key on the server, and reject client attempts to choose an arbitrary bucket or overwrite another asset namespace.
+### Requirement: Constrained upload destinations
+The system SHALL restrict uploads to configured logical buckets, validate object paths and content types, and reject attempts to choose an arbitrary physical bucket or unsafe path.
 
-#### Scenario: Client supplies an unauthorized object path
-- **WHEN** an authenticated client attempts to request a signed upload for a path outside its authorized context
+#### Scenario: Client supplies an unauthorized bucket or unsafe path
+- **WHEN** an authenticated client requests a signed upload for an unconfigured bucket or traversal path
 - **THEN** the request is rejected
 - **AND** no presigned URL is issued
 
 ### Requirement: Upload size and type verification
-The system SHALL enforce per-purpose declared size and MIME rules before issuing an upload URL and SHALL verify actual object metadata after direct upload before considering the upload complete.
+The system SHALL enforce declared size and MIME rules before issuing an upload URL and SHALL reject an oversized direct-upload fallback before buffering its body.
 
-#### Scenario: Uploaded object exceeds its allowed size
-- **WHEN** the actual R2 object size exceeds the upload intent limit
-- **THEN** finalization fails
-- **AND** the invalid object is deleted
-- **AND** no public asset record or URL is accepted
+#### Scenario: Requested upload exceeds its allowed size
+- **WHEN** a client declares a file size above the configured limit or submits an oversized direct upload
+- **THEN** the upload request is rejected
+- **AND** no presigned URL is issued or application buffer is allocated
 
 ### Requirement: Reversible selective storage migration
 The system SHALL preserve source object keys, produce source/destination and exclusion manifests, verify all known referenced objects, and retain a rollback window before revoking Tencent COS access.

@@ -13,10 +13,10 @@ The application already uses the AWS SDK against an S3-compatible endpoint, but 
 |---|---:|
 | Tencent COS bucket | 1,789 objects / 16.818 GiB |
 | MP4 + MOV | 228 objects / 15.10 GiB / 89.8% of bytes |
-| Distinct keys referenced by the database or committed templates | 522 objects / 4.807 GiB |
-| Unreferenced submission objects approved for removal | 297 objects / 11.431 GiB |
-| Unreferenced submission videos in that removal set | 150 objects / 10.798 GiB |
-| Conservative migration set | 1,492 objects / 5.387 GiB |
+| Distinct keys referenced by the production database or committed templates | 761 objects / 11.761 GiB |
+| Unreferenced submission objects approved for removal | 156 objects / 4.545 GiB |
+| Unreferenced submission videos in that removal set | 72 objects / 4.011 GiB |
+| Conservative migration set | 1,633 objects / 12.273 GiB |
 | Referenced keys missing from COS | 0 |
 
 The migration set excludes only objects under `events/<eventId>/submissions/` that are not referenced by the current production database. Every other object is copied, including small unreferenced templates, event content, QR codes, and historical public assets, to bias toward site stability.
@@ -44,7 +44,7 @@ Cloudflare account checks confirmed that `hackathonweekly.com` is an active zone
 
 Create `hackathonweekly-assets-prod` with an APAC location hint and Standard storage class.
 
-- The 5.387 GiB conservative migration set is below the current 10 GB Standard free tier.
+- The 12.273 GiB conservative migration set exceeds the 10 GB monthly free allowance only slightly; at current Standard pricing the estimated excess storage charge is below USD 0.05/month before request charges.
 - R2 direct egress is free, so rare event-day playback does not create bandwidth charges.
 - Infrequent Access is rejected because the free tier does not apply and reads add retrieval charges.
 - The legacy `hackweek` bucket remains untouched.
@@ -53,13 +53,13 @@ Create `hackathonweekly-assets-prod` with an APAC location hint and Standard sto
 
 Video traffic is concentrated around competition day and is otherwise close to zero. At the measured retained footprint:
 
-- R2 storage remains free under the current Standard allowance.
+- R2 storage remains effectively negligible in cost, with an estimated excess storage charge below USD 0.05/month before request charges.
 - Cloudflare Stream adds a minimum storage purchase based on video minutes even when videos are not watched.
 - Browser-side FFmpeg is unreliable for 100-200 MB mobile uploads, and server-side FFmpeg adds queues, CPU pressure, temporary storage, and another failure path on the busiest day.
 
 Therefore new and historical active videos remain ordinary R2 objects with the current 200 MB upload limit. The custom domain cache and byte-range behavior are verified against representative MP4/MOV files. Before a competition, an operations command may warm the current event's referenced videos.
 
-Reconsider asynchronous transcoding only when retained R2 usage reaches 8 GB, individual videos regularly exceed 200 MB, or playback metrics show an event-day experience problem.
+Reconsider asynchronous transcoding only when retained R2 usage reaches 50 GB, individual videos regularly exceed 200 MB, or playback metrics show an event-day experience problem.
 
 ### Decision: Separate upload and read origins
 
@@ -80,9 +80,9 @@ Reconsider asynchronous transcoding only when retained R2 usage reaches 8 GB, in
 
 1. Export a full COS manifest containing key, size, last-modified timestamp, content type, and ETag.
 2. Export every current database/repository-referenced COS key.
-3. Define the exclusion set as unreferenced keys matching `events/<eventId>/submissions/`; the audited set contains 297 objects and 11.431 GiB.
-4. Copy the remaining 1,492 objects and about 5.387 GiB to R2 with identical keys and metadata.
-5. Verify destination count/bytes, `HEAD` all 522 known referenced objects, and run full/range reads across representative file types and sizes.
+3. Define the exclusion set as unreferenced keys matching `events/<eventId>/submissions/`; the audited production set contains 156 objects and 4.545 GiB.
+4. Copy the remaining 1,633 objects and 12.273 GiB to R2 with identical keys and metadata.
+5. Verify destination count/bytes, `HEAD` all 761 known referenced objects, and run full/range reads across representative file types and sizes.
 6. Freeze uploads briefly, regenerate the manifests, copy the final delta, and block cutover if any new key is unclassified.
 7. Switch writes/public URLs to R2 and backfill the 15 database columns containing the old COS hostname.
 
@@ -100,8 +100,8 @@ The exclusion manifest remains in the migration evidence. Excluded objects stay 
 ### Rollout gates
 
 1. R2 bucket, custom domain, TLS, CORS, cache rules, and scoped credentials are active.
-2. Source and destination manifests match the 1,492-object inclusion set by key and size.
-3. All 522 known referenced keys return successfully through `assets.hackathonweekly.com`.
+2. Source and destination manifests match the 1,633-object inclusion set by key and size.
+3. All 761 known referenced keys return successfully through `assets.hackathonweekly.com`.
 4. MP4/MOV byte-range playback succeeds through the custom domain.
 5. Production and Mainland China probes meet the agreed success-rate threshold.
 6. Database backfill leaves zero old-host references.
