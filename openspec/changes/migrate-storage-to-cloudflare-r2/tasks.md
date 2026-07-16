@@ -3,12 +3,12 @@
 - [x] 1.1 Create `hackathonweekly-assets-prod` as an APAC R2 Standard bucket.
 - [x] 1.2 Attach `assets.hackathonweekly.com`, require TLS 1.2+, keep `r2.dev` disabled, and verify DNS/TLS activation.
 - [x] 1.3 Configure production CORS and method restrictions, and verify cache behavior through object response headers.
-- [ ] 1.4 Create bucket-scoped R2 credentials and store them only in deployment secrets.
+- [x] 1.4 Create bucket-scoped R2 credentials and store them only in deployment secrets.
 
 ## 2. Storage implementation
 
-- [ ] 2.1 Make bucket name, S3 API endpoint, public endpoint, and region fully environment-driven.
-- [ ] 2.2 Remove the Tencent COS `Appid` middleware and all COS host/bucket runtime fallbacks.
+- [x] 2.1 Make bucket name, S3 API endpoint, public endpoint, and region fully environment-driven.
+- [x] 2.2 Remove the Tencent COS `Appid` middleware and all COS host/bucket runtime fallbacks.
 - [x] 2.3 Ensure public URLs always use the configured custom domain rather than the signed upload origin.
 - [x] 2.4 Enforce the existing file-size/type limits before the application-buffered direct-upload fallback reads a payload.
 - [x] 2.5 Add tests for R2 presigning, public URL generation, size/type enforcement, and deletion.
@@ -23,7 +23,7 @@
 
 ## 4. Cutover
 
-- [ ] 4.1 Deploy R2-capable code and configuration with both old and new image hosts allowed during rollback.
+- [x] 4.1 Deploy R2-capable code and configuration with both old and new image hosts allowed during rollback.
 - [ ] 4.2 Freeze uploads, regenerate manifests, copy the final delta, switch writes/public URLs to R2, and unfreeze uploads.
 - [ ] 4.3 Backfill COS URLs across text, rich-text, JSON, and array columns with pre/post assertions and a rollback report.
 - [ ] 4.4 Replace committed template URLs and verify production pages, uploads, and media playback.

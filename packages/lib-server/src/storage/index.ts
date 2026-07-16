@@ -25,9 +25,12 @@ const resolveBucketName = (bucket: string): string => {
 		return bucket;
 	}
 
-	// Temporary compatibility fallback keeps uploads available while production
-	// variables switch from Tencent COS to R2 in a separate deployment step.
-	return process.env.S3_BUCKET_PUBLIC?.trim() || "hackweek-public-1303088253";
+	const publicBucket = process.env.S3_BUCKET_PUBLIC?.trim();
+	if (!publicBucket) {
+		throw new Error("Missing env variable S3_BUCKET_PUBLIC");
+	}
+
+	return publicBucket;
 };
 
 const getS3Client = () => {
