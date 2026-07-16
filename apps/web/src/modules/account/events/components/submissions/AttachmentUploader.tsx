@@ -155,7 +155,11 @@ async function uploadFileWithProgress(
 	path: string,
 	onProgress: (progress: number) => void,
 ) {
-	const searchParams = new URLSearchParams({ bucket, path });
+	const searchParams = new URLSearchParams({
+		bucket,
+		path,
+		size: String(file.size),
+	});
 	if (file.type) {
 		searchParams.set("contentType", file.type);
 	}
@@ -256,11 +260,8 @@ async function uploadFileWithProgress(
 		xhr.send(file);
 	});
 
-	// 优先使用后端返回的完整地址，兜底用端点或签名URL推导
-	return (
-		publicUrl ??
-		buildPublicUrl(path, config.storage.endpoints.public, signedUrl)
-	);
+	// 优先使用后端返回的完整地址，兜底使用显式公共端点
+	return publicUrl ?? buildPublicUrl(path, config.storage.endpoints.public);
 }
 
 export function AttachmentUploader({

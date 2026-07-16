@@ -49,7 +49,7 @@ export function TiptapRichEditor({
 		// 获取签名上传URL
 		const bucketName = config.storage.bucketNames.public;
 		const response = await fetch(
-			`/api/uploads/signed-upload-url?bucket=${bucketName}&path=${filePath}&contentType=${encodeURIComponent(file.type)}`,
+			`/api/uploads/signed-upload-url?bucket=${bucketName}&path=${filePath}&contentType=${encodeURIComponent(file.type)}&size=${file.size}`,
 			{ method: "POST" },
 		);
 
@@ -71,8 +71,7 @@ export function TiptapRichEditor({
 			throw new Error("文件上传失败");
 		}
 
-		const fileUrl =
-			publicUrl ?? buildPublicUrl(filePath, undefined, signedUrl);
+		const fileUrl = publicUrl ?? buildPublicUrl(filePath);
 		await requestImageModeration(fileUrl, "content");
 		return fileUrl;
 	};

@@ -20,60 +20,14 @@ import { logger } from "@community/lib-server/logs";
 let s3Client: S3Client | null = null;
 let s3ClientForPresign: S3Client | null = null;
 
-/**
- * Middleware to inject Appid header for Tencent Cloud COS compatibility
- * This is required when using AWS SDK v3 with Tencent COS virtual-hosted-style URLs
- */
-const tencentCosMiddleware = {
-	name: "tencentCosMiddleware",
-	middleware: (next: any, _context: any) => {
-		return async (args: any): Promise<any> => {
-			// Check if this is a Tencent COS endpoint and if Appid header is missing
-			const endpoint = args?.request?.hostname || "";
-			const headers = args?.request?.headers || {};
+const resolveBucketName = (bucket: string): string => {
+	if (bucket !== "public") {
+		return bucket;
+	}
 
-			// Detect Tencent COS endpoint by checking for .myqcloud.com
-			if (endpoint.includes(".myqcloud.com") && !headers.Appid) {
-				// Extract Appid from bucket name (Tencent COS format: bucketname-appid)
-				const bucket = args?.input?.Bucket || "";
-				// Match patterns like "hackweek-public-1303088253" format
-				const appidMatch = bucket.match(/-(\d+)$/);
-
-				let appidToUse: string | null = null;
-
-				if (appidMatch) {
-					appidToUse = appidMatch[1];
-				} else if (process.env.S3_APPID) {
-					// Use explicit S3_APPID from env if available
-					appidToUse = process.env.S3_APPID;
-				} else {
-					// Last resort: extract any numeric part from common bucket patterns
-					const anyNumberMatch = bucket.match(/(\d+)/);
-					if (anyNumberMatch) {
-						appidToUse = anyNumberMatch[1];
-					}
-				}
-
-				if (appidToUse) {
-					// Inject Appid header for Tencent COS
-					args.request.headers = {
-						...headers,
-						Appid: appidToUse,
-					};
-				} else {
-					logger.warn(
-						"无法从bucket名称中提取Appid，可能导致COS请求失败",
-						{
-							bucket,
-							endpoint,
-						},
-					);
-				}
-			}
-
-			return next(args);
-		};
-	},
+	// Temporary compatibility fallback keeps uploads available while production
+	// variables switch from Tencent COS to R2 in a separate deployment step.
+	return process.env.S3_BUCKET_PUBLIC?.trim() || "hackweek-public-1303088253";
 };
 
 const getS3Client = () => {
@@ -108,18 +62,11 @@ const getS3Client = () => {
 		},
 	});
 
-	// Apply middleware to all S3 operations for Tencent COS compatibility
-	s3Client.middlewareStack.add(
-		tencentCosMiddleware.middleware.bind(tencentCosMiddleware),
-		{ step: "build" },
-	);
-
 	return s3Client;
 };
 
 /**
- * 专用于预签名的 S3 Client：不注入 Appid 头，避免把 appid 加入 SignedHeaders
- * 否则浏览器使用预签名URL直传时无法携带该头，导致 SignatureDoesNotMatch。
+ * 专用于预签名的 S3 Client。
  */
 const getS3ClientForPresign = () => {
 	if (s3ClientForPresign) {
@@ -141,7 +88,7 @@ const getS3ClientForPresign = () => {
 		throw new Error("Missing env variable S3_SECRET_ACCESS_KEY");
 	}
 
-	// 与 getS3Client 相同配置，但不添加 COS Appid 中间件
+	// 与 getS3Client 使用相同配置，单独缓存以隔离预签名中间件设置
 	s3ClientForPresign = new S3Client({
 		region: s3Region,
 		endpoint: s3Endpoint,
@@ -186,12 +133,11 @@ export async function getSignedUploadUrl(
 	},
 ): Promise<string> {
 	const { bucket, contentType } = options;
-	// 使用不带 Appid 头的 presign client，避免把 appid 带入 X-Amz-SignedHeaders
 	const s3Client = getS3ClientForPresign();
 
 	try {
 		const command = new PutObjectCommand({
-			Bucket: bucket,
+			Bucket: resolveBucketName(bucket),
 			Key: path,
 			...(contentType && { ContentType: contentType }),
 		});
@@ -218,7 +164,7 @@ export async function uploadFileToS3(
 
 	try {
 		const command = new PutObjectCommand({
-			Bucket: bucket,
+			Bucket: resolveBucketName(bucket),
 			Key: path,
 			Body: body,
 			...(contentType && { ContentType: contentType }),
@@ -242,7 +188,7 @@ export async function deleteFileFromS3(
 
 	try {
 		const command = new DeleteObjectCommand({
-			Bucket: bucket,
+			Bucket: resolveBucketName(bucket),
 			Key: path,
 		});
 

@@ -428,7 +428,8 @@ export function EventCreateForm({
 		// Check if current cover image is a template image (from the configured template URL base)
 		const isTemplateImage =
 			currentCoverImage?.includes("hackweek-public") ||
-			currentCoverImage?.includes("myqcloud.com");
+			currentCoverImage?.includes("myqcloud.com") ||
+			currentCoverImage?.includes("assets.hackathonweekly.com");
 
 		// If user has manually selected an image, don't auto-update
 		if (userHasSelectedImage) {

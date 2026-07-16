@@ -110,18 +110,17 @@ export const config = {
 	},
 	// 文件存储
 	storage: {
-		// 各用途的存储桶名称定义
+		// 各用途的逻辑存储桶名称；服务端通过 S3_BUCKET_PUBLIC 解析为物理存储桶
 		bucketNames: {
-			public: "hackweek-public-1303088253",
+			public: "public",
 		},
 		// 直接访问文件的服务端点
 		endpoints: {
-			// 优先使用前端公开变量，其次回退到后端 S3_ENDPOINT（防止构建时未注入导致前端拿到相对路径）
+			// 公共访问域名必须显式配置，不能回退到私有 S3 API 端点
 			public:
 				process.env.NEXT_PUBLIC_S3_ENDPOINT ||
 				process.env.S3_PUBLIC_ENDPOINT ||
-				process.env.S3_ENDPOINT ||
-				"https://hackweek-public-1303088253.cos.ap-guangzhou.myqcloud.com",
+				"",
 		},
 	},
 	// 联系表单

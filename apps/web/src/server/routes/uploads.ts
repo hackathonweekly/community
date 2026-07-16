@@ -12,6 +12,7 @@ import { resolver, validator } from "hono-openapi/zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { authMiddleware } from "../middleware/auth";
+import { isUploadSizeAllowed, resolveMaxUploadSize } from "./uploads-policy";
 
 const logger = createModuleLogger("uploads");
 
@@ -87,6 +88,7 @@ const ALLOWED_CONTENT_TYPES = new Map([
 
 // Maximum file path length
 const MAX_PATH_LENGTH = 512;
+const MAX_UPLOAD_SIZE = resolveMaxUploadSize(process.env.MAX_FILE_SIZE);
 
 // Validate file path for security
 function validateFilePath(path: string): boolean {
@@ -160,25 +162,15 @@ function validateContentType(
 	return true;
 }
 
-// 构建可公开访问的 URL，优先使用配置端点，兜底用签名链接的域名
-const buildPublicUrl = (path: string, signedUrl?: string): string => {
+// 构建可公开访问的 URL；不能回退到私有 S3 API 端点
+const buildPublicUrl = (path: string): string => {
 	const normalizedPath = path.replace(/^\/+/, "");
 
 	const candidates = [
 		config.storage.endpoints.public,
 		process.env.NEXT_PUBLIC_S3_ENDPOINT,
 		process.env.S3_PUBLIC_ENDPOINT,
-		process.env.S3_ENDPOINT,
 	];
-
-	if (signedUrl) {
-		try {
-			const origin = new URL(signedUrl).origin;
-			candidates.push(origin);
-		} catch {
-			// ignore invalid URL
-		}
-	}
 
 	const base = candidates
 		.filter(Boolean)
@@ -258,6 +250,11 @@ export const uploadsRouter = new Hono<{
 								ALLOWED_CONTENT_TYPES.has(normalized)
 							);
 						}, "Content type not allowed"),
+					size: z.coerce
+						.number()
+						.int()
+						.positive()
+						.max(MAX_UPLOAD_SIZE),
 				})
 				.refine(
 					(data) => {
@@ -299,7 +296,7 @@ export const uploadsRouter = new Hono<{
 			},
 		}),
 		async (c) => {
-			const { bucket, path, contentType } = c.req.valid("query");
+			const { bucket, path, contentType, size } = c.req.valid("query");
 			const user = c.get("user");
 			const resolvedBucket = resolveBucketName(bucket);
 
@@ -312,6 +309,10 @@ export const uploadsRouter = new Hono<{
 				throw new HTTPException(400, {
 					message: "Invalid content type for file extension",
 				});
+			}
+
+			if (!isUploadSizeAllowed(size, MAX_UPLOAD_SIZE)) {
+				throw new HTTPException(413, { message: "File is too large" });
 			}
 
 			// Check if bucket is allowed
@@ -340,7 +341,7 @@ export const uploadsRouter = new Hono<{
 					bucket: resolvedBucket,
 					contentType,
 				});
-				const publicUrl = buildPublicUrl(path, signedUrl);
+				const publicUrl = buildPublicUrl(path);
 				return c.json({ signedUrl, publicUrl });
 			} catch (error) {
 				console.error("Failed to generate signed upload URL:", error);
@@ -396,6 +397,12 @@ export const uploadsRouter = new Hono<{
 
 			if (!file) {
 				throw new HTTPException(400, { message: "File is required" });
+			}
+
+			if (!isUploadSizeAllowed(file.size, MAX_UPLOAD_SIZE)) {
+				throw new HTTPException(413, {
+					message: `File exceeds the ${MAX_UPLOAD_SIZE}-byte upload limit`,
+				});
 			}
 
 			if (!bucket) {

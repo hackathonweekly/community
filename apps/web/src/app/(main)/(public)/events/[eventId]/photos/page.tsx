@@ -387,6 +387,7 @@ export default function EventPhotosPage() {
 			const searchParams = new URLSearchParams({
 				bucket: config.storage.bucketNames.public,
 				path: fileName,
+				size: String(file.size),
 			});
 
 			if (file.type) {
@@ -422,11 +423,7 @@ export default function EventPhotosPage() {
 
 			const fileUrl =
 				publicUrl ??
-				buildPublicUrl(
-					fileName,
-					config.storage.endpoints.public,
-					signedUrl,
-				);
+				buildPublicUrl(fileName, config.storage.endpoints.public);
 
 			// Then submit to photos API
 			const submitRes = await fetch(`/api/events/${eventId}/photos`, {

@@ -13,23 +13,11 @@ type UploadOptions = {
 	publicEndpoint?: string;
 };
 
-export const buildPublicUrl = (
-	path: string,
-	publicEndpoint?: string,
-	signedUrl?: string,
-) => {
+export const buildPublicUrl = (path: string, publicEndpoint?: string) => {
 	const normalizedPath = path.replace(/^\/+/, "");
 
-	// Prefer explicit endpoint, then config, finally derive from signedUrl origin
+	// Public URLs must never be derived from the private S3 API endpoint.
 	const candidates = [publicEndpoint, config.storage.endpoints.public];
-
-	if (signedUrl) {
-		try {
-			candidates.push(new URL(signedUrl).origin);
-		} catch {
-			// ignore invalid URL
-		}
-	}
 
 	const base = candidates
 		.filter(Boolean)
@@ -67,6 +55,7 @@ export async function uploadWithSignedUrlFallback({
 	const searchParams = new URLSearchParams({
 		bucket,
 		path,
+		size: String(file.size),
 	});
 
 	if (contentType) {
@@ -110,7 +99,7 @@ export async function uploadWithSignedUrlFallback({
 			throw new Error("文件上传失败");
 		}
 
-		return publicUrl ?? buildPublicUrl(path, publicEndpoint, signedUrl);
+		return publicUrl ?? buildPublicUrl(path, publicEndpoint);
 	} catch (error) {
 		console.warn(
 			"[uploads] Signed URL upload failed, attempting direct upload fallback",

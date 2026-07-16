@@ -81,6 +81,11 @@ const nextConfig: NextConfig = {
 				hostname: "avatars.githubusercontent.com",
 			},
 			{
+				// Cloudflare R2 public assets
+				protocol: "https",
+				hostname: "assets.hackathonweekly.com",
+			},
+			{
 				// project screenshots and assets
 				protocol: "https",
 				hostname:

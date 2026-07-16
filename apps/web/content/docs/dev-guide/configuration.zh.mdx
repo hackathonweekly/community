@@ -24,9 +24,11 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 ### 可选配置
 
 ```bash
-# S3 兼容存储（腾讯云 COS）
-NEXT_PUBLIC_BUCKET_NAME=""
-NEXT_PUBLIC_S3_ENDPOINT=""
+# Cloudflare R2（S3 兼容）
+S3_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
+S3_REGION="auto"
+S3_BUCKET_PUBLIC="hackathonweekly-assets-prod"
+NEXT_PUBLIC_S3_ENDPOINT="https://assets.hackathonweekly.com"
 
 # OAuth 社交登录
 GITHUB_CLIENT_ID=""
