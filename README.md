@@ -25,15 +25,15 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 ### 代码授权
 
-- **非商用/开源使用**：[AGPL-3.0](LICENSE) - 可自由使用，但必须开源
-- **商业使用**：需要[商业授权](docs/legal/commercial-terms.md) - 联系邮箱 **makerjackie@qq.com**
+- **开源商用：免费。** 基于这份代码做产品、收费都可以，只要你的代码同样按 [AGPL-3.0](LICENSE) 开源。
+- **闭源商用：¥299。** 如果要商用且闭源，需要获得作者授权，授权费 299 元，一次买断。详见 [商业授权](docs/legal/commercial-terms.md)。
 
-**什么算商业使用？**
-任何公司或组织用于业务目的的使用都需要商业授权，包括但不限于：
-- 公司内部系统
-- 客户服务平台
-- SaaS 产品
-- 盈利项目
+联系邮箱：**makerjackie@qq.com**。也可以直接扫下面的收款码：既是赞赏，也可以是 299 元闭源授权费。
+
+<p align="center">
+  <img src="docs/sponsor/wxpay.jpg" width="240" alt="微信支付" />
+  <img src="docs/sponsor/alipay.jpg" width="240" alt="支付宝" />
+</p>
 
 ### 文档授权
 
@@ -53,8 +53,6 @@ HackathonWeekly（周周黑客松）社区平台 —— 一个面向创造者的
 
 ## 赞助
 
-如果这个项目对你有帮助，欢迎通过以下方式支持我们：
+如果这个项目对你有帮助，欢迎赞赏，或通过 [GitHub Sponsors](https://github.com/sponsors/makerjackie) 支持。
 
-- [GitHub Sponsors](https://github.com/sponsors/makerjackie)
-
-你的支持帮助我们持续维护和改进社区平台。
+收款码见上方「许可证」一节。赞赏和 299 元闭源授权费都可以扫。
